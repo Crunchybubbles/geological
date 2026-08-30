@@ -1,0 +1,26 @@
+# Gradle
+.gradle/
+build/
+out/
+
+# Minecraft development runs and generated files
+run/
+runs/
+logs/
+crash-reports/
+generated/
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+bin/
+
+# Java
+*.class
+hs_err_pid*
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+
