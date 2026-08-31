@@ -35,13 +35,14 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
+    assertEquals("phase2.0-alpha.3", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:f22280230a19cd2c3b9857acf470fc5c85b12e8ed81abf86e869088087e1cd08",
+        "sha256:46202e415fdf48544a286a136ece500c5ed6e167f2fb058de1eecb7e52d23567",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -117,6 +118,21 @@ class MaterialQueryTest {
     assertNotEquals(
         query.catalog().requireRock(Lithology.FELSIC_STOCK).primaryAssemblage(),
         firstMaterial.primaryAssemblage());
+    assertTrue(
+        firstMaterial.rock().porosityDistribution().contains(firstMaterial.porosityFraction()));
+    assertTrue(
+        firstMaterial
+            .rock()
+            .permeabilityDistribution()
+            .contains(firstMaterial.permeabilityIndex()));
+    assertTrue(
+        firstMaterial.rock().erodibilityDistribution().contains(firstMaterial.erodibilityIndex()));
+    assertNotEquals(firstMaterial.porosityFraction(), secondMaterial.porosityFraction());
+    assertEquals(firstMaterial.porosityFraction() * 0.9, alteredMaterial.porosityFraction());
+    assertEquals(
+        firstMaterial.permeabilityIndex() * StrictMath.sqrt(0.9),
+        alteredMaterial.permeabilityIndex());
+    assertEquals(firstMaterial.erodibilityIndex() - 0.04, alteredMaterial.erodibilityIndex());
     assertEquals(
         MineralAssemblage.SCALE,
         firstMaterial.primaryAssemblage().modesPpm().values().stream()

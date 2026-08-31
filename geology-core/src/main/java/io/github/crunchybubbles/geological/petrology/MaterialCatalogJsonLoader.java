@@ -25,7 +25,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 /** Strict JSON boundary for the first typed mineral, rock, and alteration data pack. */
 public final class MaterialCatalogJsonLoader {
-  public static final String AUTHORING_SCHEMA = "geological:material_catalog_authoring:v1";
+  public static final String AUTHORING_SCHEMA = "geological:material_catalog_authoring:v2";
   private static final int MAX_DOCUMENT_BYTES = 1_048_576;
   private static final Pattern IDENTIFIER = Pattern.compile("[a-z0-9_.-]+:[a-z0-9_./-]+");
   private static final JsonMapper JSON =
@@ -148,14 +148,15 @@ public final class MaterialCatalogJsonLoader {
       String path = "$.rocks[" + index + "]";
       Set<String> fields =
           Set.of(
-              "erodibility_index",
+              "erodibility_distribution",
               "genetic_family",
               "id",
               "lithology",
               "modal_spread_fraction",
               "mineral_modes_ppm",
-              "permeability_index",
-              "porosity_fraction");
+              "permeability_distribution",
+              "porosity_distribution",
+              "texture");
       requireObject(item, source, path, fields, fields);
       result.add(
           new RockDefinition(
@@ -170,11 +171,23 @@ public final class MaterialCatalogJsonLoader {
                   text(item, "genetic_family", source, path),
                   source,
                   path + ".genetic_family"),
+              enumValue(
+                  RockTexture.class,
+                  text(item, "texture", source, path),
+                  source,
+                  path + ".texture"),
               modes(item.get("mineral_modes_ppm"), source, path + ".mineral_modes_ppm", false),
               number(item, "modal_spread_fraction", source, path),
-              number(item, "porosity_fraction", source, path),
-              number(item, "permeability_index", source, path),
-              number(item, "erodibility_index", source, path)));
+              unitDistribution(
+                  item.get("porosity_distribution"), source, path + ".porosity_distribution"),
+              unitDistribution(
+                  item.get("permeability_distribution"),
+                  source,
+                  path + ".permeability_distribution"),
+              unitDistribution(
+                  item.get("erodibility_distribution"),
+                  source,
+                  path + ".erodibility_distribution")));
       index++;
     }
     return List.copyOf(result);
@@ -197,18 +210,11 @@ public final class MaterialCatalogJsonLoader {
               "porosity_multiplier",
               "process_class",
               "replacement_ppm",
-              "target_modes_ppm");
+              "target_recipes");
       requireObject(item, source, path, fields, fields);
       long replacement = longInteger(item, "replacement_ppm", source, path);
-      MineralAssemblage target =
-          modes(item.get("target_modes_ppm"), source, path + ".target_modes_ppm", true);
-      if (replacement == 0) {
-        if (target != null) {
-          throw error(source, path + ".target_modes_ppm", "must be empty when replacement is zero");
-        }
-      } else if (target == null) {
-        throw error(source, path + ".target_modes_ppm", "must close when replacement is non-zero");
-      }
+      List<AlterationAssemblageRecipe> targets =
+          targetRecipes(item.get("target_recipes"), source, path + ".target_recipes");
       double[] temperature = interval(item.get("peak_temperature_c"), source, path);
       double[] pressure = interval(item.get("peak_pressure_mpa"), source, path);
       result.add(
@@ -224,7 +230,7 @@ public final class MaterialCatalogJsonLoader {
                   source,
                   path + ".process_class"),
               replacement,
-              target,
+              targets,
               enumValue(
                   MetamorphicFacies.class,
                   text(item, "facies", source, path),
@@ -241,6 +247,53 @@ public final class MaterialCatalogJsonLoader {
       index++;
     }
     return List.copyOf(result);
+  }
+
+  private static List<AlterationAssemblageRecipe> targetRecipes(
+      JsonNode node, String source, String path) {
+    requireArray(node, source, path);
+    List<AlterationAssemblageRecipe> result = new ArrayList<>();
+    int index = 0;
+    for (JsonNode item : node) {
+      String itemPath = path + "[" + index + "]";
+      Set<String> fields = Set.of("protolith_families", "target_modes_ppm");
+      requireObject(item, source, itemPath, fields, fields);
+      JsonNode familiesNode = item.get("protolith_families");
+      requireArray(familiesNode, source, itemPath + ".protolith_families");
+      List<GeneticFamily> families = new ArrayList<>();
+      int familyIndex = 0;
+      for (JsonNode familyNode : familiesNode) {
+        if (!familyNode.isString() || familyNode.stringValue().isBlank()) {
+          throw error(
+              source,
+              itemPath + ".protolith_families[" + familyIndex + "]",
+              "must be a non-blank string");
+        }
+        families.add(
+            enumValue(
+                GeneticFamily.class,
+                familyNode.stringValue(),
+                source,
+                itemPath + ".protolith_families[" + familyIndex + "]"));
+        familyIndex++;
+      }
+      result.add(
+          new AlterationAssemblageRecipe(
+              families,
+              modes(item.get("target_modes_ppm"), source, itemPath + ".target_modes_ppm", false)));
+      index++;
+    }
+    return List.copyOf(result);
+  }
+
+  private static UnitIntervalDistribution unitDistribution(
+      JsonNode node, String source, String path) {
+    Set<String> fields = Set.of("maximum", "minimum", "mode");
+    requireObject(node, source, path, fields, fields);
+    return new UnitIntervalDistribution(
+        number(node, "minimum", source, path),
+        number(node, "mode", source, path),
+        number(node, "maximum", source, path));
   }
 
   private static MineralAssemblage modes(
@@ -283,7 +336,7 @@ public final class MaterialCatalogJsonLoader {
       List<AlterationDefinition> alterations) {
     StringBuilder output = new StringBuilder();
     output.append(
-        "{\"canonical_schema\":\"geological:material_catalog_snapshot:v1\",\"evidence\":{");
+        "{\"canonical_schema\":\"geological:material_catalog_snapshot:v2\",\"evidence\":{");
     field(output, "citation_id", evidence.citationId());
     output.append(',');
     field(output, "parameter_basis", evidence.parameterBasis());
@@ -354,8 +407,19 @@ public final class MaterialCatalogJsonLoader {
           field(output, "process_class", alteration.processClass().name());
           output.append(',');
           field(output, "replacement_ppm", alteration.replacementPpm());
-          output.append(",\"target_modes_ppm\":");
-          appendModes(output, alteration.targetAssemblage());
+          output.append(",\"target_recipes\":[");
+          appendSeparated(
+              output,
+              alteration.targetRecipes(),
+              recipe -> {
+                output.append("{\"protolith_families\":[");
+                appendSeparated(
+                    output, recipe.protolithFamilies(), family -> string(output, family.name()));
+                output.append("],\"target_modes_ppm\":");
+                appendModes(output, recipe.targetAssemblage());
+                output.append('}');
+              });
+          output.append(']');
           output.append('}');
         });
     output.append("],\"rocks\":[");
@@ -366,7 +430,8 @@ public final class MaterialCatalogJsonLoader {
         sortedRocks,
         rock -> {
           output.append('{');
-          field(output, "erodibility_index", rock.erodibilityIndex());
+          output.append("\"erodibility_distribution\":");
+          appendDistribution(output, rock.erodibilityDistribution());
           output.append(',');
           field(output, "genetic_family", rock.geneticFamily().name());
           output.append(',');
@@ -377,14 +442,27 @@ public final class MaterialCatalogJsonLoader {
           field(output, "modal_spread_fraction", rock.modalSpreadFraction());
           output.append(",\"mineral_modes_ppm\":");
           appendModes(output, rock.primaryAssemblage());
+          output.append(",\"permeability_distribution\":");
+          appendDistribution(output, rock.permeabilityDistribution());
+          output.append(",\"porosity_distribution\":");
+          appendDistribution(output, rock.porosityDistribution());
           output.append(',');
-          field(output, "permeability_index", rock.permeabilityIndex());
-          output.append(',');
-          field(output, "porosity_fraction", rock.porosityFraction());
+          field(output, "texture", rock.texture().name());
           output.append('}');
         });
     output.append("]}");
     return Normalizer.normalize(output, Normalizer.Form.NFC);
+  }
+
+  private static void appendDistribution(
+      StringBuilder output, UnitIntervalDistribution distribution) {
+    output.append('{');
+    field(output, "maximum", distribution.maximum());
+    output.append(',');
+    field(output, "minimum", distribution.minimum());
+    output.append(',');
+    field(output, "mode", distribution.mode());
+    output.append('}');
   }
 
   private static void appendModes(StringBuilder output, MineralAssemblage assemblage) {

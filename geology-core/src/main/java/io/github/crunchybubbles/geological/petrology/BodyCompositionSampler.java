@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-/** Samples one bounded triangular modal deviation per rock body and closes it exactly. */
+/** Samples body-scale mineral modes and bounded physical properties without mutable RNG state. */
 public final class BodyCompositionSampler {
   private final WorldIdentity identity;
 
@@ -35,6 +35,16 @@ public final class BodyCompositionSampler {
       weights.put(mode.getKey(), StrictMath.max(1L, mode.getValue() + delta));
     }
     return normalize(weights, stream);
+  }
+
+  public double sample(
+      UnitIntervalDistribution distribution, StableId bodyId, String propertyName) {
+    if (distribution == null || bodyId == null || propertyName == null || propertyName.isBlank()) {
+      throw new IllegalArgumentException("property distribution, body ID, and name are required");
+    }
+    ObjectRandomStream stream =
+        identity.objectStream("geological", "body_material_properties", bodyId);
+    return distribution.sample(stream.unitDouble("property:" + propertyName, 0));
   }
 
   private static MineralAssemblage normalize(Map<String, Long> weights, ObjectRandomStream stream) {

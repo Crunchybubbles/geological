@@ -25,5 +25,8 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"elementReservoirLedgers\""));
     assertTrue(firstJson.contains("\"surfacePlacerContext\""));
     assertTrue(firstJson.contains("\"normalizedExchangeMagnitudePpm\""));
+    assertTrue(firstJson.contains("\"texture\""));
+    assertTrue(firstJson.contains("\"porosityDistribution\""));
+    assertTrue(firstJson.contains("\"protolithFamilies\""));
   }
 }

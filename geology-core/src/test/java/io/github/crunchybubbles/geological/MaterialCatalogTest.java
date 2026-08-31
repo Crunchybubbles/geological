@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.crunchybubbles.geological.model.Lithology;
 import io.github.crunchybubbles.geological.model.Overprint;
+import io.github.crunchybubbles.geological.petrology.GeneticFamily;
 import io.github.crunchybubbles.geological.petrology.MaterialCatalogAuthoringException;
 import io.github.crunchybubbles.geological.petrology.MaterialCatalogJsonLoader;
 import io.github.crunchybubbles.geological.petrology.MaterialCatalogSnapshot;
@@ -13,6 +14,7 @@ import io.github.crunchybubbles.geological.petrology.MineralAssemblage;
 import io.github.crunchybubbles.geological.petrology.MineralDefinition;
 import io.github.crunchybubbles.geological.query.Phase2World;
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 
@@ -25,7 +27,7 @@ class MaterialCatalogTest {
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:66b592dcc5dc03c94bcdc1a991eac9813b572a52522f615bf4e8c2a6a631fa64",
+        "sha256:fd17db77152bb14383ee41a85b28226daddd47d0942c3588a6ebafa56fa2fa9d",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -41,6 +43,11 @@ class MaterialCatalogTest {
             rock -> {
               assertTrue(
                   rock.modalSpreadFraction() > 0.0 && rock.modalSpreadFraction() <= 0.5, rock.id());
+              assertTrue(rock.porosityDistribution().contains(rock.porosityFraction()), rock.id());
+              assertTrue(
+                  rock.permeabilityDistribution().contains(rock.permeabilityIndex()), rock.id());
+              assertTrue(
+                  rock.erodibilityDistribution().contains(rock.erodibilityIndex()), rock.id());
               assertEquals(
                   MineralAssemblage.SCALE,
                   rock.primaryAssemblage().modesPpm().values().stream()
@@ -54,13 +61,78 @@ class MaterialCatalogTest {
                       .sum(),
                   rock.id());
             });
+    catalog
+        .alterations()
+        .forEach(
+            alteration -> {
+              for (GeneticFamily family : GeneticFamily.values()) {
+                assertEquals(
+                    alteration.replacementPpm() > 0,
+                    alteration.targetAssemblage(family) != null,
+                    alteration.overprint() + "/" + family);
+              }
+            });
+  }
+
+  @Test
+  void canonicalCatalogIgnoresProtolithFamilyAuthoringOrder() throws Exception {
+    String authored = packagedCatalogJson();
+    String reordered =
+        authored.replace(
+            "\"IGNEOUS\", \"SEDIMENTARY\", \"METAMORPHIC\", \"HYDROTHERMAL\", \"SURFICIAL\"",
+            "\"SURFICIAL\", \"HYDROTHERMAL\", \"METAMORPHIC\", \"SEDIMENTARY\", \"IGNEOUS\"");
+    assertTrue(reordered.contains("\"SURFICIAL\", \"HYDROTHERMAL\""));
+
+    MaterialCatalogSnapshot loaded =
+        new MaterialCatalogJsonLoader()
+            .load(
+                new ByteArrayInputStream(reordered.getBytes(StandardCharsets.UTF_8)),
+                "reordered.json");
+
+    assertEquals(Phase2World.materialCatalog().canonicalJson(), loaded.canonicalJson());
+    assertEquals(Phase2World.materialCatalog().digest(), loaded.digest());
+  }
+
+  @Test
+  void strictCatalogBoundaryRejectsInvalidDistributionsAndIncompleteRecipeCoverage()
+      throws Exception {
+    String authored = packagedCatalogJson();
+    String invalidDistribution =
+        authored.replace(
+            "{\"minimum\": 0.14, \"mode\": 0.18, \"maximum\": 0.22}",
+            "{\"minimum\": 0.14, \"mode\": 0.25, \"maximum\": 0.22}");
+    MaterialCatalogAuthoringException distributionFailure =
+        assertThrows(
+            MaterialCatalogAuthoringException.class,
+            () ->
+                new MaterialCatalogJsonLoader()
+                    .load(
+                        new ByteArrayInputStream(
+                            invalidDistribution.getBytes(StandardCharsets.UTF_8)),
+                        "invalid-distribution.json"));
+    assertTrue(distributionFailure.getMessage().contains("minimum <= mode <= maximum"));
+
+    String incompleteRecipes =
+        authored.replace(
+            "\"IGNEOUS\", \"SEDIMENTARY\", \"METAMORPHIC\", \"HYDROTHERMAL\", \"SURFICIAL\"",
+            "\"IGNEOUS\"");
+    MaterialCatalogAuthoringException recipeFailure =
+        assertThrows(
+            MaterialCatalogAuthoringException.class,
+            () ->
+                new MaterialCatalogJsonLoader()
+                    .load(
+                        new ByteArrayInputStream(
+                            incompleteRecipes.getBytes(StandardCharsets.UTF_8)),
+                        "incomplete-recipes.json"));
+    assertTrue(recipeFailure.getMessage().contains("cover every protolith family"));
   }
 
   @Test
   void strictCatalogBoundaryRejectsUnknownFieldsAndUnclosedModes() {
     String unknown =
         """
-        {"authoring_schema":"geological:material_catalog_authoring:v1","evidence":{},
+        {"authoring_schema":"geological:material_catalog_authoring:v2","evidence":{},
         "minerals":[],"rocks":[],"overprints":[],"surprise":true}
         """;
     MaterialCatalogAuthoringException unknownFailure =
@@ -76,15 +148,18 @@ class MaterialCatalogTest {
     String unclosed =
         """
         {
-          "authoring_schema":"geological:material_catalog_authoring:v1",
+          "authoring_schema":"geological:material_catalog_authoring:v2",
           "evidence":{"citation_id":"refs:test","parameter_basis":"test tunable",
             "publication_year":2000,"title":"Test","uri":"https://example.invalid/test"},
           "minerals":[{"density_g_cm3":2.65,"formula":{"Si":1,"O":2},
             "hardness_mohs":7.0,"id":"test:quartz","weathering_resistance":1.0}],
-          "rocks":[{"erodibility_index":0.1,"genetic_family":"IGNEOUS","id":"test:rock",
+          "rocks":[{"erodibility_distribution":{"minimum":0.05,"mode":0.1,"maximum":0.2},
+            "genetic_family":"IGNEOUS","id":"test:rock",
             "lithology":"GRANITIC_GNEISS","mineral_modes_ppm":{"test:quartz":999999},
             "modal_spread_fraction":0.1,
-            "permeability_index":0.1,"porosity_fraction":0.1}],
+            "permeability_distribution":{"minimum":0.05,"mode":0.1,"maximum":0.2},
+            "porosity_distribution":{"minimum":0.05,"mode":0.1,"maximum":0.2},
+            "texture":"PHANERITIC_CRYSTALLINE"}],
           "overprints":[]
         }
         """;
@@ -97,5 +172,15 @@ class MaterialCatalogTest {
                         new ByteArrayInputStream(unclosed.getBytes(StandardCharsets.UTF_8)),
                         "unclosed.json"));
     assertTrue(modeFailure.getMessage().contains("mineral modes must close"));
+  }
+
+  private static String packagedCatalogJson() throws Exception {
+    try (InputStream input =
+        Phase2World.class.getResourceAsStream("/data/geological/registry/phase2-materials.json")) {
+      if (input == null) {
+        throw new IllegalStateException("packaged material catalog is missing");
+      }
+      return new String(input.readAllBytes(), StandardCharsets.UTF_8);
+    }
   }
 }

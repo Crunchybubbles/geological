@@ -1,13 +1,16 @@
 package io.github.crunchybubbles.geological.petrology;
 
 import io.github.crunchybubbles.geological.model.Overprint;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.List;
 
 /** Authored response for a younger metamorphic, hydrothermal, or weathering overprint. */
 public record AlterationDefinition(
     Overprint overprint,
     MaterialProcessClass processClass,
     long replacementPpm,
-    MineralAssemblage targetAssemblage,
+    List<AlterationAssemblageRecipe> targetRecipes,
     MetamorphicFacies facies,
     MetamorphicPath path,
     double minimumTemperatureCelsius,
@@ -17,15 +20,36 @@ public record AlterationDefinition(
     double porosityMultiplier,
     double erodibilityDelta) {
   public AlterationDefinition {
-    if (overprint == null || processClass == null || facies == null || path == null) {
+    if (overprint == null
+        || processClass == null
+        || targetRecipes == null
+        || facies == null
+        || path == null) {
       throw new IllegalArgumentException("alteration definition identity must be complete");
     }
+    targetRecipes =
+        List.copyOf(targetRecipes).stream()
+            .sorted(Comparator.comparing(recipe -> recipe.protolithFamilies().getFirst().name()))
+            .toList();
     if (replacementPpm < 0 || replacementPpm > MineralAssemblage.SCALE) {
       throw new IllegalArgumentException("replacement fraction must lie in [0, 1000000]");
     }
-    if ((replacementPpm == 0) != (targetAssemblage == null)) {
+    if ((replacementPpm == 0) != targetRecipes.isEmpty()) {
       throw new IllegalArgumentException(
-          "target assemblage is required exactly when replacement is non-zero");
+          "target recipes are required exactly when replacement is non-zero");
+    }
+    EnumSet<GeneticFamily> covered = EnumSet.noneOf(GeneticFamily.class);
+    for (AlterationAssemblageRecipe recipe : targetRecipes) {
+      for (GeneticFamily family : recipe.protolithFamilies()) {
+        if (!covered.add(family)) {
+          throw new IllegalArgumentException(
+              "alteration target recipes overlap for protolith family " + family);
+        }
+      }
+    }
+    if (replacementPpm > 0 && covered.size() != GeneticFamily.values().length) {
+      throw new IllegalArgumentException(
+          "alteration target recipes must cover every protolith family");
     }
     requireOrdered(
         minimumTemperatureCelsius, maximumTemperatureCelsius, -100.0, 1_500.0, "temperature");
@@ -36,6 +60,17 @@ public record AlterationDefinition(
     if (!Double.isFinite(erodibilityDelta) || erodibilityDelta < -1.0 || erodibilityDelta > 1.0) {
       throw new IllegalArgumentException("erodibility delta must lie in [-1, 1]");
     }
+  }
+
+  public MineralAssemblage targetAssemblage(GeneticFamily family) {
+    if (family == null) {
+      throw new IllegalArgumentException("protolith family is required");
+    }
+    return targetRecipes.stream()
+        .filter(recipe -> recipe.appliesTo(family))
+        .map(AlterationAssemblageRecipe::targetAssemblage)
+        .findFirst()
+        .orElse(null);
   }
 
   private static void requireOrdered(

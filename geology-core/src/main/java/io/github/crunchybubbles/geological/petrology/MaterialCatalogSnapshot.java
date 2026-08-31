@@ -180,12 +180,20 @@ public final class MaterialCatalogSnapshot {
 
   private void validateReferences() {
     rocks.values().forEach(rock -> validateAssemblage(rock.primaryAssemblage(), rock.id()));
-    alterations.values().stream()
-        .filter(alteration -> alteration.targetAssemblage() != null)
+    alterations
+        .values()
         .forEach(
             alteration ->
-                validateAssemblage(
-                    alteration.targetAssemblage(), "overprint " + alteration.overprint()));
+                alteration
+                    .targetRecipes()
+                    .forEach(
+                        recipe ->
+                            validateAssemblage(
+                                recipe.targetAssemblage(),
+                                "overprint "
+                                    + alteration.overprint()
+                                    + " for "
+                                    + recipe.protolithFamilies())));
   }
 
   private void validateAssemblage(MineralAssemblage assemblage, String owner) {

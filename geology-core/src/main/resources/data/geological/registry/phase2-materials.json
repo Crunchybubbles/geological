@@ -1,8 +1,8 @@
 {
-  "authoring_schema": "geological:material_catalog_authoring:v1",
+  "authoring_schema": "geological:material_catalog_authoring:v2",
   "evidence": {
     "citation_id": "refs:philpotts_ague_2009",
-    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. Mineral modes and physical-property scalars are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
+    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. Mineral modes, textures, and physical-property distributions are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
     "publication_year": 2009,
     "title": "Principles of Igneous and Metamorphic Petrology",
     "uri": "https://doi.org/10.1017/CBO9780511813429"
@@ -165,11 +165,12 @@
   ],
   "rocks": [
     {
-      "erodibility_index": 0.18,
+      "erodibility_distribution": {"minimum": 0.14, "mode": 0.18, "maximum": 0.22},
       "genetic_family": "METAMORPHIC",
       "id": "geological:rock/granitic_gneiss",
       "lithology": "GRANITIC_GNEISS",
       "modal_spread_fraction": 0.12,
+      "texture": "FOLIATED_CRYSTALLINE",
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 300000,
         "geological:mineral/orthoclase": 250000,
@@ -180,15 +181,16 @@
         "geological:mineral/magnetite": 20000,
         "geological:mineral/muscovite": 40000
       },
-      "permeability_index": 0.05,
-      "porosity_fraction": 0.01
+      "permeability_distribution": {"minimum": 0.03, "mode": 0.05, "maximum": 0.08},
+      "porosity_distribution": {"minimum": 0.006, "mode": 0.01, "maximum": 0.018}
     },
     {
-      "erodibility_index": 0.42,
+      "erodibility_distribution": {"minimum": 0.34, "mode": 0.42, "maximum": 0.52},
       "genetic_family": "SEDIMENTARY",
       "id": "geological:rock/basal_conglomerate",
       "lithology": "BASAL_CONGLOMERATE",
       "modal_spread_fraction": 0.2,
+      "texture": "CLASTIC_COARSE",
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 550000,
         "geological:mineral/albite": 120000,
@@ -200,15 +202,16 @@
         "geological:mineral/phlogopite": 20000,
         "geological:mineral/annite": 20000
       },
-      "permeability_index": 0.62,
-      "porosity_fraction": 0.15
+      "permeability_distribution": {"minimum": 0.45, "mode": 0.62, "maximum": 0.78},
+      "porosity_distribution": {"minimum": 0.1, "mode": 0.15, "maximum": 0.21}
     },
     {
-      "erodibility_index": 0.45,
+      "erodibility_distribution": {"minimum": 0.36, "mode": 0.45, "maximum": 0.56},
       "genetic_family": "SEDIMENTARY",
       "id": "geological:rock/marine_volcaniclastic",
       "lithology": "MARINE_VOLCANICLASTIC",
       "modal_spread_fraction": 0.18,
+      "texture": "VOLCANICLASTIC",
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 80000,
         "geological:mineral/albite": 250000,
@@ -219,15 +222,16 @@
         "geological:mineral/magnetite": 70000,
         "geological:mineral/calcite": 70000
       },
-      "permeability_index": 0.34,
-      "porosity_fraction": 0.1
+      "permeability_distribution": {"minimum": 0.22, "mode": 0.34, "maximum": 0.48},
+      "porosity_distribution": {"minimum": 0.06, "mode": 0.1, "maximum": 0.15}
     },
     {
-      "erodibility_index": 0.7,
+      "erodibility_distribution": {"minimum": 0.6, "mode": 0.7, "maximum": 0.8},
       "genetic_family": "SEDIMENTARY",
       "id": "geological:rock/basin_shale",
       "lithology": "BASIN_SHALE",
       "modal_spread_fraction": 0.15,
+      "texture": "CLASTIC_MUD",
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 300000,
         "geological:mineral/albite": 80000,
@@ -238,15 +242,16 @@
         "geological:mineral/pyrite": 20000,
         "geological:mineral/calcite": 40000
       },
-      "permeability_index": 0.08,
-      "porosity_fraction": 0.08
+      "permeability_distribution": {"minimum": 0.04, "mode": 0.08, "maximum": 0.14},
+      "porosity_distribution": {"minimum": 0.05, "mode": 0.08, "maximum": 0.12}
     },
     {
-      "erodibility_index": 0.36,
+      "erodibility_distribution": {"minimum": 0.28, "mode": 0.36, "maximum": 0.46},
       "genetic_family": "SEDIMENTARY",
       "id": "geological:rock/basin_sandstone",
       "lithology": "BASIN_SANDSTONE",
       "modal_spread_fraction": 0.12,
+      "texture": "CLASTIC_SAND",
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 760000,
         "geological:mineral/albite": 70000,
@@ -256,15 +261,16 @@
         "geological:mineral/magnetite": 10000,
         "geological:mineral/muscovite": 10000
       },
-      "permeability_index": 0.58,
-      "porosity_fraction": 0.13
+      "permeability_distribution": {"minimum": 0.42, "mode": 0.58, "maximum": 0.72},
+      "porosity_distribution": {"minimum": 0.09, "mode": 0.13, "maximum": 0.18}
     },
     {
-      "erodibility_index": 0.2,
+      "erodibility_distribution": {"minimum": 0.16, "mode": 0.2, "maximum": 0.25},
       "genetic_family": "IGNEOUS",
       "id": "geological:rock/diorite_pulse",
       "lithology": "DIORITE_PULSE",
       "modal_spread_fraction": 0.1,
+      "texture": "PHANERITIC_CRYSTALLINE",
       "mineral_modes_ppm": {
         "geological:mineral/albite": 220000,
         "geological:mineral/anorthite": 300000,
@@ -275,15 +281,16 @@
         "geological:mineral/magnetite": 50000,
         "geological:mineral/quartz": 20000
       },
-      "permeability_index": 0.06,
-      "porosity_fraction": 0.015
+      "permeability_distribution": {"minimum": 0.035, "mode": 0.06, "maximum": 0.1},
+      "porosity_distribution": {"minimum": 0.009, "mode": 0.015, "maximum": 0.024}
     },
     {
-      "erodibility_index": 0.16,
+      "erodibility_distribution": {"minimum": 0.13, "mode": 0.16, "maximum": 0.21},
       "genetic_family": "IGNEOUS",
       "id": "geological:rock/granodiorite_pulse",
       "lithology": "GRANODIORITE_PULSE",
       "modal_spread_fraction": 0.1,
+      "texture": "PHANERITIC_CRYSTALLINE",
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 200000,
         "geological:mineral/albite": 220000,
@@ -295,15 +302,16 @@
         "geological:mineral/magnetite": 40000,
         "geological:mineral/muscovite": 30000
       },
-      "permeability_index": 0.05,
-      "porosity_fraction": 0.012
+      "permeability_distribution": {"minimum": 0.03, "mode": 0.05, "maximum": 0.08},
+      "porosity_distribution": {"minimum": 0.007, "mode": 0.012, "maximum": 0.019}
     },
     {
-      "erodibility_index": 0.14,
+      "erodibility_distribution": {"minimum": 0.11, "mode": 0.14, "maximum": 0.18},
       "genetic_family": "IGNEOUS",
       "id": "geological:rock/felsic_stock",
       "lithology": "FELSIC_STOCK",
       "modal_spread_fraction": 0.08,
+      "texture": "PHANERITIC_CRYSTALLINE",
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 330000,
         "geological:mineral/orthoclase": 270000,
@@ -314,15 +322,16 @@
         "geological:mineral/annite": 10000,
         "geological:mineral/magnetite": 30000
       },
-      "permeability_index": 0.04,
-      "porosity_fraction": 0.01
+      "permeability_distribution": {"minimum": 0.025, "mode": 0.04, "maximum": 0.07},
+      "porosity_distribution": {"minimum": 0.006, "mode": 0.01, "maximum": 0.017}
     },
     {
-      "erodibility_index": 0.24,
+      "erodibility_distribution": {"minimum": 0.18, "mode": 0.24, "maximum": 0.32},
       "genetic_family": "HYDROTHERMAL",
       "id": "geological:rock/vms_massive_sulfide",
       "lithology": "VMS_MASSIVE_SULFIDE",
       "modal_spread_fraction": 0.18,
+      "texture": "MASSIVE_SULFIDE",
       "mineral_modes_ppm": {
         "geological:mineral/pyrite": 500000,
         "geological:mineral/chalcopyrite": 180000,
@@ -332,15 +341,16 @@
         "geological:mineral/calcite": 20000,
         "geological:mineral/magnetite": 20000
       },
-      "permeability_index": 0.12,
-      "porosity_fraction": 0.025
+      "permeability_distribution": {"minimum": 0.07, "mode": 0.12, "maximum": 0.2},
+      "porosity_distribution": {"minimum": 0.015, "mode": 0.025, "maximum": 0.04}
     },
     {
-      "erodibility_index": 0.82,
+      "erodibility_distribution": {"minimum": 0.7, "mode": 0.82, "maximum": 0.92},
       "genetic_family": "SURFICIAL",
       "id": "geological:rock/alluvial_gravel",
       "lithology": "ALLUVIAL_GRAVEL",
       "modal_spread_fraction": 0.22,
+      "texture": "UNCONSOLIDATED_GRANULAR",
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 599999,
         "geological:mineral/albite": 100000,
@@ -352,8 +362,8 @@
         "geological:mineral/goethite": 30000,
         "geological:mineral/native_gold": 1
       },
-      "permeability_index": 0.9,
-      "porosity_fraction": 0.28
+      "permeability_distribution": {"minimum": 0.75, "mode": 0.9, "maximum": 0.98},
+      "porosity_distribution": {"minimum": 0.2, "mode": 0.28, "maximum": 0.38}
     }
   ],
   "overprints": [
@@ -367,7 +377,7 @@
       "porosity_multiplier": 1.0,
       "process_class": "NONE",
       "replacement_ppm": 0,
-      "target_modes_ppm": {}
+      "target_recipes": []
     },
     {
       "erodibility_delta": 0.12,
@@ -379,13 +389,13 @@
       "porosity_multiplier": 1.35,
       "process_class": "WEATHERING",
       "replacement_ppm": 200000,
-      "target_modes_ppm": {
+      "target_recipes": [{"protolith_families": ["IGNEOUS", "SEDIMENTARY", "METAMORPHIC", "HYDROTHERMAL", "SURFICIAL"], "target_modes_ppm": {
         "geological:mineral/quartz": 200000,
         "geological:mineral/kaolinite": 400000,
         "geological:mineral/goethite": 250000,
         "geological:mineral/hematite": 100000,
         "geological:mineral/magnetite": 50000
-      }
+      }}]
     },
     {
       "erodibility_delta": -0.08,
@@ -397,7 +407,7 @@
       "porosity_multiplier": 0.7,
       "process_class": "ISOCHEMICAL_METAMORPHISM",
       "replacement_ppm": 0,
-      "target_modes_ppm": {}
+      "target_recipes": []
     },
     {
       "erodibility_delta": -0.04,
@@ -409,14 +419,14 @@
       "porosity_multiplier": 0.9,
       "process_class": "HYDROTHERMAL_METASOMATISM",
       "replacement_ppm": 300000,
-      "target_modes_ppm": {
+      "target_recipes": [{"protolith_families": ["IGNEOUS", "SEDIMENTARY", "METAMORPHIC", "HYDROTHERMAL", "SURFICIAL"], "target_modes_ppm": {
         "geological:mineral/orthoclase": 450000,
         "geological:mineral/phlogopite": 150000,
         "geological:mineral/quartz": 200000,
         "geological:mineral/magnetite": 80000,
         "geological:mineral/chalcopyrite": 60000,
         "geological:mineral/pyrite": 60000
-      }
+      }}]
     },
     {
       "erodibility_delta": 0.05,
@@ -428,13 +438,13 @@
       "porosity_multiplier": 1.2,
       "process_class": "HYDROTHERMAL_METASOMATISM",
       "replacement_ppm": 400000,
-      "target_modes_ppm": {
+      "target_recipes": [{"protolith_families": ["IGNEOUS", "SEDIMENTARY", "METAMORPHIC", "HYDROTHERMAL", "SURFICIAL"], "target_modes_ppm": {
         "geological:mineral/quartz": 350000,
         "geological:mineral/muscovite": 350000,
         "geological:mineral/pyrite": 180000,
         "geological:mineral/chalcopyrite": 40000,
         "geological:mineral/kaolinite": 80000
-      }
+      }}]
     },
     {
       "erodibility_delta": 0.02,
@@ -446,14 +456,14 @@
       "porosity_multiplier": 1.08,
       "process_class": "HYDROTHERMAL_METASOMATISM",
       "replacement_ppm": 280000,
-      "target_modes_ppm": {
+      "target_recipes": [{"protolith_families": ["IGNEOUS", "SEDIMENTARY", "METAMORPHIC", "HYDROTHERMAL", "SURFICIAL"], "target_modes_ppm": {
         "geological:mineral/clinochlore": 300000,
         "geological:mineral/epidote": 250000,
         "geological:mineral/calcite": 250000,
         "geological:mineral/quartz": 100000,
         "geological:mineral/pyrite": 60000,
         "geological:mineral/magnetite": 40000
-      }
+      }}]
     },
     {
       "erodibility_delta": 0.04,
@@ -465,14 +475,14 @@
       "porosity_multiplier": 1.15,
       "process_class": "HYDROTHERMAL_METASOMATISM",
       "replacement_ppm": 350000,
-      "target_modes_ppm": {
+      "target_recipes": [{"protolith_families": ["IGNEOUS", "SEDIMENTARY", "METAMORPHIC", "HYDROTHERMAL", "SURFICIAL"], "target_modes_ppm": {
         "geological:mineral/clinochlore": 450000,
         "geological:mineral/quartz": 180000,
         "geological:mineral/pyrite": 220000,
         "geological:mineral/chalcopyrite": 80000,
         "geological:mineral/sphalerite": 50000,
         "geological:mineral/magnetite": 20000
-      }
+      }}]
     },
     {
       "erodibility_delta": 0.18,
@@ -484,14 +494,14 @@
       "porosity_multiplier": 1.45,
       "process_class": "WEATHERING",
       "replacement_ppm": 500000,
-      "target_modes_ppm": {
+      "target_recipes": [{"protolith_families": ["IGNEOUS", "SEDIMENTARY", "METAMORPHIC", "HYDROTHERMAL", "SURFICIAL"], "target_modes_ppm": {
         "geological:mineral/goethite": 500000,
         "geological:mineral/hematite": 250000,
         "geological:mineral/quartz": 149950,
         "geological:mineral/kaolinite": 80000,
         "geological:mineral/magnetite": 20000,
         "geological:mineral/native_gold": 50
-      }
+      }}]
     },
     {
       "erodibility_delta": 0.15,
@@ -503,14 +513,14 @@
       "porosity_multiplier": 1.4,
       "process_class": "WEATHERING",
       "replacement_ppm": 300000,
-      "target_modes_ppm": {
+      "target_recipes": [{"protolith_families": ["IGNEOUS", "SEDIMENTARY", "METAMORPHIC", "HYDROTHERMAL", "SURFICIAL"], "target_modes_ppm": {
         "geological:mineral/kaolinite": 400000,
         "geological:mineral/quartz": 250000,
         "geological:mineral/goethite": 150000,
         "geological:mineral/hematite": 80000,
         "geological:mineral/magnetite": 20000,
         "geological:mineral/muscovite": 100000
-      }
+      }}]
     }
   ]
 }

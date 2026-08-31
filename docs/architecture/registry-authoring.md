@@ -20,7 +20,7 @@ The authored Phase 1 resource recompiles to the published digest:
 sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4
 ```
 
-Phase 2 adds a separate typed material catalog at `geology-core/src/main/resources/data/geological/registry/phase2-materials.json`. Its loader retains the same strict-boundary principles while validating mineral formulas, exact central modal closure, bounded modal-spread fractions, mineral references, and complete mappings for the implemented lithology and overprint enums. The frozen material digest is `sha256:66b592dcc5dc03c94bcdc1a991eac9813b572a52522f615bf4e8c2a6a631fa64`; a canonical manifest composes it with the unchanged Phase 1 registry digest rather than rewriting the Phase 1 snapshot.
+Phase 2 adds a separate typed material catalog at `geology-core/src/main/resources/data/geological/registry/phase2-materials.json`. Authoring schema v2 retains the same strict-boundary principles while validating mineral formulas, exact central modal closure, bounded modal-spread fractions, typed textures, ordered unit-interval property distributions, mineral references, and exact protolith-family coverage for every alteration target. The frozen material digest is `sha256:fd17db77152bb14383ee41a85b28226daddd47d0942c3588a6ebafa56fa2fa9d`; a canonical manifest composes it with the unchanged Phase 1 registry digest rather than rewriting the Phase 1 snapshot.
 
 The initial JSON resource replaced the earlier Java-built fixture without changing canonical content. Later scientific catalog changes advance the Phase 2 model version and material/composite digests while leaving the Phase 1 identity frozen. Tests freeze the digests, fuzz authoring collection order, and exercise malformed JSON and unit-vocabulary drift.
 

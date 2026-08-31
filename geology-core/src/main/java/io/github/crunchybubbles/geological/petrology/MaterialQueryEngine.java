@@ -379,7 +379,9 @@ public final class MaterialQueryEngine {
         alteration.replacementPpm() == 0
             ? primary
             : MineralAssemblage.blend(
-                primary, alteration.targetAssemblage(), alteration.replacementPpm());
+                primary,
+                alteration.targetAssemblage(rock.geneticFamily()),
+                alteration.replacementPpm());
     BulkComposition primaryComposition = catalog.composition(primary);
     BulkComposition resolvedComposition = catalog.composition(resolved);
     ElementTransferLedger ledger =
@@ -395,11 +397,18 @@ public final class MaterialQueryEngine {
         primaryComposition,
         resolvedComposition,
         ledger,
-        clamp(rock.porosityFraction() * alteration.porosityMultiplier()),
         clamp(
-            rock.permeabilityIndex()
+            compositionSampler.sample(
+                    rock.porosityDistribution(), key.bodyId(), "porosity_fraction")
+                * alteration.porosityMultiplier()),
+        clamp(
+            compositionSampler.sample(
+                    rock.permeabilityDistribution(), key.bodyId(), "permeability_index")
                 * StrictMath.sqrt(StrictMath.max(0.0, alteration.porosityMultiplier()))),
-        clamp(rock.erodibilityIndex() + alteration.erodibilityDelta()));
+        clamp(
+            compositionSampler.sample(
+                    rock.erodibilityDistribution(), key.bodyId(), "erodibility_index")
+                + alteration.erodibilityDelta()));
   }
 
   private List<ElementReservoirLedger> ledgersForSample(

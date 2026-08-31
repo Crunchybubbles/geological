@@ -8,6 +8,7 @@ import io.github.crunchybubbles.geological.model.Lithology;
 import io.github.crunchybubbles.geological.model.Overprint;
 import io.github.crunchybubbles.geological.model.Point2;
 import io.github.crunchybubbles.geological.model.Point3;
+import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
 import io.github.crunchybubbles.geological.petrology.ChemicalElement;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessLedger;
@@ -16,6 +17,7 @@ import io.github.crunchybubbles.geological.petrology.PetrologicSample;
 import io.github.crunchybubbles.geological.petrology.ReservoirTransfer;
 import io.github.crunchybubbles.geological.petrology.RockDefinition;
 import io.github.crunchybubbles.geological.petrology.SurfacePetrologicSample;
+import io.github.crunchybubbles.geological.petrology.UnitIntervalDistribution;
 import io.github.crunchybubbles.geological.query.GeologicalSample;
 import io.github.crunchybubbles.geological.query.Phase1World;
 import io.github.crunchybubbles.geological.query.Phase2World;
@@ -113,7 +115,9 @@ final class MaterialReviewPacketGenerator {
                 "overprintCount",
                 query.catalog().alterations().size(),
                 "rocks",
-                query.catalog().rocks().stream().map(this::rockJson).toList()),
+                query.catalog().rocks().stream().map(this::rockJson).toList(),
+                "overprints",
+                query.catalog().alterations().stream().map(this::alterationJson).toList()),
             "referenceProvince",
             JsonWriter.object(
                 "id",
@@ -194,10 +198,48 @@ final class MaterialReviewPacketGenerator {
         rock.lithology().name(),
         "geneticFamily",
         rock.geneticFamily().name(),
+        "texture",
+        rock.texture().name(),
         "modalSpreadFraction",
         rock.modalSpreadFraction(),
+        "porosityDistribution",
+        distributionJson(rock.porosityDistribution()),
+        "permeabilityDistribution",
+        distributionJson(rock.permeabilityDistribution()),
+        "erodibilityDistribution",
+        distributionJson(rock.erodibilityDistribution()),
         "centralModesPpm",
         rock.primaryAssemblage().modesPpm());
+  }
+
+  private static Map<String, Object> distributionJson(UnitIntervalDistribution distribution) {
+    return JsonWriter.object(
+        "minimum",
+        distribution.minimum(),
+        "mode",
+        distribution.mode(),
+        "maximum",
+        distribution.maximum());
+  }
+
+  private Map<String, Object> alterationJson(AlterationDefinition alteration) {
+    return JsonWriter.object(
+        "overprint",
+        alteration.overprint().name(),
+        "processClass",
+        alteration.processClass().name(),
+        "replacementPpm",
+        alteration.replacementPpm(),
+        "targetRecipes",
+        alteration.targetRecipes().stream()
+            .map(
+                recipe ->
+                    JsonWriter.object(
+                        "protolithFamilies",
+                        recipe.protolithFamilies().stream().map(Enum::name).toList(),
+                        "targetModesPpm",
+                        recipe.targetAssemblage().modesPpm()))
+            .toList());
   }
 
   private Map<String, Object> sampleJson(String label, PetrologicSample sample) {
