@@ -12,6 +12,9 @@ import io.github.crunchybubbles.geological.model.GeologicalEvent;
 import io.github.crunchybubbles.geological.model.Lithology;
 import io.github.crunchybubbles.geological.model.Point2;
 import io.github.crunchybubbles.geological.model.Point3;
+import io.github.crunchybubbles.geological.registry.Phase1ScientificRegistry;
+import io.github.crunchybubbles.geological.stratigraphy.StratigraphicPackageKernel;
+import io.github.crunchybubbles.geological.stratigraphy.UnconformityKernel;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -137,8 +140,29 @@ public final class AtlasCompiler {
             0.44 * scale,
             0.39 * scale,
             -42.0,
-            205.0,
+            Phase1ScientificRegistry.PACKAGE_MAXIMUM_THICKNESS,
             new AgeKey(260.0, 0));
+    UnconformityKernel unconformity =
+        new UnconformityKernel(
+            ids.unconformity,
+            new AgeKey(265.0, 0),
+            basin.center(),
+            basin.radiusU(),
+            basin.radiusV(),
+            basin.baseElevation(),
+            Phase1ScientificRegistry.UNCONFORMITY_MAXIMUM_RELIEF,
+            Phase1ScientificRegistry.UNCONFORMITY_WEATHERING_THICKNESS);
+    StratigraphicPackageKernel stratigraphicPackage =
+        new StratigraphicPackageKernel(
+            basin.packageId(),
+            basin.id(),
+            new AgeKey(250.0, 0),
+            basin.center(),
+            basin.radiusU(),
+            basin.radiusV(),
+            basin.maximumThickness(),
+            Phase1ScientificRegistry.PACKAGE_MEMBER_TOP_FRACTIONS,
+            unconformity);
 
     double plutonU = 0.17 * scale;
     double plutonV = -0.23 * scale;
@@ -175,8 +199,8 @@ public final class AtlasCompiler {
             0.015 * scale,
             0.47 * scale,
             300.0,
-            52.0,
-            38.0,
+            Phase1ScientificRegistry.FAULT_DAMAGE_HALF_WIDTH,
+            Phase1ScientificRegistry.FAULT_VERTICAL_SLIP,
             new AgeKey(270.0, 0),
             new AgeKey(60.0, 0));
     RiftArcGeometry.Fold fold =
@@ -184,12 +208,17 @@ public final class AtlasCompiler {
 
     Point3 porphyryCenter = pulses.getLast().center().withY(116.0);
     Point2 vmsHorizontal = new Point2(-0.23 * scale, -0.12 * scale);
-    double vmsTop = basin.topElevation(vmsHorizontal);
+    boolean explicitStratigraphy = usesExplicitStratigraphy();
+    double vmsBase =
+        explicitStratigraphy ? unconformity.elevation(vmsHorizontal) : basin.baseElevation();
+    double vmsTop =
+        explicitStratigraphy
+            ? stratigraphicPackage
+                .evaluate(new Point3(vmsHorizontal.x(), vmsBase, vmsHorizontal.z()))
+                .topElevation()
+            : basin.topElevation(vmsHorizontal);
     Point3 vmsCenter =
-        new Point3(
-            vmsHorizontal.x(),
-            basin.baseElevation() + 0.53 * (vmsTop - basin.baseElevation()),
-            vmsHorizontal.z());
+        new Point3(vmsHorizontal.x(), vmsBase + 0.53 * (vmsTop - vmsBase), vmsHorizontal.z());
     double drainagePhase = stream.unitDouble("drainage-phase", 0) * 2.0 * StrictMath.PI;
     double placerV = porphyryCenter.z() + 0.37 * scale;
     double placerU = trunkU(porphyryCenter.x(), placerV, scale, drainagePhase);
@@ -197,6 +226,8 @@ public final class AtlasCompiler {
     return new RiftArcGeometry(
         ids.basement,
         basin,
+        stratigraphicPackage,
+        unconformity,
         pulses,
         fault,
         fold,
@@ -233,13 +264,26 @@ public final class AtlasCompiler {
             List.of(ids.basement),
             List.of(ids.fault),
             "Open inherited finite normal-fault permeability during rifting."));
+    if (usesExplicitStratigraphy()) {
+      events.add(
+          event(
+              cell,
+              ordinal++,
+              EventType.ERODE_UNCONFORMITY,
+              265.0,
+              List.of(ids.basement, ids.fault),
+              List.of(ids.unconformity),
+              "Erode bounded basement relief and preserve a weathered unconformity profile."));
+    }
     events.add(
         event(
             cell,
             ordinal++,
             EventType.OPEN_BASIN,
             260.0,
-            List.of(ids.basement, ids.fault),
+            usesExplicitStratigraphy()
+                ? List.of(ids.basement, ids.fault, ids.unconformity)
+                : List.of(ids.basement, ids.fault),
             List.of(ids.basin),
             "Create fault-influenced marine rift accommodation."));
     events.add(
@@ -412,6 +456,10 @@ public final class AtlasCompiler {
     };
   }
 
+  private boolean usesExplicitStratigraphy() {
+    return profile.chronicleGrammarId().equals("geological:varied_rift_to_arc_grammar_v1");
+  }
+
   private static List<StableId> upliftInputs(ProvinceIds ids, ProvinceGrammar grammar) {
     if (grammar.formsPorphyry() && grammar.formsVms()) {
       return List.of(ids.faultReactivation, ids.porphyryDeposit, ids.vmsDeposit);
@@ -455,6 +503,7 @@ public final class AtlasCompiler {
         objectId(cell, "fault", 0),
         objectId(cell, "basin", 0),
         objectId(cell, "stratigraphic_package", 0),
+        objectId(cell, "unconformity", 0),
         objectId(cell, "vms_system", 0),
         objectId(cell, "vms_deposit", 0),
         objectId(cell, "magma_lineage", 0),
@@ -559,6 +608,7 @@ public final class AtlasCompiler {
       StableId fault,
       StableId basin,
       StableId packageId,
+      StableId unconformity,
       StableId vmsSystem,
       StableId vmsDeposit,
       StableId magmaLineage,

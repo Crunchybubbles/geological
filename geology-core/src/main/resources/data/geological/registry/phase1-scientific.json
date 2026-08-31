@@ -1,0 +1,244 @@
+{
+  "authoring_schema": "geological:registry_authoring:v1",
+  "citations": [
+    {
+      "id": "refs:catuneanu_2019",
+      "publication_year": 2019,
+      "title": "Model-independent sequence stratigraphy",
+      "uri": "https://doi.org/10.1016/j.earscirev.2018.09.017"
+    },
+    {
+      "id": "refs:grose_et_al_2021",
+      "publication_year": 2021,
+      "title": "Modelling of faults in LoopStructural 1.0",
+      "uri": "https://doi.org/10.5194/gmd-14-6197-2021"
+    },
+    {
+      "id": "refs:laurent_et_al_2016",
+      "publication_year": 2016,
+      "title": "Implicit modeling of folds and overprinting deformation",
+      "uri": "https://doi.org/10.1016/j.epsl.2016.09.040"
+    }
+  ],
+  "definitions": [
+    {
+      "citations": [
+        "refs:grose_et_al_2021",
+        "refs:laurent_et_al_2016"
+      ],
+      "confidence": "experimental",
+      "dependencies": [],
+      "id": "geological:kernel/finite_fault_cosine_taper_v1",
+      "kind": "GEOMETRY_KERNEL",
+      "model_version": "phase1.0-alpha.2",
+      "parameters": {
+        "damage_half_width": {
+          "tunable_design_value": "Phase 1 compressed proof geometry; calibrate after representative world-height review.",
+          "unit": "geological:block",
+          "value": 52.0
+        },
+        "inverse_residual_limit": {
+          "tunable_design_value": "Phase 1 compressed proof geometry; calibrate after representative world-height review.",
+          "unit": "geological:block",
+          "value": 0.00390625
+        },
+        "jacobian_maximum": {
+          "tunable_design_value": "Phase 1 compressed proof geometry; calibrate after representative world-height review.",
+          "unit": "geological:one",
+          "value": 4.0
+        },
+        "jacobian_minimum": {
+          "tunable_design_value": "Phase 1 compressed proof geometry; calibrate after representative world-height review.",
+          "unit": "geological:one",
+          "value": 0.25
+        },
+        "vertical_slip": {
+          "tunable_design_value": "Phase 1 compressed proof geometry; calibrate after representative world-height review.",
+          "unit": "geological:block",
+          "value": 38.0
+        }
+      },
+      "schema_id": "geological:schema/finite_fault_v1",
+      "schema_version": 1
+    },
+    {
+      "citations": [
+        "refs:catuneanu_2019"
+      ],
+      "confidence": "experimental",
+      "dependencies": [],
+      "id": "geological:kernel/stratigraphic_package_v1",
+      "kind": "GEOMETRY_KERNEL",
+      "model_version": "phase1.0-alpha.2",
+      "parameters": {
+        "basal_fraction": {
+          "tunable_design_value": "Phase 1 compressed proof geometry; calibrate after representative world-height review.",
+          "unit": "geological:fraction",
+          "value": 0.22
+        },
+        "maximum_thickness": {
+          "tunable_design_value": "Phase 1 compressed proof geometry; calibrate after representative world-height review.",
+          "unit": "geological:block",
+          "value": 205.0
+        },
+        "shale_top_fraction": {
+          "tunable_design_value": "Phase 1 compressed proof geometry; calibrate after representative world-height review.",
+          "unit": "geological:fraction",
+          "value": 0.82
+        },
+        "unconformity_relief": {
+          "tunable_design_value": "Phase 1 compressed proof geometry; calibrate after representative world-height review.",
+          "unit": "geological:block",
+          "value": 18.0
+        },
+        "volcaniclastic_top_fraction": {
+          "tunable_design_value": "Phase 1 compressed proof geometry; calibrate after representative world-height review.",
+          "unit": "geological:fraction",
+          "value": 0.58
+        },
+        "weathering_profile": {
+          "tunable_design_value": "Phase 1 compressed proof geometry; calibrate after representative world-height review.",
+          "unit": "geological:block",
+          "value": 6.0
+        }
+      },
+      "schema_id": "geological:schema/stratigraphic_package_v1",
+      "schema_version": 1
+    },
+    {
+      "citations": [],
+      "confidence": "experimental",
+      "dependencies": [
+        "geological:kernel/finite_fault_cosine_taper_v1",
+        "geological:kernel/stratigraphic_package_v1"
+      ],
+      "id": "geological:scale/phase1_column_v1",
+      "kind": "SCALE_PROFILE",
+      "model_version": "phase1.0-alpha.2",
+      "parameters": {
+        "maximum_column_height": {
+          "tunable_design_value": "Phase 1 compressed proof geometry; calibrate after representative world-height review.",
+          "unit": "geological:block",
+          "value": 4096.0
+        },
+        "sample_offset": {
+          "tunable_design_value": "Phase 1 compressed proof geometry; calibrate after representative world-height review.",
+          "unit": "geological:block",
+          "value": 0.5
+        }
+      },
+      "schema_id": "geological:schema/column_scale_v1",
+      "schema_version": 1
+    }
+  ],
+  "schemas": [
+    {
+      "id": "geological:schema/column_scale_v1",
+      "kind": "SCALE_PROFILE",
+      "parameters": {
+        "maximum_column_height": {
+          "dimension": "LENGTH",
+          "maximum_inclusive": 4096.0,
+          "minimum_inclusive": 1.0
+        },
+        "sample_offset": {
+          "dimension": "LENGTH",
+          "maximum_inclusive": 1.0,
+          "minimum_inclusive": 0.0
+        }
+      },
+      "schema_version": 1
+    },
+    {
+      "id": "geological:schema/finite_fault_v1",
+      "kind": "GEOMETRY_KERNEL",
+      "parameters": {
+        "damage_half_width": {
+          "dimension": "LENGTH",
+          "maximum_inclusive": 128.0,
+          "minimum_inclusive": 1.0
+        },
+        "inverse_residual_limit": {
+          "dimension": "LENGTH",
+          "maximum_inclusive": 1.0,
+          "minimum_inclusive": 0.0
+        },
+        "jacobian_maximum": {
+          "dimension": "DIMENSIONLESS",
+          "maximum_inclusive": 8.0,
+          "minimum_inclusive": 1.0
+        },
+        "jacobian_minimum": {
+          "dimension": "DIMENSIONLESS",
+          "maximum_inclusive": 1.0,
+          "minimum_inclusive": 0.01
+        },
+        "vertical_slip": {
+          "dimension": "LENGTH",
+          "maximum_inclusive": 128.0,
+          "minimum_inclusive": 0.0
+        }
+      },
+      "schema_version": 1
+    },
+    {
+      "id": "geological:schema/stratigraphic_package_v1",
+      "kind": "GEOMETRY_KERNEL",
+      "parameters": {
+        "basal_fraction": {
+          "dimension": "DIMENSIONLESS",
+          "maximum_inclusive": 1.0,
+          "minimum_inclusive": 0.0
+        },
+        "maximum_thickness": {
+          "dimension": "LENGTH",
+          "maximum_inclusive": 384.0,
+          "minimum_inclusive": 1.0
+        },
+        "shale_top_fraction": {
+          "dimension": "DIMENSIONLESS",
+          "maximum_inclusive": 1.0,
+          "minimum_inclusive": 0.0
+        },
+        "unconformity_relief": {
+          "dimension": "LENGTH",
+          "maximum_inclusive": 64.0,
+          "minimum_inclusive": 0.0
+        },
+        "volcaniclastic_top_fraction": {
+          "dimension": "DIMENSIONLESS",
+          "maximum_inclusive": 1.0,
+          "minimum_inclusive": 0.0
+        },
+        "weathering_profile": {
+          "dimension": "LENGTH",
+          "maximum_inclusive": 32.0,
+          "minimum_inclusive": 0.0
+        }
+      },
+      "schema_version": 1
+    }
+  ],
+  "units": [
+    {
+      "dimension": "LENGTH",
+      "id": "geological:block",
+      "symbol": "block"
+    },
+    {
+      "dimension": "DIMENSIONLESS",
+      "id": "geological:fraction",
+      "symbol": "fraction"
+    },
+    {
+      "dimension": "TIME",
+      "id": "geological:megayear",
+      "symbol": "Ma"
+    },
+    {
+      "dimension": "DIMENSIONLESS",
+      "id": "geological:one",
+      "symbol": "1"
+    }
+  ]
+}

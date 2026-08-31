@@ -7,6 +7,7 @@ import io.github.crunchybubbles.geological.determinism.StableId;
 import io.github.crunchybubbles.geological.model.AgeKey;
 import io.github.crunchybubbles.geological.model.Bounds2D;
 import io.github.crunchybubbles.geological.model.Bounds3D;
+import io.github.crunchybubbles.geological.model.EventType;
 import io.github.crunchybubbles.geological.model.Point2;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,12 @@ public final class ProvinceSpatialIndex {
     List<SpatialCandidate> candidates = new ArrayList<>();
 
     RiftArcGeometry.Basin basin = geometry.basin();
+    double packageMinimum =
+        geometry.unconformity().datumElevation() - geometry.unconformity().maximumRelief();
+    double packageMaximum =
+        geometry.unconformity().datumElevation()
+            + geometry.unconformity().maximumRelief()
+            + basin.maximumThickness();
     candidates.add(
         candidate(
             basin.packageId(),
@@ -40,13 +47,35 @@ public final class ProvinceSpatialIndex {
             bounds(
                 province.frame(),
                 basin.center().x() - basin.radiusU(),
-                basin.baseElevation() - deformationMargin,
+                packageMinimum - deformationMargin,
                 basin.center().z() - basin.radiusV(),
                 basin.center().x() + basin.radiusU(),
-                basin.baseElevation() + basin.maximumThickness() + deformationMargin,
+                packageMaximum + deformationMargin,
                 basin.center().z() + basin.radiusV()),
-            basin.birthAge(),
+            geometry.stratigraphicPackage().birthAge(),
             true));
+
+    if (province.chronicle().events().stream()
+        .anyMatch(event -> event.type() == EventType.ERODE_UNCONFORMITY)) {
+      candidates.add(
+          candidate(
+              geometry.unconformity().id(),
+              CandidateKind.UNCONFORMITY,
+              bounds(
+                  province.frame(),
+                  basin.center().x() - basin.radiusU(),
+                  packageMinimum
+                      - geometry.unconformity().weatheringThickness()
+                      - deformationMargin,
+                  basin.center().z() - basin.radiusV(),
+                  basin.center().x() + basin.radiusU(),
+                  geometry.unconformity().datumElevation()
+                      + geometry.unconformity().maximumRelief()
+                      + deformationMargin,
+                  basin.center().z() + basin.radiusV()),
+              geometry.unconformity().age(),
+              true));
+    }
 
     for (RiftArcGeometry.PlutonPulse pulse : geometry.plutonPulses()) {
       candidates.add(
@@ -92,7 +121,7 @@ public final class ProvinceSpatialIndex {
                 basin.baseElevation() - deformationMargin,
                 -fold.radius(),
                 fold.radius(),
-                basin.baseElevation() + basin.maximumThickness() + deformationMargin,
+                packageMaximum + deformationMargin,
                 fold.radius()),
             fold.age(),
             false));
@@ -179,6 +208,7 @@ public final class ProvinceSpatialIndex {
     RiftArcGeometry geometry = province.geometry();
     return switch (candidate.kind()) {
       case STRATIGRAPHIC_PACKAGE -> geometry.basin().footprintValue(local) < 1.0;
+      case UNCONFORMITY -> geometry.unconformity().insideFootprint(local);
       case PLUTON_PULSE ->
           geometry.plutonPulses().stream()
               .filter(pulse -> pulse.id().equals(candidate.id()))

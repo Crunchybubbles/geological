@@ -3,6 +3,7 @@ package io.github.crunchybubbles.geological.model;
 public enum EventType {
   ESTABLISH_BASEMENT,
   RIFT,
+  ERODE_UNCONFORMITY,
   OPEN_BASIN,
   DEPOSIT_SEQUENCE,
   VOLCANIC_HYDROTHERMAL_PULSE,

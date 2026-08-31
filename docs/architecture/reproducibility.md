@@ -28,4 +28,8 @@ Identity and ledgers use integers/bytes only. Continuous fields use `StrictMath`
 
 The tests include fixed HMAC/CBOR/ID golden vectors. Changing a vector is a world-identity change and requires an explicit model-version decision.
 
-Phase 0 and Phase 1 intentionally use different model, scientific-digest, and dimension-profile identities. Phase 0 retains the fixed fertile proof grammar; Phase 1 adds deterministic grammar selection and the revised deformation kernel. A Phase 1 result can therefore never masquerade as Phase 0 geology for the same numeric seed.
+Phase 1 compiles its effective definitions, schemas, units, citations, and parameter provenance into compact canonical JSON. Inputs are sorted by stable ID, strings are UTF-8 NFC, and the full SHA-256 digest of those bytes is frozen into `WorldIdentity`. Input list/map order and authoring whitespace therefore cannot change identity, while any effective scientific parameter change must change it. The snapshot golden is published by the tests and as `registry-snapshot.json` in the review packet.
+
+The authored source is a packaged public JSON resource with a versioned authoring schema. Duplicate keys, trailing content, unknown fields, and unit-vocabulary changes fail before canonical compilation. JSON parser objects never enter domain APIs, and the resource is loaded once when the Phase 1 registry initializes rather than during random-access queries.
+
+Phase 0 and Phase 1 intentionally use different model, scientific-digest, and dimension-profile identities. Phase 0 retains the fixed fertile proof grammar; Phase 1 adds deterministic grammar selection, revised deformation, explicit stratigraphy, and the validated registry digest. A Phase 1 result can therefore never masquerade as Phase 0 geology for the same numeric seed.

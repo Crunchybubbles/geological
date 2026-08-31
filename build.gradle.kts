@@ -63,6 +63,10 @@ subprojects {
         isPreserveFileTimestamps = false
         isReproducibleFileOrder = true
     }
+
+    tasks.matching { it.name == "spotlessJava" }.configureEach {
+        outputs.doNotCacheIf("formatter worker classpaths must be initialized per project") { true }
+    }
 }
 
 tasks.register("generateExampleAtlas") {
@@ -75,4 +79,10 @@ tasks.register("measureAtlas") {
     group = "verification"
     description = "Runs the atlas/column runtime and memory measurement harness."
     dependsOn(":atlas-cli:measureAtlas")
+}
+
+// Serialize the formatter's isolated workers across modules; concurrent Windows clean builds can
+// otherwise race while loading google-java-format's provisioned classes.
+project(":atlas-cli").tasks.matching { it.name.startsWith("spotless") }.configureEach {
+    mustRunAfter(project(":geology-core").tasks.matching { it.name.startsWith("spotless") })
 }

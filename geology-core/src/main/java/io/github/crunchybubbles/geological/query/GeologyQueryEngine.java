@@ -122,7 +122,10 @@ public final class GeologyQueryEngine {
     Lithology selectedLithology = Lithology.GRANITIC_GNEISS;
 
     Point3 basinPoint = pullBack(geometry, local, new AgeKey(250.0, 0));
-    Lithology basinLithology = geometry.basin().lithologyAt(basinPoint);
+    Lithology basinLithology =
+        usesExplicitStratigraphy()
+            ? geometry.stratigraphicPackage().lithologyAt(basinPoint)
+            : geometry.basin().lithologyAt(basinPoint);
     if (basinLithology != null) {
       selectedAge = new AgeKey(250.0, 0);
       selectedBody = geometry.basin().packageId();
@@ -146,7 +149,12 @@ public final class GeologyQueryEngine {
       }
     }
 
-    Overprint overprint = Overprint.NONE;
+    Point3 unconformityPoint = pullBack(geometry, local, geometry.unconformity().age());
+    Overprint overprint =
+        usesExplicitStratigraphy()
+                && geometry.unconformity().insideWeatheringProfile(unconformityPoint)
+            ? Overprint.WEATHERED_UNCONFORMITY
+            : Overprint.NONE;
     RiftArcGeometry.PlutonPulse youngestPulse = geometry.plutonPulses().getLast();
     Point3 aureolePoint = pullBack(geometry, local, new AgeKey(96.0, 0));
     double contactDistance = youngestPulse.approximateOutsideDistance(aureolePoint);
@@ -216,6 +224,10 @@ public final class GeologyQueryEngine {
 
   private ProvinceSpatialIndex spatialIndex(Province province) {
     return spatialIndexCache.get(province.id(), ignored -> ProvinceSpatialIndex.compile(province));
+  }
+
+  private boolean usesExplicitStratigraphy() {
+    return atlas.profile().chronicleGrammarId().equals("geological:varied_rift_to_arc_grammar_v1");
   }
 
   private static Point3 pullBack(RiftArcGeometry geometry, Point3 present, AgeKey bodyAge) {

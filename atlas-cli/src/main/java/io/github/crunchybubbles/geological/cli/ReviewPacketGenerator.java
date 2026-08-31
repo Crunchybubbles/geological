@@ -15,6 +15,7 @@ import io.github.crunchybubbles.geological.model.Overprint;
 import io.github.crunchybubbles.geological.model.Point2;
 import io.github.crunchybubbles.geological.model.Point3;
 import io.github.crunchybubbles.geological.query.AtlasTile;
+import io.github.crunchybubbles.geological.query.ColumnPlanBudget;
 import io.github.crunchybubbles.geological.query.ColumnQueryResult;
 import io.github.crunchybubbles.geological.query.ColumnRequest;
 import io.github.crunchybubbles.geological.query.GeologicalSample;
@@ -31,6 +32,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -64,6 +66,8 @@ final class ReviewPacketGenerator {
     artifacts.addAll(renderMaps(outputDirectory, province));
     artifacts.add(renderCrossSection(outputDirectory, province));
     artifacts.addAll(renderGrammarMap(outputDirectory));
+    artifacts.add(writeRegistrySnapshot(outputDirectory));
+    artifacts.add(writeStratigraphicTrace(outputDirectory, province));
     artifacts.add(writeColumnRuns(outputDirectory, province));
     artifacts.add(writeDeformationTrace(outputDirectory, province));
     Path tracesDirectory = outputDirectory.resolve("traces");
@@ -167,6 +171,67 @@ final class ReviewPacketGenerator {
     return fileName;
   }
 
+  private String writeRegistrySnapshot(Path outputDirectory) throws IOException {
+    String fileName = "registry-snapshot.json";
+    Files.writeString(
+        outputDirectory.resolve(fileName),
+        Phase1World.scientificSnapshot().canonicalJson() + System.lineSeparator(),
+        StandardCharsets.UTF_8);
+    return fileName;
+  }
+
+  private String writeStratigraphicTrace(Path outputDirectory, Province province)
+      throws IOException {
+    Point2 center = province.geometry().stratigraphicPackage().center();
+    Point2 margin =
+        new Point2(
+            center.x() + province.geometry().stratigraphicPackage().radiusU() * 0.92, center.z());
+    String fileName = "stratigraphic-trace.json";
+    JsonWriter.write(
+        outputDirectory.resolve(fileName),
+        JsonWriter.object(
+            "unconformityId",
+            province.geometry().unconformity().id().toString(),
+            "unconformityAgeMa",
+            province.geometry().unconformity().age().ageMa(),
+            "weatheringThicknessBlocks",
+            province.geometry().unconformity().weatheringThickness(),
+            "packageId",
+            province.geometry().stratigraphicPackage().id().toString(),
+            "packageAgeMa",
+            province.geometry().stratigraphicPackage().birthAge().ageMa(),
+            "center",
+            stratigraphicColumnJson(province, center),
+            "onlapMargin",
+            stratigraphicColumnJson(province, margin)));
+    return fileName;
+  }
+
+  private Map<String, Object> stratigraphicColumnJson(Province province, Point2 local) {
+    List<Double> formationBoundaries =
+        province.geometry().stratigraphicPackage().formationBoundaries(local);
+    return JsonWriter.object(
+        "localX",
+        local.x(),
+        "localZ",
+        local.z(),
+        "unconformityElevation",
+        province.geometry().unconformity().elevation(local),
+        "formationBoundaryY",
+        formationBoundaries,
+        "presentBoundaryY",
+        formationBoundaries.stream()
+            .map(
+                y ->
+                    province
+                        .geometry()
+                        .pushForward(
+                            new Point3(local.x(), y, local.z()),
+                            province.geometry().stratigraphicPackage().birthAge())
+                        .y())
+            .toList());
+  }
+
   private ColumnQueryResult mostAdaptiveColumn(Province province) {
     ColumnQueryResult best = null;
     for (int u = -900; u <= 900; u += 300) {
@@ -197,6 +262,20 @@ final class ReviewPacketGenerator {
         "provinceId", result.provinceId().toString(),
         "pointEvaluations", result.pointEvaluations(),
         "skippedPointEvaluations", result.skippedPointEvaluations(),
+        "complexity",
+            JsonWriter.object(
+                "candidates", result.complexity().candidates(),
+                "transitions", result.complexity().transitions(),
+                "pointEvaluations", result.complexity().pointEvaluations(),
+                "materialRuns", result.complexity().materialRuns(),
+                "phase1ReviewBudgetViolations",
+                    result.complexity().violations(ColumnPlanBudget.PHASE1_REVIEW)),
+        "intervalProof",
+            JsonWriter.object(
+                "method", result.intervalProof().method(),
+                "transitionElevations", result.intervalProof().transitionElevations(),
+                "splitYCoordinates", result.intervalProof().splitYCoordinates(),
+                "provenUniformIntervals", result.intervalProof().provenUniformIntervals()),
         "candidates", result.candidates().stream().map(this::candidateJson).toList(),
         "runs", result.runs().stream().map(this::runJson).toList());
   }
@@ -371,7 +450,7 @@ final class ReviewPacketGenerator {
         "project",
         "Geological",
         "phase",
-        "Phase 1 platform-neutral column/query increment",
+        "Phase 1 authored-registry, property-validation, and chunk-measurement increment",
         "worldSeed",
         seed,
         "modelVersion",
@@ -568,6 +647,7 @@ final class ReviewPacketGenerator {
   private static Color applyOverprint(Color base, Overprint overprint) {
     return switch (overprint) {
       case NONE -> base;
+      case WEATHERED_UNCONFORMITY -> blend(base, new Color(171, 116, 67), 0.52);
       case CONTACT_HORNFELS -> blend(base, new Color(91, 39, 102), 0.48);
       case POTASSIC_ALTERATION -> blend(base, new Color(230, 48, 158), 0.55);
       case PHYLLIC_ALTERATION -> blend(base, new Color(238, 143, 201), 0.50);

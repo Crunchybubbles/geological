@@ -5,12 +5,16 @@ import io.github.crunchybubbles.geological.model.AgeKey;
 import io.github.crunchybubbles.geological.model.Lithology;
 import io.github.crunchybubbles.geological.model.Point2;
 import io.github.crunchybubbles.geological.model.Point3;
+import io.github.crunchybubbles.geological.stratigraphy.StratigraphicPackageKernel;
+import io.github.crunchybubbles.geological.stratigraphy.UnconformityKernel;
 import java.util.List;
 
 /** Immutable 2.5-D bodies and modifiers for the synthetic Phase 0 province. */
 public record RiftArcGeometry(
     StableId basementId,
     Basin basin,
+    StratigraphicPackageKernel stratigraphicPackage,
+    UnconformityKernel unconformity,
     List<PlutonPulse> plutonPulses,
     Fault fault,
     Fold fold,
@@ -22,6 +26,8 @@ public record RiftArcGeometry(
   public RiftArcGeometry {
     if (basementId == null
         || basin == null
+        || stratigraphicPackage == null
+        || unconformity == null
         || fault == null
         || fold == null
         || aureoleId == null

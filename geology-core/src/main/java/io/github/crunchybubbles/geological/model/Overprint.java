@@ -2,6 +2,7 @@ package io.github.crunchybubbles.geological.model;
 
 public enum Overprint {
   NONE,
+  WEATHERED_UNCONFORMITY,
   CONTACT_HORNFELS,
   POTASSIC_ALTERATION,
   PHYLLIC_ALTERATION,

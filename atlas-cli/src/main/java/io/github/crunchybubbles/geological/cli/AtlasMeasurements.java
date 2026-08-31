@@ -7,12 +7,16 @@ import io.github.crunchybubbles.geological.model.AgeKey;
 import io.github.crunchybubbles.geological.model.Bounds2D;
 import io.github.crunchybubbles.geological.model.Point2;
 import io.github.crunchybubbles.geological.model.Point3;
+import io.github.crunchybubbles.geological.query.ColumnPlanBudget;
+import io.github.crunchybubbles.geological.query.ColumnPlanComplexity;
 import io.github.crunchybubbles.geological.query.ColumnQueryResult;
 import io.github.crunchybubbles.geological.query.ColumnRequest;
 import io.github.crunchybubbles.geological.query.GeologyQueryEngine;
 import io.github.crunchybubbles.geological.query.Phase1World;
 import io.github.crunchybubbles.geological.query.TileKey;
 import io.github.crunchybubbles.geological.query.TileQueryEngine;
+import io.github.crunchybubbles.geological.registry.RegistrySnapshot;
+import io.github.crunchybubbles.geological.registry.ScientificRegistryCompiler;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
@@ -83,6 +87,27 @@ final class AtlasMeasurements {
     ColumnRequest uniformRequest = mostAdaptiveRequest(query, referenceProvince);
     Map<String, Object> contactMeasurement = columnTiming(query, contactRequest, 128);
     Map<String, Object> uniformMeasurement = columnTiming(query, uniformRequest, 128);
+    Point3 vmsLocal =
+        referenceProvince
+            .geometry()
+            .pushForward(referenceProvince.geometry().vmsCenter(), new AgeKey(241.0, 0));
+    Point3 vmsWorld = referenceProvince.frame().toWorld(vmsLocal);
+    Point2 faultWorld =
+        referenceProvince
+            .frame()
+            .toWorld(new Point2(referenceProvince.geometry().fault().planeU(), 0.0));
+    List<Map<String, Object>> chunkPlans =
+        List.of(
+            chunkTiming(query, "porphyry_contact", contactRequest, 16),
+            chunkTiming(
+                query, "vms_center", new ColumnRequest(vmsWorld.x(), vmsWorld.z(), -64, 320), 16),
+            chunkTiming(
+                query,
+                "fault_damage_zone",
+                new ColumnRequest(faultWorld.x(), faultWorld.z(), -64, 320),
+                16),
+            chunkTiming(query, "background", uniformRequest, 16));
+    Map<String, Object> registryMeasurement = registryTiming(128);
     Map<String, Object> report =
         JsonWriter.object(
             "measurementKind",
@@ -91,12 +116,16 @@ final class AtlasMeasurements {
             seed,
             "modelVersion",
             Phase1World.MODEL_VERSION,
+            "scientificDigest",
+            Phase1World.SCIENTIFIC_DIGEST,
             "javaRuntime",
             System.getProperty("java.runtime.version"),
             "os",
             System.getProperty("os.name") + " " + System.getProperty("os.arch"),
             "processors",
             Runtime.getRuntime().availableProcessors(),
+            "registryCompile",
+            registryMeasurement,
             "tiles",
             keys.size(),
             "surfaceSamplesPerPass",
@@ -123,6 +152,8 @@ final class AtlasMeasurements {
                 "iterationsPerColumn", 128,
                 "porphyryContact", contactMeasurement,
                 "background", uniformMeasurement),
+            "chunkPlans",
+            chunkPlans,
             "tileDigests",
             coldDigests);
     Path reportPath = outputDirectory.resolve("measurements.json");
@@ -175,6 +206,157 @@ final class AtlasMeasurements {
         result.pointEvaluations(),
         "skippedPointEvaluations",
         result.skippedPointEvaluations());
+  }
+
+  private static Map<String, Object> registryTiming(int iterations) {
+    RegistrySnapshot source = Phase1World.scientificSnapshot();
+    long allocatedBefore = currentThreadAllocatedBytes();
+    long start = System.nanoTime();
+    RegistrySnapshot result = null;
+    ScientificRegistryCompiler compiler = new ScientificRegistryCompiler();
+    for (int iteration = 0; iteration < iterations; iteration++) {
+      result = compiler.compile(source.citations(), source.schemas(), source.definitions());
+    }
+    long nanos = System.nanoTime() - start;
+    long allocated = allocationDelta(allocatedBefore, currentThreadAllocatedBytes());
+    if (result == null || !result.digest().equals(source.digest())) {
+      throw new IllegalStateException("registry compile measurement changed effective content");
+    }
+    return JsonWriter.object(
+        "iterations",
+        iterations,
+        "canonicalUtf8Bytes",
+        source.canonicalJson().getBytes(java.nio.charset.StandardCharsets.UTF_8).length,
+        "nanosecondsPerCompile",
+        nanos / (double) iterations,
+        "allocatedBytesPerCompile",
+        allocated < 0 ? null : allocated / (double) iterations,
+        "digest",
+        result.digest());
+  }
+
+  private static Map<String, Object> chunkTiming(
+      GeologyQueryEngine query, String label, ColumnRequest center, int iterations) {
+    long originX = chunkOrigin(center.x());
+    long originZ = chunkOrigin(center.z());
+    query.clearCaches();
+    long coldAllocationBefore = currentThreadAllocatedBytes();
+    long coldStart = System.nanoTime();
+    ChunkExecution cold = executeChunk(query, originX, originZ);
+    long coldNanos = System.nanoTime() - coldStart;
+    long coldAllocated = allocationDelta(coldAllocationBefore, currentThreadAllocatedBytes());
+
+    executeChunk(query, originX, originZ);
+    List<Long> warmNanos = new ArrayList<>();
+    List<Long> warmAllocations = new ArrayList<>();
+    ChunkExecution latest = null;
+    for (int iteration = 0; iteration < iterations; iteration++) {
+      long allocationBefore = currentThreadAllocatedBytes();
+      long start = System.nanoTime();
+      latest = executeChunk(query, originX, originZ);
+      warmNanos.add(System.nanoTime() - start);
+      long allocated = allocationDelta(allocationBefore, currentThreadAllocatedBytes());
+      if (allocated >= 0) {
+        warmAllocations.add(allocated);
+      }
+    }
+    if (latest == null || cold.signature() != latest.signature()) {
+      throw new IllegalStateException(label + " chunk plan changed between cold and warm queries");
+    }
+    return JsonWriter.object(
+        "label",
+        label,
+        "originBlockX",
+        originX,
+        "originBlockZ",
+        originZ,
+        "columns",
+        256,
+        "columnHeight",
+        384,
+        "coldNanos",
+        coldNanos,
+        "coldAllocatedBytes",
+        coldAllocated < 0 ? null : coldAllocated,
+        "warmIterations",
+        iterations,
+        "warmNanosP50",
+        percentile(warmNanos, 0.50),
+        "warmNanosP95",
+        percentile(warmNanos, 0.95),
+        "warmNanosP99",
+        percentile(warmNanos, 0.99),
+        "warmAllocatedBytesP50",
+        warmAllocations.isEmpty() ? null : percentile(warmAllocations, 0.50),
+        "warmAllocatedBytesP95",
+        warmAllocations.isEmpty() ? null : percentile(warmAllocations, 0.95),
+        "warmAllocatedBytesP99",
+        warmAllocations.isEmpty() ? null : percentile(warmAllocations, 0.99),
+        "complexity",
+        JsonWriter.object(
+            "maximumCandidatesPerColumn", latest.maximumCandidates(),
+            "maximumTransitionsPerColumn", latest.maximumTransitions(),
+            "maximumPointEvaluationsPerColumn", latest.maximumPointEvaluations(),
+            "maximumMaterialRunsPerColumn", latest.maximumMaterialRuns(),
+            "totalCandidates", latest.totalCandidates(),
+            "totalPointEvaluations", latest.totalPointEvaluations(),
+            "totalMaterialRuns", latest.totalMaterialRuns(),
+            "diagnosticViolationCount", latest.diagnosticViolations()),
+        "resultSignature",
+        Long.toUnsignedString(latest.signature(), 16));
+  }
+
+  private static ChunkExecution executeChunk(GeologyQueryEngine query, long originX, long originZ) {
+    long signature = 0xcbf29ce484222325L;
+    int totalCandidates = 0;
+    int totalEvaluations = 0;
+    int totalRuns = 0;
+    int maximumCandidates = 0;
+    int maximumTransitions = 0;
+    int maximumEvaluations = 0;
+    int maximumRuns = 0;
+    int diagnosticViolations = 0;
+    for (int offsetZ = 0; offsetZ < 16; offsetZ++) {
+      for (int offsetX = 0; offsetX < 16; offsetX++) {
+        ColumnQueryResult result =
+            query.column(
+                new ColumnRequest(originX + offsetX + 0.5, originZ + offsetZ + 0.5, -64, 320));
+        ColumnPlanComplexity complexity = result.complexity();
+        totalCandidates += complexity.candidates();
+        totalEvaluations += complexity.pointEvaluations();
+        totalRuns += complexity.materialRuns();
+        maximumCandidates = StrictMath.max(maximumCandidates, complexity.candidates());
+        maximumTransitions = StrictMath.max(maximumTransitions, complexity.transitions());
+        maximumEvaluations = StrictMath.max(maximumEvaluations, complexity.pointEvaluations());
+        maximumRuns = StrictMath.max(maximumRuns, complexity.materialRuns());
+        diagnosticViolations += complexity.violations(ColumnPlanBudget.PHASE1_REVIEW).size();
+        signature = (signature ^ result.hashCode()) * 0x100000001b3L;
+      }
+    }
+    return new ChunkExecution(
+        signature,
+        totalCandidates,
+        totalEvaluations,
+        totalRuns,
+        maximumCandidates,
+        maximumTransitions,
+        maximumEvaluations,
+        maximumRuns,
+        diagnosticViolations);
+  }
+
+  private static long chunkOrigin(double coordinate) {
+    long block = (long) StrictMath.floor(coordinate);
+    return Math.floorDiv(block, 16L) * 16L;
+  }
+
+  private static long percentile(List<Long> observations, double percentile) {
+    if (observations.isEmpty() || !(percentile > 0.0 && percentile <= 1.0)) {
+      throw new IllegalArgumentException("percentile observations and probability are required");
+    }
+    List<Long> sorted = observations.stream().sorted().toList();
+    int index = (int) StrictMath.ceil(percentile * sorted.size()) - 1;
+    return sorted.get(index);
   }
 
   private static ColumnRequest mostAdaptiveRequest(GeologyQueryEngine query, Province province) {
@@ -243,4 +425,15 @@ final class AtlasMeasurements {
   private static long allocationDelta(long before, long after) {
     return before < 0 || after < before ? -1L : after - before;
   }
+
+  private record ChunkExecution(
+      long signature,
+      int totalCandidates,
+      int totalPointEvaluations,
+      int totalMaterialRuns,
+      int maximumCandidates,
+      int maximumTransitions,
+      int maximumPointEvaluations,
+      int maximumMaterialRuns,
+      int diagnosticViolations) {}
 }
