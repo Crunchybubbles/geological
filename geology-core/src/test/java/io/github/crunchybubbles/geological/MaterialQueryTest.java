@@ -37,14 +37,14 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.4", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.5", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:459861f42cacf528f502b2af3b889f2a98826a3b8444b54f97426ddd7521abb5",
+        "sha256:f0abc63e80c379923a49805ebe64d0967179ecf3e710abe3ed3e4fb510efadb4",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -120,6 +120,25 @@ class MaterialQueryTest {
     assertNotEquals(
         query.catalog().requireRock(Lithology.FELSIC_STOCK).primaryAssemblage(),
         firstMaterial.primaryAssemblage());
+    MineralAssemblage central =
+        query.catalog().requireRock(Lithology.FELSIC_STOCK).primaryAssemblage();
+    long quartzDelta =
+        firstMaterial.primaryAssemblage().modesPpm().get("geological:mineral/quartz")
+            - central.modesPpm().get("geological:mineral/quartz");
+    long orthoclaseDelta =
+        firstMaterial.primaryAssemblage().modesPpm().get("geological:mineral/orthoclase")
+            - central.modesPpm().get("geological:mineral/orthoclase");
+    long albiteDelta =
+        firstMaterial.primaryAssemblage().modesPpm().get("geological:mineral/albite")
+            - central.modesPpm().get("geological:mineral/albite");
+    long anorthiteDelta =
+        firstMaterial.primaryAssemblage().modesPpm().get("geological:mineral/anorthite")
+            - central.modesPpm().get("geological:mineral/anorthite");
+    assertEquals(-quartzDelta, orthoclaseDelta);
+    assertEquals(-albiteDelta, anorthiteDelta);
+    assertEquals(
+        central.modesPpm().get("geological:mineral/muscovite"),
+        firstMaterial.primaryAssemblage().modesPpm().get("geological:mineral/muscovite"));
     assertTrue(
         firstMaterial.rock().porosityDistribution().contains(firstMaterial.porosityFraction()));
     assertTrue(

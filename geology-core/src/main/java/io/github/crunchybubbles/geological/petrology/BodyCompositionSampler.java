@@ -27,12 +27,11 @@ public final class BodyCompositionSampler {
     }
     ObjectRandomStream stream =
         identity.objectStream("geological", "body_modal_composition", bodyId);
-    TreeMap<String, Long> weights = new TreeMap<>();
-    for (Map.Entry<String, Long> mode : rock.primaryAssemblage().modesPpm().entrySet()) {
-      String purpose = "mode:" + mode.getKey();
-      double triangular = stream.unitDouble(purpose, 0) + stream.unitDouble(purpose, 1) - 1.0;
-      long delta = StrictMath.round(mode.getValue() * rock.modalSpreadFraction() * triangular);
-      weights.put(mode.getKey(), StrictMath.max(1L, mode.getValue() + delta));
+    TreeMap<String, Long> weights = new TreeMap<>(rock.primaryAssemblage().modesPpm());
+    for (ModalVariationAxis axis : rock.modalVariationAxes()) {
+      String purpose = "axis:" + axis.id();
+      double score = stream.unitDouble(purpose, 0) + stream.unitDouble(purpose, 1) - 1.0;
+      applyAxis(weights, axis, score, stream);
     }
     return normalize(weights, stream);
   }
@@ -45,6 +44,47 @@ public final class BodyCompositionSampler {
     ObjectRandomStream stream =
         identity.objectStream("geological", "body_material_properties", bodyId);
     return distribution.sample(stream.unitDouble("property:" + propertyName, 0));
+  }
+
+  private static void applyAxis(
+      Map<String, Long> weights, ModalVariationAxis axis, double score, ObjectRandomStream stream) {
+    TreeMap<String, Long> deltas = new TreeMap<>();
+    List<AxisRemainder> remainders = new ArrayList<>();
+    long allocated = 0;
+    for (Map.Entry<String, Long> loading : axis.loadingsPpm().entrySet()) {
+      double exact = loading.getValue() * score;
+      long whole = (long) StrictMath.floor(exact);
+      deltas.put(loading.getKey(), whole);
+      allocated += whole;
+      long tieRank =
+          ByteBuffer.wrap(
+                  stream.bytes("axis-rounding-tie:" + axis.id() + ":" + loading.getKey(), 0))
+              .getLong();
+      remainders.add(new AxisRemainder(loading.getKey(), exact - whole, tieRank));
+    }
+    long correction = -allocated;
+    if (StrictMath.abs(correction) > remainders.size()) {
+      throw new IllegalStateException("modal variation rounding exceeded its conservation bound");
+    }
+    if (correction > 0) {
+      remainders.sort(
+          Comparator.comparingDouble(AxisRemainder::remainder)
+              .reversed()
+              .thenComparing(
+                  AxisRemainder::tieRank, (first, second) -> Long.compareUnsigned(first, second)));
+      for (int index = 0; index < correction; index++) {
+        deltas.merge(remainders.get(index).mineralId(), 1L, Math::addExact);
+      }
+    } else if (correction < 0) {
+      remainders.sort(
+          Comparator.comparingDouble(AxisRemainder::remainder)
+              .thenComparing(
+                  AxisRemainder::tieRank, (first, second) -> Long.compareUnsigned(first, second)));
+      for (int index = 0; index < -correction; index++) {
+        deltas.merge(remainders.get(index).mineralId(), -1L, Math::addExact);
+      }
+    }
+    deltas.forEach((mineralId, delta) -> weights.merge(mineralId, delta, Math::addExact));
   }
 
   private static MineralAssemblage normalize(Map<String, Long> weights, ObjectRandomStream stream) {
@@ -76,4 +116,6 @@ public final class BodyCompositionSampler {
   }
 
   private record Remainder(String mineralId, long remainder, long tieRank) {}
+
+  private record AxisRemainder(String mineralId, double remainder, long tieRank) {}
 }

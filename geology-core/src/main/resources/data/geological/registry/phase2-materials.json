@@ -1,8 +1,8 @@
 {
-  "authoring_schema": "geological:material_catalog_authoring:v3",
+  "authoring_schema": "geological:material_catalog_authoring:v4",
   "evidence": {
     "citation_id": "refs:philpotts_ague_2009",
-    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. Mineral modes, textures, and physical-property distributions are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
+    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. Mineral modes, modal covariance axes, textures, and physical-property distributions are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
     "publication_year": 2009,
     "title": "Principles of Igneous and Metamorphic Petrology",
     "uri": "https://doi.org/10.1017/CBO9780511813429"
@@ -170,6 +170,16 @@
       "id": "geological:rock/granitic_gneiss",
       "lithology": "GRANITIC_GNEISS",
       "modal_spread_fraction": 0.12,
+      "modal_variation_axes": [
+        {
+          "id": "silica_alkali_feldspar_balance",
+          "loadings_ppm": {"geological:mineral/quartz": 30000, "geological:mineral/orthoclase": -30000}
+        },
+        {
+          "id": "plagioclase_sodic_calcic_balance",
+          "loadings_ppm": {"geological:mineral/albite": 9000, "geological:mineral/anorthite": -9000}
+        }
+      ],
       "texture": "FOLIATED_CRYSTALLINE",
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 300000,
@@ -190,6 +200,16 @@
       "id": "geological:rock/basal_conglomerate",
       "lithology": "BASAL_CONGLOMERATE",
       "modal_spread_fraction": 0.2,
+      "modal_variation_axes": [
+        {
+          "id": "quartz_feldspar_balance",
+          "loadings_ppm": {"geological:mineral/quartz": 40000, "geological:mineral/albite": -20000, "geological:mineral/orthoclase": -20000}
+        },
+        {
+          "id": "carbonate_clay_matrix_balance",
+          "loadings_ppm": {"geological:mineral/calcite": 8000, "geological:mineral/kaolinite": -8000}
+        }
+      ],
       "texture": "CLASTIC_COARSE",
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 550000,
@@ -211,6 +231,16 @@
       "id": "geological:rock/marine_volcaniclastic",
       "lithology": "MARINE_VOLCANICLASTIC",
       "modal_spread_fraction": 0.18,
+      "modal_variation_axes": [
+        {
+          "id": "plagioclase_sodic_calcic_balance",
+          "loadings_ppm": {"geological:mineral/albite": 40000, "geological:mineral/anorthite": -40000}
+        },
+        {
+          "id": "silica_carbonate_balance",
+          "loadings_ppm": {"geological:mineral/quartz": 12000, "geological:mineral/calcite": -12000}
+        }
+      ],
       "texture": "VOLCANICLASTIC",
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 80000,
@@ -231,6 +261,16 @@
       "id": "geological:rock/basin_shale",
       "lithology": "BASIN_SHALE",
       "modal_spread_fraction": 0.15,
+      "modal_variation_axes": [
+        {
+          "id": "silica_clay_balance",
+          "loadings_ppm": {"geological:mineral/quartz": 33000, "geological:mineral/kaolinite": -33000}
+        },
+        {
+          "id": "mica_chlorite_balance",
+          "loadings_ppm": {"geological:mineral/muscovite": 15000, "geological:mineral/clinochlore": -15000}
+        }
+      ],
       "texture": "CLASTIC_MUD",
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 300000,
@@ -251,6 +291,16 @@
       "id": "geological:rock/basin_sandstone",
       "lithology": "BASIN_SANDSTONE",
       "modal_spread_fraction": 0.12,
+      "modal_variation_axes": [
+        {
+          "id": "quartz_feldspar_balance",
+          "loadings_ppm": {"geological:mineral/quartz": 16000, "geological:mineral/albite": -8000, "geological:mineral/orthoclase": -8000}
+        },
+        {
+          "id": "carbonate_clay_cement_balance",
+          "loadings_ppm": {"geological:mineral/calcite": 3600, "geological:mineral/kaolinite": -3600}
+        }
+      ],
       "texture": "CLASTIC_SAND",
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 760000,
@@ -270,6 +320,16 @@
       "id": "geological:rock/diorite_pulse",
       "lithology": "DIORITE_PULSE",
       "modal_spread_fraction": 0.1,
+      "modal_variation_axes": [
+        {
+          "id": "plagioclase_sodic_calcic_balance",
+          "loadings_ppm": {"geological:mineral/albite": 20000, "geological:mineral/anorthite": -20000}
+        },
+        {
+          "id": "amphibole_magnesium_iron_balance",
+          "loadings_ppm": {"geological:mineral/tremolite": 10000, "geological:mineral/ferroactinolite": -10000}
+        }
+      ],
       "texture": "PHANERITIC_CRYSTALLINE",
       "mineral_modes_ppm": {
         "geological:mineral/albite": 220000,
@@ -290,6 +350,16 @@
       "id": "geological:rock/granodiorite_pulse",
       "lithology": "GRANODIORITE_PULSE",
       "modal_spread_fraction": 0.1,
+      "modal_variation_axes": [
+        {
+          "id": "silica_alkali_feldspar_balance",
+          "loadings_ppm": {"geological:mineral/quartz": 13000, "geological:mineral/orthoclase": -13000}
+        },
+        {
+          "id": "plagioclase_sodic_calcic_balance",
+          "loadings_ppm": {"geological:mineral/albite": 18000, "geological:mineral/anorthite": -18000}
+        }
+      ],
       "texture": "PHANERITIC_CRYSTALLINE",
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 200000,
@@ -311,6 +381,16 @@
       "id": "geological:rock/felsic_stock",
       "lithology": "FELSIC_STOCK",
       "modal_spread_fraction": 0.08,
+      "modal_variation_axes": [
+        {
+          "id": "silica_alkali_feldspar_balance",
+          "loadings_ppm": {"geological:mineral/quartz": 20000, "geological:mineral/orthoclase": -20000}
+        },
+        {
+          "id": "plagioclase_sodic_calcic_balance",
+          "loadings_ppm": {"geological:mineral/albite": 4000, "geological:mineral/anorthite": -4000}
+        }
+      ],
       "texture": "PHANERITIC_CRYSTALLINE",
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 330000,
@@ -331,6 +411,16 @@
       "id": "geological:rock/vms_massive_sulfide",
       "lithology": "VMS_MASSIVE_SULFIDE",
       "modal_spread_fraction": 0.18,
+      "modal_variation_axes": [
+        {
+          "id": "copper_zinc_sulfide_balance",
+          "loadings_ppm": {"geological:mineral/chalcopyrite": 30000, "geological:mineral/sphalerite": -30000}
+        },
+        {
+          "id": "pyrite_silica_balance",
+          "loadings_ppm": {"geological:mineral/pyrite": 10000, "geological:mineral/quartz": -10000}
+        }
+      ],
       "texture": "MASSIVE_SULFIDE",
       "mineral_modes_ppm": {
         "geological:mineral/pyrite": 500000,
@@ -350,6 +440,16 @@
       "id": "geological:rock/alluvial_gravel",
       "lithology": "ALLUVIAL_GRAVEL",
       "modal_spread_fraction": 0.22,
+      "modal_variation_axes": [
+        {
+          "id": "quartz_feldspar_balance",
+          "loadings_ppm": {"geological:mineral/quartz": 40000, "geological:mineral/albite": -20000, "geological:mineral/orthoclase": -20000}
+        },
+        {
+          "id": "heavy_mineral_carbonate_balance",
+          "loadings_ppm": {"geological:mineral/magnetite": 6000, "geological:mineral/calcite": -6000}
+        }
+      ],
       "texture": "UNCONSOLIDATED_GRANULAR",
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 599999,

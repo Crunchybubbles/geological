@@ -28,7 +28,7 @@ class MaterialCatalogTest {
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:66ae96285f1fc9d71a0473550047ffde0f98d11d112442929462b4c901b7c5c7",
+        "sha256:b7291775f45f73ac91000ed6a30d73bf975b5c39bc1edf1ec06b6436c7921d0b",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -44,6 +44,14 @@ class MaterialCatalogTest {
             rock -> {
               assertTrue(
                   rock.modalSpreadFraction() > 0.0 && rock.modalSpreadFraction() <= 0.5, rock.id());
+              assertTrue(!rock.modalVariationAxes().isEmpty(), rock.id());
+              rock.modalVariationAxes()
+                  .forEach(
+                      axis ->
+                          assertEquals(
+                              0L,
+                              axis.loadingsPpm().values().stream().mapToLong(Long::longValue).sum(),
+                              rock.id() + "/" + axis.id()));
               assertTrue(rock.porosityDistribution().contains(rock.porosityFraction()), rock.id());
               assertTrue(
                   rock.permeabilityDistribution().contains(rock.permeabilityIndex()), rock.id());
@@ -145,13 +153,27 @@ class MaterialCatalogTest {
                         new ByteArrayInputStream(invalidLigand.getBytes(StandardCharsets.UTF_8)),
                         "invalid-ligand.json"));
     assertTrue(ligandFailure.getMessage().contains("ligand capacity must lie in [0, 3]"));
+
+    String unbalancedAxis =
+        authored.replace(
+            "{\"geological:mineral/quartz\": 30000, \"geological:mineral/orthoclase\": -30000}",
+            "{\"geological:mineral/quartz\": 30000, \"geological:mineral/orthoclase\": -29999}");
+    MaterialCatalogAuthoringException axisFailure =
+        assertThrows(
+            MaterialCatalogAuthoringException.class,
+            () ->
+                new MaterialCatalogJsonLoader()
+                    .load(
+                        new ByteArrayInputStream(unbalancedAxis.getBytes(StandardCharsets.UTF_8)),
+                        "unbalanced-axis.json"));
+    assertTrue(axisFailure.getMessage().contains("axis loadings must sum to zero"));
   }
 
   @Test
   void strictCatalogBoundaryRejectsUnknownFieldsAndUnclosedModes() {
     String unknown =
         """
-        {"authoring_schema":"geological:material_catalog_authoring:v3","evidence":{},
+        {"authoring_schema":"geological:material_catalog_authoring:v4","evidence":{},
         "minerals":[],"rocks":[],"overprints":[],"surprise":true}
         """;
     MaterialCatalogAuthoringException unknownFailure =
@@ -167,7 +189,7 @@ class MaterialCatalogTest {
     String unclosed =
         """
         {
-          "authoring_schema":"geological:material_catalog_authoring:v3",
+          "authoring_schema":"geological:material_catalog_authoring:v4",
           "evidence":{"citation_id":"refs:test","parameter_basis":"test tunable",
             "publication_year":2000,"title":"Test","uri":"https://example.invalid/test"},
           "minerals":[{"density_g_cm3":2.65,"formula":{"Si":1,"O":2},
@@ -176,6 +198,7 @@ class MaterialCatalogTest {
             "genetic_family":"IGNEOUS","id":"test:rock",
             "lithology":"GRANITIC_GNEISS","mineral_modes_ppm":{"test:quartz":999999},
             "modal_spread_fraction":0.1,
+            "modal_variation_axes":[],
             "permeability_distribution":{"minimum":0.05,"mode":0.1,"maximum":0.2},
             "porosity_distribution":{"minimum":0.05,"mode":0.1,"maximum":0.2},
             "texture":"PHANERITIC_CRYSTALLINE"}],

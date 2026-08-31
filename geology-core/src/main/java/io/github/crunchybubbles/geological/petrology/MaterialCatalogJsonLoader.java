@@ -26,7 +26,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 /** Strict JSON boundary for the first typed mineral, rock, and alteration data pack. */
 public final class MaterialCatalogJsonLoader {
-  public static final String AUTHORING_SCHEMA = "geological:material_catalog_authoring:v3";
+  public static final String AUTHORING_SCHEMA = "geological:material_catalog_authoring:v4";
   private static final int MAX_DOCUMENT_BYTES = 1_048_576;
   private static final Pattern IDENTIFIER = Pattern.compile("[a-z0-9_.-]+:[a-z0-9_./-]+");
   private static final JsonMapper JSON =
@@ -154,6 +154,7 @@ public final class MaterialCatalogJsonLoader {
               "id",
               "lithology",
               "modal_spread_fraction",
+              "modal_variation_axes",
               "mineral_modes_ppm",
               "permeability_distribution",
               "porosity_distribution",
@@ -179,6 +180,8 @@ public final class MaterialCatalogJsonLoader {
                   path + ".texture"),
               modes(item.get("mineral_modes_ppm"), source, path + ".mineral_modes_ppm", false),
               number(item, "modal_spread_fraction", source, path),
+              modalVariationAxes(
+                  item.get("modal_variation_axes"), source, path + ".modal_variation_axes"),
               unitDistribution(
                   item.get("porosity_distribution"), source, path + ".porosity_distribution"),
               unitDistribution(
@@ -189,6 +192,33 @@ public final class MaterialCatalogJsonLoader {
                   item.get("erodibility_distribution"),
                   source,
                   path + ".erodibility_distribution")));
+      index++;
+    }
+    return List.copyOf(result);
+  }
+
+  private static List<ModalVariationAxis> modalVariationAxes(
+      JsonNode node, String source, String path) {
+    requireArray(node, source, path);
+    List<ModalVariationAxis> result = new ArrayList<>();
+    int index = 0;
+    for (JsonNode item : node) {
+      String itemPath = path + "[" + index + "]";
+      Set<String> fields = Set.of("id", "loadings_ppm");
+      requireObject(item, source, itemPath, fields, fields);
+      JsonNode loadingsNode = item.get("loadings_ppm");
+      requireObject(loadingsNode, source, itemPath + ".loadings_ppm", null, Set.of());
+      TreeMap<String, Long> loadings = new TreeMap<>();
+      for (Map.Entry<String, JsonNode> entry : loadingsNode.properties()) {
+        String mineralId = identifier(entry.getKey(), source, itemPath + ".loadings_ppm");
+        JsonNode value = entry.getValue();
+        if (!value.isIntegralNumber() || !value.canConvertToLong()) {
+          throw error(
+              source, itemPath + ".loadings_ppm." + entry.getKey(), "must be a signed integer");
+        }
+        loadings.put(mineralId, value.longValue());
+      }
+      result.add(new ModalVariationAxis(text(item, "id", source, itemPath), loadings));
       index++;
     }
     return List.copyOf(result);
@@ -382,7 +412,7 @@ public final class MaterialCatalogJsonLoader {
       List<AlterationDefinition> alterations) {
     StringBuilder output = new StringBuilder();
     output.append(
-        "{\"canonical_schema\":\"geological:material_catalog_snapshot:v3\",\"evidence\":{");
+        "{\"canonical_schema\":\"geological:material_catalog_snapshot:v4\",\"evidence\":{");
     field(output, "citation_id", evidence.citationId());
     output.append(',');
     field(output, "parameter_basis", evidence.parameterBasis());
@@ -488,6 +518,18 @@ public final class MaterialCatalogJsonLoader {
           field(output, "lithology", rock.lithology().name());
           output.append(',');
           field(output, "modal_spread_fraction", rock.modalSpreadFraction());
+          output.append(",\"modal_variation_axes\":[");
+          appendSeparated(
+              output,
+              rock.modalVariationAxes(),
+              axis -> {
+                output.append('{');
+                field(output, "id", axis.id());
+                output.append(",\"loadings_ppm\":");
+                appendSignedModes(output, axis.loadingsPpm());
+                output.append('}');
+              });
+          output.append(']');
           output.append(",\"mineral_modes_ppm\":");
           appendModes(output, rock.primaryAssemblage());
           output.append(",\"permeability_distribution\":");
@@ -552,6 +594,15 @@ public final class MaterialCatalogJsonLoader {
             output.append(':').append(entry.getValue());
           });
     }
+    output.append('}');
+  }
+
+  private static void appendSignedModes(StringBuilder output, Map<String, Long> loadings) {
+    output.append('{');
+    appendSeparated(
+        output,
+        loadings.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList(),
+        entry -> field(output, entry.getKey(), entry.getValue()));
     output.append('}');
   }
 

@@ -13,6 +13,7 @@ import io.github.crunchybubbles.geological.petrology.ChemicalElement;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessLedger;
 import io.github.crunchybubbles.geological.petrology.MaterialQueryEngine;
+import io.github.crunchybubbles.geological.petrology.ModalVariationAxis;
 import io.github.crunchybubbles.geological.petrology.PetrologicSample;
 import io.github.crunchybubbles.geological.petrology.ProcessFluidState;
 import io.github.crunchybubbles.geological.petrology.ReservoirTransfer;
@@ -203,6 +204,8 @@ final class MaterialReviewPacketGenerator {
         rock.texture().name(),
         "modalSpreadFraction",
         rock.modalSpreadFraction(),
+        "modalVariationAxes",
+        rock.modalVariationAxes().stream().map(this::modalVariationAxisJson).toList(),
         "porosityDistribution",
         distributionJson(rock.porosityDistribution()),
         "permeabilityDistribution",
@@ -211,6 +214,10 @@ final class MaterialReviewPacketGenerator {
         distributionJson(rock.erodibilityDistribution()),
         "centralModesPpm",
         rock.primaryAssemblage().modesPpm());
+  }
+
+  private Map<String, Object> modalVariationAxisJson(ModalVariationAxis axis) {
+    return JsonWriter.object("id", axis.id(), "loadingsPpm", axis.loadingsPpm());
   }
 
   private static Map<String, Object> distributionJson(UnitIntervalDistribution distribution) {

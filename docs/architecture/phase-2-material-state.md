@@ -1,14 +1,14 @@
 # Phase 2 petrologic material-state increment
 
-Status: fourth implementation increment; Phase 2 content breadth and geological calibration remain open
+Status: fifth implementation increment; Phase 2 content breadth and geological calibration remain open
 
-Identity: model `phase2.0-alpha.4`, profile `geological:overworld_phase2`
+Identity: model `phase2.0-alpha.5`, profile `geological:overworld_phase2`
 
 Base registry digest: `sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4`
 
-Material catalog digest: `sha256:66ae96285f1fc9d71a0473550047ffde0f98d11d112442929462b4c901b7c5c7`
+Material catalog digest: `sha256:b7291775f45f73ac91000ed6a30d73bf975b5c39bc1edf1ec06b6436c7921d0b`
 
-Composite scientific digest: `sha256:459861f42cacf528f502b2af3b889f2a98826a3b8444b54f97426ddd7521abb5`
+Composite scientific digest: `sha256:f0abc63e80c379923a49805ebe64d0967179ecf3e710abe3ed3e4fb510efadb4`
 
 This increment asks whether the Phase 1 body/history result can resolve into a coherent bulk-rock parcel without storing mineralogy per block. It deliberately reuses the existing rift-to-arc geometry and deposit proof rather than adding another body or deposit family.
 
@@ -22,11 +22,11 @@ The first catalog contains:
 - one primary assemblage, typed texture, and bounded physical-property distribution record for every one of the ten currently implemented `Lithology` values;
 - one metamorphic, hydrothermal, or weathering response for every implemented `Overprint` value, with target assemblages selected through exact protolith-family coverage.
 
-Authored modes are central integer parts per million and must sum to one million. Each rock also declares a bounded modal-spread fraction, a coarse texture class independent from presentation, and triangular minimum/mode/maximum distributions for porosity, permeability, and erodibility. Ideal formulas use a bounded element vocabulary. Whole-rock element mass fractions are derived from formula mass, modal volume, and mineral density, then closed to exactly one million parts with deterministic largest-remainder rounding. The catalog labels its modes, spread bounds, textures, and property distributions as proof tunables pending geological review; it does not present them as measured universal rock compositions.
+Authored modes are central integer parts per million and must sum to one million. Each rock also declares one or more named modal-variation axes. An axis is a sparse set of signed mineral loadings that must sum to zero; cumulative loading on each mineral may not exceed the rock's declared modal-spread fraction. These axes encode substitution or mixture directions instead of allowing every mineral to vary independently. Rocks additionally declare a coarse texture class independent from presentation and triangular minimum/mode/maximum distributions for porosity, permeability, and erodibility. Ideal formulas use a bounded element vocabulary. Whole-rock element mass fractions are derived from formula mass, modal volume, and mineral density, then closed to exactly one million parts with deterministic largest-remainder rounding. The catalog labels its modes, covariance loadings, spread bounds, textures, and property distributions as proof tunables pending geological review; it does not present them as measured universal rock compositions.
 
 ## Derived query state
 
-`Phase2World.create(seed)` returns a `MaterialQueryEngine`. The finite matrix of ten lithologies and nine overprints is validated into immutable recipe templates once per engine. Each geological body then receives deterministic modal and physical-property realizations from bounded triangular distributions around its rock definition. All streams are keyed by world identity, stable body ID, and explicit property purpose, so querying another point or clearing a cache cannot consume or perturb a result. Integer modes close exactly to one million parts using largest-remainder allocation with domain-separated deterministic tie-breaking. A bounded cache retains resolved body/overprint recipes without becoming part of the scientific state.
+`Phase2World.create(seed)` returns a `MaterialQueryEngine`. The finite matrix of ten lithologies and nine overprints is validated into immutable recipe templates once per engine. Each geological body receives one deterministic triangular score per authored modal-variation axis; applying the signed loadings produces correlated primary modes while triangular property distributions independently resolve porosity, permeability, and erodibility. All streams are keyed by world identity, stable body ID, and explicit property purpose, so querying another point or clearing a cache cannot consume or perturb a result. Integer modes close exactly to one million parts using largest-remainder allocation with domain-separated deterministic tie-breaking. A bounded cache retains resolved body/overprint recipes without becoming part of the scientific state.
 
 A point query first obtains the immutable Phase 1 geological sample and then derives a `PetrologicSample` containing:
 
@@ -55,12 +55,12 @@ System-scale inventory remains coarse but is now exposed through typed `ElementR
 
 ## Identity and compatibility
 
-Phase 1 model/profile/digest golden values are unchanged. Phase 2 composes the frozen Phase 1 registry digest and the typed material-catalog digest into a new canonical scientific manifest. Advancing the Phase 2 model version for body-scale modal distributions ensures that the scientific change alters every downstream object identity rather than masquerading as the prior alpha.
+Phase 1 model/profile/digest golden values are unchanged. Phase 2 composes the frozen Phase 1 registry digest and the typed material-catalog digest into a new canonical scientific manifest. Advancing the Phase 2 model version for authored modal covariance ensures that the scientific change alters every downstream object identity rather than masquerading as the prior alpha.
 
-Tests cover formula and modal closure, body-keyed distribution golden vectors, bounded physical-property sampling, same-body continuity and cross-body variation, exact protolith recipe coverage, fluid-state/ligand bounds, authoring-order canonicalization, every implemented lithology/overprint pair, strict malformed-authoring rejection, frozen digests, magma lineage ordering, sedimentary provenance, isochemical versus mass-transfer behavior, exact typed reservoir closure, point/column equivalence, surface source budgets, barren-trap rejection, and reproducibility across cache eviction and fresh world construction.
+Tests cover formula and modal closure, mass-conserving/bounded covariance axes, body-keyed distribution golden vectors, bounded physical-property sampling, same-body continuity and cross-body correlated variation, exact protolith recipe coverage, fluid-state/ligand bounds, authoring-order canonicalization, every implemented lithology/overprint pair, strict malformed-authoring rejection, frozen digests, magma lineage ordering, sedimentary provenance, isochemical versus mass-transfer behavior, exact typed reservoir closure, point/column equivalence, surface source budgets, barren-trap rejection, and reproducibility across cache eviction and fresh world construction.
 
-`./gradlew generateExampleAtlas` also writes `atlas-cli/build/phase2/example/phase2-material-review.json`. The deterministic review artifact publishes the Phase 2 identity, catalog coverage and central modes, representative body and overprint realizations, normalized process contributions, typed fluid conditions, system reservoirs, and the source-linked placer context. It is intended for scientific and implementation review, not as a save format.
+`./gradlew generateExampleAtlas` also writes `atlas-cli/build/phase2/example/phase2-material-review.json`. The deterministic review artifact publishes the Phase 2 identity, catalog coverage, central modes and modal-variation axes, representative body and overprint realizations, normalized process contributions, typed fluid conditions, system reservoirs, and the source-linked placer context. It is intended for scientific and implementation review, not as a save format.
 
 ## Deliberate limits
 
-This is not the Phase 2 exit candidate. It does not yet provide the planned 38-class/approximately 50-mineral content breadth, solid-solution interpolation, correlated primary compositional distributions, geologically differentiated protolith response recipes, reviewed property and fluid-response datasets, calibrated multi-stage reservoir transport, or presentation/processing policy. Minecraft/NeoForge realization remains deferred to Phase 4.
+This is not the Phase 2 exit candidate. It does not yet provide the planned 38-class/approximately 50-mineral content breadth, solid-solution interpolation, geologically differentiated protolith response recipes, reviewed property and fluid-response datasets, calibrated multi-stage reservoir transport, or presentation/processing policy. Minecraft/NeoForge realization remains deferred to Phase 4.

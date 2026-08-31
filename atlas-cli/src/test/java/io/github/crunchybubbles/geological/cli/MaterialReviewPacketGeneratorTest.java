@@ -27,6 +27,8 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"normalizedExchangeMagnitudePpm\""));
     assertTrue(firstJson.contains("\"texture\""));
     assertTrue(firstJson.contains("\"porosityDistribution\""));
+    assertTrue(firstJson.contains("\"modalVariationAxes\""));
+    assertTrue(firstJson.contains("\"loadingsPpm\""));
     assertTrue(firstJson.contains("\"protolithFamilies\""));
     assertTrue(firstJson.contains("\"ligandCapacities\""));
   }

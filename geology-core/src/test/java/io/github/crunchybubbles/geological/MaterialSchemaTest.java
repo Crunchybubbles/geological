@@ -5,10 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.crunchybubbles.geological.determinism.StableId;
+import io.github.crunchybubbles.geological.determinism.WorldIdentity;
+import io.github.crunchybubbles.geological.model.Lithology;
 import io.github.crunchybubbles.geological.model.Overprint;
 import io.github.crunchybubbles.geological.petrology.AcidityClass;
 import io.github.crunchybubbles.geological.petrology.AlterationAssemblageRecipe;
 import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
+import io.github.crunchybubbles.geological.petrology.BodyCompositionSampler;
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
 import io.github.crunchybubbles.geological.petrology.LigandCapacities;
@@ -16,8 +20,11 @@ import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
 import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
 import io.github.crunchybubbles.geological.petrology.MetamorphicPath;
 import io.github.crunchybubbles.geological.petrology.MineralAssemblage;
+import io.github.crunchybubbles.geological.petrology.ModalVariationAxis;
 import io.github.crunchybubbles.geological.petrology.ProcessFluidState;
 import io.github.crunchybubbles.geological.petrology.RedoxClass;
+import io.github.crunchybubbles.geological.petrology.RockDefinition;
+import io.github.crunchybubbles.geological.petrology.RockTexture;
 import io.github.crunchybubbles.geological.petrology.SalinityClass;
 import io.github.crunchybubbles.geological.petrology.SulfurState;
 import io.github.crunchybubbles.geological.petrology.UnitIntervalDistribution;
@@ -89,6 +96,71 @@ class MaterialSchemaTest {
                 -1));
   }
 
+  @Test
+  void modalVariationAxesConserveMassAndRespectTheRockSpreadEnvelope() {
+    ModalVariationAxis axis =
+        new ModalVariationAxis(
+            "quartz_feldspar_balance", Map.of("test:quartz", 50_000L, "test:feldspar", -50_000L));
+    MineralAssemblage central =
+        new MineralAssemblage(Map.of("test:quartz", 500_000L, "test:feldspar", 500_000L));
+
+    RockDefinition rock = rock(central, 0.1, List.of(axis));
+
+    assertEquals(
+        0L,
+        rock.modalVariationAxes().getFirst().loadingsPpm().values().stream()
+            .mapToLong(Long::longValue)
+            .sum());
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ModalVariationAxis(
+                "unbalanced", Map.of("test:quartz", 50_000L, "test:feldspar", -49_999L)));
+    ModalVariationAxis excessive =
+        new ModalVariationAxis(
+            "excessive", Map.of("test:quartz", 50_001L, "test:feldspar", -50_001L));
+    assertThrows(IllegalArgumentException.class, () -> rock(central, 0.1, List.of(excessive)));
+    assertThrows(IllegalArgumentException.class, () -> rock(central, 0.1, List.of(axis, axis)));
+  }
+
+  @Test
+  void bodySamplerFollowsAuthoredCorrelationWithoutLeakingModalMass() {
+    MineralAssemblage central =
+        new MineralAssemblage(
+            Map.of(
+                "test:quartz", 400_000L,
+                "test:albite", 300_000L,
+                "test:orthoclase", 300_000L));
+    ModalVariationAxis axis =
+        new ModalVariationAxis(
+            "quartz_feldspar_balance",
+            Map.of(
+                "test:quartz", 60_000L,
+                "test:albite", -30_000L,
+                "test:orthoclase", -30_000L));
+    RockDefinition rock = rock(central, 0.15, List.of(axis));
+    BodyCompositionSampler sampler =
+        new BodyCompositionSampler(
+            new WorldIdentity(17L, "test-model", "test-digest", "test:profile"));
+    boolean sawPositive = false;
+    boolean sawNegative = false;
+
+    for (int index = 1; index <= 128; index++) {
+      MineralAssemblage sampled = sampler.sample(rock, StableId.parse("%032x".formatted(index)));
+      long quartzDelta = sampled.modesPpm().get("test:quartz") - 400_000L;
+      long albiteDelta = sampled.modesPpm().get("test:albite") - 300_000L;
+      long orthoclaseDelta = sampled.modesPpm().get("test:orthoclase") - 300_000L;
+
+      assertEquals(0L, quartzDelta + albiteDelta + orthoclaseDelta);
+      assertTrue(StrictMath.abs(albiteDelta - orthoclaseDelta) <= 1L);
+      assertTrue(quartzDelta == 0L || Long.signum(quartzDelta) == -Long.signum(albiteDelta));
+      assertTrue(StrictMath.abs(quartzDelta) <= 60_000L);
+      sawPositive |= quartzDelta > 0L;
+      sawNegative |= quartzDelta < 0L;
+    }
+    assertTrue(sawPositive && sawNegative);
+  }
+
   private static AlterationDefinition alteration(List<AlterationAssemblageRecipe> recipes) {
     return alteration(recipes, Optional.of(fluidState()));
   }
@@ -120,6 +192,22 @@ class MaterialSchemaTest {
         SulfurState.REDUCED_SULFUR_BUFFERED,
         new LigandCapacities(3, 2, 1, 2),
         3);
+  }
+
+  private static RockDefinition rock(
+      MineralAssemblage central, double spread, List<ModalVariationAxis> axes) {
+    UnitIntervalDistribution property = new UnitIntervalDistribution(0.1, 0.2, 0.3);
+    return new RockDefinition(
+        "test:rock",
+        Lithology.GRANITIC_GNEISS,
+        GeneticFamily.METAMORPHIC,
+        RockTexture.FOLIATED_CRYSTALLINE,
+        central,
+        spread,
+        axes,
+        property,
+        property,
+        property);
   }
 
   private static MineralAssemblage assemblage(String mineral) {
