@@ -187,6 +187,7 @@ public final class MaterialQueryEngine {
         recipe.primaryComposition(),
         recipe.resolvedComposition(),
         recipe.elementLedger(),
+        materialProcessLedger(province, geological, alteration, recipe.elementLedger()),
         metamorphicHistory(province, rock, alteration),
         alteration.processClass(),
         recipe.porosityFraction(),
@@ -195,6 +196,28 @@ public final class MaterialQueryEngine {
         magmaLineage(province, geological),
         sedimentaryState(province, rock),
         ledgersForSample(province, geological));
+  }
+
+  private static MaterialProcessLedger materialProcessLedger(
+      Province province,
+      GeologicalSample geological,
+      AlterationDefinition alteration,
+      ElementTransferLedger elementLedger) {
+    Optional<StableId> processId =
+        switch (geological.overprint()) {
+          case NONE -> Optional.empty();
+          case CONTACT_HORNFELS -> Optional.of(province.geometry().aureoleId());
+          case POTASSIC_ALTERATION, PHYLLIC_ALTERATION, PROPYLITIC_ALTERATION ->
+              Optional.of(province.proofIds().porphyrySystemId());
+          case CHLORITIC_FOOTWALL -> Optional.of(province.proofIds().vmsSystemId());
+          case WEATHERED_UNCONFORMITY, OXIDIZED_GOSSAN, WEATHERED_REGOLITH ->
+              Optional.of(province.proofIds().weatheringId());
+        };
+    return MaterialProcessLedger.from(
+        processId,
+        alteration.processClass(),
+        processEvents(province, alteration.processClass()),
+        elementLedger);
   }
 
   private static MetamorphicHistory metamorphicHistory(

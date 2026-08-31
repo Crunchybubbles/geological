@@ -32,7 +32,7 @@ A point query first obtains the immutable Phase 1 geological sample and then der
 
 - the primary and resolved mineral assemblages;
 - formula-derived primary and resolved bulk element composition;
-- an exact local element-delta ledger;
+- an exact local element-delta ledger and causal process attribution;
 - porosity, permeability, and erodibility response;
 - protolith-aware metamorphic facies and a compact P-T-t path;
 - an optional linked magma-lineage pulse state;
@@ -40,7 +40,7 @@ A point query first obtains the immutable Phase 1 geological sample and then der
 
 The three existing pluton pulses share the province magma-system ID and progress from diorite through granodiorite to the felsic stock. Rock names are therefore outputs of one ordered differentiation abstraction, not independent random rolls. Existing basin members retain basement provenance; the marine volcaniclastic member additionally names the magmatic lineage.
 
-Contact hornfels is an isochemical response: it changes P-T-t and physical state without changing whole-rock element inventory. Potassic, phyllic, propylitic, chloritic, gossan, regolith, and unconformity-weathering responses blend an authored replacement assemblage and expose exact signed element deltas.
+Contact hornfels is an isochemical response: it changes P-T-t and physical state without changing whole-rock element inventory. Potassic, phyllic, propylitic, chloritic, gossan, regolith, and unconformity-weathering responses blend an authored replacement assemblage and expose exact signed element deltas. A typed `MaterialProcessLedger` separates the positive and negative sides of that normalized delta, names the causal aureole, hydrothermal system, or weathering system, and carries matching chronicle events when the supplied geological history contains them. Its additions and removals balance because both bulk compositions are normalized; it is process attribution, not a claim that the local parcel is an absolute closed mass reservoir.
 
 System-scale inventory remains coarse but is now exposed through typed `ElementReservoirLedger` values. Each formed mineral-system decision is compiled from its exact fixed-point source ledger into an initial source reservoir and explicitly typed deposit, retained-source, diffuse-halo/loss, or transport-loss transfers. Ledgers require exact closure and a formed deposit must receive a deposit allocation. Point and surface samples carry the ledger for a deposit they intersect, including the existing porphyry Cu budget and the upstream-source/trap allocation for placer Au. This adds queryable conservation semantics without introducing new deposit geometry or invented inventory numbers.
 

@@ -185,6 +185,10 @@ class MaterialQueryTest {
     assertEquals(MetamorphicFacies.HORNBLENDE_HORNFELS, hornfels.metamorphism().facies());
     assertEquals(MaterialProcessClass.ISOCHEMICAL_METAMORPHISM, hornfels.processClass());
     assertTrue(hornfels.elementLedger().isIsochemical());
+    assertEquals(
+        province.geometry().aureoleId(),
+        hornfels.materialProcessLedger().processId().orElseThrow());
+    assertEquals(0L, hornfels.materialProcessLedger().exchangeMagnitudePpm());
     assertEquals(hornfels.primaryComposition(), hornfels.resolvedComposition());
 
     RiftArcGeometry.PlutonPulse stock = province.geometry().plutonPulses().getLast();
@@ -199,11 +203,19 @@ class MaterialQueryTest {
     PetrologicSample altered = query.resolve(province, potassic);
     assertEquals(MaterialProcessClass.HYDROTHERMAL_METASOMATISM, altered.processClass());
     assertFalse(altered.elementLedger().isIsochemical());
+    assertEquals(
+        province.proofIds().porphyrySystemId(),
+        altered.materialProcessLedger().processId().orElseThrow());
+    assertFalse(altered.materialProcessLedger().eventIds().isEmpty());
+    assertTrue(altered.materialProcessLedger().exchangeMagnitudePpm() > 0);
     assertTrue(
         altered.resolvedComposition().elementMassPpm().getOrDefault(ChemicalElement.CU, 0L)
             > altered.primaryComposition().elementMassPpm().getOrDefault(ChemicalElement.CU, 0L));
     ChemicalElement[] elements = ChemicalElement.values();
     for (ChemicalElement element : elements) {
+      assertEquals(
+          altered.elementLedger().transferPpm().getOrDefault(element, 0L),
+          altered.materialProcessLedger().netTransferPpm(element));
       assertEquals(
           altered.elementLedger().initialPpm().getOrDefault(element, 0L)
               + altered.elementLedger().transferPpm().getOrDefault(element, 0L),
@@ -316,6 +328,10 @@ class MaterialQueryTest {
     assertEquals("phase0_fixed_units", surface.context().budgetUnit().orElseThrow());
     assertEquals(100_000L, surface.context().sourceInventoryFixedUnits());
     assertEquals(20_000L, surface.context().trappedInventoryFixedUnits());
+    assertEquals(
+        fertile.proofIds().weatheringId(),
+        surface.material().materialProcessLedger().processId().orElseThrow());
+    assertFalse(surface.material().materialProcessLedger().eventIds().isEmpty());
     assertEquals(1, surface.material().reservoirLedgers().size());
     assertEquals(
         20_000L, surface.material().reservoirLedgers().getFirst().allocation("placer_trap"));

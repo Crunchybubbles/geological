@@ -13,6 +13,7 @@ public record PetrologicSample(
     BulkComposition primaryComposition,
     BulkComposition resolvedComposition,
     ElementTransferLedger elementLedger,
+    MaterialProcessLedger materialProcessLedger,
     MetamorphicHistory metamorphism,
     MaterialProcessClass processClass,
     double porosityFraction,
@@ -29,12 +30,19 @@ public record PetrologicSample(
         || primaryComposition == null
         || resolvedComposition == null
         || elementLedger == null
+        || materialProcessLedger == null
         || metamorphism == null
         || processClass == null
         || magmaLineage == null
         || sedimentaryState == null
         || reservoirLedgers == null) {
       throw new IllegalArgumentException("petrologic sample must be complete");
+    }
+    for (ChemicalElement element : ChemicalElement.values()) {
+      if (materialProcessLedger.netTransferPpm(element)
+          != elementLedger.transferPpm().getOrDefault(element, 0L)) {
+        throw new IllegalArgumentException("material process does not match element ledger");
+      }
     }
     reservoirLedgers =
         List.copyOf(reservoirLedgers).stream()
