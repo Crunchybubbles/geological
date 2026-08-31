@@ -1,0 +1,506 @@
+{
+  "authoring_schema": "geological:material_catalog_authoring:v1",
+  "evidence": {
+    "citation_id": "refs:philpotts_ague_2009",
+    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. Mineral modes and physical-property scalars are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
+    "publication_year": 2009,
+    "title": "Principles of Igneous and Metamorphic Petrology",
+    "uri": "https://doi.org/10.1017/CBO9780511813429"
+  },
+  "minerals": [
+    {
+      "density_g_cm3": 2.65,
+      "formula": {"Si": 1, "O": 2},
+      "hardness_mohs": 7.0,
+      "id": "geological:mineral/quartz",
+      "weathering_resistance": 0.96
+    },
+    {
+      "density_g_cm3": 2.62,
+      "formula": {"Na": 1, "Al": 1, "Si": 3, "O": 8},
+      "hardness_mohs": 6.0,
+      "id": "geological:mineral/albite",
+      "weathering_resistance": 0.58
+    },
+    {
+      "density_g_cm3": 2.75,
+      "formula": {"Ca": 1, "Al": 2, "Si": 2, "O": 8},
+      "hardness_mohs": 6.0,
+      "id": "geological:mineral/anorthite",
+      "weathering_resistance": 0.42
+    },
+    {
+      "density_g_cm3": 2.56,
+      "formula": {"K": 1, "Al": 1, "Si": 3, "O": 8},
+      "hardness_mohs": 6.0,
+      "id": "geological:mineral/orthoclase",
+      "weathering_resistance": 0.52
+    },
+    {
+      "density_g_cm3": 2.85,
+      "formula": {"K": 1, "Mg": 3, "Al": 1, "Si": 3, "O": 12, "H": 2},
+      "hardness_mohs": 2.8,
+      "id": "geological:mineral/phlogopite",
+      "weathering_resistance": 0.38
+    },
+    {
+      "density_g_cm3": 3.2,
+      "formula": {"K": 1, "Fe": 3, "Al": 1, "Si": 3, "O": 12, "H": 2},
+      "hardness_mohs": 3.0,
+      "id": "geological:mineral/annite",
+      "weathering_resistance": 0.32
+    },
+    {
+      "density_g_cm3": 3.0,
+      "formula": {"Ca": 2, "Mg": 5, "Si": 8, "O": 24, "H": 2},
+      "hardness_mohs": 5.5,
+      "id": "geological:mineral/tremolite",
+      "weathering_resistance": 0.46
+    },
+    {
+      "density_g_cm3": 3.35,
+      "formula": {"Ca": 2, "Fe": 5, "Si": 8, "O": 24, "H": 2},
+      "hardness_mohs": 5.5,
+      "id": "geological:mineral/ferroactinolite",
+      "weathering_resistance": 0.4
+    },
+    {
+      "density_g_cm3": 3.28,
+      "formula": {"Ca": 1, "Mg": 1, "Si": 2, "O": 6},
+      "hardness_mohs": 5.8,
+      "id": "geological:mineral/diopside",
+      "weathering_resistance": 0.43
+    },
+    {
+      "density_g_cm3": 3.55,
+      "formula": {"Ca": 1, "Fe": 1, "Si": 2, "O": 6},
+      "hardness_mohs": 5.8,
+      "id": "geological:mineral/hedenbergite",
+      "weathering_resistance": 0.37
+    },
+    {
+      "density_g_cm3": 2.65,
+      "formula": {"Mg": 5, "Al": 2, "Si": 3, "O": 18, "H": 8},
+      "hardness_mohs": 2.5,
+      "id": "geological:mineral/clinochlore",
+      "weathering_resistance": 0.3
+    },
+    {
+      "density_g_cm3": 2.82,
+      "formula": {"K": 1, "Al": 3, "Si": 3, "O": 12, "H": 2},
+      "hardness_mohs": 2.5,
+      "id": "geological:mineral/muscovite",
+      "weathering_resistance": 0.48
+    },
+    {
+      "density_g_cm3": 3.45,
+      "formula": {"Ca": 2, "Al": 2, "Fe": 1, "Si": 3, "O": 13, "H": 1},
+      "hardness_mohs": 6.5,
+      "id": "geological:mineral/epidote",
+      "weathering_resistance": 0.62
+    },
+    {
+      "density_g_cm3": 2.71,
+      "formula": {"Ca": 1, "C": 1, "O": 3},
+      "hardness_mohs": 3.0,
+      "id": "geological:mineral/calcite",
+      "weathering_resistance": 0.16
+    },
+    {
+      "density_g_cm3": 2.6,
+      "formula": {"Al": 2, "Si": 2, "O": 9, "H": 4},
+      "hardness_mohs": 2.2,
+      "id": "geological:mineral/kaolinite",
+      "weathering_resistance": 0.74
+    },
+    {
+      "density_g_cm3": 5.01,
+      "formula": {"Fe": 1, "S": 2},
+      "hardness_mohs": 6.2,
+      "id": "geological:mineral/pyrite",
+      "weathering_resistance": 0.12
+    },
+    {
+      "density_g_cm3": 4.2,
+      "formula": {"Cu": 1, "Fe": 1, "S": 2},
+      "hardness_mohs": 3.8,
+      "id": "geological:mineral/chalcopyrite",
+      "weathering_resistance": 0.1
+    },
+    {
+      "density_g_cm3": 4.05,
+      "formula": {"Zn": 1, "S": 1},
+      "hardness_mohs": 4.0,
+      "id": "geological:mineral/sphalerite",
+      "weathering_resistance": 0.14
+    },
+    {
+      "density_g_cm3": 5.18,
+      "formula": {"Fe": 3, "O": 4},
+      "hardness_mohs": 6.0,
+      "id": "geological:mineral/magnetite",
+      "weathering_resistance": 0.68
+    },
+    {
+      "density_g_cm3": 5.26,
+      "formula": {"Fe": 2, "O": 3},
+      "hardness_mohs": 6.0,
+      "id": "geological:mineral/hematite",
+      "weathering_resistance": 0.82
+    },
+    {
+      "density_g_cm3": 4.28,
+      "formula": {"Fe": 1, "O": 2, "H": 1},
+      "hardness_mohs": 5.2,
+      "id": "geological:mineral/goethite",
+      "weathering_resistance": 0.76
+    },
+    {
+      "density_g_cm3": 19.3,
+      "formula": {"Au": 1},
+      "hardness_mohs": 2.8,
+      "id": "geological:mineral/native_gold",
+      "weathering_resistance": 0.99
+    }
+  ],
+  "rocks": [
+    {
+      "erodibility_index": 0.18,
+      "genetic_family": "METAMORPHIC",
+      "id": "geological:rock/granitic_gneiss",
+      "lithology": "GRANITIC_GNEISS",
+      "mineral_modes_ppm": {
+        "geological:mineral/quartz": 300000,
+        "geological:mineral/orthoclase": 250000,
+        "geological:mineral/albite": 150000,
+        "geological:mineral/anorthite": 80000,
+        "geological:mineral/phlogopite": 80000,
+        "geological:mineral/annite": 80000,
+        "geological:mineral/magnetite": 20000,
+        "geological:mineral/muscovite": 40000
+      },
+      "permeability_index": 0.05,
+      "porosity_fraction": 0.01
+    },
+    {
+      "erodibility_index": 0.42,
+      "genetic_family": "SEDIMENTARY",
+      "id": "geological:rock/basal_conglomerate",
+      "lithology": "BASAL_CONGLOMERATE",
+      "mineral_modes_ppm": {
+        "geological:mineral/quartz": 550000,
+        "geological:mineral/albite": 120000,
+        "geological:mineral/orthoclase": 100000,
+        "geological:mineral/anorthite": 80000,
+        "geological:mineral/kaolinite": 50000,
+        "geological:mineral/calcite": 40000,
+        "geological:mineral/magnetite": 20000,
+        "geological:mineral/phlogopite": 20000,
+        "geological:mineral/annite": 20000
+      },
+      "permeability_index": 0.62,
+      "porosity_fraction": 0.15
+    },
+    {
+      "erodibility_index": 0.45,
+      "genetic_family": "SEDIMENTARY",
+      "id": "geological:rock/marine_volcaniclastic",
+      "lithology": "MARINE_VOLCANICLASTIC",
+      "mineral_modes_ppm": {
+        "geological:mineral/quartz": 80000,
+        "geological:mineral/albite": 250000,
+        "geological:mineral/anorthite": 250000,
+        "geological:mineral/diopside": 120000,
+        "geological:mineral/hedenbergite": 60000,
+        "geological:mineral/tremolite": 100000,
+        "geological:mineral/magnetite": 70000,
+        "geological:mineral/calcite": 70000
+      },
+      "permeability_index": 0.34,
+      "porosity_fraction": 0.1
+    },
+    {
+      "erodibility_index": 0.7,
+      "genetic_family": "SEDIMENTARY",
+      "id": "geological:rock/basin_shale",
+      "lithology": "BASIN_SHALE",
+      "mineral_modes_ppm": {
+        "geological:mineral/quartz": 300000,
+        "geological:mineral/albite": 80000,
+        "geological:mineral/orthoclase": 60000,
+        "geological:mineral/muscovite": 180000,
+        "geological:mineral/clinochlore": 100000,
+        "geological:mineral/kaolinite": 220000,
+        "geological:mineral/pyrite": 20000,
+        "geological:mineral/calcite": 40000
+      },
+      "permeability_index": 0.08,
+      "porosity_fraction": 0.08
+    },
+    {
+      "erodibility_index": 0.36,
+      "genetic_family": "SEDIMENTARY",
+      "id": "geological:rock/basin_sandstone",
+      "lithology": "BASIN_SANDSTONE",
+      "mineral_modes_ppm": {
+        "geological:mineral/quartz": 760000,
+        "geological:mineral/albite": 70000,
+        "geological:mineral/orthoclase": 70000,
+        "geological:mineral/calcite": 50000,
+        "geological:mineral/kaolinite": 30000,
+        "geological:mineral/magnetite": 10000,
+        "geological:mineral/muscovite": 10000
+      },
+      "permeability_index": 0.58,
+      "porosity_fraction": 0.13
+    },
+    {
+      "erodibility_index": 0.2,
+      "genetic_family": "IGNEOUS",
+      "id": "geological:rock/diorite_pulse",
+      "lithology": "DIORITE_PULSE",
+      "mineral_modes_ppm": {
+        "geological:mineral/albite": 220000,
+        "geological:mineral/anorthite": 300000,
+        "geological:mineral/tremolite": 160000,
+        "geological:mineral/ferroactinolite": 100000,
+        "geological:mineral/diopside": 100000,
+        "geological:mineral/hedenbergite": 50000,
+        "geological:mineral/magnetite": 50000,
+        "geological:mineral/quartz": 20000
+      },
+      "permeability_index": 0.06,
+      "porosity_fraction": 0.015
+    },
+    {
+      "erodibility_index": 0.16,
+      "genetic_family": "IGNEOUS",
+      "id": "geological:rock/granodiorite_pulse",
+      "lithology": "GRANODIORITE_PULSE",
+      "mineral_modes_ppm": {
+        "geological:mineral/quartz": 200000,
+        "geological:mineral/albite": 220000,
+        "geological:mineral/anorthite": 180000,
+        "geological:mineral/orthoclase": 130000,
+        "geological:mineral/phlogopite": 80000,
+        "geological:mineral/annite": 60000,
+        "geological:mineral/tremolite": 60000,
+        "geological:mineral/magnetite": 40000,
+        "geological:mineral/muscovite": 30000
+      },
+      "permeability_index": 0.05,
+      "porosity_fraction": 0.012
+    },
+    {
+      "erodibility_index": 0.14,
+      "genetic_family": "IGNEOUS",
+      "id": "geological:rock/felsic_stock",
+      "lithology": "FELSIC_STOCK",
+      "mineral_modes_ppm": {
+        "geological:mineral/quartz": 330000,
+        "geological:mineral/orthoclase": 270000,
+        "geological:mineral/albite": 220000,
+        "geological:mineral/anorthite": 50000,
+        "geological:mineral/muscovite": 60000,
+        "geological:mineral/phlogopite": 30000,
+        "geological:mineral/annite": 10000,
+        "geological:mineral/magnetite": 30000
+      },
+      "permeability_index": 0.04,
+      "porosity_fraction": 0.01
+    },
+    {
+      "erodibility_index": 0.24,
+      "genetic_family": "HYDROTHERMAL",
+      "id": "geological:rock/vms_massive_sulfide",
+      "lithology": "VMS_MASSIVE_SULFIDE",
+      "mineral_modes_ppm": {
+        "geological:mineral/pyrite": 500000,
+        "geological:mineral/chalcopyrite": 180000,
+        "geological:mineral/sphalerite": 180000,
+        "geological:mineral/quartz": 60000,
+        "geological:mineral/clinochlore": 40000,
+        "geological:mineral/calcite": 20000,
+        "geological:mineral/magnetite": 20000
+      },
+      "permeability_index": 0.12,
+      "porosity_fraction": 0.025
+    },
+    {
+      "erodibility_index": 0.82,
+      "genetic_family": "SURFICIAL",
+      "id": "geological:rock/alluvial_gravel",
+      "lithology": "ALLUVIAL_GRAVEL",
+      "mineral_modes_ppm": {
+        "geological:mineral/quartz": 599999,
+        "geological:mineral/albite": 100000,
+        "geological:mineral/anorthite": 60000,
+        "geological:mineral/orthoclase": 100000,
+        "geological:mineral/magnetite": 40000,
+        "geological:mineral/kaolinite": 40000,
+        "geological:mineral/calcite": 30000,
+        "geological:mineral/goethite": 30000,
+        "geological:mineral/native_gold": 1
+      },
+      "permeability_index": 0.9,
+      "porosity_fraction": 0.28
+    }
+  ],
+  "overprints": [
+    {
+      "erodibility_delta": 0.0,
+      "facies": "NONE",
+      "overprint": "NONE",
+      "path": "NONE",
+      "peak_pressure_mpa": [0.0, 0.0],
+      "peak_temperature_c": [0.0, 0.0],
+      "porosity_multiplier": 1.0,
+      "process_class": "NONE",
+      "replacement_ppm": 0,
+      "target_modes_ppm": {}
+    },
+    {
+      "erodibility_delta": 0.12,
+      "facies": "NONE",
+      "overprint": "WEATHERED_UNCONFORMITY",
+      "path": "NONE",
+      "peak_pressure_mpa": [0.0, 20.0],
+      "peak_temperature_c": [0.0, 80.0],
+      "porosity_multiplier": 1.35,
+      "process_class": "WEATHERING",
+      "replacement_ppm": 200000,
+      "target_modes_ppm": {
+        "geological:mineral/quartz": 200000,
+        "geological:mineral/kaolinite": 400000,
+        "geological:mineral/goethite": 250000,
+        "geological:mineral/hematite": 100000,
+        "geological:mineral/magnetite": 50000
+      }
+    },
+    {
+      "erodibility_delta": -0.08,
+      "facies": "HORNBLENDE_HORNFELS",
+      "overprint": "CONTACT_HORNFELS",
+      "path": "CONTACT_LOW_P",
+      "peak_pressure_mpa": [100.0, 300.0],
+      "peak_temperature_c": [500.0, 700.0],
+      "porosity_multiplier": 0.7,
+      "process_class": "ISOCHEMICAL_METAMORPHISM",
+      "replacement_ppm": 0,
+      "target_modes_ppm": {}
+    },
+    {
+      "erodibility_delta": -0.04,
+      "facies": "NONE",
+      "overprint": "POTASSIC_ALTERATION",
+      "path": "NONE",
+      "peak_pressure_mpa": [80.0, 250.0],
+      "peak_temperature_c": [400.0, 650.0],
+      "porosity_multiplier": 0.9,
+      "process_class": "HYDROTHERMAL_METASOMATISM",
+      "replacement_ppm": 300000,
+      "target_modes_ppm": {
+        "geological:mineral/orthoclase": 450000,
+        "geological:mineral/phlogopite": 150000,
+        "geological:mineral/quartz": 200000,
+        "geological:mineral/magnetite": 80000,
+        "geological:mineral/chalcopyrite": 60000,
+        "geological:mineral/pyrite": 60000
+      }
+    },
+    {
+      "erodibility_delta": 0.05,
+      "facies": "NONE",
+      "overprint": "PHYLLIC_ALTERATION",
+      "path": "NONE",
+      "peak_pressure_mpa": [40.0, 180.0],
+      "peak_temperature_c": [250.0, 450.0],
+      "porosity_multiplier": 1.2,
+      "process_class": "HYDROTHERMAL_METASOMATISM",
+      "replacement_ppm": 400000,
+      "target_modes_ppm": {
+        "geological:mineral/quartz": 350000,
+        "geological:mineral/muscovite": 350000,
+        "geological:mineral/pyrite": 180000,
+        "geological:mineral/chalcopyrite": 40000,
+        "geological:mineral/kaolinite": 80000
+      }
+    },
+    {
+      "erodibility_delta": 0.02,
+      "facies": "NONE",
+      "overprint": "PROPYLITIC_ALTERATION",
+      "path": "NONE",
+      "peak_pressure_mpa": [20.0, 150.0],
+      "peak_temperature_c": [180.0, 350.0],
+      "porosity_multiplier": 1.08,
+      "process_class": "HYDROTHERMAL_METASOMATISM",
+      "replacement_ppm": 280000,
+      "target_modes_ppm": {
+        "geological:mineral/clinochlore": 300000,
+        "geological:mineral/epidote": 250000,
+        "geological:mineral/calcite": 250000,
+        "geological:mineral/quartz": 100000,
+        "geological:mineral/pyrite": 60000,
+        "geological:mineral/magnetite": 40000
+      }
+    },
+    {
+      "erodibility_delta": 0.04,
+      "facies": "NONE",
+      "overprint": "CHLORITIC_FOOTWALL",
+      "path": "NONE",
+      "peak_pressure_mpa": [20.0, 120.0],
+      "peak_temperature_c": [180.0, 350.0],
+      "porosity_multiplier": 1.15,
+      "process_class": "HYDROTHERMAL_METASOMATISM",
+      "replacement_ppm": 350000,
+      "target_modes_ppm": {
+        "geological:mineral/clinochlore": 450000,
+        "geological:mineral/quartz": 180000,
+        "geological:mineral/pyrite": 220000,
+        "geological:mineral/chalcopyrite": 80000,
+        "geological:mineral/sphalerite": 50000,
+        "geological:mineral/magnetite": 20000
+      }
+    },
+    {
+      "erodibility_delta": 0.18,
+      "facies": "NONE",
+      "overprint": "OXIDIZED_GOSSAN",
+      "path": "NONE",
+      "peak_pressure_mpa": [0.0, 10.0],
+      "peak_temperature_c": [0.0, 60.0],
+      "porosity_multiplier": 1.45,
+      "process_class": "WEATHERING",
+      "replacement_ppm": 500000,
+      "target_modes_ppm": {
+        "geological:mineral/goethite": 500000,
+        "geological:mineral/hematite": 250000,
+        "geological:mineral/quartz": 149950,
+        "geological:mineral/kaolinite": 80000,
+        "geological:mineral/magnetite": 20000,
+        "geological:mineral/native_gold": 50
+      }
+    },
+    {
+      "erodibility_delta": 0.15,
+      "facies": "NONE",
+      "overprint": "WEATHERED_REGOLITH",
+      "path": "NONE",
+      "peak_pressure_mpa": [0.0, 10.0],
+      "peak_temperature_c": [0.0, 60.0],
+      "porosity_multiplier": 1.4,
+      "process_class": "WEATHERING",
+      "replacement_ppm": 300000,
+      "target_modes_ppm": {
+        "geological:mineral/kaolinite": 400000,
+        "geological:mineral/quartz": 250000,
+        "geological:mineral/goethite": 150000,
+        "geological:mineral/hematite": 80000,
+        "geological:mineral/magnetite": 20000,
+        "geological:mineral/muscovite": 100000
+      }
+    }
+  ]
+}

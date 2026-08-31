@@ -47,6 +47,15 @@ public record DimensionProfile(
         EnumSet.allOf(ProcessFamily.class));
   }
 
+  public static DimensionProfile overworldPhase2() {
+    return new DimensionProfile(
+        "geological:overworld_phase2",
+        "earth_analogue",
+        SurfaceTopology.SINGLE_VALUED_SURFACE,
+        "geological:varied_rift_to_arc_grammar_v1",
+        EnumSet.allOf(ProcessFamily.class));
+  }
+
   public enum SurfaceTopology {
     SINGLE_VALUED_SURFACE,
     CAVERN_VOLUME,

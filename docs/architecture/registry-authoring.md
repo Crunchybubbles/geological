@@ -20,6 +20,8 @@ The authored Phase 1 resource recompiles to the published digest:
 sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4
 ```
 
+Phase 2 adds a separate typed material catalog at `geology-core/src/main/resources/data/geological/registry/phase2-materials.json`. Its loader retains the same strict-boundary principles while validating mineral formulas, exact modal closure, mineral references, and complete mappings for the implemented lithology and overprint enums. The frozen material digest is `sha256:fcd78f23997e677682276abc083b588ca88e1fddffa48a28ffc00f24abf8ef52`; a canonical manifest composes it with the unchanged Phase 1 registry digest rather than rewriting the Phase 1 snapshot.
+
 The JSON resource replaces the earlier Java-built fixture without changing canonical content, so no model-version or digest migration was required. Tests freeze the digest, fuzz authoring collection order, and exercise malformed JSON and unit-vocabulary drift.
 
 ## Contributor workflow

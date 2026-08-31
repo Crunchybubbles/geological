@@ -1,0 +1,64 @@
+package io.github.crunchybubbles.geological.petrology;
+
+import io.github.crunchybubbles.geological.determinism.StableId;
+import java.util.List;
+import java.util.Optional;
+
+/** Provenance and coarse fixed-point budget attached to a resolved present-surface parcel. */
+public record SurfaceMaterialContext(
+    SurfaceMaterialKind kind,
+    StableId materialBodyId,
+    List<StableId> sourceBodyIds,
+    Optional<StableId> depositId,
+    Optional<String> budgetElement,
+    Optional<String> budgetUnit,
+    long sourceInventoryFixedUnits,
+    long trappedInventoryFixedUnits) {
+  public SurfaceMaterialContext {
+    if (kind == null
+        || materialBodyId == null
+        || depositId == null
+        || budgetElement == null
+        || budgetUnit == null) {
+      throw new IllegalArgumentException("surface material context identity must be complete");
+    }
+    sourceBodyIds = List.copyOf(sourceBodyIds).stream().sorted().toList();
+    if (sourceBodyIds.isEmpty()) {
+      throw new IllegalArgumentException("surface material must name a source body");
+    }
+    if (sourceInventoryFixedUnits < 0
+        || trappedInventoryFixedUnits < 0
+        || trappedInventoryFixedUnits > sourceInventoryFixedUnits) {
+      throw new IllegalArgumentException("surface material inventory values are invalid");
+    }
+    if ((kind == SurfaceMaterialKind.ALLUVIAL_PLACER) != depositId.isPresent()) {
+      throw new IllegalArgumentException("only alluvial placer material may carry a deposit ID");
+    }
+    if (budgetElement.isPresent() != budgetUnit.isPresent()
+        || (kind == SurfaceMaterialKind.ALLUVIAL_PLACER) != budgetElement.isPresent()) {
+      throw new IllegalArgumentException("placer budget element and unit must be explicit");
+    }
+    budgetElement.ifPresent(
+        element -> {
+          if (element.isBlank()) {
+            throw new IllegalArgumentException("budget element must be non-blank");
+          }
+        });
+    budgetUnit.ifPresent(
+        unit -> {
+          if (unit.isBlank()) {
+            throw new IllegalArgumentException("budget unit must be non-blank");
+          }
+        });
+    if (kind == SurfaceMaterialKind.ALLUVIAL_PLACER
+        && (sourceInventoryFixedUnits == 0 || trappedInventoryFixedUnits == 0)) {
+      throw new IllegalArgumentException(
+          "placer material requires a positive source and trap budget");
+    }
+    if (kind != SurfaceMaterialKind.ALLUVIAL_PLACER
+        && (sourceInventoryFixedUnits != 0 || trappedInventoryFixedUnits != 0)) {
+      throw new IllegalArgumentException(
+          "non-placer surface material cannot carry a placer budget");
+    }
+  }
+}
