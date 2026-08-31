@@ -71,8 +71,8 @@ subprojects {
 
 tasks.register("generateExampleAtlas") {
     group = "verification"
-    description = "Generates Phase 1 maps, cross-section, columns, traces, and summary JSON."
-    dependsOn(":atlas-cli:generateExampleAtlas")
+    description = "Generates Phase 1 atlas and Phase 2 material-state review artifacts."
+    dependsOn(":atlas-cli:generateExampleAtlas", ":atlas-cli:generateMaterialReview")
 }
 
 tasks.register("measureAtlas") {

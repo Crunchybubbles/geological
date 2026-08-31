@@ -23,6 +23,14 @@ tasks.register<JavaExec>("generateExampleAtlas") {
     jvmArgs("-Djava.awt.headless=true")
 }
 
+tasks.register<JavaExec>("generateMaterialReview") {
+    group = "verification"
+    description = "Generates the deterministic Phase 2 material-state review artifact."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("materials", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase2/example").get().asFile.absolutePath)
+}
+
 tasks.register<JavaExec>("measureAtlas") {
     group = "verification"
     description = "Measures atlas and Phase 1 column queries plus approximate live memory."

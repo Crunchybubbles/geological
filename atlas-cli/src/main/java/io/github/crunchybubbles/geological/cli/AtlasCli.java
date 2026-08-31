@@ -26,6 +26,10 @@ public final class AtlasCli {
         Path report = new AtlasMeasurements(seed).measure(output);
         System.out.println("Wrote geological-core measurements to " + report);
       }
+      case "materials" -> {
+        Path report = new MaterialReviewPacketGenerator(seed).generate(output);
+        System.out.println("Wrote Phase 2 material review to " + report);
+      }
       default -> throw new IllegalArgumentException("Unknown command: " + command);
     }
   }
@@ -53,6 +57,6 @@ public final class AtlasCli {
 
   private static void printUsage() {
     System.out.println(
-        "Usage: atlas-cli <generate|measure> [--seed <long>] [--output <directory>]");
+        "Usage: atlas-cli <generate|measure|materials> [--seed <long>] [--output <directory>]");
   }
 }

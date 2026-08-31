@@ -56,6 +56,8 @@ Phase 1 model/profile/digest golden values are unchanged. Phase 2 composes the f
 
 Tests cover formula and modal closure, body-keyed distribution golden vectors, same-body continuity and cross-body variation, every implemented lithology/overprint pair, strict malformed-authoring rejection, frozen digests, magma lineage ordering, sedimentary provenance, isochemical versus mass-transfer behavior, exact typed reservoir closure, point/column equivalence, surface source budgets, barren-trap rejection, and reproducibility across cache eviction and fresh world construction.
 
+`./gradlew generateExampleAtlas` also writes `atlas-cli/build/phase2/example/phase2-material-review.json`. The deterministic review artifact publishes the Phase 2 identity, catalog coverage and central modes, representative body and overprint realizations, normalized process contributions, typed system reservoirs, and the source-linked placer context. It is intended for scientific and implementation review, not as a save format.
+
 ## Deliberate limits
 
 This is not the Phase 2 exit candidate. It does not yet provide the planned 38-class/approximately 50-mineral content breadth, solid-solution interpolation, correlated or facies-conditioned compositional distributions, reviewed property datasets, calibrated multi-stage reservoir transport, or presentation/processing policy. Minecraft/NeoForge realization remains deferred to Phase 4.

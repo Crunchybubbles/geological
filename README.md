@@ -26,7 +26,7 @@ The checked-in Gradle wrapper is the only prerequisite beyond a Java 21 JDK.
 ./gradlew measureAtlas
 ```
 
-On Windows, use `gradlew.bat` in place of `./gradlew`. Current maps, cross-sections, column plans, JSON traces, and measurements are written below `atlas-cli/build/phase1/`.
+On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, column plans, JSON traces, and measurements are written below `atlas-cli/build/phase1/`; the deterministic material/catalog/reservoir review is written below `atlas-cli/build/phase2/`.
 
 ## Modules
 
