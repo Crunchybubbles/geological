@@ -1,6 +1,7 @@
 package io.github.crunchybubbles.geological.petrology;
 
 import io.github.crunchybubbles.geological.query.MaterialState;
+import java.util.List;
 import java.util.Optional;
 
 /** Coordinate-independent Phase 2 material state suitable for exact vertical-run compression. */
@@ -18,7 +19,8 @@ public record PetrologicState(
     double permeabilityIndex,
     double erodibilityIndex,
     Optional<MagmaLineageState> magmaLineage,
-    Optional<SedimentaryState> sedimentaryState) {
+    Optional<SedimentaryState> sedimentaryState,
+    List<ElementReservoirLedger> reservoirLedgers) {
   public PetrologicState {
     if (geology == null
         || rock == null
@@ -30,9 +32,14 @@ public record PetrologicState(
         || metamorphism == null
         || processClass == null
         || magmaLineage == null
-        || sedimentaryState == null) {
+        || sedimentaryState == null
+        || reservoirLedgers == null) {
       throw new IllegalArgumentException("petrologic state must be complete");
     }
+    reservoirLedgers =
+        List.copyOf(reservoirLedgers).stream()
+            .sorted(java.util.Comparator.comparing(ElementReservoirLedger::systemId))
+            .toList();
     requireUnit(porosityFraction, "porosity");
     requireUnit(permeabilityIndex, "permeability");
     requireUnit(erodibilityIndex, "erodibility");
@@ -53,7 +60,8 @@ public record PetrologicState(
         sample.permeabilityIndex(),
         sample.erodibilityIndex(),
         sample.magmaLineage(),
-        sample.sedimentaryState());
+        sample.sedimentaryState(),
+        sample.reservoirLedgers());
   }
 
   private static void requireUnit(double value, String name) {

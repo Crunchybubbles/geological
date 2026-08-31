@@ -8,6 +8,7 @@ public record RockDefinition(
     Lithology lithology,
     GeneticFamily geneticFamily,
     MineralAssemblage primaryAssemblage,
+    double modalSpreadFraction,
     double porosityFraction,
     double permeabilityIndex,
     double erodibilityIndex) {
@@ -18,6 +19,11 @@ public record RockDefinition(
         || geneticFamily == null
         || primaryAssemblage == null) {
       throw new IllegalArgumentException("rock definition must be complete");
+    }
+    if (!Double.isFinite(modalSpreadFraction)
+        || modalSpreadFraction < 0.0
+        || modalSpreadFraction > 0.5) {
+      throw new IllegalArgumentException("modal spread fraction must lie in [0, 0.5]");
     }
     requireUnit(porosityFraction, "porosity fraction");
     requireUnit(permeabilityIndex, "permeability index");

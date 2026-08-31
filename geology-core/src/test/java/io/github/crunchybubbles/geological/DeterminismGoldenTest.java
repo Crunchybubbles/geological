@@ -4,7 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import io.github.crunchybubbles.geological.determinism.CanonicalCbor;
+import io.github.crunchybubbles.geological.determinism.ObjectRandomStream;
 import io.github.crunchybubbles.geological.determinism.RandomStream;
+import io.github.crunchybubbles.geological.determinism.StableId;
 import io.github.crunchybubbles.geological.determinism.WorldIdentity;
 import io.github.crunchybubbles.geological.model.CellKey;
 import java.util.HexFormat;
@@ -40,5 +42,25 @@ class DeterminismGoldenTest {
     assertEquals(first, stream.unitDouble("shape", 12));
     assertNotEquals(first, stream.unitDouble("shape", 13));
     assertNotEquals(first, stream.unitDouble("grade", 12));
+  }
+
+  @Test
+  void objectKeyedStreamsMatchGoldenVectorsAndDoNotConsumeState() {
+    WorldIdentity world =
+        new WorldIdentity(42L, "phase2-test", "digest", "geological:overworld_phase2");
+    ObjectRandomStream stream =
+        world.objectStream(
+            "geological",
+            "body_modal_composition",
+            StableId.parse("00112233445566778899aabbccddeeff"));
+
+    assertEquals(
+        "f8c65fe46254fd1b91c23145ea3ffa1bc8246466a4c790f78362018aa6350c34",
+        HexFormat.of().formatHex(stream.bytes("mode:quartz", 7)));
+    assertEquals(0.9717769558504478, stream.unitDouble("mode:quartz", 7));
+    assertEquals(15, stream.boundedInt("choice", 3, 19));
+    double first = stream.unitDouble("stable", 2);
+    stream.unitDouble("unrelated", 0);
+    assertEquals(first, stream.unitDouble("stable", 2));
   }
 }

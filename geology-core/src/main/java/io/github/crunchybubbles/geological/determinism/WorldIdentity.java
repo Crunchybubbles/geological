@@ -64,6 +64,15 @@ public final class WorldIdentity {
         localIndex);
   }
 
+  public ObjectRandomStream objectStream(String namespace, String objectType, StableId objectId) {
+    return new ObjectRandomStream(
+        rootKey,
+        dimensionProfileId,
+        requireText(namespace, "namespace"),
+        requireText(objectType, "objectType"),
+        Objects.requireNonNull(objectId, "objectId"));
+  }
+
   static byte[] hmac(byte[] key, byte[] message) {
     try {
       Mac mac = Mac.getInstance("HmacSHA256");

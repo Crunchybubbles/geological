@@ -1,5 +1,7 @@
 package io.github.crunchybubbles.geological.petrology;
 
+import io.github.crunchybubbles.geological.atlas.BoundedDescriptorCache;
+import io.github.crunchybubbles.geological.atlas.DescriptorCache;
 import io.github.crunchybubbles.geological.atlas.Province;
 import io.github.crunchybubbles.geological.atlas.RiftArcGeometry;
 import io.github.crunchybubbles.geological.determinism.StableId;
@@ -23,12 +25,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /** Phase 2 facade deriving mineralogy and process state from immutable Phase 1 geology. */
 public final class MaterialQueryEngine {
   private final GeologyQueryEngine geology;
   private final MaterialCatalogSnapshot catalog;
-  private final Map<RecipeKey, ResolvedRecipe> recipes;
+  private final Map<RecipeKey, RecipeTemplate> recipeTemplates;
+  private final BodyCompositionSampler compositionSampler;
+  private final DescriptorCache<BodyRecipeKey, ResolvedRecipe> bodyRecipeCache;
+  private final DescriptorCache<StableId, List<ElementReservoirLedger>> reservoirLedgerCache;
 
   public MaterialQueryEngine(GeologyQueryEngine geology, MaterialCatalogSnapshot catalog) {
     if (geology == null || catalog == null) {
@@ -36,7 +42,10 @@ public final class MaterialQueryEngine {
     }
     this.geology = geology;
     this.catalog = catalog;
-    this.recipes = compileRecipes(catalog);
+    this.recipeTemplates = compileRecipeTemplates(catalog);
+    this.compositionSampler = new BodyCompositionSampler(geology.atlas().identity());
+    this.bodyRecipeCache = new BoundedDescriptorCache<>(512);
+    this.reservoirLedgerCache = new BoundedDescriptorCache<>(256);
   }
 
   public GeologyQueryEngine geology() {
@@ -48,11 +57,21 @@ public final class MaterialQueryEngine {
   }
 
   public int resolvedRecipeCount() {
-    return recipes.size();
+    return recipeTemplates.size();
+  }
+
+  public int bodyRecipeCacheSize() {
+    return bodyRecipeCache.size();
+  }
+
+  public List<ElementReservoirLedger> elementReservoirLedgers(Province province) {
+    return reservoirLedgerCache.get(province.id(), ignored -> compileReservoirLedgers(province));
   }
 
   public void clearCaches() {
     geology.clearCaches();
+    bodyRecipeCache.clear();
+    reservoirLedgerCache.clear();
   }
 
   public PetrologicSample sample(Point3 worldPoint) {
@@ -154,11 +173,9 @@ public final class MaterialQueryEngine {
     if (!province.id().equals(geological.provinceId())) {
       throw new IllegalArgumentException("sample does not belong to the supplied province");
     }
-    ResolvedRecipe recipe =
-        recipes.get(new RecipeKey(geological.lithology(), geological.overprint()));
-    if (recipe == null) {
-      throw new IllegalStateException("material recipe matrix is incomplete");
-    }
+    BodyRecipeKey key =
+        new BodyRecipeKey(geological.rockBodyId(), geological.lithology(), geological.overprint());
+    ResolvedRecipe recipe = bodyRecipeCache.get(key, this::compileBodyRecipe);
     RockDefinition rock = recipe.rock();
     AlterationDefinition alteration = catalog.requireAlteration(geological.overprint());
 
@@ -176,7 +193,8 @@ public final class MaterialQueryEngine {
         recipe.permeabilityIndex(),
         recipe.erodibilityIndex(),
         magmaLineage(province, geological),
-        sedimentaryState(province, rock));
+        sedimentaryState(province, rock),
+        ledgersForSample(province, geological));
   }
 
   private static MetamorphicHistory metamorphicHistory(
@@ -310,45 +328,112 @@ public final class MaterialQueryEngine {
         .toList();
   }
 
-  private static Map<RecipeKey, ResolvedRecipe> compileRecipes(MaterialCatalogSnapshot catalog) {
-    Map<RecipeKey, ResolvedRecipe> result = new HashMap<>();
+  private static Map<RecipeKey, RecipeTemplate> compileRecipeTemplates(
+      MaterialCatalogSnapshot catalog) {
+    Map<RecipeKey, RecipeTemplate> result = new HashMap<>();
     for (Lithology lithology : Lithology.values()) {
       RockDefinition rock = catalog.requireRock(lithology);
       for (Overprint overprint : Overprint.values()) {
         AlterationDefinition alteration = catalog.requireAlteration(overprint);
-        MineralAssemblage primary = rock.primaryAssemblage();
-        MineralAssemblage resolved =
-            alteration.replacementPpm() == 0
-                ? primary
-                : MineralAssemblage.blend(
-                    primary, alteration.targetAssemblage(), alteration.replacementPpm());
-        BulkComposition primaryComposition = catalog.composition(primary);
-        BulkComposition resolvedComposition = catalog.composition(resolved);
-        ElementTransferLedger ledger =
-            ElementTransferLedger.between(primaryComposition, resolvedComposition);
-        if (alteration.processClass() == MaterialProcessClass.ISOCHEMICAL_METAMORPHISM
-            && !ledger.isIsochemical()) {
-          throw new IllegalStateException("isochemical response changed bulk composition");
-        }
-        ResolvedRecipe recipe =
-            new ResolvedRecipe(
-                rock,
-                primary,
-                resolved,
-                primaryComposition,
-                resolvedComposition,
-                ledger,
-                clamp(rock.porosityFraction() * alteration.porosityMultiplier()),
-                clamp(
-                    rock.permeabilityIndex()
-                        * StrictMath.sqrt(StrictMath.max(0.0, alteration.porosityMultiplier()))),
-                clamp(rock.erodibilityIndex() + alteration.erodibilityDelta()));
-        if (result.put(new RecipeKey(lithology, overprint), recipe) != null) {
+        if (result.put(new RecipeKey(lithology, overprint), new RecipeTemplate(rock, alteration))
+            != null) {
           throw new IllegalStateException("duplicate material recipe");
         }
       }
     }
     return Map.copyOf(result);
+  }
+
+  private ResolvedRecipe compileBodyRecipe(BodyRecipeKey key) {
+    RecipeTemplate template = recipeTemplates.get(new RecipeKey(key.lithology(), key.overprint()));
+    if (template == null) {
+      throw new IllegalStateException("material recipe matrix is incomplete");
+    }
+    RockDefinition rock = template.rock();
+    AlterationDefinition alteration = template.alteration();
+    MineralAssemblage primary = compositionSampler.sample(rock, key.bodyId());
+    MineralAssemblage resolved =
+        alteration.replacementPpm() == 0
+            ? primary
+            : MineralAssemblage.blend(
+                primary, alteration.targetAssemblage(), alteration.replacementPpm());
+    BulkComposition primaryComposition = catalog.composition(primary);
+    BulkComposition resolvedComposition = catalog.composition(resolved);
+    ElementTransferLedger ledger =
+        ElementTransferLedger.between(primaryComposition, resolvedComposition);
+    if (alteration.processClass() == MaterialProcessClass.ISOCHEMICAL_METAMORPHISM
+        && !ledger.isIsochemical()) {
+      throw new IllegalStateException("isochemical response changed bulk composition");
+    }
+    return new ResolvedRecipe(
+        rock,
+        primary,
+        resolved,
+        primaryComposition,
+        resolvedComposition,
+        ledger,
+        clamp(rock.porosityFraction() * alteration.porosityMultiplier()),
+        clamp(
+            rock.permeabilityIndex()
+                * StrictMath.sqrt(StrictMath.max(0.0, alteration.porosityMultiplier()))),
+        clamp(rock.erodibilityIndex() + alteration.erodibilityDelta()));
+  }
+
+  private List<ElementReservoirLedger> ledgersForSample(
+      Province province, GeologicalSample geological) {
+    if (geological.depositIds().isEmpty()) {
+      return List.of();
+    }
+    Set<StableId> deposits = Set.copyOf(geological.depositIds());
+    return elementReservoirLedgers(province).stream()
+        .filter(ledger -> ledger.depositId().filter(deposits::contains).isPresent())
+        .toList();
+  }
+
+  private List<ElementReservoirLedger> compileReservoirLedgers(Province province) {
+    return geology.mineralDecisions(province).stream()
+        .filter(decision -> decision.deposit() != null && decision.ledger() != null)
+        .map(MaterialQueryEngine::reservoirLedger)
+        .sorted(java.util.Comparator.comparing(ElementReservoirLedger::systemId))
+        .toList();
+  }
+
+  private static ElementReservoirLedger reservoirLedger(MineralSystemDecision decision) {
+    StableId source = decision.deposit().sourceIds().getFirst();
+    List<ReservoirTransfer> transfers =
+        decision.ledger().allocations().entrySet().stream()
+            .map(
+                allocation -> {
+                  String role = allocation.getKey();
+                  if (role.equals("deposit") || role.equals("placer_trap")) {
+                    return new ReservoirTransfer(
+                        role,
+                        ReservoirSinkKind.DEPOSIT,
+                        Optional.of(decision.deposit().id()),
+                        allocation.getValue());
+                  }
+                  if (role.startsWith("retained_")) {
+                    return new ReservoirTransfer(
+                        role,
+                        ReservoirSinkKind.RETAINED_SOURCE,
+                        Optional.of(source),
+                        allocation.getValue());
+                  }
+                  ReservoirSinkKind kind =
+                      role.contains("transport")
+                          ? ReservoirSinkKind.TRANSPORT_LOSS
+                          : ReservoirSinkKind.DIFFUSE_HALO_OR_LOSS;
+                  return new ReservoirTransfer(role, kind, Optional.empty(), allocation.getValue());
+                })
+            .toList();
+    return new ElementReservoirLedger(
+        decision.candidateId(),
+        source,
+        Optional.of(decision.deposit().id()),
+        decision.ledger().element(),
+        decision.ledger().unit(),
+        decision.ledger().sourceAmount(),
+        transfers);
   }
 
   private MineralSystemDecision formedPlacer(Province province) {
@@ -381,6 +466,10 @@ public final class MaterialQueryEngine {
   }
 
   private record RecipeKey(Lithology lithology, Overprint overprint) {}
+
+  private record RecipeTemplate(RockDefinition rock, AlterationDefinition alteration) {}
+
+  private record BodyRecipeKey(StableId bodyId, Lithology lithology, Overprint overprint) {}
 
   private record ResolvedRecipe(
       RockDefinition rock,

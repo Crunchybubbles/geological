@@ -169,6 +169,7 @@
       "genetic_family": "METAMORPHIC",
       "id": "geological:rock/granitic_gneiss",
       "lithology": "GRANITIC_GNEISS",
+      "modal_spread_fraction": 0.12,
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 300000,
         "geological:mineral/orthoclase": 250000,
@@ -187,6 +188,7 @@
       "genetic_family": "SEDIMENTARY",
       "id": "geological:rock/basal_conglomerate",
       "lithology": "BASAL_CONGLOMERATE",
+      "modal_spread_fraction": 0.2,
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 550000,
         "geological:mineral/albite": 120000,
@@ -206,6 +208,7 @@
       "genetic_family": "SEDIMENTARY",
       "id": "geological:rock/marine_volcaniclastic",
       "lithology": "MARINE_VOLCANICLASTIC",
+      "modal_spread_fraction": 0.18,
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 80000,
         "geological:mineral/albite": 250000,
@@ -224,6 +227,7 @@
       "genetic_family": "SEDIMENTARY",
       "id": "geological:rock/basin_shale",
       "lithology": "BASIN_SHALE",
+      "modal_spread_fraction": 0.15,
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 300000,
         "geological:mineral/albite": 80000,
@@ -242,6 +246,7 @@
       "genetic_family": "SEDIMENTARY",
       "id": "geological:rock/basin_sandstone",
       "lithology": "BASIN_SANDSTONE",
+      "modal_spread_fraction": 0.12,
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 760000,
         "geological:mineral/albite": 70000,
@@ -259,6 +264,7 @@
       "genetic_family": "IGNEOUS",
       "id": "geological:rock/diorite_pulse",
       "lithology": "DIORITE_PULSE",
+      "modal_spread_fraction": 0.1,
       "mineral_modes_ppm": {
         "geological:mineral/albite": 220000,
         "geological:mineral/anorthite": 300000,
@@ -277,6 +283,7 @@
       "genetic_family": "IGNEOUS",
       "id": "geological:rock/granodiorite_pulse",
       "lithology": "GRANODIORITE_PULSE",
+      "modal_spread_fraction": 0.1,
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 200000,
         "geological:mineral/albite": 220000,
@@ -296,6 +303,7 @@
       "genetic_family": "IGNEOUS",
       "id": "geological:rock/felsic_stock",
       "lithology": "FELSIC_STOCK",
+      "modal_spread_fraction": 0.08,
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 330000,
         "geological:mineral/orthoclase": 270000,
@@ -314,6 +322,7 @@
       "genetic_family": "HYDROTHERMAL",
       "id": "geological:rock/vms_massive_sulfide",
       "lithology": "VMS_MASSIVE_SULFIDE",
+      "modal_spread_fraction": 0.18,
       "mineral_modes_ppm": {
         "geological:mineral/pyrite": 500000,
         "geological:mineral/chalcopyrite": 180000,
@@ -331,6 +340,7 @@
       "genetic_family": "SURFICIAL",
       "id": "geological:rock/alluvial_gravel",
       "lithology": "ALLUVIAL_GRAVEL",
+      "modal_spread_fraction": 0.22,
       "mineral_modes_ppm": {
         "geological:mineral/quartz": 599999,
         "geological:mineral/albite": 100000,

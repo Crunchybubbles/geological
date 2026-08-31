@@ -25,7 +25,7 @@ class MaterialCatalogTest {
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:fcd78f23997e677682276abc083b588ca88e1fddffa48a28ffc00f24abf8ef52",
+        "sha256:66b592dcc5dc03c94bcdc1a991eac9813b572a52522f615bf4e8c2a6a631fa64",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -39,6 +39,8 @@ class MaterialCatalogTest {
         .rocks()
         .forEach(
             rock -> {
+              assertTrue(
+                  rock.modalSpreadFraction() > 0.0 && rock.modalSpreadFraction() <= 0.5, rock.id());
               assertEquals(
                   MineralAssemblage.SCALE,
                   rock.primaryAssemblage().modesPpm().values().stream()
@@ -81,6 +83,7 @@ class MaterialCatalogTest {
             "hardness_mohs":7.0,"id":"test:quartz","weathering_resistance":1.0}],
           "rocks":[{"erodibility_index":0.1,"genetic_family":"IGNEOUS","id":"test:rock",
             "lithology":"GRANITIC_GNEISS","mineral_modes_ppm":{"test:quartz":999999},
+            "modal_spread_fraction":0.1,
             "permeability_index":0.1,"porosity_fraction":0.1}],
           "overprints":[]
         }

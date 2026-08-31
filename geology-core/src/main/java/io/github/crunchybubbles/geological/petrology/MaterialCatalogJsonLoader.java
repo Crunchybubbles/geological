@@ -152,6 +152,7 @@ public final class MaterialCatalogJsonLoader {
               "genetic_family",
               "id",
               "lithology",
+              "modal_spread_fraction",
               "mineral_modes_ppm",
               "permeability_index",
               "porosity_fraction");
@@ -170,6 +171,7 @@ public final class MaterialCatalogJsonLoader {
                   source,
                   path + ".genetic_family"),
               modes(item.get("mineral_modes_ppm"), source, path + ".mineral_modes_ppm", false),
+              number(item, "modal_spread_fraction", source, path),
               number(item, "porosity_fraction", source, path),
               number(item, "permeability_index", source, path),
               number(item, "erodibility_index", source, path)));
@@ -371,6 +373,8 @@ public final class MaterialCatalogJsonLoader {
           field(output, "id", rock.id());
           output.append(',');
           field(output, "lithology", rock.lithology().name());
+          output.append(',');
+          field(output, "modal_spread_fraction", rock.modalSpreadFraction());
           output.append(",\"mineral_modes_ppm\":");
           appendModes(output, rock.primaryAssemblage());
           output.append(',');

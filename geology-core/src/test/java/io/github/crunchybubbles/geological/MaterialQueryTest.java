@@ -14,6 +14,7 @@ import io.github.crunchybubbles.geological.model.Overprint;
 import io.github.crunchybubbles.geological.model.Point2;
 import io.github.crunchybubbles.geological.model.Point3;
 import io.github.crunchybubbles.geological.petrology.ChemicalElement;
+import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
 import io.github.crunchybubbles.geological.petrology.MaterialQueryEngine;
 import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
@@ -40,7 +41,7 @@ class MaterialQueryTest {
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:d2283325312f05fd7274b30ea1b74af3715957dc7dd1e3c2f6e070a40a88afbd",
+        "sha256:f22280230a19cd2c3b9857acf470fc5c85b12e8ed81abf86e869088087e1cd08",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -74,6 +75,57 @@ class MaterialQueryTest {
           material.magmaLineage().orElseThrow().differentiationProgress() > previousProgress);
       previousProgress = material.magmaLineage().orElseThrow().differentiationProgress();
     }
+  }
+
+  @Test
+  void bodyModalDistributionsAreStableBoundedAndIndependentOfOverprints() {
+    MaterialQueryEngine query = Phase2World.create(7_777L);
+    Province province = query.geology().atlas().provinceAt(new Point2(0.0, 0.0));
+    RiftArcGeometry.PlutonPulse first = province.geometry().plutonPulses().getFirst();
+    RiftArcGeometry.PlutonPulse second = province.geometry().plutonPulses().get(1);
+    GeologicalSample firstUnaltered =
+        sample(
+            province,
+            first.center(),
+            first.id(),
+            Lithology.FELSIC_STOCK,
+            first.birthAge(),
+            Overprint.NONE);
+    GeologicalSample firstAltered =
+        sample(
+            province,
+            first.center(),
+            first.id(),
+            Lithology.FELSIC_STOCK,
+            first.birthAge(),
+            Overprint.POTASSIC_ALTERATION);
+    GeologicalSample secondUnaltered =
+        sample(
+            province,
+            second.center(),
+            second.id(),
+            Lithology.FELSIC_STOCK,
+            second.birthAge(),
+            Overprint.NONE);
+
+    PetrologicSample firstMaterial = query.resolve(province, firstUnaltered);
+    PetrologicSample alteredMaterial = query.resolve(province, firstAltered);
+    PetrologicSample secondMaterial = query.resolve(province, secondUnaltered);
+
+    assertEquals(firstMaterial.primaryAssemblage(), alteredMaterial.primaryAssemblage());
+    assertNotEquals(firstMaterial.primaryAssemblage(), secondMaterial.primaryAssemblage());
+    assertNotEquals(
+        query.catalog().requireRock(Lithology.FELSIC_STOCK).primaryAssemblage(),
+        firstMaterial.primaryAssemblage());
+    assertEquals(
+        MineralAssemblage.SCALE,
+        firstMaterial.primaryAssemblage().modesPpm().values().stream()
+            .mapToLong(Long::longValue)
+            .sum());
+    assertTrue(query.bodyRecipeCacheSize() >= 3);
+    query.clearCaches();
+    assertEquals(0, query.bodyRecipeCacheSize());
+    assertEquals(firstMaterial, query.resolve(province, firstUnaltered));
   }
 
   @Test
@@ -160,6 +212,50 @@ class MaterialQueryTest {
   }
 
   @Test
+  void formedMineralSystemsExposeTypedSourceReservoirDebits() {
+    MaterialQueryEngine query = Phase2World.create(8_675_309L);
+    Province fertile =
+        Phase1TestSupport.provinceWithGrammar(
+            query.geology(), ProvinceGrammar.EXHUMED_FERTILE_RIFT_TO_ARC);
+
+    List<ElementReservoirLedger> ledgers = query.elementReservoirLedgers(fertile);
+
+    assertEquals(3, ledgers.size());
+    for (ElementReservoirLedger ledger : ledgers) {
+      assertEquals(
+          ledger.initialInventory(),
+          ledger.transfers().stream().mapToLong(transfer -> transfer.amount()).sum());
+      assertTrue(ledger.depositId().isPresent());
+    }
+    ElementReservoirLedger porphyry =
+        ledgers.stream().filter(ledger -> ledger.element().equals("Cu")).findFirst().orElseThrow();
+    assertEquals(fertile.proofIds().magmaLineageId(), porphyry.sourceReservoirId());
+    assertEquals(fertile.proofIds().porphyryDepositId(), porphyry.depositId().orElseThrow());
+    assertEquals(105_000L, porphyry.allocation("deposit"));
+    assertEquals(850_000L, porphyry.allocation("retained_magma"));
+
+    Point2 porphyryPoint =
+        fertile
+            .frame()
+            .toWorld(
+                new Point2(
+                    fertile.geometry().porphyryCenter().x(),
+                    fertile.geometry().porphyryCenter().z()));
+    PetrologicSample mineralized =
+        query.sample(
+            new Point3(
+                porphyryPoint.x(), fertile.geometry().porphyryCenter().y(), porphyryPoint.z()));
+    assertTrue(
+        mineralized.reservoirLedgers().stream()
+            .anyMatch(ledger -> ledger.systemId().equals(porphyry.systemId())));
+
+    Province barren =
+        Phase1TestSupport.provinceWithGrammar(
+            query.geology(), ProvinceGrammar.BARREN_DRY_RIFT_TO_ARC);
+    assertTrue(query.elementReservoirLedgers(barren).isEmpty());
+  }
+
+  @Test
   void publicMaterialQueriesAreReproducibleAcrossCacheEviction() {
     MaterialQueryEngine query = Phase2World.create(73_731L);
     Point3 point = new Point3(123.25, 64.5, -456.75);
@@ -220,6 +316,9 @@ class MaterialQueryTest {
     assertEquals("phase0_fixed_units", surface.context().budgetUnit().orElseThrow());
     assertEquals(100_000L, surface.context().sourceInventoryFixedUnits());
     assertEquals(20_000L, surface.context().trappedInventoryFixedUnits());
+    assertEquals(1, surface.material().reservoirLedgers().size());
+    assertEquals(
+        20_000L, surface.material().reservoirLedgers().getFirst().allocation("placer_trap"));
     assertTrue(
         surface
                 .material()
