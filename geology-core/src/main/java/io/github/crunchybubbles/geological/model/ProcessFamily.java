@@ -1,0 +1,15 @@
+package io.github.crunchybubbles.geological.model;
+
+public enum ProcessFamily {
+  BASEMENT,
+  RIFTING,
+  SEDIMENTATION,
+  ARC_MAGMATISM,
+  DEFORMATION,
+  HYDROTHERMAL,
+  METAMORPHISM,
+  UPLIFT,
+  WEATHERING,
+  SURFACE_WATER_DRAINAGE,
+  SEDIMENT_TRANSPORT
+}

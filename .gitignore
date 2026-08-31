@@ -19,8 +19,11 @@ bin/
 # Java
 *.class
 hs_err_pid*
+replay_pid*
+
+# Local benchmark/profile captures
+*.jfr
 
 # Operating-system files
 .DS_Store
 Thumbs.db
-

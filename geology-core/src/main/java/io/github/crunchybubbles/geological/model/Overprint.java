@@ -1,0 +1,12 @@
+package io.github.crunchybubbles.geological.model;
+
+public enum Overprint {
+  NONE,
+  CONTACT_HORNFELS,
+  POTASSIC_ALTERATION,
+  PHYLLIC_ALTERATION,
+  PROPYLITIC_ALTERATION,
+  CHLORITIC_FOOTWALL,
+  OXIDIZED_GOSSAN,
+  WEATHERED_REGOLITH
+}

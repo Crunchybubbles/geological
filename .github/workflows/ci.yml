@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out sources
+        uses: actions/checkout@v7
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+      - name: Build and verify
+        run: ./gradlew build
+        shell: bash
+      - name: Generate review packet
+        if: matrix.os == 'ubuntu-latest'
+        run: ./gradlew generateExampleAtlas measureAtlas
+      - name: Upload review packet
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v7
+        with:
+          name: phase1-query-core-review-packet
+          path: atlas-cli/build/phase1/
+          if-no-files-found: error
