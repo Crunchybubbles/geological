@@ -28,5 +28,6 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"texture\""));
     assertTrue(firstJson.contains("\"porosityDistribution\""));
     assertTrue(firstJson.contains("\"protolithFamilies\""));
+    assertTrue(firstJson.contains("\"ligandCapacities\""));
   }
 }

@@ -10,6 +10,7 @@ import io.github.crunchybubbles.geological.petrology.GeneticFamily;
 import io.github.crunchybubbles.geological.petrology.MaterialCatalogAuthoringException;
 import io.github.crunchybubbles.geological.petrology.MaterialCatalogJsonLoader;
 import io.github.crunchybubbles.geological.petrology.MaterialCatalogSnapshot;
+import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
 import io.github.crunchybubbles.geological.petrology.MineralAssemblage;
 import io.github.crunchybubbles.geological.petrology.MineralDefinition;
 import io.github.crunchybubbles.geological.query.Phase2World;
@@ -27,7 +28,7 @@ class MaterialCatalogTest {
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:fd17db77152bb14383ee41a85b28226daddd47d0942c3588a6ebafa56fa2fa9d",
+        "sha256:66ae96285f1fc9d71a0473550047ffde0f98d11d112442929462b4c901b7c5c7",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -65,6 +66,10 @@ class MaterialCatalogTest {
         .alterations()
         .forEach(
             alteration -> {
+              boolean requiresFluid =
+                  alteration.processClass() == MaterialProcessClass.HYDROTHERMAL_METASOMATISM
+                      || alteration.processClass() == MaterialProcessClass.WEATHERING;
+              assertEquals(requiresFluid, alteration.fluidState().isPresent());
               for (GeneticFamily family : GeneticFamily.values()) {
                 assertEquals(
                     alteration.replacementPpm() > 0,
@@ -126,13 +131,27 @@ class MaterialCatalogTest {
                             incompleteRecipes.getBytes(StandardCharsets.UTF_8)),
                         "incomplete-recipes.json"));
     assertTrue(recipeFailure.getMessage().contains("cover every protolith family"));
+
+    String invalidLigand =
+        authored.replace(
+            "{\"chloride\": 3, \"reduced_sulfur\": 2, \"carbonate\": 1, \"fluorine_boron\": 2}",
+            "{\"chloride\": 4, \"reduced_sulfur\": 2, \"carbonate\": 1, \"fluorine_boron\": 2}");
+    MaterialCatalogAuthoringException ligandFailure =
+        assertThrows(
+            MaterialCatalogAuthoringException.class,
+            () ->
+                new MaterialCatalogJsonLoader()
+                    .load(
+                        new ByteArrayInputStream(invalidLigand.getBytes(StandardCharsets.UTF_8)),
+                        "invalid-ligand.json"));
+    assertTrue(ligandFailure.getMessage().contains("ligand capacity must lie in [0, 3]"));
   }
 
   @Test
   void strictCatalogBoundaryRejectsUnknownFieldsAndUnclosedModes() {
     String unknown =
         """
-        {"authoring_schema":"geological:material_catalog_authoring:v2","evidence":{},
+        {"authoring_schema":"geological:material_catalog_authoring:v3","evidence":{},
         "minerals":[],"rocks":[],"overprints":[],"surprise":true}
         """;
     MaterialCatalogAuthoringException unknownFailure =
@@ -148,7 +167,7 @@ class MaterialCatalogTest {
     String unclosed =
         """
         {
-          "authoring_schema":"geological:material_catalog_authoring:v2",
+          "authoring_schema":"geological:material_catalog_authoring:v3",
           "evidence":{"citation_id":"refs:test","parameter_basis":"test tunable",
             "publication_year":2000,"title":"Test","uri":"https://example.invalid/test"},
           "minerals":[{"density_g_cm3":2.65,"formula":{"Si":1,"O":2},

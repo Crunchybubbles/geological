@@ -6,16 +6,24 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.crunchybubbles.geological.model.Overprint;
+import io.github.crunchybubbles.geological.petrology.AcidityClass;
 import io.github.crunchybubbles.geological.petrology.AlterationAssemblageRecipe;
 import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
+import io.github.crunchybubbles.geological.petrology.FluidMedium;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
+import io.github.crunchybubbles.geological.petrology.LigandCapacities;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
 import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
 import io.github.crunchybubbles.geological.petrology.MetamorphicPath;
 import io.github.crunchybubbles.geological.petrology.MineralAssemblage;
+import io.github.crunchybubbles.geological.petrology.ProcessFluidState;
+import io.github.crunchybubbles.geological.petrology.RedoxClass;
+import io.github.crunchybubbles.geological.petrology.SalinityClass;
+import io.github.crunchybubbles.geological.petrology.SulfurState;
 import io.github.crunchybubbles.geological.petrology.UnitIntervalDistribution;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class MaterialSchemaTest {
@@ -56,12 +64,41 @@ class MaterialSchemaTest {
                     first,
                     second,
                     new AlterationAssemblageRecipe(List.of(GeneticFamily.IGNEOUS), mafic))));
+    assertThrows(
+        IllegalArgumentException.class, () -> alteration(List.of(first, second), Optional.empty()));
+  }
+
+  @Test
+  void fluidStateRequiresBoundedIndependentTransportAxes() {
+    ProcessFluidState state = fluidState();
+
+    assertEquals(3, state.ligandCapacities().chloride());
+    assertEquals(2, state.ligandCapacities().reducedSulfur());
+    assertEquals(3, state.integratedFluxClass());
+    assertThrows(IllegalArgumentException.class, () -> new LigandCapacities(4, 0, 0, 0));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ProcessFluidState(
+                state.medium(),
+                state.redox(),
+                state.acidity(),
+                state.salinity(),
+                state.sulfurState(),
+                state.ligandCapacities(),
+                -1));
   }
 
   private static AlterationDefinition alteration(List<AlterationAssemblageRecipe> recipes) {
+    return alteration(recipes, Optional.of(fluidState()));
+  }
+
+  private static AlterationDefinition alteration(
+      List<AlterationAssemblageRecipe> recipes, Optional<ProcessFluidState> fluidState) {
     return new AlterationDefinition(
         Overprint.POTASSIC_ALTERATION,
         MaterialProcessClass.HYDROTHERMAL_METASOMATISM,
+        fluidState,
         250_000,
         recipes,
         MetamorphicFacies.NONE,
@@ -72,6 +109,17 @@ class MaterialSchemaTest {
         150.0,
         1.0,
         0.0);
+  }
+
+  private static ProcessFluidState fluidState() {
+    return new ProcessFluidState(
+        FluidMedium.MAGMATIC_HYDROTHERMAL,
+        RedoxClass.OXIDIZING,
+        AcidityClass.NEAR_NEUTRAL,
+        SalinityClass.CONCENTRATED_BRINE,
+        SulfurState.REDUCED_SULFUR_BUFFERED,
+        new LigandCapacities(3, 2, 1, 2),
+        3);
   }
 
   private static MineralAssemblage assemblage(String mineral) {

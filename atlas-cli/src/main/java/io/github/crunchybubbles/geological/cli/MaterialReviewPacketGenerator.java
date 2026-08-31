@@ -14,6 +14,7 @@ import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessLedger;
 import io.github.crunchybubbles.geological.petrology.MaterialQueryEngine;
 import io.github.crunchybubbles.geological.petrology.PetrologicSample;
+import io.github.crunchybubbles.geological.petrology.ProcessFluidState;
 import io.github.crunchybubbles.geological.petrology.ReservoirTransfer;
 import io.github.crunchybubbles.geological.petrology.RockDefinition;
 import io.github.crunchybubbles.geological.petrology.SurfacePetrologicSample;
@@ -228,6 +229,8 @@ final class MaterialReviewPacketGenerator {
         alteration.overprint().name(),
         "processClass",
         alteration.processClass().name(),
+        "fluidState",
+        alteration.fluidState().map(this::fluidStateJson).orElse(null),
         "replacementPpm",
         alteration.replacementPpm(),
         "targetRecipes",
@@ -288,6 +291,8 @@ final class MaterialReviewPacketGenerator {
             sample.metamorphism().eventIds().stream().map(Object::toString).toList()),
         "materialProcess",
         processJson(sample.materialProcessLedger()),
+        "fluidState",
+        sample.fluidState().map(this::fluidStateJson).orElse(null),
         "reservoirSystemIds",
         sample.reservoirLedgers().stream().map(ledger -> ledger.systemId().toString()).toList());
   }
@@ -306,6 +311,32 @@ final class MaterialReviewPacketGenerator {
         elementMap(process.removalsPpm()),
         "normalizedExchangeMagnitudePpm",
         process.exchangeMagnitudePpm());
+  }
+
+  private Map<String, Object> fluidStateJson(ProcessFluidState state) {
+    return JsonWriter.object(
+        "medium",
+        state.medium().name(),
+        "redox",
+        state.redox().name(),
+        "acidity",
+        state.acidity().name(),
+        "salinity",
+        state.salinity().name(),
+        "sulfurState",
+        state.sulfurState().name(),
+        "integratedFluxClass",
+        state.integratedFluxClass(),
+        "ligandCapacities",
+        JsonWriter.object(
+            "chloride",
+            state.ligandCapacities().chloride(),
+            "reducedSulfur",
+            state.ligandCapacities().reducedSulfur(),
+            "carbonate",
+            state.ligandCapacities().carbonate(),
+            "fluorineBoron",
+            state.ligandCapacities().fluorineBoron()));
   }
 
   private Map<String, Object> reservoirJson(ElementReservoirLedger ledger) {

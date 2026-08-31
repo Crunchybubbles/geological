@@ -1,14 +1,14 @@
 # Phase 2 petrologic material-state increment
 
-Status: third implementation increment; Phase 2 content breadth and geological calibration remain open
+Status: fourth implementation increment; Phase 2 content breadth and geological calibration remain open
 
-Identity: model `phase2.0-alpha.3`, profile `geological:overworld_phase2`
+Identity: model `phase2.0-alpha.4`, profile `geological:overworld_phase2`
 
 Base registry digest: `sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4`
 
-Material catalog digest: `sha256:fd17db77152bb14383ee41a85b28226daddd47d0942c3588a6ebafa56fa2fa9d`
+Material catalog digest: `sha256:66ae96285f1fc9d71a0473550047ffde0f98d11d112442929462b4c901b7c5c7`
 
-Composite scientific digest: `sha256:46202e415fdf48544a286a136ece500c5ed6e167f2fb058de1eecb7e52d23567`
+Composite scientific digest: `sha256:459861f42cacf528f502b2af3b889f2a98826a3b8444b54f97426ddd7521abb5`
 
 This increment asks whether the Phase 1 body/history result can resolve into a coherent bulk-rock parcel without storing mineralogy per block. It deliberately reuses the existing rift-to-arc geometry and deposit proof rather than adding another body or deposit family.
 
@@ -33,6 +33,7 @@ A point query first obtains the immutable Phase 1 geological sample and then der
 - the primary and resolved mineral assemblages;
 - formula-derived primary and resolved bulk element composition;
 - an exact local element-delta ledger and causal process attribution;
+- optional typed process-fluid conditions for hydrothermal and weathering responses;
 - porosity, permeability, and erodibility response;
 - protolith-aware metamorphic facies and a compact P-T-t path;
 - an optional linked magma-lineage pulse state;
@@ -41,6 +42,8 @@ A point query first obtains the immutable Phase 1 geological sample and then der
 The three existing pluton pulses share the province magma-system ID and progress from diorite through granodiorite to the felsic stock. Rock names are therefore outputs of one ordered differentiation abstraction, not independent random rolls. Existing basin members retain basement provenance; the marine volcaniclastic member additionally names the magmatic lineage.
 
 Contact hornfels is an isochemical response: it changes P-T-t and physical state without changing whole-rock element inventory. Potassic, phyllic, propylitic, chloritic, gossan, regolith, and unconformity-weathering responses select exactly one target recipe for the host's `GeneticFamily`, blend its assemblage, and expose exact signed element deltas. The current catalog deliberately assigns the same proof target to every family; the schema and resolver now support later calibrated host-dependent recipes without algorithm changes. A typed `MaterialProcessLedger` separates the positive and negative sides of that normalized delta, names the causal aureole, hydrothermal system, or weathering system, and carries matching chronicle events when the supplied geological history contains them. Its additions and removals balance because both bulk compositions are normalized; it is process attribution, not a claim that the local parcel is an absolute closed mass reservoir.
+
+Hydrothermal and weathering definitions must also author a `ProcessFluidState`; inactive and contact-isochemical responses must omit it. This is a sparse rule-table key, not a runtime equilibrium calculation. It contains a fluid medium, five-bin redox class, five-bin pH/acidity class, five-bin salinity class, four-state sulfur axis, independent chloride/reduced-sulfur/carbonate/fluorine-boron capacities on `0..3`, and an integrated fluid-flux class on `0..3`. The pH bins correspond to `<3`, `3–5.5`, `5.5–8.5`, `8.5–10.5`, and `>10.5`; salinity bins correspond to `<0.5`, `0.5–3.5`, `3.5–10`, `10–30`, and `>30` wt% NaCl equivalent. Current assignments are explicit proof tunables pending scientific review.
 
 System-scale inventory remains coarse but is now exposed through typed `ElementReservoirLedger` values. Each formed mineral-system decision is compiled from its exact fixed-point source ledger into an initial source reservoir and explicitly typed deposit, retained-source, diffuse-halo/loss, or transport-loss transfers. Ledgers require exact closure and a formed deposit must receive a deposit allocation. Point and surface samples carry the ledger for a deposit they intersect, including the existing porphyry Cu budget and the upstream-source/trap allocation for placer Au. This adds queryable conservation semantics without introducing new deposit geometry or invented inventory numbers.
 
@@ -54,10 +57,10 @@ System-scale inventory remains coarse but is now exposed through typed `ElementR
 
 Phase 1 model/profile/digest golden values are unchanged. Phase 2 composes the frozen Phase 1 registry digest and the typed material-catalog digest into a new canonical scientific manifest. Advancing the Phase 2 model version for body-scale modal distributions ensures that the scientific change alters every downstream object identity rather than masquerading as the prior alpha.
 
-Tests cover formula and modal closure, body-keyed distribution golden vectors, bounded physical-property sampling, same-body continuity and cross-body variation, exact protolith recipe coverage, authoring-order canonicalization, every implemented lithology/overprint pair, strict malformed-authoring rejection, frozen digests, magma lineage ordering, sedimentary provenance, isochemical versus mass-transfer behavior, exact typed reservoir closure, point/column equivalence, surface source budgets, barren-trap rejection, and reproducibility across cache eviction and fresh world construction.
+Tests cover formula and modal closure, body-keyed distribution golden vectors, bounded physical-property sampling, same-body continuity and cross-body variation, exact protolith recipe coverage, fluid-state/ligand bounds, authoring-order canonicalization, every implemented lithology/overprint pair, strict malformed-authoring rejection, frozen digests, magma lineage ordering, sedimentary provenance, isochemical versus mass-transfer behavior, exact typed reservoir closure, point/column equivalence, surface source budgets, barren-trap rejection, and reproducibility across cache eviction and fresh world construction.
 
-`./gradlew generateExampleAtlas` also writes `atlas-cli/build/phase2/example/phase2-material-review.json`. The deterministic review artifact publishes the Phase 2 identity, catalog coverage and central modes, representative body and overprint realizations, normalized process contributions, typed system reservoirs, and the source-linked placer context. It is intended for scientific and implementation review, not as a save format.
+`./gradlew generateExampleAtlas` also writes `atlas-cli/build/phase2/example/phase2-material-review.json`. The deterministic review artifact publishes the Phase 2 identity, catalog coverage and central modes, representative body and overprint realizations, normalized process contributions, typed fluid conditions, system reservoirs, and the source-linked placer context. It is intended for scientific and implementation review, not as a save format.
 
 ## Deliberate limits
 
-This is not the Phase 2 exit candidate. It does not yet provide the planned 38-class/approximately 50-mineral content breadth, solid-solution interpolation, correlated primary compositional distributions, geologically differentiated protolith response recipes, reviewed property datasets, calibrated multi-stage reservoir transport, or presentation/processing policy. Minecraft/NeoForge realization remains deferred to Phase 4.
+This is not the Phase 2 exit candidate. It does not yet provide the planned 38-class/approximately 50-mineral content breadth, solid-solution interpolation, correlated primary compositional distributions, geologically differentiated protolith response recipes, reviewed property and fluid-response datasets, calibrated multi-stage reservoir transport, or presentation/processing policy. Minecraft/NeoForge realization remains deferred to Phase 4.

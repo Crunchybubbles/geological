@@ -15,6 +15,7 @@ import io.github.crunchybubbles.geological.model.Point2;
 import io.github.crunchybubbles.geological.model.Point3;
 import io.github.crunchybubbles.geological.petrology.ChemicalElement;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
+import io.github.crunchybubbles.geological.petrology.FluidMedium;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
 import io.github.crunchybubbles.geological.petrology.MaterialQueryEngine;
 import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
@@ -22,6 +23,7 @@ import io.github.crunchybubbles.geological.petrology.MineralAssemblage;
 import io.github.crunchybubbles.geological.petrology.PetrologicColumnResult;
 import io.github.crunchybubbles.geological.petrology.PetrologicSample;
 import io.github.crunchybubbles.geological.petrology.PetrologicState;
+import io.github.crunchybubbles.geological.petrology.SalinityClass;
 import io.github.crunchybubbles.geological.petrology.SurfaceMaterialKind;
 import io.github.crunchybubbles.geological.petrology.SurfacePetrologicSample;
 import io.github.crunchybubbles.geological.query.ColumnRequest;
@@ -35,14 +37,14 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.3", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.4", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:46202e415fdf48544a286a136ece500c5ed6e167f2fb058de1eecb7e52d23567",
+        "sha256:459861f42cacf528f502b2af3b889f2a98826a3b8444b54f97426ddd7521abb5",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -184,10 +186,8 @@ class MaterialQueryTest {
   void contactMetamorphismIsIsochemicalWhileHydrothermalAlterationCarriesTransfers() {
     MaterialQueryEngine query = Phase2World.create(99L);
     Province province =
-        query
-            .geology()
-            .atlas()
-            .provinceAt(new io.github.crunchybubbles.geological.model.Point2(0.0, 0.0));
+        Phase1TestSupport.provinceWithGrammar(
+            query.geology(), ProvinceGrammar.EXHUMED_FERTILE_RIFT_TO_ARC);
 
     GeologicalSample contact =
         sample(
@@ -200,6 +200,7 @@ class MaterialQueryTest {
     PetrologicSample hornfels = query.resolve(province, contact);
     assertEquals(MetamorphicFacies.HORNBLENDE_HORNFELS, hornfels.metamorphism().facies());
     assertEquals(MaterialProcessClass.ISOCHEMICAL_METAMORPHISM, hornfels.processClass());
+    assertTrue(hornfels.fluidState().isEmpty());
     assertTrue(hornfels.elementLedger().isIsochemical());
     assertEquals(
         province.geometry().aureoleId(),
@@ -218,6 +219,9 @@ class MaterialQueryTest {
             Overprint.POTASSIC_ALTERATION);
     PetrologicSample altered = query.resolve(province, potassic);
     assertEquals(MaterialProcessClass.HYDROTHERMAL_METASOMATISM, altered.processClass());
+    assertEquals(FluidMedium.MAGMATIC_HYDROTHERMAL, altered.fluidState().orElseThrow().medium());
+    assertEquals(SalinityClass.CONCENTRATED_BRINE, altered.fluidState().orElseThrow().salinity());
+    assertEquals(3, altered.fluidState().orElseThrow().ligandCapacities().chloride());
     assertFalse(altered.elementLedger().isIsochemical());
     assertEquals(
         province.proofIds().porphyrySystemId(),
@@ -262,17 +266,19 @@ class MaterialQueryTest {
     assertEquals(105_000L, porphyry.allocation("deposit"));
     assertEquals(850_000L, porphyry.allocation("retained_magma"));
 
-    Point2 porphyryPoint =
-        fertile
-            .frame()
-            .toWorld(
-                new Point2(
-                    fertile.geometry().porphyryCenter().x(),
-                    fertile.geometry().porphyryCenter().z()));
-    PetrologicSample mineralized =
-        query.sample(
-            new Point3(
-                porphyryPoint.x(), fertile.geometry().porphyryCenter().y(), porphyryPoint.z()));
+    RiftArcGeometry.PlutonPulse stock = fertile.geometry().plutonPulses().getLast();
+    GeologicalSample depositSample =
+        new GeologicalSample(
+            fertile.frame().toWorld(stock.center()),
+            fertile.macroDomainId(),
+            fertile.id(),
+            stock.id(),
+            stock.lithology(),
+            stock.birthAge(),
+            Overprint.POTASSIC_ALTERATION,
+            false,
+            List.of(porphyry.depositId().orElseThrow()));
+    PetrologicSample mineralized = query.resolve(fertile, depositSample);
     assertTrue(
         mineralized.reservoirLedgers().stream()
             .anyMatch(ledger -> ledger.systemId().equals(porphyry.systemId())));
@@ -344,6 +350,8 @@ class MaterialQueryTest {
     assertEquals("phase0_fixed_units", surface.context().budgetUnit().orElseThrow());
     assertEquals(100_000L, surface.context().sourceInventoryFixedUnits());
     assertEquals(20_000L, surface.context().trappedInventoryFixedUnits());
+    assertEquals(
+        FluidMedium.METEORIC_WATER, surface.material().fluidState().orElseThrow().medium());
     assertEquals(
         fertile.proofIds().weatheringId(),
         surface.material().materialProcessLedger().processId().orElseThrow());

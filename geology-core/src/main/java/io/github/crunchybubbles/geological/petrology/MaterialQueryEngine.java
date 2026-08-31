@@ -190,6 +190,7 @@ public final class MaterialQueryEngine {
         materialProcessLedger(province, geological, alteration, recipe.elementLedger()),
         metamorphicHistory(province, rock, alteration),
         alteration.processClass(),
+        alteration.fluidState(),
         recipe.porosityFraction(),
         recipe.permeabilityIndex(),
         recipe.erodibilityIndex(),

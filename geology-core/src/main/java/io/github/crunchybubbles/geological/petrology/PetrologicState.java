@@ -16,6 +16,7 @@ public record PetrologicState(
     MaterialProcessLedger materialProcessLedger,
     MetamorphicHistory metamorphism,
     MaterialProcessClass processClass,
+    Optional<ProcessFluidState> fluidState,
     double porosityFraction,
     double permeabilityIndex,
     double erodibilityIndex,
@@ -33,6 +34,7 @@ public record PetrologicState(
         || materialProcessLedger == null
         || metamorphism == null
         || processClass == null
+        || fluidState == null
         || magmaLineage == null
         || sedimentaryState == null
         || reservoirLedgers == null) {
@@ -44,6 +46,7 @@ public record PetrologicState(
         throw new IllegalArgumentException("material process does not match element ledger");
       }
     }
+    requireFluidState(processClass, fluidState);
     reservoirLedgers =
         List.copyOf(reservoirLedgers).stream()
             .sorted(java.util.Comparator.comparing(ElementReservoirLedger::systemId))
@@ -65,6 +68,7 @@ public record PetrologicState(
         sample.materialProcessLedger(),
         sample.metamorphism(),
         sample.processClass(),
+        sample.fluidState(),
         sample.porosityFraction(),
         sample.permeabilityIndex(),
         sample.erodibilityIndex(),
@@ -76,6 +80,16 @@ public record PetrologicState(
   private static void requireUnit(double value, String name) {
     if (!Double.isFinite(value) || value < 0.0 || value > 1.0) {
       throw new IllegalArgumentException(name + " must lie in [0, 1]");
+    }
+  }
+
+  private static void requireFluidState(
+      MaterialProcessClass processClass, Optional<ProcessFluidState> fluidState) {
+    boolean requiresFluid =
+        processClass == MaterialProcessClass.HYDROTHERMAL_METASOMATISM
+            || processClass == MaterialProcessClass.WEATHERING;
+    if (requiresFluid != fluidState.isPresent()) {
+      throw new IllegalArgumentException("petrologic process and fluid state do not agree");
     }
   }
 }

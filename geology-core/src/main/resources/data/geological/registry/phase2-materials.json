@@ -1,5 +1,5 @@
 {
-  "authoring_schema": "geological:material_catalog_authoring:v2",
+  "authoring_schema": "geological:material_catalog_authoring:v3",
   "evidence": {
     "citation_id": "refs:philpotts_ague_2009",
     "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. Mineral modes, textures, and physical-property distributions are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
@@ -370,6 +370,7 @@
     {
       "erodibility_delta": 0.0,
       "facies": "NONE",
+      "fluid_state": {},
       "overprint": "NONE",
       "path": "NONE",
       "peak_pressure_mpa": [0.0, 0.0],
@@ -382,6 +383,15 @@
     {
       "erodibility_delta": 0.12,
       "facies": "NONE",
+      "fluid_state": {
+        "acidity": "ACIDIC",
+        "integrated_flux_class": 2,
+        "ligand_capacities": {"chloride": 0, "reduced_sulfur": 0, "carbonate": 1, "fluorine_boron": 0},
+        "medium": "METEORIC_WATER",
+        "redox": "OXIDIZING",
+        "salinity": "FRESH",
+        "sulfur_state": "SULFATE_DOMINANT"
+      },
       "overprint": "WEATHERED_UNCONFORMITY",
       "path": "NONE",
       "peak_pressure_mpa": [0.0, 20.0],
@@ -400,6 +410,7 @@
     {
       "erodibility_delta": -0.08,
       "facies": "HORNBLENDE_HORNFELS",
+      "fluid_state": {},
       "overprint": "CONTACT_HORNFELS",
       "path": "CONTACT_LOW_P",
       "peak_pressure_mpa": [100.0, 300.0],
@@ -412,6 +423,15 @@
     {
       "erodibility_delta": -0.04,
       "facies": "NONE",
+      "fluid_state": {
+        "acidity": "NEAR_NEUTRAL",
+        "integrated_flux_class": 3,
+        "ligand_capacities": {"chloride": 3, "reduced_sulfur": 2, "carbonate": 1, "fluorine_boron": 2},
+        "medium": "MAGMATIC_HYDROTHERMAL",
+        "redox": "OXIDIZING",
+        "salinity": "CONCENTRATED_BRINE",
+        "sulfur_state": "REDUCED_SULFUR_BUFFERED"
+      },
       "overprint": "POTASSIC_ALTERATION",
       "path": "NONE",
       "peak_pressure_mpa": [80.0, 250.0],
@@ -431,6 +451,15 @@
     {
       "erodibility_delta": 0.05,
       "facies": "NONE",
+      "fluid_state": {
+        "acidity": "ACIDIC",
+        "integrated_flux_class": 3,
+        "ligand_capacities": {"chloride": 2, "reduced_sulfur": 2, "carbonate": 0, "fluorine_boron": 1},
+        "medium": "MAGMATIC_HYDROTHERMAL",
+        "redox": "OXIDIZING",
+        "salinity": "MODERATE_BRINE",
+        "sulfur_state": "REDUCED_SULFUR_BUFFERED"
+      },
       "overprint": "PHYLLIC_ALTERATION",
       "path": "NONE",
       "peak_pressure_mpa": [40.0, 180.0],
@@ -449,6 +478,15 @@
     {
       "erodibility_delta": 0.02,
       "facies": "NONE",
+      "fluid_state": {
+        "acidity": "NEAR_NEUTRAL",
+        "integrated_flux_class": 2,
+        "ligand_capacities": {"chloride": 1, "reduced_sulfur": 1, "carbonate": 2, "fluorine_boron": 0},
+        "medium": "MIXED_HYDROTHERMAL",
+        "redox": "BUFFERED",
+        "salinity": "MODERATE_BRINE",
+        "sulfur_state": "MIXED"
+      },
       "overprint": "PROPYLITIC_ALTERATION",
       "path": "NONE",
       "peak_pressure_mpa": [20.0, 150.0],
@@ -468,6 +506,15 @@
     {
       "erodibility_delta": 0.04,
       "facies": "NONE",
+      "fluid_state": {
+        "acidity": "NEAR_NEUTRAL",
+        "integrated_flux_class": 3,
+        "ligand_capacities": {"chloride": 2, "reduced_sulfur": 2, "carbonate": 1, "fluorine_boron": 0},
+        "medium": "SEAWATER_HYDROTHERMAL",
+        "redox": "BUFFERED",
+        "salinity": "SEAWATER",
+        "sulfur_state": "REDUCED_SULFUR_BUFFERED"
+      },
       "overprint": "CHLORITIC_FOOTWALL",
       "path": "NONE",
       "peak_pressure_mpa": [20.0, 120.0],
@@ -487,6 +534,15 @@
     {
       "erodibility_delta": 0.18,
       "facies": "NONE",
+      "fluid_state": {
+        "acidity": "ACIDIC",
+        "integrated_flux_class": 2,
+        "ligand_capacities": {"chloride": 0, "reduced_sulfur": 0, "carbonate": 0, "fluorine_boron": 0},
+        "medium": "METEORIC_WATER",
+        "redox": "STRONGLY_OXIDIZING",
+        "salinity": "FRESH",
+        "sulfur_state": "SULFATE_DOMINANT"
+      },
       "overprint": "OXIDIZED_GOSSAN",
       "path": "NONE",
       "peak_pressure_mpa": [0.0, 10.0],
@@ -506,6 +562,15 @@
     {
       "erodibility_delta": 0.15,
       "facies": "NONE",
+      "fluid_state": {
+        "acidity": "ACIDIC",
+        "integrated_flux_class": 1,
+        "ligand_capacities": {"chloride": 0, "reduced_sulfur": 0, "carbonate": 1, "fluorine_boron": 0},
+        "medium": "METEORIC_WATER",
+        "redox": "OXIDIZING",
+        "salinity": "FRESH",
+        "sulfur_state": "SULFATE_DOMINANT"
+      },
       "overprint": "WEATHERED_REGOLITH",
       "path": "NONE",
       "peak_pressure_mpa": [0.0, 10.0],

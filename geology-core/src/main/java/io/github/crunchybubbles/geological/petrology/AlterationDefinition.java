@@ -4,11 +4,13 @@ import io.github.crunchybubbles.geological.model.Overprint;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 
 /** Authored response for a younger metamorphic, hydrothermal, or weathering overprint. */
 public record AlterationDefinition(
     Overprint overprint,
     MaterialProcessClass processClass,
+    Optional<ProcessFluidState> fluidState,
     long replacementPpm,
     List<AlterationAssemblageRecipe> targetRecipes,
     MetamorphicFacies facies,
@@ -22,10 +24,18 @@ public record AlterationDefinition(
   public AlterationDefinition {
     if (overprint == null
         || processClass == null
+        || fluidState == null
         || targetRecipes == null
         || facies == null
         || path == null) {
       throw new IllegalArgumentException("alteration definition identity must be complete");
+    }
+    boolean requiresFluid =
+        processClass == MaterialProcessClass.HYDROTHERMAL_METASOMATISM
+            || processClass == MaterialProcessClass.WEATHERING;
+    if (requiresFluid != fluidState.isPresent()) {
+      throw new IllegalArgumentException(
+          "hydrothermal and weathering processes require an explicit fluid state");
     }
     targetRecipes =
         List.copyOf(targetRecipes).stream()

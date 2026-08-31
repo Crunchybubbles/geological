@@ -14,6 +14,7 @@ import java.util.EnumMap;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
@@ -25,7 +26,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 /** Strict JSON boundary for the first typed mineral, rock, and alteration data pack. */
 public final class MaterialCatalogJsonLoader {
-  public static final String AUTHORING_SCHEMA = "geological:material_catalog_authoring:v2";
+  public static final String AUTHORING_SCHEMA = "geological:material_catalog_authoring:v3";
   private static final int MAX_DOCUMENT_BYTES = 1_048_576;
   private static final Pattern IDENTIFIER = Pattern.compile("[a-z0-9_.-]+:[a-z0-9_./-]+");
   private static final JsonMapper JSON =
@@ -203,6 +204,7 @@ public final class MaterialCatalogJsonLoader {
           Set.of(
               "erodibility_delta",
               "facies",
+              "fluid_state",
               "overprint",
               "path",
               "peak_pressure_mpa",
@@ -229,6 +231,7 @@ public final class MaterialCatalogJsonLoader {
                   text(item, "process_class", source, path),
                   source,
                   path + ".process_class"),
+              fluidState(item.get("fluid_state"), source, path + ".fluid_state"),
               replacement,
               targets,
               enumValue(
@@ -286,6 +289,49 @@ public final class MaterialCatalogJsonLoader {
     return List.copyOf(result);
   }
 
+  private static Optional<ProcessFluidState> fluidState(JsonNode node, String source, String path) {
+    requireObject(node, source, path, null, Set.of());
+    if (node.isEmpty()) {
+      return Optional.empty();
+    }
+    Set<String> fields =
+        Set.of(
+            "acidity",
+            "integrated_flux_class",
+            "ligand_capacities",
+            "medium",
+            "redox",
+            "salinity",
+            "sulfur_state");
+    requireObject(node, source, path, fields, fields);
+    JsonNode ligandNode = node.get("ligand_capacities");
+    Set<String> ligandFields = Set.of("carbonate", "chloride", "fluorine_boron", "reduced_sulfur");
+    requireObject(ligandNode, source, path + ".ligand_capacities", ligandFields, ligandFields);
+    return Optional.of(
+        new ProcessFluidState(
+            enumValue(
+                FluidMedium.class, text(node, "medium", source, path), source, path + ".medium"),
+            enumValue(RedoxClass.class, text(node, "redox", source, path), source, path + ".redox"),
+            enumValue(
+                AcidityClass.class, text(node, "acidity", source, path), source, path + ".acidity"),
+            enumValue(
+                SalinityClass.class,
+                text(node, "salinity", source, path),
+                source,
+                path + ".salinity"),
+            enumValue(
+                SulfurState.class,
+                text(node, "sulfur_state", source, path),
+                source,
+                path + ".sulfur_state"),
+            new LigandCapacities(
+                integer(ligandNode, "chloride", source, path + ".ligand_capacities"),
+                integer(ligandNode, "reduced_sulfur", source, path + ".ligand_capacities"),
+                integer(ligandNode, "carbonate", source, path + ".ligand_capacities"),
+                integer(ligandNode, "fluorine_boron", source, path + ".ligand_capacities")),
+            integer(node, "integrated_flux_class", source, path)));
+  }
+
   private static UnitIntervalDistribution unitDistribution(
       JsonNode node, String source, String path) {
     Set<String> fields = Set.of("maximum", "minimum", "mode");
@@ -336,7 +382,7 @@ public final class MaterialCatalogJsonLoader {
       List<AlterationDefinition> alterations) {
     StringBuilder output = new StringBuilder();
     output.append(
-        "{\"canonical_schema\":\"geological:material_catalog_snapshot:v2\",\"evidence\":{");
+        "{\"canonical_schema\":\"geological:material_catalog_snapshot:v3\",\"evidence\":{");
     field(output, "citation_id", evidence.citationId());
     output.append(',');
     field(output, "parameter_basis", evidence.parameterBasis());
@@ -388,6 +434,8 @@ public final class MaterialCatalogJsonLoader {
           field(output, "erodibility_delta", alteration.erodibilityDelta());
           output.append(',');
           field(output, "facies", alteration.facies().name());
+          output.append(",\"fluid_state\":");
+          appendFluidState(output, alteration.fluidState());
           output.append(',');
           field(output, "overprint", alteration.overprint().name());
           output.append(',');
@@ -462,6 +510,34 @@ public final class MaterialCatalogJsonLoader {
     field(output, "minimum", distribution.minimum());
     output.append(',');
     field(output, "mode", distribution.mode());
+    output.append('}');
+  }
+
+  private static void appendFluidState(
+      StringBuilder output, Optional<ProcessFluidState> optionalState) {
+    output.append('{');
+    if (optionalState.isPresent()) {
+      ProcessFluidState state = optionalState.orElseThrow();
+      field(output, "acidity", state.acidity().name());
+      output.append(',');
+      field(output, "integrated_flux_class", state.integratedFluxClass());
+      output.append(",\"ligand_capacities\":{");
+      field(output, "carbonate", state.ligandCapacities().carbonate());
+      output.append(',');
+      field(output, "chloride", state.ligandCapacities().chloride());
+      output.append(',');
+      field(output, "fluorine_boron", state.ligandCapacities().fluorineBoron());
+      output.append(',');
+      field(output, "reduced_sulfur", state.ligandCapacities().reducedSulfur());
+      output.append("},");
+      field(output, "medium", state.medium().name());
+      output.append(',');
+      field(output, "redox", state.redox().name());
+      output.append(',');
+      field(output, "salinity", state.salinity().name());
+      output.append(',');
+      field(output, "sulfur_state", state.sulfurState().name());
+    }
     output.append('}');
   }
 
