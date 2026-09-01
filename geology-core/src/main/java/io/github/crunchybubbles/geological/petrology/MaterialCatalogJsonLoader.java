@@ -26,7 +26,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 /** Strict JSON boundary for the first typed mineral, rock, and alteration data pack. */
 public final class MaterialCatalogJsonLoader {
-  public static final String AUTHORING_SCHEMA = "geological:material_catalog_authoring:v4";
+  public static final String AUTHORING_SCHEMA = "geological:material_catalog_authoring:v5";
   private static final int MAX_DOCUMENT_BYTES = 1_048_576;
   private static final Pattern IDENTIFIER = Pattern.compile("[a-z0-9_.-]+:[a-z0-9_./-]+");
   private static final JsonMapper JSON =
@@ -61,18 +61,27 @@ public final class MaterialCatalogJsonLoader {
       }
       JsonNode root = JSON.readTree(document);
       Set<String> rootFields =
-          Set.of("authoring_schema", "evidence", "minerals", "overprints", "rocks");
+          Set.of(
+              "authoring_schema", "evidence", "minerals", "overprints", "rocks", "solid_solutions");
       requireObject(root, sourceName, "$", rootFields, rootFields);
       if (!AUTHORING_SCHEMA.equals(text(root, "authoring_schema", sourceName, "$"))) {
         throw error(sourceName, "$.authoring_schema", "unsupported authoring schema");
       }
       CatalogEvidence evidence = parseEvidence(root.get("evidence"), sourceName);
       List<MineralDefinition> minerals = parseMinerals(root.get("minerals"), sourceName);
+      List<SolidSolutionDefinition> solidSolutions =
+          parseSolidSolutions(root.get("solid_solutions"), sourceName);
       List<RockDefinition> rocks = parseRocks(root.get("rocks"), sourceName);
       List<AlterationDefinition> alterations = parseAlterations(root.get("overprints"), sourceName);
-      String canonical = canonicalJson(evidence, minerals, rocks, alterations);
+      String canonical = canonicalJson(evidence, minerals, solidSolutions, rocks, alterations);
       return new MaterialCatalogSnapshot(
-          "sha256:" + sha256(canonical), canonical, evidence, minerals, rocks, alterations);
+          "sha256:" + sha256(canonical),
+          canonical,
+          evidence,
+          minerals,
+          solidSolutions,
+          rocks,
+          alterations);
     } catch (MaterialCatalogAuthoringException exception) {
       throw exception;
     } catch (JacksonException exception) {
@@ -136,6 +145,46 @@ public final class MaterialCatalogJsonLoader {
               number(item, "density_g_cm3", source, path),
               number(item, "hardness_mohs", source, path),
               number(item, "weathering_resistance", source, path)));
+      index++;
+    }
+    return List.copyOf(result);
+  }
+
+  private static List<SolidSolutionDefinition> parseSolidSolutions(JsonNode node, String source) {
+    requireArray(node, source, "$.solid_solutions");
+    List<SolidSolutionDefinition> result = new ArrayList<>();
+    int index = 0;
+    for (JsonNode item : node) {
+      String path = "$.solid_solutions[" + index + "]";
+      Set<String> fields = Set.of("endmember_ids", "id", "mixing_model");
+      requireObject(item, source, path, fields, fields);
+      JsonNode endmembersNode = item.get("endmember_ids");
+      requireArray(endmembersNode, source, path + ".endmember_ids");
+      List<String> endmemberIds = new ArrayList<>();
+      int endmemberIndex = 0;
+      for (JsonNode endmemberNode : endmembersNode) {
+        if (!endmemberNode.isString() || endmemberNode.stringValue().isBlank()) {
+          throw error(
+              source,
+              path + ".endmember_ids[" + endmemberIndex + "]",
+              "must be a non-blank string");
+        }
+        endmemberIds.add(
+            identifier(
+                endmemberNode.stringValue(),
+                source,
+                path + ".endmember_ids[" + endmemberIndex + "]"));
+        endmemberIndex++;
+      }
+      result.add(
+          new SolidSolutionDefinition(
+              identifier(text(item, "id", source, path), source, path + ".id"),
+              enumValue(
+                  SolidSolutionMixingModel.class,
+                  text(item, "mixing_model", source, path),
+                  source,
+                  path + ".mixing_model"),
+              endmemberIds));
       index++;
     }
     return List.copyOf(result);
@@ -408,11 +457,12 @@ public final class MaterialCatalogJsonLoader {
   private static String canonicalJson(
       CatalogEvidence evidence,
       List<MineralDefinition> minerals,
+      List<SolidSolutionDefinition> solidSolutions,
       List<RockDefinition> rocks,
       List<AlterationDefinition> alterations) {
     StringBuilder output = new StringBuilder();
     output.append(
-        "{\"canonical_schema\":\"geological:material_catalog_snapshot:v4\",\"evidence\":{");
+        "{\"canonical_schema\":\"geological:material_catalog_snapshot:v5\",\"evidence\":{");
     field(output, "citation_id", evidence.citationId());
     output.append(',');
     field(output, "parameter_basis", evidence.parameterBasis());
@@ -538,6 +588,23 @@ public final class MaterialCatalogJsonLoader {
           appendDistribution(output, rock.porosityDistribution());
           output.append(',');
           field(output, "texture", rock.texture().name());
+          output.append('}');
+        });
+    output.append("],\"solid_solutions\":[");
+    List<SolidSolutionDefinition> sortedSolidSolutions =
+        solidSolutions.stream()
+            .sorted(java.util.Comparator.comparing(SolidSolutionDefinition::id))
+            .toList();
+    appendSeparated(
+        output,
+        sortedSolidSolutions,
+        solution -> {
+          output.append("{\"endmember_ids\":[");
+          appendSeparated(output, solution.endmemberIds(), member -> string(output, member));
+          output.append("],");
+          field(output, "id", solution.id());
+          output.append(',');
+          field(output, "mixing_model", solution.mixingModel().name());
           output.append('}');
         });
     output.append("]}");

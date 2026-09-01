@@ -18,6 +18,8 @@ import io.github.crunchybubbles.geological.petrology.PetrologicSample;
 import io.github.crunchybubbles.geological.petrology.ProcessFluidState;
 import io.github.crunchybubbles.geological.petrology.ReservoirTransfer;
 import io.github.crunchybubbles.geological.petrology.RockDefinition;
+import io.github.crunchybubbles.geological.petrology.SolidSolutionDefinition;
+import io.github.crunchybubbles.geological.petrology.SolidSolutionState;
 import io.github.crunchybubbles.geological.petrology.SurfacePetrologicSample;
 import io.github.crunchybubbles.geological.petrology.UnitIntervalDistribution;
 import io.github.crunchybubbles.geological.query.GeologicalSample;
@@ -132,12 +134,18 @@ final class MaterialReviewPacketGenerator {
             JsonWriter.object(
                 "mineralCount",
                 query.catalog().minerals().size(),
+                "solidSolutionCount",
+                query.catalog().solidSolutions().size(),
                 "rockCount",
                 query.catalog().rocks().size(),
                 "overprintCount",
                 query.catalog().alterations().size(),
                 "rocks",
                 query.catalog().rocks().stream().map(this::rockJson).toList(),
+                "solidSolutions",
+                query.catalog().solidSolutions().stream()
+                    .map(MaterialReviewPacketGenerator::solidSolutionDefinitionJson)
+                    .toList(),
                 "overprints",
                 query.catalog().alterations().stream().map(this::alterationJson).toList()),
             "referenceProvince",
@@ -250,6 +258,17 @@ final class MaterialReviewPacketGenerator {
         distribution.maximum());
   }
 
+  private static Map<String, Object> solidSolutionDefinitionJson(
+      SolidSolutionDefinition definition) {
+    return JsonWriter.object(
+        "id",
+        definition.id(),
+        "mixingModel",
+        definition.mixingModel().name(),
+        "endmemberIds",
+        definition.endmemberIds());
+  }
+
   private Map<String, Object> alterationJson(AlterationDefinition alteration) {
     return JsonWriter.object(
         "overprint",
@@ -290,6 +309,10 @@ final class MaterialReviewPacketGenerator {
         sample.primaryAssemblage().modesPpm(),
         "resolvedModesPpm",
         sample.resolvedAssemblage().modesPpm(),
+        "primarySolidSolutions",
+        sample.primarySolidSolutions().stream().map(this::solidSolutionStateJson).toList(),
+        "resolvedSolidSolutions",
+        sample.resolvedSolidSolutions().stream().map(this::solidSolutionStateJson).toList(),
         "primaryElementsPpm",
         elementMap(sample.primaryComposition().elementMassPpm()),
         "resolvedElementsPpm",
@@ -324,6 +347,30 @@ final class MaterialReviewPacketGenerator {
         sample.fluidState().map(this::fluidStateJson).orElse(null),
         "reservoirSystemIds",
         sample.reservoirLedgers().stream().map(ledger -> ledger.systemId().toString()).toList());
+  }
+
+  private Map<String, Object> solidSolutionStateJson(SolidSolutionState state) {
+    return JsonWriter.object(
+        "definitionId",
+        state.definitionId(),
+        "mixingModel",
+        state.mixingModel().name(),
+        "phaseModePpm",
+        state.phaseModePpm(),
+        "endmemberVolumeFractionsPpm",
+        state.endmemberVolumeFractionsPpm(),
+        "endmemberMoleFractionsPpm",
+        state.endmemberMoleFractionsPpm(),
+        "idealFormulaAtoms",
+        formulaMap(state.idealFormulaAtoms()),
+        "bulkElementsPpm",
+        elementMap(state.bulkComposition().elementMassPpm()),
+        "density",
+        state.bulkComposition().density(),
+        "hardnessMohs",
+        state.hardnessMohs(),
+        "weatheringResistance",
+        state.weatheringResistance());
   }
 
   private Map<String, Object> processJson(MaterialProcessLedger process) {
@@ -401,6 +448,12 @@ final class MaterialReviewPacketGenerator {
   private static Map<String, Long> elementMap(Map<ChemicalElement, Long> source) {
     TreeMap<String, Long> result = new TreeMap<>();
     source.forEach((element, amount) -> result.put(element.symbol(), amount));
+    return result;
+  }
+
+  private static Map<String, Double> formulaMap(Map<ChemicalElement, Double> source) {
+    TreeMap<String, Double> result = new TreeMap<>();
+    source.forEach((element, value) -> result.put(element.symbol(), value));
     return result;
   }
 

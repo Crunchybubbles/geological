@@ -1,8 +1,8 @@
 {
-  "authoring_schema": "geological:material_catalog_authoring:v4",
+  "authoring_schema": "geological:material_catalog_authoring:v5",
   "evidence": {
     "citation_id": "refs:philpotts_ague_2009",
-    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. Mineral modes, modal covariance axes, protolith-conditioned response targets, textures, and physical-property distributions are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
+    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Mineral modes, modal covariance axes, protolith-conditioned response targets, textures, and physical-property distributions are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
     "publication_year": 2009,
     "title": "Principles of Igneous and Metamorphic Petrology",
     "uri": "https://doi.org/10.1017/CBO9780511813429"
@@ -161,6 +161,28 @@
       "hardness_mohs": 2.8,
       "id": "geological:mineral/native_gold",
       "weathering_resistance": 0.99
+    }
+  ],
+  "solid_solutions": [
+    {
+      "endmember_ids": ["geological:mineral/albite", "geological:mineral/anorthite"],
+      "id": "geological:solid_solution/plagioclase",
+      "mixing_model": "IDEAL_ENDMEMBER_INTERPOLATION"
+    },
+    {
+      "endmember_ids": ["geological:mineral/phlogopite", "geological:mineral/annite"],
+      "id": "geological:solid_solution/biotite",
+      "mixing_model": "IDEAL_ENDMEMBER_INTERPOLATION"
+    },
+    {
+      "endmember_ids": ["geological:mineral/tremolite", "geological:mineral/ferroactinolite"],
+      "id": "geological:solid_solution/calcic_amphibole",
+      "mixing_model": "IDEAL_ENDMEMBER_INTERPOLATION"
+    },
+    {
+      "endmember_ids": ["geological:mineral/diopside", "geological:mineral/hedenbergite"],
+      "id": "geological:solid_solution/calcic_clinopyroxene",
+      "mixing_model": "IDEAL_ENDMEMBER_INTERPOLATION"
     }
   ],
   "rocks": [

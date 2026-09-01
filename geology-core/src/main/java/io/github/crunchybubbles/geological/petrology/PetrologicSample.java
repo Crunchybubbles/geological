@@ -10,6 +10,8 @@ public record PetrologicSample(
     RockDefinition rock,
     MineralAssemblage primaryAssemblage,
     MineralAssemblage resolvedAssemblage,
+    List<SolidSolutionState> primarySolidSolutions,
+    List<SolidSolutionState> resolvedSolidSolutions,
     BulkComposition primaryComposition,
     BulkComposition resolvedComposition,
     ElementTransferLedger elementLedger,
@@ -28,6 +30,8 @@ public record PetrologicSample(
         || rock == null
         || primaryAssemblage == null
         || resolvedAssemblage == null
+        || primarySolidSolutions == null
+        || resolvedSolidSolutions == null
         || primaryComposition == null
         || resolvedComposition == null
         || elementLedger == null
@@ -40,6 +44,8 @@ public record PetrologicSample(
         || reservoirLedgers == null) {
       throw new IllegalArgumentException("petrologic sample must be complete");
     }
+    primarySolidSolutions = sortedSolidSolutions(primarySolidSolutions);
+    resolvedSolidSolutions = sortedSolidSolutions(resolvedSolidSolutions);
     for (ChemicalElement element : ChemicalElement.values()) {
       if (materialProcessLedger.netTransferPpm(element)
           != elementLedger.transferPpm().getOrDefault(element, 0L)) {
@@ -60,6 +66,17 @@ public record PetrologicSample(
     if (!Double.isFinite(value) || value < 0.0 || value > 1.0) {
       throw new IllegalArgumentException(name + " must lie in [0, 1]");
     }
+  }
+
+  private static List<SolidSolutionState> sortedSolidSolutions(List<SolidSolutionState> states) {
+    List<SolidSolutionState> sorted =
+        List.copyOf(states).stream()
+            .sorted(java.util.Comparator.comparing(SolidSolutionState::definitionId))
+            .toList();
+    if (sorted.stream().map(SolidSolutionState::definitionId).distinct().count() != sorted.size()) {
+      throw new IllegalArgumentException("solid-solution states must have unique definitions");
+    }
+    return sorted;
   }
 
   private static void requireFluidState(

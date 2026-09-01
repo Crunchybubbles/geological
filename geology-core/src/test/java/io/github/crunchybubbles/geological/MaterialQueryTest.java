@@ -25,6 +25,7 @@ import io.github.crunchybubbles.geological.petrology.PetrologicColumnResult;
 import io.github.crunchybubbles.geological.petrology.PetrologicSample;
 import io.github.crunchybubbles.geological.petrology.PetrologicState;
 import io.github.crunchybubbles.geological.petrology.SalinityClass;
+import io.github.crunchybubbles.geological.petrology.SolidSolutionState;
 import io.github.crunchybubbles.geological.petrology.SurfaceMaterialKind;
 import io.github.crunchybubbles.geological.petrology.SurfacePetrologicSample;
 import io.github.crunchybubbles.geological.query.ColumnRequest;
@@ -38,14 +39,14 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.6", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.7", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:acbc4da5aaa2025b612930046335f0e910477559ba78721154ea033becab5bca",
+        "sha256:05698a75fadb8361fbb64a74f25c06d3f4b8560e14f36dbda595cf14d0715d42",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -204,6 +205,75 @@ class MaterialQueryTest {
 
       assertEquals(expected, material.resolvedAssemblage(), lithology.name());
     }
+  }
+
+  @Test
+  void solidSolutionStatesExposeBodyCompositionAndSurviveAlterationProjection() {
+    MaterialQueryEngine query = Phase2World.create(7_701L);
+    Province province = query.geology().atlas().provinceAt(new Point2(0.0, 0.0));
+    RiftArcGeometry.PlutonPulse firstBody = province.geometry().plutonPulses().getFirst();
+    RiftArcGeometry.PlutonPulse secondBody = province.geometry().plutonPulses().get(1);
+    GeologicalSample first =
+        sample(
+            province,
+            firstBody.center(),
+            firstBody.id(),
+            Lithology.GRANODIORITE_PULSE,
+            firstBody.birthAge(),
+            Overprint.NONE);
+    GeologicalSample second =
+        sample(
+            province,
+            secondBody.center(),
+            secondBody.id(),
+            Lithology.GRANODIORITE_PULSE,
+            secondBody.birthAge(),
+            Overprint.NONE);
+    GeologicalSample altered =
+        sample(
+            province,
+            firstBody.center(),
+            firstBody.id(),
+            Lithology.GRANODIORITE_PULSE,
+            firstBody.birthAge(),
+            Overprint.POTASSIC_ALTERATION);
+
+    PetrologicSample firstMaterial = query.resolve(province, first);
+    PetrologicSample secondMaterial = query.resolve(province, second);
+    PetrologicSample alteredMaterial = query.resolve(province, altered);
+    SolidSolutionState firstPlagioclase =
+        solidSolution(
+            firstMaterial.primarySolidSolutions(), "geological:solid_solution/plagioclase");
+    SolidSolutionState secondPlagioclase =
+        solidSolution(
+            secondMaterial.primarySolidSolutions(), "geological:solid_solution/plagioclase");
+    SolidSolutionState alteredPrimary =
+        solidSolution(
+            alteredMaterial.primarySolidSolutions(), "geological:solid_solution/plagioclase");
+    SolidSolutionState alteredResolved =
+        solidSolution(
+            alteredMaterial.resolvedSolidSolutions(), "geological:solid_solution/plagioclase");
+
+    assertEquals(firstPlagioclase, alteredPrimary);
+    assertNotEquals(
+        firstPlagioclase.endmemberMoleFractionsPpm(),
+        secondPlagioclase.endmemberMoleFractionsPpm());
+    assertTrue(alteredResolved.phaseModePpm() < alteredPrimary.phaseModePpm());
+    for (String endmember : firstPlagioclase.endmemberMoleFractionsPpm().keySet()) {
+      assertTrue(
+          StrictMath.abs(
+                  firstPlagioclase.endmemberMoleFractionsPpm().get(endmember)
+                      - alteredResolved.endmemberMoleFractionsPpm().get(endmember))
+              <= 2L);
+    }
+    assertEquals(8.0, firstPlagioclase.idealFormulaAtoms().get(ChemicalElement.O), 1.0e-12);
+    assertTrue(firstPlagioclase.idealFormulaAtoms().get(ChemicalElement.NA) > 0.0);
+    assertTrue(firstPlagioclase.idealFormulaAtoms().get(ChemicalElement.CA) > 0.0);
+    assertEquals(
+        MineralAssemblage.SCALE,
+        firstPlagioclase.bulkComposition().elementMassPpm().values().stream()
+            .mapToLong(Long::longValue)
+            .sum());
   }
 
   @Test
@@ -531,5 +601,13 @@ class MaterialQueryTest {
         overprint,
         false,
         List.of());
+  }
+
+  private static SolidSolutionState solidSolution(
+      List<SolidSolutionState> states, String definitionId) {
+    return states.stream()
+        .filter(state -> state.definitionId().equals(definitionId))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("missing solid solution " + definitionId));
   }
 }

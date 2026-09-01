@@ -184,6 +184,8 @@ public final class MaterialQueryEngine {
         rock,
         recipe.primaryAssemblage(),
         recipe.resolvedAssemblage(),
+        recipe.primarySolidSolutions(),
+        recipe.resolvedSolidSolutions(),
         recipe.primaryComposition(),
         recipe.resolvedComposition(),
         recipe.elementLedger(),
@@ -383,6 +385,8 @@ public final class MaterialQueryEngine {
                 primary,
                 alteration.targetAssemblage(rock.geneticFamily()),
                 alteration.replacementPpm());
+    List<SolidSolutionState> primarySolidSolutions = catalog.solidSolutionStates(primary);
+    List<SolidSolutionState> resolvedSolidSolutions = catalog.solidSolutionStates(resolved);
     BulkComposition primaryComposition = catalog.composition(primary);
     BulkComposition resolvedComposition = catalog.composition(resolved);
     ElementTransferLedger ledger =
@@ -395,6 +399,8 @@ public final class MaterialQueryEngine {
         rock,
         primary,
         resolved,
+        primarySolidSolutions,
+        resolvedSolidSolutions,
         primaryComposition,
         resolvedComposition,
         ledger,
@@ -508,6 +514,8 @@ public final class MaterialQueryEngine {
       RockDefinition rock,
       MineralAssemblage primaryAssemblage,
       MineralAssemblage resolvedAssemblage,
+      List<SolidSolutionState> primarySolidSolutions,
+      List<SolidSolutionState> resolvedSolidSolutions,
       BulkComposition primaryComposition,
       BulkComposition resolvedComposition,
       ElementTransferLedger elementLedger,

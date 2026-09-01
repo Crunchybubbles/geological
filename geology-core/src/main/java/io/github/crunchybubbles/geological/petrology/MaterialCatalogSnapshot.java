@@ -17,6 +17,7 @@ public final class MaterialCatalogSnapshot {
   private final String canonicalJson;
   private final CatalogEvidence evidence;
   private final Map<String, MineralDefinition> minerals;
+  private final Map<String, SolidSolutionDefinition> solidSolutions;
   private final Map<Lithology, RockDefinition> rocks;
   private final Map<Overprint, AlterationDefinition> alterations;
 
@@ -25,6 +26,7 @@ public final class MaterialCatalogSnapshot {
       String canonicalJson,
       CatalogEvidence evidence,
       List<MineralDefinition> minerals,
+      List<SolidSolutionDefinition> solidSolutions,
       List<RockDefinition> rocks,
       List<AlterationDefinition> alterations) {
     if (digest == null
@@ -38,6 +40,7 @@ public final class MaterialCatalogSnapshot {
     this.canonicalJson = canonicalJson;
     this.evidence = evidence;
     this.minerals = uniqueMinerals(minerals);
+    this.solidSolutions = uniqueSolidSolutions(solidSolutions);
     this.rocks = uniqueRocks(rocks);
     this.alterations = uniqueAlterations(alterations);
     validateReferences();
@@ -57,6 +60,10 @@ public final class MaterialCatalogSnapshot {
 
   public List<MineralDefinition> minerals() {
     return List.copyOf(minerals.values());
+  }
+
+  public List<SolidSolutionDefinition> solidSolutions() {
+    return List.copyOf(solidSolutions.values());
   }
 
   public List<RockDefinition> rocks() {
@@ -89,6 +96,31 @@ public final class MaterialCatalogSnapshot {
       throw new IllegalArgumentException("unknown overprint " + overprint);
     }
     return definition;
+  }
+
+  public SolidSolutionDefinition requireSolidSolution(String id) {
+    SolidSolutionDefinition definition = solidSolutions.get(id);
+    if (definition == null) {
+      throw new IllegalArgumentException("unknown solid solution " + id);
+    }
+    return definition;
+  }
+
+  public List<SolidSolutionState> solidSolutionStates(MineralAssemblage assemblage) {
+    if (assemblage == null) {
+      throw new IllegalArgumentException("mineral assemblage is required");
+    }
+    List<SolidSolutionState> states = new ArrayList<>();
+    solidSolutions
+        .values()
+        .forEach(
+            definition -> {
+              SolidSolutionState state = resolveSolidSolution(definition, assemblage);
+              if (state != null) {
+                states.add(state);
+              }
+            });
+    return List.copyOf(states);
   }
 
   public BulkComposition composition(MineralAssemblage assemblage) {
@@ -145,6 +177,21 @@ public final class MaterialCatalogSnapshot {
     return Collections.unmodifiableMap(result);
   }
 
+  private Map<String, SolidSolutionDefinition> uniqueSolidSolutions(
+      List<SolidSolutionDefinition> definitions) {
+    TreeMap<String, SolidSolutionDefinition> result = new TreeMap<>();
+    definitions.forEach(
+        definition -> {
+          if (result.putIfAbsent(definition.id(), definition) != null) {
+            throw new IllegalArgumentException("duplicate solid-solution ID " + definition.id());
+          }
+        });
+    if (result.isEmpty()) {
+      throw new IllegalArgumentException("material catalog must contain solid solutions");
+    }
+    return Collections.unmodifiableMap(result);
+  }
+
   private Map<Lithology, RockDefinition> uniqueRocks(List<RockDefinition> definitions) {
     EnumMap<Lithology, RockDefinition> result = new EnumMap<>(Lithology.class);
     Map<String, RockDefinition> ids = new HashMap<>();
@@ -179,6 +226,33 @@ public final class MaterialCatalogSnapshot {
   }
 
   private void validateReferences() {
+    Map<String, String> endmemberOwners = new HashMap<>();
+    solidSolutions
+        .values()
+        .forEach(
+            solution ->
+                solution
+                    .endmemberIds()
+                    .forEach(
+                        endmember -> {
+                          if (!minerals.containsKey(endmember)) {
+                            throw new IllegalArgumentException(
+                                "solid solution "
+                                    + solution.id()
+                                    + " references unknown mineral "
+                                    + endmember);
+                          }
+                          String existing = endmemberOwners.putIfAbsent(endmember, solution.id());
+                          if (existing != null) {
+                            throw new IllegalArgumentException(
+                                "solid-solution endmember "
+                                    + endmember
+                                    + " belongs to both "
+                                    + existing
+                                    + " and "
+                                    + solution.id());
+                          }
+                        }));
     rocks.values().forEach(rock -> validateAssemblage(rock.primaryAssemblage(), rock.id()));
     alterations
         .values()
@@ -209,5 +283,112 @@ public final class MaterialCatalogSnapshot {
             });
   }
 
+  private SolidSolutionState resolveSolidSolution(
+      SolidSolutionDefinition definition, MineralAssemblage assemblage) {
+    TreeMap<String, Long> componentModes = new TreeMap<>();
+    long phaseMode = 0;
+    for (String endmemberId : definition.endmemberIds()) {
+      long mode = assemblage.modesPpm().getOrDefault(endmemberId, 0L);
+      componentModes.put(endmemberId, mode);
+      phaseMode += mode;
+    }
+    if (phaseMode == 0) {
+      return null;
+    }
+
+    Map<String, Long> volumeFractions = exactIntegerFractions(componentModes, phaseMode);
+    TreeMap<String, Double> moleWeights = new TreeMap<>();
+    for (Map.Entry<String, Long> component : componentModes.entrySet()) {
+      MineralDefinition mineral = requireMineral(component.getKey());
+      double weight =
+          component.getValue() * mineral.densityGramsPerCubicCentimeter() / mineral.formulaMass();
+      moleWeights.put(component.getKey(), weight);
+    }
+    Map<String, Long> moleFractions = exactDoubleFractions(moleWeights);
+
+    EnumMap<ChemicalElement, Double> formula = new EnumMap<>(ChemicalElement.class);
+    double hardness = 0.0;
+    double weathering = 0.0;
+    for (String endmemberId : definition.endmemberIds()) {
+      MineralDefinition mineral = requireMineral(endmemberId);
+      double moleFraction = moleFractions.get(endmemberId) / (double) MineralAssemblage.SCALE;
+      double volumeFraction = volumeFractions.get(endmemberId) / (double) MineralAssemblage.SCALE;
+      if (moleFraction > 0.0) {
+        mineral
+            .formula()
+            .forEach((element, count) -> formula.merge(element, moleFraction * count, Double::sum));
+      }
+      hardness += volumeFraction * mineral.hardnessMohs();
+      weathering += volumeFraction * mineral.weatheringResistance();
+    }
+    BulkComposition bulkComposition = composition(new MineralAssemblage(volumeFractions));
+    return new SolidSolutionState(
+        definition.id(),
+        definition.mixingModel(),
+        phaseMode,
+        volumeFractions,
+        moleFractions,
+        formula,
+        bulkComposition,
+        hardness,
+        weathering);
+  }
+
+  private static Map<String, Long> exactIntegerFractions(Map<String, Long> weights, long total) {
+    TreeMap<String, Long> fractions = new TreeMap<>();
+    List<StringRemainder> remainders = new ArrayList<>();
+    long allocated = 0;
+    for (Map.Entry<String, Long> entry : weights.entrySet()) {
+      long numerator = entry.getValue() * MineralAssemblage.SCALE;
+      long whole = numerator / total;
+      fractions.put(entry.getKey(), whole);
+      allocated += whole;
+      remainders.add(new StringRemainder(entry.getKey(), numerator % total));
+    }
+    allocateMissing(fractions, remainders, MineralAssemblage.SCALE - allocated);
+    return Collections.unmodifiableMap(fractions);
+  }
+
+  private static Map<String, Long> exactDoubleFractions(Map<String, Double> weights) {
+    double total = weights.values().stream().mapToDouble(Double::doubleValue).sum();
+    if (!(total > 0.0) || !Double.isFinite(total)) {
+      throw new IllegalStateException("solid-solution mole weights are invalid");
+    }
+    TreeMap<String, Long> fractions = new TreeMap<>();
+    List<DoubleRemainder> remainders = new ArrayList<>();
+    long allocated = 0;
+    for (Map.Entry<String, Double> entry : weights.entrySet()) {
+      double exact = entry.getValue() / total * MineralAssemblage.SCALE;
+      long whole = (long) StrictMath.floor(exact);
+      fractions.put(entry.getKey(), whole);
+      allocated += whole;
+      remainders.add(new DoubleRemainder(entry.getKey(), exact - whole));
+    }
+    remainders.sort(
+        Comparator.comparingDouble(DoubleRemainder::remainder)
+            .reversed()
+            .thenComparing(DoubleRemainder::id));
+    long missing = MineralAssemblage.SCALE - allocated;
+    for (int index = 0; index < missing; index++) {
+      fractions.merge(remainders.get(index).id(), 1L, Long::sum);
+    }
+    return Collections.unmodifiableMap(fractions);
+  }
+
+  private static void allocateMissing(
+      Map<String, Long> fractions, List<StringRemainder> remainders, long missing) {
+    remainders.sort(
+        Comparator.comparingLong(StringRemainder::remainder)
+            .reversed()
+            .thenComparing(StringRemainder::id));
+    for (int index = 0; index < missing; index++) {
+      fractions.merge(remainders.get(index).id(), 1L, Long::sum);
+    }
+  }
+
   private record ElementRemainder(ChemicalElement element, double remainder) {}
+
+  private record StringRemainder(String id, long remainder) {}
+
+  private record DoubleRemainder(String id, double remainder) {}
 }

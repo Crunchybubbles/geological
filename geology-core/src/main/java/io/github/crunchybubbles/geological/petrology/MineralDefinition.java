@@ -34,14 +34,17 @@ public record MineralDefinition(
   }
 
   public Map<ChemicalElement, Double> elementMassFractions() {
-    double formulaMass =
-        formula.entrySet().stream()
-            .mapToDouble(entry -> entry.getKey().atomicWeight() * entry.getValue())
-            .sum();
+    double formulaMass = formulaMass();
     Map<ChemicalElement, Double> fractions = new TreeMap<>();
     formula.forEach(
         (element, count) -> fractions.put(element, element.atomicWeight() * count / formulaMass));
     return Collections.unmodifiableMap(fractions);
+  }
+
+  public double formulaMass() {
+    return formula.entrySet().stream()
+        .mapToDouble(entry -> entry.getKey().atomicWeight() * entry.getValue())
+        .sum();
   }
 
   private static void requireRange(double value, double minimum, double maximum, String name) {

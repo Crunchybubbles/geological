@@ -14,6 +14,7 @@ import io.github.crunchybubbles.geological.petrology.MaterialCatalogSnapshot;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
 import io.github.crunchybubbles.geological.petrology.MineralAssemblage;
 import io.github.crunchybubbles.geological.petrology.MineralDefinition;
+import io.github.crunchybubbles.geological.petrology.SolidSolutionState;
 import io.github.crunchybubbles.geological.query.Phase2World;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -26,10 +27,11 @@ class MaterialCatalogTest {
     MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
 
     assertEquals(22, catalog.minerals().size());
+    assertEquals(4, catalog.solidSolutions().size());
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:37cd427dca5c3e9e972bd022e90fa888d59d26b67dffed78c81ffabbb34cd388",
+        "sha256:bc94c35362707f4d73c656b0b3093107331922de86d71b8759778aee55240480",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -109,6 +111,30 @@ class MaterialCatalogTest {
             .targetAssemblage(GeneticFamily.SURFICIAL)
             .modesPpm()
             .get("geological:mineral/native_gold"));
+
+    var granodiorite = catalog.requireRock(Lithology.GRANODIORITE_PULSE);
+    SolidSolutionState plagioclase =
+        catalog.solidSolutionStates(granodiorite.primaryAssemblage()).stream()
+            .filter(state -> state.definitionId().equals("geological:solid_solution/plagioclase"))
+            .findFirst()
+            .orElseThrow();
+    assertEquals(
+        granodiorite.primaryAssemblage().modesPpm().get("geological:mineral/albite")
+            + granodiorite.primaryAssemblage().modesPpm().get("geological:mineral/anorthite"),
+        plagioclase.phaseModePpm());
+    assertEquals(
+        MineralAssemblage.SCALE,
+        plagioclase.endmemberVolumeFractionsPpm().values().stream()
+            .mapToLong(Long::longValue)
+            .sum());
+    assertEquals(
+        MineralAssemblage.SCALE,
+        plagioclase.endmemberMoleFractionsPpm().values().stream().mapToLong(Long::longValue).sum());
+    assertEquals(
+        MineralAssemblage.SCALE,
+        plagioclase.bulkComposition().elementMassPpm().values().stream()
+            .mapToLong(Long::longValue)
+            .sum());
     assertEquals(
         1L,
         catalog
@@ -123,6 +149,10 @@ class MaterialCatalogTest {
     String authored = packagedCatalogJson();
     String reordered =
         authored.replace("\"IGNEOUS\", \"METAMORPHIC\"", "\"METAMORPHIC\", \"IGNEOUS\"");
+    reordered =
+        reordered.replace(
+            "\"geological:mineral/albite\", \"geological:mineral/anorthite\"",
+            "\"geological:mineral/anorthite\", \"geological:mineral/albite\"");
     assertTrue(reordered.contains("\"METAMORPHIC\", \"IGNEOUS\""));
 
     MaterialCatalogSnapshot loaded =
@@ -193,14 +223,43 @@ class MaterialCatalogTest {
                         new ByteArrayInputStream(unbalancedAxis.getBytes(StandardCharsets.UTF_8)),
                         "unbalanced-axis.json"));
     assertTrue(axisFailure.getMessage().contains("axis loadings must sum to zero"));
+
+    String unknownEndmember =
+        authored.replace(
+            "[\"geological:mineral/albite\", \"geological:mineral/anorthite\"]",
+            "[\"geological:mineral/unknown\", \"geological:mineral/anorthite\"]");
+    MaterialCatalogAuthoringException endmemberFailure =
+        assertThrows(
+            MaterialCatalogAuthoringException.class,
+            () ->
+                new MaterialCatalogJsonLoader()
+                    .load(
+                        new ByteArrayInputStream(unknownEndmember.getBytes(StandardCharsets.UTF_8)),
+                        "unknown-endmember.json"));
+    assertTrue(endmemberFailure.getMessage().contains("references unknown mineral"));
+
+    String overlappingEndmember =
+        authored.replace(
+            "[\"geological:mineral/diopside\", \"geological:mineral/hedenbergite\"]",
+            "[\"geological:mineral/albite\", \"geological:mineral/hedenbergite\"]");
+    MaterialCatalogAuthoringException overlapFailure =
+        assertThrows(
+            MaterialCatalogAuthoringException.class,
+            () ->
+                new MaterialCatalogJsonLoader()
+                    .load(
+                        new ByteArrayInputStream(
+                            overlappingEndmember.getBytes(StandardCharsets.UTF_8)),
+                        "overlapping-endmember.json"));
+    assertTrue(overlapFailure.getMessage().contains("belongs to both"));
   }
 
   @Test
   void strictCatalogBoundaryRejectsUnknownFieldsAndUnclosedModes() {
     String unknown =
         """
-        {"authoring_schema":"geological:material_catalog_authoring:v4","evidence":{},
-        "minerals":[],"rocks":[],"overprints":[],"surprise":true}
+        {"authoring_schema":"geological:material_catalog_authoring:v5","evidence":{},
+        "minerals":[],"rocks":[],"solid_solutions":[],"overprints":[],"surprise":true}
         """;
     MaterialCatalogAuthoringException unknownFailure =
         assertThrows(
@@ -215,11 +274,12 @@ class MaterialCatalogTest {
     String unclosed =
         """
         {
-          "authoring_schema":"geological:material_catalog_authoring:v4",
+          "authoring_schema":"geological:material_catalog_authoring:v5",
           "evidence":{"citation_id":"refs:test","parameter_basis":"test tunable",
             "publication_year":2000,"title":"Test","uri":"https://example.invalid/test"},
           "minerals":[{"density_g_cm3":2.65,"formula":{"Si":1,"O":2},
             "hardness_mohs":7.0,"id":"test:quartz","weathering_resistance":1.0}],
+          "solid_solutions":[],
           "rocks":[{"erodibility_distribution":{"minimum":0.05,"mode":0.1,"maximum":0.2},
             "genetic_family":"IGNEOUS","id":"test:rock",
             "lithology":"GRANITIC_GNEISS","mineral_modes_ppm":{"test:quartz":999999},
