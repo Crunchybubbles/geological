@@ -230,6 +230,26 @@ final class MaterialReviewPacketGenerator {
                 Lithology.GRANULITE,
                 new AgeKey(380.0, 0),
                 Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "quartzite-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000801"),
+                Lithology.QUARTZITE,
+                new AgeKey(370.0, 0),
+                Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "marble-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000802"),
+                Lithology.MARBLE,
+                new AgeKey(360.0, 0),
+                Overprint.NONE)));
     RiftArcGeometry.PlutonPulse stock = pulses.getLast();
     samples.add(
         sampleJson(

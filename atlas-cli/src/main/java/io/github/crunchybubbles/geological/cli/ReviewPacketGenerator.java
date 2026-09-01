@@ -637,6 +637,8 @@ final class ReviewPacketGenerator {
       case GREENSCHIST -> new Color(88, 120, 91);
       case AMPHIBOLITE -> new Color(61, 79, 72);
       case GRANULITE -> new Color(118, 101, 92);
+      case QUARTZITE -> new Color(207, 196, 181);
+      case MARBLE -> new Color(221, 220, 213);
       case BASAL_CONGLOMERATE -> new Color(139, 93, 61);
       case MARINE_VOLCANICLASTIC -> new Color(67, 118, 105);
       case BASIN_SHALE -> new Color(75, 79, 88);

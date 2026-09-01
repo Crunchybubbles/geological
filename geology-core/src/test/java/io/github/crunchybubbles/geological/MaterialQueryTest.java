@@ -41,14 +41,14 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.15", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.16", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:ee0e3fac69b0b5a00029f63b346cd36e74035142e123d234bd09981141d7e1dc",
+        "sha256:a1bd5c3058b8051d89968a0b8548cb304eac4677e4676f89366455f9a58cafa7",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -593,6 +593,56 @@ class MaterialQueryTest {
                     state.definitionId().equals("geological:solid_solution/calcic_clinopyroxene")));
     assertEquals(
         0L, granulite.primaryComposition().elementMassPpm().getOrDefault(ChemicalElement.H, 0L));
+  }
+
+  @Test
+  void quartziteAndMarbleQueriesPreserveTheirContrastingSedimentaryInheritance() {
+    MaterialQueryEngine query = Phase2World.create(8_181L);
+    Province province = query.geology().atlas().provinceAt(new Point2(0.0, 0.0));
+    PetrologicSample quartzite =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000801"),
+                Lithology.QUARTZITE,
+                new AgeKey(370.0, 0),
+                Overprint.NONE));
+    PetrologicSample marble =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000802"),
+                Lithology.MARBLE,
+                new AgeKey(360.0, 0),
+                Overprint.NONE));
+
+    assertEquals("geological:rock/basin_sandstone", quartzite.metamorphism().protolithRockId());
+    assertEquals("geological:rock/limestone", marble.metamorphism().protolithRockId());
+    assertEquals(MetamorphicGrade.LOW, quartzite.metamorphism().grade());
+    assertEquals(MetamorphicGrade.LOW, marble.metamorphism().grade());
+    assertEquals(MetamorphicFacies.GREENSCHIST, quartzite.metamorphism().facies());
+    assertEquals(MetamorphicFacies.GREENSCHIST, marble.metamorphism().facies());
+    assertTrue(
+        quartzite.primaryAssemblage().modesPpm().get("geological:mineral/quartz") >= 800_000L);
+    assertTrue(
+        marble.primaryAssemblage().modesPpm().get("geological:mineral/calcite")
+                + marble.primaryAssemblage().modesPpm().get("geological:mineral/dolomite")
+            >= 900_000L);
+    assertTrue(
+        quartzite.primaryComposition().elementMassPpm().get(ChemicalElement.SI)
+            > marble.primaryComposition().elementMassPpm().get(ChemicalElement.SI));
+    assertTrue(
+        marble.primaryComposition().elementMassPpm().get(ChemicalElement.C)
+            > quartzite.primaryComposition().elementMassPpm().get(ChemicalElement.C));
+    assertTrue(
+        quartzite.primarySolidSolutions().stream()
+            .anyMatch(
+                state -> state.definitionId().equals("geological:solid_solution/plagioclase")));
+    assertTrue(marble.primarySolidSolutions().isEmpty());
   }
 
   @Test

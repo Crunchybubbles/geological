@@ -35,11 +35,11 @@ class MaterialCatalogTest {
     assertEquals(1, catalog.nonCrystallineConstituents().size());
     assertEquals(37, catalog.constituents().size());
     assertEquals(7, catalog.solidSolutions().size());
-    assertEquals(26, catalog.rocks().size());
+    assertEquals(28, catalog.rocks().size());
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:4d0dec57d11b6cfc6b6f0ddc3fe8b897621f08db2872551ae4494467d446a4d6",
+        "sha256:e644d96e97dd2aad801ac5239c9eeb0e302484db6962434849e42974b24ecc07",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -413,6 +413,53 @@ class MaterialCatalogTest {
         230_000L,
         granulite.primaryAssemblage().modesPpm().get("geological:mineral/diopside")
             + granulite.primaryAssemblage().modesPpm().get("geological:mineral/hedenbergite"));
+  }
+
+  @Test
+  void quartziteAndMarbleRetainQuartzRichAndCarbonateProtoliths() {
+    MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
+    var sandstone = catalog.requireRock(Lithology.BASIN_SANDSTONE);
+    var quartzite = catalog.requireRock(Lithology.QUARTZITE);
+    var marble = catalog.requireRock(Lithology.MARBLE);
+    var quartziteMetamorphism = quartzite.primaryMetamorphism().orElseThrow();
+    var marbleMetamorphism = marble.primaryMetamorphism().orElseThrow();
+
+    assertEquals(RockTexture.GRANOBLASTIC, quartzite.texture());
+    assertEquals(RockTexture.GRANOBLASTIC, marble.texture());
+    assertEquals("geological:rock/basin_sandstone", quartziteMetamorphism.protolithRockId());
+    assertEquals("geological:rock/limestone", marbleMetamorphism.protolithRockId());
+    assertEquals(MetamorphicGrade.LOW, quartziteMetamorphism.grade());
+    assertEquals(MetamorphicGrade.LOW, marbleMetamorphism.grade());
+    assertEquals(MetamorphicFacies.GREENSCHIST, quartziteMetamorphism.facies());
+    assertEquals(MetamorphicFacies.GREENSCHIST, marbleMetamorphism.facies());
+
+    assertEquals(
+        840_000L, quartzite.primaryAssemblage().modesPpm().get("geological:mineral/quartz"));
+    assertTrue(
+        quartzite.primaryAssemblage().modesPpm().get("geological:mineral/quartz")
+            > sandstone.primaryAssemblage().modesPpm().get("geological:mineral/quartz"));
+    assertEquals(
+        920_000L,
+        marble.primaryAssemblage().modesPpm().get("geological:mineral/calcite")
+            + marble.primaryAssemblage().modesPpm().get("geological:mineral/dolomite"));
+    assertTrue(
+        catalog.composition(quartzite.primaryAssemblage()).elementMassPpm().get(ChemicalElement.SI)
+            > catalog
+                .composition(marble.primaryAssemblage())
+                .elementMassPpm()
+                .get(ChemicalElement.SI));
+    assertTrue(
+        catalog.composition(marble.primaryAssemblage()).elementMassPpm().get(ChemicalElement.C)
+            > catalog
+                .composition(quartzite.primaryAssemblage())
+                .elementMassPpm()
+                .get(ChemicalElement.C));
+    assertTrue(quartzite.lithology().strength() > marble.lithology().strength());
+    assertTrue(
+        catalog.solidSolutionStates(quartzite.primaryAssemblage()).stream()
+            .anyMatch(
+                state -> state.definitionId().equals("geological:solid_solution/plagioclase")));
+    assertTrue(catalog.solidSolutionStates(marble.primaryAssemblage()).isEmpty());
   }
 
   @Test
