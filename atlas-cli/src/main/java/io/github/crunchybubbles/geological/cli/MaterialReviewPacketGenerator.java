@@ -138,6 +138,26 @@ final class MaterialReviewPacketGenerator {
                 Lithology.CHERT,
                 new AgeKey(165.0, 0),
                 Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "gypsum-anhydrite-evaporite-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000301"),
+                Lithology.GYPSUM_ANHYDRITE_EVAPORITE,
+                new AgeKey(160.0, 0),
+                Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "halite-potash-evaporite-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000302"),
+                Lithology.HALITE_POTASH_EVAPORITE,
+                new AgeKey(159.0, 0),
+                Overprint.NONE)));
     RiftArcGeometry.PlutonPulse stock = pulses.getLast();
     samples.add(
         sampleJson(

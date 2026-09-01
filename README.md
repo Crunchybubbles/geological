@@ -2,7 +2,7 @@
 
 Geological is a causal geology and terrain-generation project for Minecraft Java 1.21.1 on NeoForge 21.1.x. Its selected world preset will eventually own the canonical Overworld, Nether, and End through dimension-specific geological histories rather than add a separate geology dimension.
 
-The repository contains the **Phase 0 standalone geological atlas proof**, the **Phase 1 platform-neutral query core**, and the first nine **Phase 2 petrologic material-state increments**. It intentionally produces no Minecraft blocks: deterministic random-access geology, validated scientific identity, explainable point queries, transient column/run plans, correlated body-scale bulk-rock mineralogy and physical properties, queryable ideal solid-solution states, mafic–ultramafic and sedimentary catalog slices, host-conditioned alteration/weathering responses, typed process-fluid conditions, and coarse element-reservoir conservation are proven before coupling the model to NeoForge.
+The repository contains the **Phase 0 standalone geological atlas proof**, the **Phase 1 platform-neutral query core**, and the first ten **Phase 2 petrologic material-state increments**. It intentionally produces no Minecraft blocks: deterministic random-access geology, validated scientific identity, explainable point queries, transient column/run plans, correlated body-scale bulk-rock mineralogy and physical properties, queryable ideal solid-solution states, mafic–ultramafic, clastic–carbonate–silica, and evaporite catalog slices, host-conditioned alteration/weathering responses, typed process-fluid conditions, and coarse element-reservoir conservation are proven before coupling the model to NeoForge.
 
 ## Stable identity
 

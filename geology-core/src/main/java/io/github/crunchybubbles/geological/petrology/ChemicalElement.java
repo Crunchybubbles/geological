@@ -12,6 +12,7 @@ public enum ChemicalElement {
   AL("Al", 26.9815385),
   SI("Si", 28.085),
   S("S", 32.06),
+  CL("Cl", 35.45),
   K("K", 39.0983),
   CA("Ca", 40.078),
   TI("Ti", 47.867),

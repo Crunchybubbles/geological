@@ -28,13 +28,13 @@ class MaterialCatalogTest {
   void packagedCatalogCoversEveryImplementedMaterialAndClosesChemistry() {
     MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
 
-    assertEquals(27, catalog.minerals().size());
+    assertEquals(31, catalog.minerals().size());
     assertEquals(6, catalog.solidSolutions().size());
-    assertEquals(17, catalog.rocks().size());
+    assertEquals(19, catalog.rocks().size());
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:2149f60d2662878a563f8105228307db8401ac92fa7d38f3c2d1f34316706f2a",
+        "sha256:6ae5fa63d8d7e8d6a1df02c87bb628f634ae592fbf34707c760065965893f3b1",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -219,6 +219,43 @@ class MaterialCatalogTest {
                 .primaryAssemblage()
                 .modesPpm()
                 .get("geological:mineral/kaolinite"));
+  }
+
+  @Test
+  void evaporiteSliceSeparatesHydratedSulfateFromLateChlorideSalts() {
+    MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
+    var sulfate = catalog.requireRock(Lithology.GYPSUM_ANHYDRITE_EVAPORITE);
+    var chloride = catalog.requireRock(Lithology.HALITE_POTASH_EVAPORITE);
+
+    assertEquals(ChemicalElement.CL, ChemicalElement.fromSymbol("Cl"));
+    assertEquals(RockTexture.BEDDED_EVAPORITE, sulfate.texture());
+    assertEquals(RockTexture.BEDDED_EVAPORITE, chloride.texture());
+    assertEquals(GeneticFamily.SEDIMENTARY, sulfate.geneticFamily());
+    assertEquals(GeneticFamily.SEDIMENTARY, chloride.geneticFamily());
+
+    MineralDefinition gypsum = catalog.requireMineral("geological:mineral/gypsum");
+    MineralDefinition anhydrite = catalog.requireMineral("geological:mineral/anhydrite");
+    MineralDefinition halite = catalog.requireMineral("geological:mineral/halite");
+    MineralDefinition sylvite = catalog.requireMineral("geological:mineral/sylvite");
+    assertEquals(4.0, gypsum.formula().get(ChemicalElement.H).doubleValue());
+    assertEquals(6.0, gypsum.formula().get(ChemicalElement.O).doubleValue());
+    assertEquals(4.0, anhydrite.formula().get(ChemicalElement.O).doubleValue());
+    assertEquals(1.0, halite.formula().get(ChemicalElement.NA).doubleValue());
+    assertEquals(1.0, halite.formula().get(ChemicalElement.CL).doubleValue());
+    assertEquals(1.0, sylvite.formula().get(ChemicalElement.K).doubleValue());
+    assertEquals(1.0, sylvite.formula().get(ChemicalElement.CL).doubleValue());
+
+    assertEquals(550_000L, sulfate.primaryAssemblage().modesPpm().get("geological:mineral/gypsum"));
+    assertEquals(
+        760_000L, chloride.primaryAssemblage().modesPpm().get("geological:mineral/halite"));
+    assertEquals(
+        150_000L, chloride.primaryAssemblage().modesPpm().get("geological:mineral/sylvite"));
+    assertTrue(
+        catalog.composition(chloride.primaryAssemblage()).elementMassPpm().get(ChemicalElement.CL)
+            > catalog
+                .composition(sulfate.primaryAssemblage())
+                .elementMassPpm()
+                .get(ChemicalElement.CL));
   }
 
   @Test

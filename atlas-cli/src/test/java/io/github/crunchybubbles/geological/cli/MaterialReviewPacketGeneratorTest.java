@@ -40,9 +40,16 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"limestone-catalog\""));
     assertTrue(firstJson.contains("\"dolostone-catalog\""));
     assertTrue(firstJson.contains("\"chert-catalog\""));
+    assertTrue(firstJson.contains("\"gypsum-anhydrite-evaporite-catalog\""));
+    assertTrue(firstJson.contains("\"halite-potash-evaporite-catalog\""));
+    assertTrue(firstJson.contains("geological:mineral/gypsum"));
+    assertTrue(firstJson.contains("geological:mineral/halite"));
+    assertTrue(firstJson.contains("\"Cl\""));
     assertTrue(firstJson.contains("\"sedimentaryState\""));
     assertTrue(firstJson.contains("\"dolomitized_carbonate_platform\""));
     assertTrue(firstJson.contains("\"silica_precipitation_and_recrystallization\""));
+    assertTrue(firstJson.contains("\"restricted_evaporite_basin_center\""));
+    assertTrue(firstJson.contains("\"salt_recrystallization_dissolution_and_halokinesis\""));
     assertTrue(firstJson.contains("\"magmaLineage\""));
     assertTrue(firstJson.contains("\"endmemberMoleFractionsPpm\""));
     assertTrue(firstJson.contains("\"idealFormulaAtoms\""));

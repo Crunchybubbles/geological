@@ -2,7 +2,7 @@
   "authoring_schema": "geological:material_catalog_authoring:v5",
   "evidence": {
     "citation_id": "refs:philpotts_ague_2009",
-    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic and siltstone-carbonate-chert expansions follow published classification and USGS petrologic relationships documented in the public architecture. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Mineral modes, modal covariance axes, protolith-conditioned response targets, textures, and physical-property distributions are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
+    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic, siltstone-carbonate-chert, and sulfate-to-potash evaporite expansions follow published classification and USGS petrologic relationships documented in the public architecture. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Mineral modes, modal covariance axes, protolith-conditioned response targets, textures, and physical-property distributions are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
     "publication_year": 2009,
     "title": "Principles of Igneous and Metamorphic Petrology",
     "uri": "https://doi.org/10.1017/CBO9780511813429"
@@ -140,6 +140,34 @@
       "hardness_mohs": 3.5,
       "id": "geological:mineral/dolomite",
       "weathering_resistance": 0.22
+    },
+    {
+      "density_g_cm3": 2.32,
+      "formula": {"Ca": 1, "S": 1, "O": 6, "H": 4},
+      "hardness_mohs": 2.0,
+      "id": "geological:mineral/gypsum",
+      "weathering_resistance": 0.08
+    },
+    {
+      "density_g_cm3": 2.98,
+      "formula": {"Ca": 1, "S": 1, "O": 4},
+      "hardness_mohs": 3.5,
+      "id": "geological:mineral/anhydrite",
+      "weathering_resistance": 0.12
+    },
+    {
+      "density_g_cm3": 2.17,
+      "formula": {"Na": 1, "Cl": 1},
+      "hardness_mohs": 2.5,
+      "id": "geological:mineral/halite",
+      "weathering_resistance": 0.02
+    },
+    {
+      "density_g_cm3": 1.99,
+      "formula": {"K": 1, "Cl": 1},
+      "hardness_mohs": 2.0,
+      "id": "geological:mineral/sylvite",
+      "weathering_resistance": 0.015
     },
     {
       "density_g_cm3": 2.6,
@@ -493,6 +521,63 @@
       },
       "permeability_distribution": {"minimum": 0.01, "mode": 0.04, "maximum": 0.12},
       "porosity_distribution": {"minimum": 0.005, "mode": 0.02, "maximum": 0.06}
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.55, "mode": 0.7, "maximum": 0.86},
+      "genetic_family": "SEDIMENTARY",
+      "id": "geological:rock/gypsum_anhydrite_evaporite",
+      "lithology": "GYPSUM_ANHYDRITE_EVAPORITE",
+      "modal_spread_fraction": 0.25,
+      "modal_variation_axes": [
+        {
+          "id": "gypsum_anhydrite_balance",
+          "loadings_ppm": {"geological:mineral/gypsum": 60000, "geological:mineral/anhydrite": -60000}
+        },
+        {
+          "id": "sulfate_carbonate_salt_balance",
+          "loadings_ppm": {"geological:mineral/gypsum": 15000, "geological:mineral/halite": -8000, "geological:mineral/dolomite": -4000, "geological:mineral/calcite": -3000}
+        }
+      ],
+      "texture": "BEDDED_EVAPORITE",
+      "mineral_modes_ppm": {
+        "geological:mineral/gypsum": 550000,
+        "geological:mineral/anhydrite": 300000,
+        "geological:mineral/halite": 50000,
+        "geological:mineral/dolomite": 40000,
+        "geological:mineral/calcite": 30000,
+        "geological:mineral/quartz": 20000,
+        "geological:mineral/kaolinite": 10000
+      },
+      "permeability_distribution": {"minimum": 0.03, "mode": 0.12, "maximum": 0.32},
+      "porosity_distribution": {"minimum": 0.03, "mode": 0.08, "maximum": 0.16}
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.65, "mode": 0.82, "maximum": 0.95},
+      "genetic_family": "SEDIMENTARY",
+      "id": "geological:rock/halite_potash_evaporite",
+      "lithology": "HALITE_POTASH_EVAPORITE",
+      "modal_spread_fraction": 0.2,
+      "modal_variation_axes": [
+        {
+          "id": "halite_sylvite_balance",
+          "loadings_ppm": {"geological:mineral/halite": 30000, "geological:mineral/sylvite": -30000}
+        },
+        {
+          "id": "chloride_sulfate_balance",
+          "loadings_ppm": {"geological:mineral/halite": 12000, "geological:mineral/anhydrite": -6000, "geological:mineral/gypsum": -3000, "geological:mineral/dolomite": -3000}
+        }
+      ],
+      "texture": "BEDDED_EVAPORITE",
+      "mineral_modes_ppm": {
+        "geological:mineral/halite": 760000,
+        "geological:mineral/sylvite": 150000,
+        "geological:mineral/anhydrite": 40000,
+        "geological:mineral/gypsum": 20000,
+        "geological:mineral/dolomite": 20000,
+        "geological:mineral/kaolinite": 10000
+      },
+      "permeability_distribution": {"minimum": 0.02, "mode": 0.1, "maximum": 0.3},
+      "porosity_distribution": {"minimum": 0.015, "mode": 0.05, "maximum": 0.12}
     },
     {
       "erodibility_distribution": {"minimum": 0.18, "mode": 0.24, "maximum": 0.32},

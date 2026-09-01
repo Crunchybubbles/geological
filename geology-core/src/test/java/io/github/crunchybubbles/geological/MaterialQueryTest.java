@@ -39,14 +39,14 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.9", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.10", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:d1941b8e2daefbc1b9ee609c53a7d180128182f37066279e1f9340794c910f39",
+        "sha256:fb2eea06d3b5434dae80714745b7f74ae8cb155dc323cb952a6d0f3ad13af34c",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -341,6 +341,54 @@ class MaterialQueryTest {
       assertFalse(sedimentary.diagenesisClass().isBlank());
       assertTrue(sedimentary.sourceBodyIds().contains(province.geometry().basementId()));
     }
+  }
+
+  @Test
+  void evaporiteClassesExposePrecipitationSequenceAndPostDepositionalState() {
+    MaterialQueryEngine query = Phase2World.create(6_171L);
+    Province province = query.geology().atlas().provinceAt(new Point2(0.0, 0.0));
+    PetrologicSample sulfate =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                province.geometry().basin().packageId(),
+                Lithology.GYPSUM_ANHYDRITE_EVAPORITE,
+                new AgeKey(160.0, 0),
+                Overprint.NONE));
+    PetrologicSample chloride =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                province.geometry().basin().packageId(),
+                Lithology.HALITE_POTASH_EVAPORITE,
+                new AgeKey(159.0, 0),
+                Overprint.NONE));
+
+    assertEquals(
+        "restricted_evaporite_margin", sulfate.sedimentaryState().orElseThrow().faciesClass());
+    assertEquals(
+        "gypsum_anhydrite_hydration_recrystallization",
+        sulfate.sedimentaryState().orElseThrow().diagenesisClass());
+    assertEquals(
+        "restricted_evaporite_basin_center",
+        chloride.sedimentaryState().orElseThrow().faciesClass());
+    assertEquals(
+        "late_stage_brine_precipitate", chloride.sedimentaryState().orElseThrow().maturityClass());
+    assertEquals(
+        "salt_recrystallization_dissolution_and_halokinesis",
+        chloride.sedimentaryState().orElseThrow().diagenesisClass());
+    assertTrue(
+        chloride.resolvedComposition().elementMassPpm().get(ChemicalElement.CL)
+            > sulfate.resolvedComposition().elementMassPpm().get(ChemicalElement.CL));
+    assertEquals(
+        MineralAssemblage.SCALE,
+        chloride.resolvedComposition().elementMassPpm().values().stream()
+            .mapToLong(Long::longValue)
+            .sum());
   }
 
   @Test

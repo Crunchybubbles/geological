@@ -359,6 +359,20 @@ public final class MaterialQueryEngine {
                   "silica_rich",
                   "silica_precipitation_and_recrystallization",
                   sources);
+          case GYPSUM_ANHYDRITE_EVAPORITE ->
+              new SedimentaryState(
+                  "restricted_evaporite_margin",
+                  "crystalline_sulfate",
+                  "chemical_precipitate",
+                  "gypsum_anhydrite_hydration_recrystallization",
+                  sources);
+          case HALITE_POTASH_EVAPORITE ->
+              new SedimentaryState(
+                  "restricted_evaporite_basin_center",
+                  "crystalline_salt",
+                  "late_stage_brine_precipitate",
+                  "salt_recrystallization_dissolution_and_halokinesis",
+                  sources);
           default ->
               throw new IllegalStateException("unmapped sedimentary lithology " + rock.lithology());
         });
