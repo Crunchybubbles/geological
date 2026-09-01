@@ -8,13 +8,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** Bulk rock classification, central mineral recipe, and body-scale property distributions. */
+/** Bulk rock classification, central constituent recipe, and body-scale property distributions. */
 public record RockDefinition(
     String id,
     Lithology lithology,
     GeneticFamily geneticFamily,
     RockTexture texture,
-    MineralAssemblage primaryAssemblage,
+    MaterialAssemblage primaryAssemblage,
     double modalSpreadFraction,
     List<ModalVariationAxis> modalVariationAxes,
     UnitIntervalDistribution porosityDistribution,
@@ -51,12 +51,12 @@ public record RockDefinition(
       }
       axis.loadingsPpm()
           .forEach(
-              (mineralId, loading) -> {
-                if (!modes.containsKey(mineralId)) {
+              (constituentId, loading) -> {
+                if (!modes.containsKey(constituentId)) {
                   throw new IllegalArgumentException(
-                      "modal variation axis references non-primary mineral " + mineralId);
+                      "modal variation axis references non-primary constituent " + constituentId);
                 }
-                maximumOffsets.merge(mineralId, StrictMath.abs(loading), Math::addExact);
+                maximumOffsets.merge(constituentId, StrictMath.abs(loading), Math::addExact);
               });
     }
     if ((modalSpreadFraction == 0.0) != modalVariationAxes.isEmpty()) {
@@ -64,11 +64,12 @@ public record RockDefinition(
           "non-zero modal spread requires authored variation axes and zero spread forbids them");
     }
     maximumOffsets.forEach(
-        (mineralId, offset) -> {
-          long limit = (long) StrictMath.floor(modes.get(mineralId) * modalSpreadFraction + 1.0e-9);
+        (constituentId, offset) -> {
+          long limit =
+              (long) StrictMath.floor(modes.get(constituentId) * modalSpreadFraction + 1.0e-9);
           if (offset > limit) {
             throw new IllegalArgumentException(
-                "modal variation exceeds spread bound for " + mineralId);
+                "modal variation exceeds spread bound for " + constituentId);
           }
         });
   }

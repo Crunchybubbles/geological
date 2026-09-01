@@ -5,7 +5,7 @@ import java.util.List;
 
 /** One protolith-family-conditioned target assemblage for an alteration response. */
 public record AlterationAssemblageRecipe(
-    List<GeneticFamily> protolithFamilies, MineralAssemblage targetAssemblage) {
+    List<GeneticFamily> protolithFamilies, MaterialAssemblage targetAssemblage) {
   public AlterationAssemblageRecipe {
     if (protolithFamilies == null || targetAssemblage == null) {
       throw new IllegalArgumentException("alteration assemblage recipe must be complete");

@@ -24,9 +24,9 @@ import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
-/** Strict JSON boundary for the first typed mineral, rock, and alteration data pack. */
+/** Strict JSON boundary for the typed constituent, rock, and alteration data pack. */
 public final class MaterialCatalogJsonLoader {
-  public static final String AUTHORING_SCHEMA = "geological:material_catalog_authoring:v5";
+  public static final String AUTHORING_SCHEMA = "geological:material_catalog_authoring:v6";
   private static final int MAX_DOCUMENT_BYTES = 1_048_576;
   private static final Pattern IDENTIFIER = Pattern.compile("[a-z0-9_.-]+:[a-z0-9_./-]+");
   private static final JsonMapper JSON =
@@ -62,23 +62,34 @@ public final class MaterialCatalogJsonLoader {
       JsonNode root = JSON.readTree(document);
       Set<String> rootFields =
           Set.of(
-              "authoring_schema", "evidence", "minerals", "overprints", "rocks", "solid_solutions");
+              "authoring_schema",
+              "evidence",
+              "minerals",
+              "non_crystalline_constituents",
+              "overprints",
+              "rocks",
+              "solid_solutions");
       requireObject(root, sourceName, "$", rootFields, rootFields);
       if (!AUTHORING_SCHEMA.equals(text(root, "authoring_schema", sourceName, "$"))) {
         throw error(sourceName, "$.authoring_schema", "unsupported authoring schema");
       }
       CatalogEvidence evidence = parseEvidence(root.get("evidence"), sourceName);
       List<MineralDefinition> minerals = parseMinerals(root.get("minerals"), sourceName);
+      List<NonCrystallineConstituentDefinition> nonCrystallineConstituents =
+          parseNonCrystallineConstituents(root.get("non_crystalline_constituents"), sourceName);
       List<SolidSolutionDefinition> solidSolutions =
           parseSolidSolutions(root.get("solid_solutions"), sourceName);
       List<RockDefinition> rocks = parseRocks(root.get("rocks"), sourceName);
       List<AlterationDefinition> alterations = parseAlterations(root.get("overprints"), sourceName);
-      String canonical = canonicalJson(evidence, minerals, solidSolutions, rocks, alterations);
+      String canonical =
+          canonicalJson(
+              evidence, minerals, nonCrystallineConstituents, solidSolutions, rocks, alterations);
       return new MaterialCatalogSnapshot(
           "sha256:" + sha256(canonical),
           canonical,
           evidence,
           minerals,
+          nonCrystallineConstituents,
           solidSolutions,
           rocks,
           alterations);
@@ -150,6 +161,52 @@ public final class MaterialCatalogJsonLoader {
     return List.copyOf(result);
   }
 
+  private static List<NonCrystallineConstituentDefinition> parseNonCrystallineConstituents(
+      JsonNode node, String source) {
+    requireArray(node, source, "$.non_crystalline_constituents");
+    List<NonCrystallineConstituentDefinition> result = new ArrayList<>();
+    int index = 0;
+    for (JsonNode item : node) {
+      String path = "$.non_crystalline_constituents[" + index + "]";
+      Set<String> fields =
+          Set.of("density_g_cm3", "element_mass_ppm", "id", "kind", "weathering_resistance");
+      requireObject(item, source, path, fields, fields);
+      JsonNode elementNode = item.get("element_mass_ppm");
+      requireObject(elementNode, source, path + ".element_mass_ppm", null, Set.of());
+      EnumMap<ChemicalElement, Long> elementMassPpm = new EnumMap<>(ChemicalElement.class);
+      for (Map.Entry<String, JsonNode> entry : elementNode.properties()) {
+        ChemicalElement element;
+        try {
+          element = ChemicalElement.fromSymbol(entry.getKey());
+        } catch (IllegalArgumentException exception) {
+          throw error(source, path + ".element_mass_ppm." + entry.getKey(), exception.getMessage());
+        }
+        if (!entry.getValue().isIntegralNumber()
+            || !entry.getValue().canConvertToLong()
+            || entry.getValue().longValue() < 0) {
+          throw error(
+              source,
+              path + ".element_mass_ppm." + entry.getKey(),
+              "must be a non-negative integer");
+        }
+        elementMassPpm.put(element, entry.getValue().longValue());
+      }
+      result.add(
+          new NonCrystallineConstituentDefinition(
+              identifier(text(item, "id", source, path), source, path + ".id"),
+              enumValue(
+                  MaterialConstituentKind.class,
+                  text(item, "kind", source, path),
+                  source,
+                  path + ".kind"),
+              elementMassPpm,
+              number(item, "density_g_cm3", source, path),
+              number(item, "weathering_resistance", source, path)));
+      index++;
+    }
+    return List.copyOf(result);
+  }
+
   private static List<SolidSolutionDefinition> parseSolidSolutions(JsonNode node, String source) {
     requireArray(node, source, "$.solid_solutions");
     List<SolidSolutionDefinition> result = new ArrayList<>();
@@ -204,7 +261,7 @@ public final class MaterialCatalogJsonLoader {
               "lithology",
               "modal_spread_fraction",
               "modal_variation_axes",
-              "mineral_modes_ppm",
+              "constituent_modes_ppm",
               "permeability_distribution",
               "porosity_distribution",
               "texture");
@@ -227,7 +284,11 @@ public final class MaterialCatalogJsonLoader {
                   text(item, "texture", source, path),
                   source,
                   path + ".texture"),
-              modes(item.get("mineral_modes_ppm"), source, path + ".mineral_modes_ppm", false),
+              modes(
+                  item.get("constituent_modes_ppm"),
+                  source,
+                  path + ".constituent_modes_ppm",
+                  false),
               number(item, "modal_spread_fraction", source, path),
               modalVariationAxes(
                   item.get("modal_variation_axes"), source, path + ".modal_variation_axes"),
@@ -259,13 +320,13 @@ public final class MaterialCatalogJsonLoader {
       requireObject(loadingsNode, source, itemPath + ".loadings_ppm", null, Set.of());
       TreeMap<String, Long> loadings = new TreeMap<>();
       for (Map.Entry<String, JsonNode> entry : loadingsNode.properties()) {
-        String mineralId = identifier(entry.getKey(), source, itemPath + ".loadings_ppm");
+        String constituentId = identifier(entry.getKey(), source, itemPath + ".loadings_ppm");
         JsonNode value = entry.getValue();
         if (!value.isIntegralNumber() || !value.canConvertToLong()) {
           throw error(
               source, itemPath + ".loadings_ppm." + entry.getKey(), "must be a signed integer");
         }
-        loadings.put(mineralId, value.longValue());
+        loadings.put(constituentId, value.longValue());
       }
       result.add(new ModalVariationAxis(text(item, "id", source, itemPath), loadings));
       index++;
@@ -421,14 +482,14 @@ public final class MaterialCatalogJsonLoader {
         number(node, "maximum", source, path));
   }
 
-  private static MineralAssemblage modes(
+  private static MaterialAssemblage modes(
       JsonNode node, String source, String path, boolean allowEmpty) {
     requireObject(node, source, path, null, Set.of());
     if (node.isEmpty()) {
       if (allowEmpty) {
         return null;
       }
-      throw error(source, path, "must contain mineral modes");
+      throw error(source, path, "must contain constituent modes");
     }
     TreeMap<String, Long> result = new TreeMap<>();
     for (Map.Entry<String, JsonNode> entry : node.properties()) {
@@ -439,7 +500,7 @@ public final class MaterialCatalogJsonLoader {
       }
       result.put(id, value.longValue());
     }
-    return new MineralAssemblage(result);
+    return new MaterialAssemblage(result);
   }
 
   private static double[] interval(JsonNode node, String source, String path) {
@@ -457,12 +518,13 @@ public final class MaterialCatalogJsonLoader {
   private static String canonicalJson(
       CatalogEvidence evidence,
       List<MineralDefinition> minerals,
+      List<NonCrystallineConstituentDefinition> nonCrystallineConstituents,
       List<SolidSolutionDefinition> solidSolutions,
       List<RockDefinition> rocks,
       List<AlterationDefinition> alterations) {
     StringBuilder output = new StringBuilder();
     output.append(
-        "{\"canonical_schema\":\"geological:material_catalog_snapshot:v5\",\"evidence\":{");
+        "{\"canonical_schema\":\"geological:material_catalog_snapshot:v6\",\"evidence\":{");
     field(output, "citation_id", evidence.citationId());
     output.append(',');
     field(output, "parameter_basis", evidence.parameterBasis());
@@ -499,6 +561,34 @@ public final class MaterialCatalogJsonLoader {
           field(output, "id", mineral.id());
           output.append(',');
           field(output, "weathering_resistance", mineral.weatheringResistance());
+          output.append('}');
+        });
+    output.append("],\"non_crystalline_constituents\":[");
+    List<NonCrystallineConstituentDefinition> sortedNonCrystallineConstituents =
+        nonCrystallineConstituents.stream()
+            .sorted(java.util.Comparator.comparing(NonCrystallineConstituentDefinition::id))
+            .toList();
+    appendSeparated(
+        output,
+        sortedNonCrystallineConstituents,
+        constituent -> {
+          output.append('{');
+          field(output, "density_g_cm3", constituent.densityGramsPerCubicCentimeter());
+          output.append(",\"element_mass_ppm\":{");
+          appendSeparated(
+              output,
+              constituent.elementMassPpm().entrySet().stream()
+                  .sorted(
+                      Map.Entry.comparingByKey(
+                          java.util.Comparator.comparing(ChemicalElement::symbol)))
+                  .toList(),
+              entry -> field(output, entry.getKey().symbol(), entry.getValue()));
+          output.append("},");
+          field(output, "id", constituent.id());
+          output.append(',');
+          field(output, "kind", constituent.kind().name());
+          output.append(',');
+          field(output, "weathering_resistance", constituent.weatheringResistance());
           output.append('}');
         });
     output.append("],\"overprints\":[");
@@ -580,7 +670,7 @@ public final class MaterialCatalogJsonLoader {
                 output.append('}');
               });
           output.append(']');
-          output.append(",\"mineral_modes_ppm\":");
+          output.append(",\"constituent_modes_ppm\":");
           appendModes(output, rock.primaryAssemblage());
           output.append(",\"permeability_distribution\":");
           appendDistribution(output, rock.permeabilityDistribution());
@@ -650,7 +740,7 @@ public final class MaterialCatalogJsonLoader {
     output.append('}');
   }
 
-  private static void appendModes(StringBuilder output, MineralAssemblage assemblage) {
+  private static void appendModes(StringBuilder output, MaterialAssemblage assemblage) {
     output.append('{');
     if (assemblage != null) {
       appendSeparated(

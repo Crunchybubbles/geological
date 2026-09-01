@@ -8,8 +8,8 @@ import java.util.Optional;
 public record PetrologicSample(
     GeologicalSample geology,
     RockDefinition rock,
-    MineralAssemblage primaryAssemblage,
-    MineralAssemblage resolvedAssemblage,
+    MaterialAssemblage primaryAssemblage,
+    MaterialAssemblage resolvedAssemblage,
     List<SolidSolutionState> primarySolidSolutions,
     List<SolidSolutionState> resolvedSolidSolutions,
     BulkComposition primaryComposition,

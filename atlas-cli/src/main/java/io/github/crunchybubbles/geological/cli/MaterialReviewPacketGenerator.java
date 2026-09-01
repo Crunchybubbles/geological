@@ -16,6 +16,7 @@ import io.github.crunchybubbles.geological.petrology.MagmaLineageState;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessLedger;
 import io.github.crunchybubbles.geological.petrology.MaterialQueryEngine;
 import io.github.crunchybubbles.geological.petrology.ModalVariationAxis;
+import io.github.crunchybubbles.geological.petrology.NonCrystallineConstituentDefinition;
 import io.github.crunchybubbles.geological.petrology.PetrologicSample;
 import io.github.crunchybubbles.geological.petrology.ProcessFluidState;
 import io.github.crunchybubbles.geological.petrology.ReservoirTransfer;
@@ -168,6 +169,16 @@ final class MaterialReviewPacketGenerator {
                 Lithology.HALITE_POTASH_EVAPORITE,
                 new AgeKey(159.0, 0),
                 Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "coal-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000501"),
+                Lithology.COAL,
+                new AgeKey(80.0, 0),
+                Overprint.NONE)));
     RiftArcGeometry.PlutonPulse stock = pulses.getLast();
     samples.add(
         sampleJson(
@@ -237,6 +248,10 @@ final class MaterialReviewPacketGenerator {
             JsonWriter.object(
                 "mineralCount",
                 query.catalog().minerals().size(),
+                "nonCrystallineConstituentCount",
+                query.catalog().nonCrystallineConstituents().size(),
+                "constituentCount",
+                query.catalog().constituents().size(),
                 "solidSolutionCount",
                 query.catalog().solidSolutions().size(),
                 "rockCount",
@@ -245,6 +260,10 @@ final class MaterialReviewPacketGenerator {
                 query.catalog().alterations().size(),
                 "rocks",
                 query.catalog().rocks().stream().map(this::rockJson).toList(),
+                "nonCrystallineConstituents",
+                query.catalog().nonCrystallineConstituents().stream()
+                    .map(MaterialReviewPacketGenerator::nonCrystallineConstituentJson)
+                    .toList(),
                 "solidSolutions",
                 query.catalog().solidSolutions().stream()
                     .map(MaterialReviewPacketGenerator::solidSolutionDefinitionJson)
@@ -370,6 +389,21 @@ final class MaterialReviewPacketGenerator {
         definition.mixingModel().name(),
         "endmemberIds",
         definition.endmemberIds());
+  }
+
+  private static Map<String, Object> nonCrystallineConstituentJson(
+      NonCrystallineConstituentDefinition definition) {
+    return JsonWriter.object(
+        "id",
+        definition.id(),
+        "kind",
+        definition.kind().name(),
+        "elementMassPpm",
+        elementMap(definition.elementMassPpm()),
+        "density",
+        definition.densityGramsPerCubicCentimeter(),
+        "weatheringResistance",
+        definition.weatheringResistance());
   }
 
   private Map<String, Object> alterationJson(AlterationDefinition alteration) {

@@ -2,10 +2,11 @@ package io.github.crunchybubbles.geological.petrology;
 
 import java.util.Arrays;
 
-/** Element vocabulary required by the first Phase 2 rock-forming and ore-mineral pack. */
+/** Element vocabulary required by the Phase 2 rock-constituent and ore-mineral catalog. */
 public enum ChemicalElement {
   H("H", 1.008),
   C("C", 12.011),
+  N("N", 14.007),
   O("O", 15.999),
   NA("Na", 22.98976928),
   MG("Mg", 24.305),

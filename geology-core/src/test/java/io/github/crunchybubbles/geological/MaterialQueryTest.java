@@ -17,10 +17,10 @@ import io.github.crunchybubbles.geological.petrology.ChemicalElement;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
+import io.github.crunchybubbles.geological.petrology.MaterialAssemblage;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
 import io.github.crunchybubbles.geological.petrology.MaterialQueryEngine;
 import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
-import io.github.crunchybubbles.geological.petrology.MineralAssemblage;
 import io.github.crunchybubbles.geological.petrology.PetrologicColumnResult;
 import io.github.crunchybubbles.geological.petrology.PetrologicSample;
 import io.github.crunchybubbles.geological.petrology.PetrologicState;
@@ -39,14 +39,14 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.11", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.12", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:7662c2e4b46e58d5561e3f11c541ce633487147f7e9fcd9254163c8d985196d1",
+        "sha256:fc95d1bdfe7b0e4537bb162b337c62ba6601e83b6ecac2be9238173f732e3317",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -122,7 +122,7 @@ class MaterialQueryTest {
     assertNotEquals(
         query.catalog().requireRock(Lithology.FELSIC_STOCK).primaryAssemblage(),
         firstMaterial.primaryAssemblage());
-    MineralAssemblage central =
+    MaterialAssemblage central =
         query.catalog().requireRock(Lithology.FELSIC_STOCK).primaryAssemblage();
     long quartzDelta =
         firstMaterial.primaryAssemblage().modesPpm().get("geological:mineral/quartz")
@@ -157,7 +157,7 @@ class MaterialQueryTest {
         alteredMaterial.permeabilityIndex());
     assertEquals(firstMaterial.erodibilityIndex() - 0.04, alteredMaterial.erodibilityIndex());
     assertEquals(
-        MineralAssemblage.SCALE,
+        MaterialAssemblage.SCALE,
         firstMaterial.primaryAssemblage().modesPpm().values().stream()
             .mapToLong(Long::longValue)
             .sum());
@@ -197,8 +197,8 @@ class MaterialQueryTest {
                   lithology,
                   new AgeKey(100.0, 0),
                   Overprint.PHYLLIC_ALTERATION));
-      MineralAssemblage expected =
-          MineralAssemblage.blend(
+      MaterialAssemblage expected =
+          MaterialAssemblage.blend(
               material.primaryAssemblage(),
               phyllic.targetAssemblage(material.rock().geneticFamily()),
               phyllic.replacementPpm());
@@ -270,7 +270,7 @@ class MaterialQueryTest {
     assertTrue(firstPlagioclase.idealFormulaAtoms().get(ChemicalElement.NA) > 0.0);
     assertTrue(firstPlagioclase.idealFormulaAtoms().get(ChemicalElement.CA) > 0.0);
     assertEquals(
-        MineralAssemblage.SCALE,
+        MaterialAssemblage.SCALE,
         firstPlagioclase.bulkComposition().elementMassPpm().values().stream()
             .mapToLong(Long::longValue)
             .sum());
@@ -368,6 +368,34 @@ class MaterialQueryTest {
   }
 
   @Test
+  void coalRetainsOrganicChemistryWhileLeavingRankToBurialHistory() {
+    MaterialQueryEngine query = Phase2World.create(8_080L);
+    Province province = query.geology().atlas().provinceAt(new Point2(0.0, 0.0));
+    PetrologicSample coal =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                province.geometry().basin().packageId(),
+                Lithology.COAL,
+                new AgeKey(80.0, 0),
+                Overprint.NONE));
+
+    var sedimentary = coal.sedimentaryState().orElseThrow();
+    assertEquals("buried_peat_mire", sedimentary.faciesClass());
+    assertEquals("organic_bedded_with_clastic_partings", sedimentary.grainSizeClass());
+    assertEquals("peat_derived_rank_unresolved", sedimentary.maturityClass());
+    assertEquals("compaction_dewatering_and_burial_maturation", sedimentary.diagenesisClass());
+    assertTrue(
+        coal.primaryAssemblage().modesPpm().get("geological:constituent/coal_organic_matter")
+            > 750_000L);
+    assertTrue(coal.primaryComposition().elementMassPpm().get(ChemicalElement.C) > 500_000L);
+    assertTrue(coal.primaryComposition().elementMassPpm().get(ChemicalElement.N) > 0L);
+    assertTrue(coal.primarySolidSolutions().isEmpty());
+  }
+
+  @Test
   void evaporiteClassesExposePrecipitationSequenceAndPostDepositionalState() {
     MaterialQueryEngine query = Phase2World.create(6_171L);
     Province province = query.geology().atlas().provinceAt(new Point2(0.0, 0.0));
@@ -409,7 +437,7 @@ class MaterialQueryTest {
         chloride.resolvedComposition().elementMassPpm().get(ChemicalElement.CL)
             > sulfate.resolvedComposition().elementMassPpm().get(ChemicalElement.CL));
     assertEquals(
-        MineralAssemblage.SCALE,
+        MaterialAssemblage.SCALE,
         chloride.resolvedComposition().elementMassPpm().values().stream()
             .mapToLong(Long::longValue)
             .sum());
@@ -671,13 +699,13 @@ class MaterialQueryTest {
                     new AgeKey(100.0, 0),
                     overprint));
         assertEquals(
-            MineralAssemblage.SCALE,
+            MaterialAssemblage.SCALE,
             material.resolvedAssemblage().modesPpm().values().stream()
                 .mapToLong(Long::longValue)
                 .sum(),
             lithology + "/" + overprint);
         assertEquals(
-            MineralAssemblage.SCALE,
+            MaterialAssemblage.SCALE,
             material.resolvedComposition().elementMassPpm().values().stream()
                 .mapToLong(Long::longValue)
                 .sum(),

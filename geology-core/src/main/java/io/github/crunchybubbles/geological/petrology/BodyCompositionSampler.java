@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-/** Samples body-scale mineral modes and bounded physical properties without mutable RNG state. */
+/**
+ * Samples body-scale constituent modes and bounded physical properties without mutable RNG state.
+ */
 public final class BodyCompositionSampler {
   private final WorldIdentity identity;
 
@@ -21,7 +23,7 @@ public final class BodyCompositionSampler {
     this.identity = identity;
   }
 
-  public MineralAssemblage sample(RockDefinition rock, StableId bodyId) {
+  public MaterialAssemblage sample(RockDefinition rock, StableId bodyId) {
     if (rock == null || bodyId == null) {
       throw new IllegalArgumentException("rock and body identity are required");
     }
@@ -73,7 +75,7 @@ public final class BodyCompositionSampler {
               .thenComparing(
                   AxisRemainder::tieRank, (first, second) -> Long.compareUnsigned(first, second)));
       for (int index = 0; index < correction; index++) {
-        deltas.merge(remainders.get(index).mineralId(), 1L, Math::addExact);
+        deltas.merge(remainders.get(index).constituentId(), 1L, Math::addExact);
       }
     } else if (correction < 0) {
       remainders.sort(
@@ -81,13 +83,14 @@ public final class BodyCompositionSampler {
               .thenComparing(
                   AxisRemainder::tieRank, (first, second) -> Long.compareUnsigned(first, second)));
       for (int index = 0; index < -correction; index++) {
-        deltas.merge(remainders.get(index).mineralId(), -1L, Math::addExact);
+        deltas.merge(remainders.get(index).constituentId(), -1L, Math::addExact);
       }
     }
-    deltas.forEach((mineralId, delta) -> weights.merge(mineralId, delta, Math::addExact));
+    deltas.forEach((constituentId, delta) -> weights.merge(constituentId, delta, Math::addExact));
   }
 
-  private static MineralAssemblage normalize(Map<String, Long> weights, ObjectRandomStream stream) {
+  private static MaterialAssemblage normalize(
+      Map<String, Long> weights, ObjectRandomStream stream) {
     long total = weights.values().stream().mapToLong(Long::longValue).sum();
     if (total <= 0) {
       throw new IllegalStateException("body modal distribution produced no positive weight");
@@ -96,7 +99,7 @@ public final class BodyCompositionSampler {
     List<Remainder> remainders = new ArrayList<>();
     long allocated = 0;
     for (Map.Entry<String, Long> entry : weights.entrySet()) {
-      long numerator = Math.multiplyExact(entry.getValue(), MineralAssemblage.SCALE);
+      long numerator = Math.multiplyExact(entry.getValue(), MaterialAssemblage.SCALE);
       long whole = numerator / total;
       modes.put(entry.getKey(), whole);
       allocated += whole;
@@ -108,14 +111,14 @@ public final class BodyCompositionSampler {
             .reversed()
             .thenComparing(
                 Remainder::tieRank, (first, second) -> Long.compareUnsigned(first, second)));
-    long missing = MineralAssemblage.SCALE - allocated;
+    long missing = MaterialAssemblage.SCALE - allocated;
     for (int index = 0; index < missing; index++) {
-      modes.merge(remainders.get(index).mineralId(), 1L, Long::sum);
+      modes.merge(remainders.get(index).constituentId(), 1L, Long::sum);
     }
-    return new MineralAssemblage(modes);
+    return new MaterialAssemblage(modes);
   }
 
-  private record Remainder(String mineralId, long remainder, long tieRank) {}
+  private record Remainder(String constituentId, long remainder, long tieRank) {}
 
-  private record AxisRemainder(String mineralId, double remainder, long tieRank) {}
+  private record AxisRemainder(String constituentId, double remainder, long tieRank) {}
 }

@@ -26,7 +26,7 @@ public record SolidSolutionState(
         || bulkComposition == null) {
       throw new IllegalArgumentException("solid-solution state must be complete");
     }
-    if (phaseModePpm <= 0 || phaseModePpm > MineralAssemblage.SCALE) {
+    if (phaseModePpm <= 0 || phaseModePpm > MaterialAssemblage.SCALE) {
       throw new IllegalArgumentException("solid-solution phase mode must lie in (0, 1000000]");
     }
     endmemberVolumeFractionsPpm = exactFractions(endmemberVolumeFractionsPpm, "volume");
@@ -59,16 +59,16 @@ public record SolidSolutionState(
               || id.isBlank()
               || fraction == null
               || fraction < 0
-              || fraction > MineralAssemblage.SCALE) {
+              || fraction > MaterialAssemblage.SCALE) {
             throw new IllegalArgumentException(
                 "solid-solution " + name + " fractions must be named and bounded");
           }
           copied.put(id, fraction);
         });
     if (copied.size() < 2
-        || copied.values().stream().mapToLong(Long::longValue).sum() != MineralAssemblage.SCALE) {
+        || copied.values().stream().mapToLong(Long::longValue).sum() != MaterialAssemblage.SCALE) {
       throw new IllegalArgumentException(
-          "solid-solution " + name + " fractions must close to " + MineralAssemblage.SCALE);
+          "solid-solution " + name + " fractions must close to " + MaterialAssemblage.SCALE);
     }
     return Collections.unmodifiableMap(copied);
   }

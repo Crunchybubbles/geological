@@ -27,7 +27,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-/** Phase 2 facade deriving mineralogy and process state from immutable Phase 1 geology. */
+/**
+ * Phase 2 facade deriving material composition and process state from immutable Phase 1 geology.
+ */
 public final class MaterialQueryEngine {
   private final GeologyQueryEngine geology;
   private final MaterialCatalogSnapshot catalog;
@@ -380,6 +382,13 @@ public final class MaterialQueryEngine {
                   "late_stage_brine_precipitate",
                   "salt_recrystallization_dissolution_and_halokinesis",
                   sources);
+          case COAL ->
+              new SedimentaryState(
+                  "buried_peat_mire",
+                  "organic_bedded_with_clastic_partings",
+                  "peat_derived_rank_unresolved",
+                  "compaction_dewatering_and_burial_maturation",
+                  sources);
           default ->
               throw new IllegalStateException("unmapped sedimentary lithology " + rock.lithology());
         });
@@ -426,11 +435,11 @@ public final class MaterialQueryEngine {
     }
     RockDefinition rock = template.rock();
     AlterationDefinition alteration = template.alteration();
-    MineralAssemblage primary = compositionSampler.sample(rock, key.bodyId());
-    MineralAssemblage resolved =
+    MaterialAssemblage primary = compositionSampler.sample(rock, key.bodyId());
+    MaterialAssemblage resolved =
         alteration.replacementPpm() == 0
             ? primary
-            : MineralAssemblage.blend(
+            : MaterialAssemblage.blend(
                 primary,
                 alteration.targetAssemblage(rock.geneticFamily()),
                 alteration.replacementPpm());
@@ -561,8 +570,8 @@ public final class MaterialQueryEngine {
 
   private record ResolvedRecipe(
       RockDefinition rock,
-      MineralAssemblage primaryAssemblage,
-      MineralAssemblage resolvedAssemblage,
+      MaterialAssemblage primaryAssemblage,
+      MaterialAssemblage resolvedAssemblage,
       List<SolidSolutionState> primarySolidSolutions,
       List<SolidSolutionState> resolvedSolidSolutions,
       BulkComposition primaryComposition,

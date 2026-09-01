@@ -1,8 +1,8 @@
 {
-  "authoring_schema": "geological:material_catalog_authoring:v5",
+  "authoring_schema": "geological:material_catalog_authoring:v6",
   "evidence": {
     "citation_id": "refs:philpotts_ague_2009",
-    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic, siltstone-carbonate-chert, sulfate-to-potash evaporite, and banded iron-formation expansions follow published classification and USGS petrologic relationships documented in the public architecture. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Mineral modes, modal covariance axes, protolith-conditioned response targets, textures, and physical-property distributions are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
+    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic, siltstone-carbonate-chert, sulfate-to-potash evaporite, banded iron-formation, and coal expansions follow published classification and USGS relationships documented in the public architecture. Non-crystalline organic matter uses an explicit closed bulk-element proxy rather than a fictitious mineral formula. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Constituent modes, modal covariance axes, protolith-conditioned response targets, textures, physical-property distributions, and organic bulk chemistry are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
     "publication_year": 2009,
     "title": "Principles of Igneous and Metamorphic Petrology",
     "uri": "https://doi.org/10.1017/CBO9780511813429"
@@ -233,6 +233,15 @@
       "weathering_resistance": 0.99
     }
   ],
+  "non_crystalline_constituents": [
+    {
+      "density_g_cm3": 1.3,
+      "element_mass_ppm": {"C": 800000, "H": 50000, "N": 15000, "O": 120000, "S": 15000},
+      "id": "geological:constituent/coal_organic_matter",
+      "kind": "ORGANIC_MATTER",
+      "weathering_resistance": 0.12
+    }
+  ],
   "solid_solutions": [
     {
       "endmember_ids": ["geological:mineral/albite", "geological:mineral/anorthite"],
@@ -283,7 +292,7 @@
         }
       ],
       "texture": "FOLIATED_CRYSTALLINE",
-      "mineral_modes_ppm": {
+      "constituent_modes_ppm": {
         "geological:mineral/quartz": 300000,
         "geological:mineral/orthoclase": 250000,
         "geological:mineral/albite": 150000,
@@ -313,7 +322,7 @@
         }
       ],
       "texture": "CLASTIC_COARSE",
-      "mineral_modes_ppm": {
+      "constituent_modes_ppm": {
         "geological:mineral/quartz": 550000,
         "geological:mineral/albite": 120000,
         "geological:mineral/orthoclase": 100000,
@@ -344,7 +353,7 @@
         }
       ],
       "texture": "VOLCANICLASTIC",
-      "mineral_modes_ppm": {
+      "constituent_modes_ppm": {
         "geological:mineral/quartz": 80000,
         "geological:mineral/albite": 250000,
         "geological:mineral/anorthite": 250000,
@@ -374,7 +383,7 @@
         }
       ],
       "texture": "CLASTIC_MUD",
-      "mineral_modes_ppm": {
+      "constituent_modes_ppm": {
         "geological:mineral/quartz": 300000,
         "geological:mineral/albite": 80000,
         "geological:mineral/orthoclase": 60000,
@@ -404,7 +413,7 @@
         }
       ],
       "texture": "CLASTIC_SAND",
-      "mineral_modes_ppm": {
+      "constituent_modes_ppm": {
         "geological:mineral/quartz": 760000,
         "geological:mineral/albite": 70000,
         "geological:mineral/orthoclase": 70000,
@@ -433,7 +442,7 @@
         }
       ],
       "texture": "CLASTIC_SILT",
-      "mineral_modes_ppm": {
+      "constituent_modes_ppm": {
         "geological:mineral/quartz": 550000,
         "geological:mineral/albite": 70000,
         "geological:mineral/orthoclase": 50000,
@@ -464,7 +473,7 @@
         }
       ],
       "texture": "BEDDED_CARBONATE",
-      "mineral_modes_ppm": {
+      "constituent_modes_ppm": {
         "geological:mineral/calcite": 880000,
         "geological:mineral/dolomite": 50000,
         "geological:mineral/quartz": 30000,
@@ -492,7 +501,7 @@
         }
       ],
       "texture": "BEDDED_CARBONATE",
-      "mineral_modes_ppm": {
+      "constituent_modes_ppm": {
         "geological:mineral/dolomite": 820000,
         "geological:mineral/calcite": 80000,
         "geological:mineral/quartz": 50000,
@@ -517,7 +526,7 @@
         }
       ],
       "texture": "MICROCRYSTALLINE_SILICA",
-      "mineral_modes_ppm": {
+      "constituent_modes_ppm": {
         "geological:mineral/quartz": 920000,
         "geological:mineral/hematite": 20000,
         "geological:mineral/magnetite": 10000,
@@ -546,7 +555,7 @@
         }
       ],
       "texture": "BANDED_IRON_SILICA",
-      "mineral_modes_ppm": {
+      "constituent_modes_ppm": {
         "geological:mineral/quartz": 580000,
         "geological:mineral/magnetite": 180000,
         "geological:mineral/hematite": 120000,
@@ -576,7 +585,7 @@
         }
       ],
       "texture": "BEDDED_EVAPORITE",
-      "mineral_modes_ppm": {
+      "constituent_modes_ppm": {
         "geological:mineral/gypsum": 550000,
         "geological:mineral/anhydrite": 300000,
         "geological:mineral/halite": 50000,
@@ -605,7 +614,7 @@
         }
       ],
       "texture": "BEDDED_EVAPORITE",
-      "mineral_modes_ppm": {
+      "constituent_modes_ppm": {
         "geological:mineral/halite": 760000,
         "geological:mineral/sylvite": 150000,
         "geological:mineral/anhydrite": 40000,
@@ -615,6 +624,36 @@
       },
       "permeability_distribution": {"minimum": 0.02, "mode": 0.1, "maximum": 0.3},
       "porosity_distribution": {"minimum": 0.015, "mode": 0.05, "maximum": 0.12}
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.65, "mode": 0.78, "maximum": 0.92},
+      "genetic_family": "SEDIMENTARY",
+      "id": "geological:rock/coal",
+      "lithology": "COAL",
+      "modal_spread_fraction": 0.4,
+      "modal_variation_axes": [
+        {
+          "id": "organic_ash_dilution",
+          "loadings_ppm": {"geological:constituent/coal_organic_matter": 50000, "geological:mineral/kaolinite": -25000, "geological:mineral/quartz": -10000, "geological:mineral/muscovite": -8000, "geological:mineral/clinochlore": -4000, "geological:mineral/pyrite": -3000}
+        },
+        {
+          "id": "sulfide_carbonate_balance",
+          "loadings_ppm": {"geological:mineral/pyrite": 3000, "geological:mineral/calcite": -2000, "geological:mineral/siderite": -1000}
+        }
+      ],
+      "texture": "ORGANIC_BEDDED",
+      "constituent_modes_ppm": {
+        "geological:constituent/coal_organic_matter": 820000,
+        "geological:mineral/kaolinite": 70000,
+        "geological:mineral/quartz": 30000,
+        "geological:mineral/pyrite": 20000,
+        "geological:mineral/calcite": 15000,
+        "geological:mineral/siderite": 15000,
+        "geological:mineral/muscovite": 20000,
+        "geological:mineral/clinochlore": 10000
+      },
+      "permeability_distribution": {"minimum": 0.02, "mode": 0.08, "maximum": 0.22},
+      "porosity_distribution": {"minimum": 0.03, "mode": 0.08, "maximum": 0.18}
     },
     {
       "erodibility_distribution": {"minimum": 0.18, "mode": 0.24, "maximum": 0.32},
@@ -633,7 +672,7 @@
         }
       ],
       "texture": "ULTRAMAFIC_CRYSTALLINE",
-      "mineral_modes_ppm": {
+      "constituent_modes_ppm": {
         "geological:mineral/forsterite": 520000,
         "geological:mineral/fayalite": 80000,
         "geological:mineral/enstatite": 180000,
@@ -664,7 +703,7 @@
         }
       ],
       "texture": "APHANITIC_CRYSTALLINE",
-      "mineral_modes_ppm": {
+      "constituent_modes_ppm": {
         "geological:mineral/anorthite": 300000,
         "geological:mineral/albite": 180000,
         "geological:mineral/diopside": 180000,
@@ -696,7 +735,7 @@
         }
       ],
       "texture": "PHANERITIC_CRYSTALLINE",
-      "mineral_modes_ppm": {
+      "constituent_modes_ppm": {
         "geological:mineral/anorthite": 350000,
         "geological:mineral/albite": 130000,
         "geological:mineral/diopside": 230000,
@@ -727,7 +766,7 @@
         }
       ],
       "texture": "PHANERITIC_CRYSTALLINE",
-      "mineral_modes_ppm": {
+      "constituent_modes_ppm": {
         "geological:mineral/albite": 220000,
         "geological:mineral/anorthite": 300000,
         "geological:mineral/tremolite": 160000,
@@ -757,7 +796,7 @@
         }
       ],
       "texture": "PHANERITIC_CRYSTALLINE",
-      "mineral_modes_ppm": {
+      "constituent_modes_ppm": {
         "geological:mineral/quartz": 200000,
         "geological:mineral/albite": 220000,
         "geological:mineral/anorthite": 180000,
@@ -788,7 +827,7 @@
         }
       ],
       "texture": "PHANERITIC_CRYSTALLINE",
-      "mineral_modes_ppm": {
+      "constituent_modes_ppm": {
         "geological:mineral/quartz": 330000,
         "geological:mineral/orthoclase": 270000,
         "geological:mineral/albite": 220000,
@@ -818,7 +857,7 @@
         }
       ],
       "texture": "MASSIVE_SULFIDE",
-      "mineral_modes_ppm": {
+      "constituent_modes_ppm": {
         "geological:mineral/pyrite": 500000,
         "geological:mineral/chalcopyrite": 180000,
         "geological:mineral/sphalerite": 180000,
@@ -847,7 +886,7 @@
         }
       ],
       "texture": "UNCONSOLIDATED_GRANULAR",
-      "mineral_modes_ppm": {
+      "constituent_modes_ppm": {
         "geological:mineral/quartz": 599999,
         "geological:mineral/albite": 100000,
         "geological:mineral/anorthite": 60000,

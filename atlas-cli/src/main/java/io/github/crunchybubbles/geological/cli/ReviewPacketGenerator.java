@@ -643,6 +643,7 @@ final class ReviewPacketGenerator {
       case BANDED_IRON_FORMATION -> new Color(135, 86, 78);
       case GYPSUM_ANHYDRITE_EVAPORITE -> new Color(213, 202, 183);
       case HALITE_POTASH_EVAPORITE -> new Color(218, 188, 184);
+      case COAL -> new Color(52, 42, 36);
       case KOMATIITIC_ULTRAMAFIC -> new Color(63, 85, 63);
       case BASALTIC -> new Color(62, 72, 78);
       case GABBROIC -> new Color(78, 91, 87);

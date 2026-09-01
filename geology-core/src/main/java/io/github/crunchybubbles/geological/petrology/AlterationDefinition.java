@@ -41,7 +41,7 @@ public record AlterationDefinition(
         List.copyOf(targetRecipes).stream()
             .sorted(Comparator.comparing(recipe -> recipe.protolithFamilies().getFirst().name()))
             .toList();
-    if (replacementPpm < 0 || replacementPpm > MineralAssemblage.SCALE) {
+    if (replacementPpm < 0 || replacementPpm > MaterialAssemblage.SCALE) {
       throw new IllegalArgumentException("replacement fraction must lie in [0, 1000000]");
     }
     if ((replacementPpm == 0) != targetRecipes.isEmpty()) {
@@ -72,7 +72,7 @@ public record AlterationDefinition(
     }
   }
 
-  public MineralAssemblage targetAssemblage(GeneticFamily family) {
+  public MaterialAssemblage targetAssemblage(GeneticFamily family) {
     if (family == null) {
       throw new IllegalArgumentException("protolith family is required");
     }

@@ -9,11 +9,12 @@ import io.github.crunchybubbles.geological.model.Lithology;
 import io.github.crunchybubbles.geological.model.Overprint;
 import io.github.crunchybubbles.geological.petrology.ChemicalElement;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
+import io.github.crunchybubbles.geological.petrology.MaterialAssemblage;
 import io.github.crunchybubbles.geological.petrology.MaterialCatalogAuthoringException;
 import io.github.crunchybubbles.geological.petrology.MaterialCatalogJsonLoader;
 import io.github.crunchybubbles.geological.petrology.MaterialCatalogSnapshot;
+import io.github.crunchybubbles.geological.petrology.MaterialConstituentKind;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
-import io.github.crunchybubbles.geological.petrology.MineralAssemblage;
 import io.github.crunchybubbles.geological.petrology.MineralDefinition;
 import io.github.crunchybubbles.geological.petrology.RockTexture;
 import io.github.crunchybubbles.geological.petrology.SolidSolutionState;
@@ -29,12 +30,14 @@ class MaterialCatalogTest {
     MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
 
     assertEquals(32, catalog.minerals().size());
+    assertEquals(1, catalog.nonCrystallineConstituents().size());
+    assertEquals(33, catalog.constituents().size());
     assertEquals(6, catalog.solidSolutions().size());
-    assertEquals(20, catalog.rocks().size());
+    assertEquals(21, catalog.rocks().size());
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:6bce99b7023d2de2444e52d411158be77204db24fa8b67e0d31e83391938ceba",
+        "sha256:45f005fc57c516b599129070398b55096f3025bb1eb63e300e4b1f8ce276278a",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -64,13 +67,13 @@ class MaterialCatalogTest {
               assertTrue(
                   rock.erodibilityDistribution().contains(rock.erodibilityIndex()), rock.id());
               assertEquals(
-                  MineralAssemblage.SCALE,
+                  MaterialAssemblage.SCALE,
                   rock.primaryAssemblage().modesPpm().values().stream()
                       .mapToLong(Long::longValue)
                       .sum(),
                   rock.id());
               assertEquals(
-                  MineralAssemblage.SCALE,
+                  MaterialAssemblage.SCALE,
                   catalog.composition(rock.primaryAssemblage()).elementMassPpm().values().stream()
                       .mapToLong(Long::longValue)
                       .sum(),
@@ -126,15 +129,15 @@ class MaterialCatalogTest {
             + granodiorite.primaryAssemblage().modesPpm().get("geological:mineral/anorthite"),
         plagioclase.phaseModePpm());
     assertEquals(
-        MineralAssemblage.SCALE,
+        MaterialAssemblage.SCALE,
         plagioclase.endmemberVolumeFractionsPpm().values().stream()
             .mapToLong(Long::longValue)
             .sum());
     assertEquals(
-        MineralAssemblage.SCALE,
+        MaterialAssemblage.SCALE,
         plagioclase.endmemberMoleFractionsPpm().values().stream().mapToLong(Long::longValue).sum());
     assertEquals(
-        MineralAssemblage.SCALE,
+        MaterialAssemblage.SCALE,
         plagioclase.bulkComposition().elementMassPpm().values().stream()
             .mapToLong(Long::longValue)
             .sum());
@@ -243,6 +246,30 @@ class MaterialCatalogTest {
   }
 
   @Test
+  void coalUsesClosedOrganicBulkChemistryInsteadOfAFictitiousMineralFormula() {
+    MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
+    var coal = catalog.requireRock(Lithology.COAL);
+    var organic =
+        catalog.requireNonCrystallineConstituent("geological:constituent/coal_organic_matter");
+
+    assertEquals(MaterialConstituentKind.ORGANIC_MATTER, organic.kind());
+    assertEquals(RockTexture.ORGANIC_BEDDED, coal.texture());
+    assertEquals(GeneticFamily.SEDIMENTARY, coal.geneticFamily());
+    assertEquals(
+        MaterialAssemblage.SCALE,
+        organic.elementMassPpm().values().stream().mapToLong(Long::longValue).sum());
+    assertEquals(800_000L, organic.elementMassPpm().get(ChemicalElement.C));
+    assertEquals(15_000L, organic.elementMassPpm().get(ChemicalElement.N));
+    assertEquals(
+        820_000L,
+        coal.primaryAssemblage().modesPpm().get("geological:constituent/coal_organic_matter"));
+    var composition = catalog.composition(coal.primaryAssemblage());
+    assertTrue(composition.elementMassPpm().get(ChemicalElement.C) > 500_000L);
+    assertTrue(composition.elementMassPpm().get(ChemicalElement.N) > 0L);
+    assertTrue(catalog.solidSolutionStates(coal.primaryAssemblage()).isEmpty());
+  }
+
+  @Test
   void evaporiteSliceSeparatesHydratedSulfateFromLateChlorideSalts() {
     MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
     var sulfate = catalog.requireRock(Lithology.GYPSUM_ANHYDRITE_EVAPORITE);
@@ -296,6 +323,10 @@ class MaterialCatalogTest {
         reordered.replace(
             "\"geological:mineral/enstatite\", \"geological:mineral/ferrosilite\"",
             "\"geological:mineral/ferrosilite\", \"geological:mineral/enstatite\"");
+    reordered =
+        reordered.replace(
+            "{\"C\": 800000, \"H\": 50000, \"N\": 15000, \"O\": 120000, \"S\": 15000}",
+            "{\"S\": 15000, \"O\": 120000, \"N\": 15000, \"H\": 50000, \"C\": 800000}");
     assertTrue(reordered.contains("\"METAMORPHIC\", \"IGNEOUS\""));
 
     MaterialCatalogSnapshot loaded =
@@ -395,14 +426,41 @@ class MaterialCatalogTest {
                             overlappingEndmember.getBytes(StandardCharsets.UTF_8)),
                         "overlapping-endmember.json"));
     assertTrue(overlapFailure.getMessage().contains("belongs to both"));
+
+    String unclosedOrganic = authored.replace("\"N\": 15000", "\"N\": 14999");
+    MaterialCatalogAuthoringException organicFailure =
+        assertThrows(
+            MaterialCatalogAuthoringException.class,
+            () ->
+                new MaterialCatalogJsonLoader()
+                    .load(
+                        new ByteArrayInputStream(unclosedOrganic.getBytes(StandardCharsets.UTF_8)),
+                        "unclosed-organic.json"));
+    assertTrue(organicFailure.getMessage().contains("element mass must close"));
+
+    String sharedConstituentId =
+        authored.replace(
+            "\"id\": \"geological:constituent/coal_organic_matter\"",
+            "\"id\": \"geological:mineral/quartz\"");
+    MaterialCatalogAuthoringException sharedIdFailure =
+        assertThrows(
+            MaterialCatalogAuthoringException.class,
+            () ->
+                new MaterialCatalogJsonLoader()
+                    .load(
+                        new ByteArrayInputStream(
+                            sharedConstituentId.getBytes(StandardCharsets.UTF_8)),
+                        "shared-constituent-id.json"));
+    assertTrue(sharedIdFailure.getMessage().contains("shared by mineral and non-crystalline"));
   }
 
   @Test
   void strictCatalogBoundaryRejectsUnknownFieldsAndUnclosedModes() {
     String unknown =
         """
-        {"authoring_schema":"geological:material_catalog_authoring:v5","evidence":{},
-        "minerals":[],"rocks":[],"solid_solutions":[],"overprints":[],"surprise":true}
+        {"authoring_schema":"geological:material_catalog_authoring:v6","evidence":{},
+        "minerals":[],"non_crystalline_constituents":[],"rocks":[],
+        "solid_solutions":[],"overprints":[],"surprise":true}
         """;
     MaterialCatalogAuthoringException unknownFailure =
         assertThrows(
@@ -417,15 +475,16 @@ class MaterialCatalogTest {
     String unclosed =
         """
         {
-          "authoring_schema":"geological:material_catalog_authoring:v5",
+          "authoring_schema":"geological:material_catalog_authoring:v6",
           "evidence":{"citation_id":"refs:test","parameter_basis":"test tunable",
             "publication_year":2000,"title":"Test","uri":"https://example.invalid/test"},
           "minerals":[{"density_g_cm3":2.65,"formula":{"Si":1,"O":2},
             "hardness_mohs":7.0,"id":"test:quartz","weathering_resistance":1.0}],
+          "non_crystalline_constituents":[],
           "solid_solutions":[],
           "rocks":[{"erodibility_distribution":{"minimum":0.05,"mode":0.1,"maximum":0.2},
             "genetic_family":"IGNEOUS","id":"test:rock",
-            "lithology":"GRANITIC_GNEISS","mineral_modes_ppm":{"test:quartz":999999},
+            "lithology":"GRANITIC_GNEISS","constituent_modes_ppm":{"test:quartz":999999},
             "modal_spread_fraction":0.1,
             "modal_variation_axes":[],
             "permeability_distribution":{"minimum":0.05,"mode":0.1,"maximum":0.2},
@@ -442,7 +501,7 @@ class MaterialCatalogTest {
                     .load(
                         new ByteArrayInputStream(unclosed.getBytes(StandardCharsets.UTF_8)),
                         "unclosed.json"));
-    assertTrue(modeFailure.getMessage().contains("mineral modes must close"));
+    assertTrue(modeFailure.getMessage().contains("constituent modes must close"));
   }
 
   private static String packagedCatalogJson() throws Exception {

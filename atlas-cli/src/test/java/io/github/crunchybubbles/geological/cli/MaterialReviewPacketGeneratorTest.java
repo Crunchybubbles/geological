@@ -30,6 +30,8 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"modalVariationAxes\""));
     assertTrue(firstJson.contains("\"loadingsPpm\""));
     assertTrue(firstJson.contains("\"solidSolutionCount\""));
+    assertTrue(firstJson.contains("\"nonCrystallineConstituentCount\""));
+    assertTrue(firstJson.contains("\"constituentCount\""));
     assertTrue(firstJson.contains("geological:solid_solution/plagioclase"));
     assertTrue(firstJson.contains("geological:solid_solution/olivine"));
     assertTrue(firstJson.contains("\"komatiitic-ultramafic-catalog\""));
@@ -44,6 +46,10 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("geological:mineral/siderite"));
     assertTrue(firstJson.contains("\"gypsum-anhydrite-evaporite-catalog\""));
     assertTrue(firstJson.contains("\"halite-potash-evaporite-catalog\""));
+    assertTrue(firstJson.contains("\"coal-catalog\""));
+    assertTrue(firstJson.contains("geological:constituent/coal_organic_matter"));
+    assertTrue(firstJson.contains("\"ORGANIC_MATTER\""));
+    assertTrue(firstJson.contains("\"N\""));
     assertTrue(firstJson.contains("geological:mineral/gypsum"));
     assertTrue(firstJson.contains("geological:mineral/halite"));
     assertTrue(firstJson.contains("\"Cl\""));
@@ -52,6 +58,8 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"silica_precipitation_and_recrystallization\""));
     assertTrue(firstJson.contains("\"ancient_iron_silica_precipitation_basin\""));
     assertTrue(firstJson.contains("\"chemical_precipitate_redox_controlled\""));
+    assertTrue(firstJson.contains("\"buried_peat_mire\""));
+    assertTrue(firstJson.contains("\"peat_derived_rank_unresolved\""));
     assertTrue(firstJson.contains("\"restricted_evaporite_basin_center\""));
     assertTrue(firstJson.contains("\"salt_recrystallization_dissolution_and_halokinesis\""));
     assertTrue(firstJson.contains("\"magmaLineage\""));

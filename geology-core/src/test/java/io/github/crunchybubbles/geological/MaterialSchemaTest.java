@@ -16,10 +16,10 @@ import io.github.crunchybubbles.geological.petrology.BodyCompositionSampler;
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
 import io.github.crunchybubbles.geological.petrology.LigandCapacities;
+import io.github.crunchybubbles.geological.petrology.MaterialAssemblage;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
 import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
 import io.github.crunchybubbles.geological.petrology.MetamorphicPath;
-import io.github.crunchybubbles.geological.petrology.MineralAssemblage;
 import io.github.crunchybubbles.geological.petrology.ModalVariationAxis;
 import io.github.crunchybubbles.geological.petrology.ProcessFluidState;
 import io.github.crunchybubbles.geological.petrology.RedoxClass;
@@ -47,8 +47,8 @@ class MaterialSchemaTest {
 
   @Test
   void alterationRecipesSelectByProtolithFamilyAndRequireExactCoverage() {
-    MineralAssemblage felsic = assemblage("test:felsic");
-    MineralAssemblage mafic = assemblage("test:mafic");
+    MaterialAssemblage felsic = assemblage("test:felsic");
+    MaterialAssemblage mafic = assemblage("test:mafic");
     AlterationAssemblageRecipe first =
         new AlterationAssemblageRecipe(
             List.of(GeneticFamily.IGNEOUS, GeneticFamily.SEDIMENTARY), felsic);
@@ -101,8 +101,8 @@ class MaterialSchemaTest {
     ModalVariationAxis axis =
         new ModalVariationAxis(
             "quartz_feldspar_balance", Map.of("test:quartz", 50_000L, "test:feldspar", -50_000L));
-    MineralAssemblage central =
-        new MineralAssemblage(Map.of("test:quartz", 500_000L, "test:feldspar", 500_000L));
+    MaterialAssemblage central =
+        new MaterialAssemblage(Map.of("test:quartz", 500_000L, "test:feldspar", 500_000L));
 
     RockDefinition rock = rock(central, 0.1, List.of(axis));
 
@@ -125,8 +125,8 @@ class MaterialSchemaTest {
 
   @Test
   void bodySamplerFollowsAuthoredCorrelationWithoutLeakingModalMass() {
-    MineralAssemblage central =
-        new MineralAssemblage(
+    MaterialAssemblage central =
+        new MaterialAssemblage(
             Map.of(
                 "test:quartz", 400_000L,
                 "test:albite", 300_000L,
@@ -146,7 +146,7 @@ class MaterialSchemaTest {
     boolean sawNegative = false;
 
     for (int index = 1; index <= 128; index++) {
-      MineralAssemblage sampled = sampler.sample(rock, StableId.parse("%032x".formatted(index)));
+      MaterialAssemblage sampled = sampler.sample(rock, StableId.parse("%032x".formatted(index)));
       long quartzDelta = sampled.modesPpm().get("test:quartz") - 400_000L;
       long albiteDelta = sampled.modesPpm().get("test:albite") - 300_000L;
       long orthoclaseDelta = sampled.modesPpm().get("test:orthoclase") - 300_000L;
@@ -195,7 +195,7 @@ class MaterialSchemaTest {
   }
 
   private static RockDefinition rock(
-      MineralAssemblage central, double spread, List<ModalVariationAxis> axes) {
+      MaterialAssemblage central, double spread, List<ModalVariationAxis> axes) {
     UnitIntervalDistribution property = new UnitIntervalDistribution(0.1, 0.2, 0.3);
     return new RockDefinition(
         "test:rock",
@@ -210,7 +210,7 @@ class MaterialSchemaTest {
         property);
   }
 
-  private static MineralAssemblage assemblage(String mineral) {
-    return new MineralAssemblage(Map.of(mineral, MineralAssemblage.SCALE));
+  private static MaterialAssemblage assemblage(String mineral) {
+    return new MaterialAssemblage(Map.of(mineral, MaterialAssemblage.SCALE));
   }
 }

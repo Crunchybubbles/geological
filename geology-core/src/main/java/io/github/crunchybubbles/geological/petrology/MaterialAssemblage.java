@@ -4,30 +4,31 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
-/** Exact modal-volume recipe; one million parts represent the whole bulk-rock parcel. */
-public record MineralAssemblage(Map<String, Long> modesPpm) {
+/** Exact constituent-volume recipe; one million parts represent the whole bulk-rock parcel. */
+public record MaterialAssemblage(Map<String, Long> modesPpm) {
   public static final long SCALE = 1_000_000L;
 
-  public MineralAssemblage {
+  public MaterialAssemblage {
     TreeMap<String, Long> sorted = new TreeMap<>();
     modesPpm.forEach(
-        (mineralId, amount) -> {
-          if (mineralId == null || mineralId.isBlank() || amount == null || amount < 0) {
-            throw new IllegalArgumentException("mineral modes must be named and non-negative");
+        (constituentId, amount) -> {
+          if (constituentId == null || constituentId.isBlank() || amount == null || amount < 0) {
+            throw new IllegalArgumentException("constituent modes must be named and non-negative");
           }
           if (amount > 0) {
-            sorted.put(mineralId, amount);
+            sorted.put(constituentId, amount);
           }
         });
     long sum = sorted.values().stream().mapToLong(Long::longValue).sum();
     if (sum != SCALE) {
-      throw new IllegalArgumentException("mineral modes must close to " + SCALE + ", found " + sum);
+      throw new IllegalArgumentException(
+          "constituent modes must close to " + SCALE + ", found " + sum);
     }
     modesPpm = Collections.unmodifiableMap(sorted);
   }
 
-  public static MineralAssemblage blend(
-      MineralAssemblage original, MineralAssemblage target, long replacementPpm) {
+  public static MaterialAssemblage blend(
+      MaterialAssemblage original, MaterialAssemblage target, long replacementPpm) {
     if (replacementPpm < 0 || replacementPpm > SCALE) {
       throw new IllegalArgumentException("replacement fraction must lie in [0, 1000000]");
     }
@@ -56,6 +57,6 @@ public record MineralAssemblage(Map<String, Long> modesPpm) {
                 .thenComparing(Map.Entry.comparingByKey()))
         .limit(missing)
         .forEach(entry -> blended.merge(entry.getKey(), 1L, Long::sum));
-    return new MineralAssemblage(blended);
+    return new MaterialAssemblage(blended);
   }
 }

@@ -11,7 +11,8 @@ public record MineralDefinition(
     Map<ChemicalElement, Integer> formula,
     double densityGramsPerCubicCentimeter,
     double hardnessMohs,
-    double weatheringResistance) {
+    double weatheringResistance)
+    implements MaterialConstituentDefinition {
   public MineralDefinition {
     if (id == null || id.isBlank()) {
       throw new IllegalArgumentException("mineral ID must be present");
@@ -39,6 +40,11 @@ public record MineralDefinition(
     formula.forEach(
         (element, count) -> fractions.put(element, element.atomicWeight() * count / formulaMass));
     return Collections.unmodifiableMap(fractions);
+  }
+
+  @Override
+  public MaterialConstituentKind kind() {
+    return MaterialConstituentKind.MINERAL;
   }
 
   public double formulaMass() {

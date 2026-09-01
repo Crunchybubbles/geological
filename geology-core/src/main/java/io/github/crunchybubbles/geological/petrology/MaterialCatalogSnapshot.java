@@ -17,6 +17,8 @@ public final class MaterialCatalogSnapshot {
   private final String canonicalJson;
   private final CatalogEvidence evidence;
   private final Map<String, MineralDefinition> minerals;
+  private final Map<String, NonCrystallineConstituentDefinition> nonCrystallineConstituents;
+  private final Map<String, MaterialConstituentDefinition> constituents;
   private final Map<String, SolidSolutionDefinition> solidSolutions;
   private final Map<Lithology, RockDefinition> rocks;
   private final Map<Overprint, AlterationDefinition> alterations;
@@ -26,6 +28,7 @@ public final class MaterialCatalogSnapshot {
       String canonicalJson,
       CatalogEvidence evidence,
       List<MineralDefinition> minerals,
+      List<NonCrystallineConstituentDefinition> nonCrystallineConstituents,
       List<SolidSolutionDefinition> solidSolutions,
       List<RockDefinition> rocks,
       List<AlterationDefinition> alterations) {
@@ -40,6 +43,8 @@ public final class MaterialCatalogSnapshot {
     this.canonicalJson = canonicalJson;
     this.evidence = evidence;
     this.minerals = uniqueMinerals(minerals);
+    this.nonCrystallineConstituents = uniqueNonCrystallineConstituents(nonCrystallineConstituents);
+    this.constituents = combineConstituents(this.minerals, this.nonCrystallineConstituents);
     this.solidSolutions = uniqueSolidSolutions(solidSolutions);
     this.rocks = uniqueRocks(rocks);
     this.alterations = uniqueAlterations(alterations);
@@ -62,6 +67,14 @@ public final class MaterialCatalogSnapshot {
     return List.copyOf(minerals.values());
   }
 
+  public List<NonCrystallineConstituentDefinition> nonCrystallineConstituents() {
+    return List.copyOf(nonCrystallineConstituents.values());
+  }
+
+  public List<MaterialConstituentDefinition> constituents() {
+    return List.copyOf(constituents.values());
+  }
+
   public List<SolidSolutionDefinition> solidSolutions() {
     return List.copyOf(solidSolutions.values());
   }
@@ -78,6 +91,22 @@ public final class MaterialCatalogSnapshot {
     MineralDefinition definition = minerals.get(id);
     if (definition == null) {
       throw new IllegalArgumentException("unknown mineral " + id);
+    }
+    return definition;
+  }
+
+  public NonCrystallineConstituentDefinition requireNonCrystallineConstituent(String id) {
+    NonCrystallineConstituentDefinition definition = nonCrystallineConstituents.get(id);
+    if (definition == null) {
+      throw new IllegalArgumentException("unknown non-crystalline constituent " + id);
+    }
+    return definition;
+  }
+
+  public MaterialConstituentDefinition requireConstituent(String id) {
+    MaterialConstituentDefinition definition = constituents.get(id);
+    if (definition == null) {
+      throw new IllegalArgumentException("unknown material constituent " + id);
     }
     return definition;
   }
@@ -106,9 +135,9 @@ public final class MaterialCatalogSnapshot {
     return definition;
   }
 
-  public List<SolidSolutionState> solidSolutionStates(MineralAssemblage assemblage) {
+  public List<SolidSolutionState> solidSolutionStates(MaterialAssemblage assemblage) {
     if (assemblage == null) {
-      throw new IllegalArgumentException("mineral assemblage is required");
+      throw new IllegalArgumentException("material assemblage is required");
     }
     List<SolidSolutionState> states = new ArrayList<>();
     solidSolutions
@@ -123,18 +152,19 @@ public final class MaterialCatalogSnapshot {
     return List.copyOf(states);
   }
 
-  public BulkComposition composition(MineralAssemblage assemblage) {
+  public BulkComposition composition(MaterialAssemblage assemblage) {
     double bulkDensity = 0.0;
     EnumMap<ChemicalElement, Double> unrounded = new EnumMap<>(ChemicalElement.class);
     for (Map.Entry<String, Long> mode : assemblage.modesPpm().entrySet()) {
-      MineralDefinition mineral = requireMineral(mode.getKey());
-      double volumeFraction = mode.getValue() / (double) MineralAssemblage.SCALE;
-      double mineralMass = volumeFraction * mineral.densityGramsPerCubicCentimeter();
-      bulkDensity += mineralMass;
-      mineral
+      MaterialConstituentDefinition constituent = requireConstituent(mode.getKey());
+      double volumeFraction = mode.getValue() / (double) MaterialAssemblage.SCALE;
+      double constituentMass = volumeFraction * constituent.densityGramsPerCubicCentimeter();
+      bulkDensity += constituentMass;
+      constituent
           .elementMassFractions()
           .forEach(
-              (element, fraction) -> unrounded.merge(element, mineralMass * fraction, Double::sum));
+              (element, fraction) ->
+                  unrounded.merge(element, constituentMass * fraction, Double::sum));
     }
     if (!(bulkDensity > 0.0) || !Double.isFinite(bulkDensity)) {
       throw new IllegalStateException("assemblage produced an invalid bulk density");
@@ -144,7 +174,7 @@ public final class MaterialCatalogSnapshot {
     List<ElementRemainder> remainders = new ArrayList<>();
     long allocated = 0;
     for (ChemicalElement element : ChemicalElement.values()) {
-      double exact = unrounded.getOrDefault(element, 0.0) / bulkDensity * MineralAssemblage.SCALE;
+      double exact = unrounded.getOrDefault(element, 0.0) / bulkDensity * MaterialAssemblage.SCALE;
       long whole = (long) StrictMath.floor(exact);
       if (whole > 0) {
         rounded.put(element, whole);
@@ -156,7 +186,7 @@ public final class MaterialCatalogSnapshot {
         Comparator.comparingDouble(ElementRemainder::remainder)
             .reversed()
             .thenComparing(ElementRemainder::element));
-    long missing = MineralAssemblage.SCALE - allocated;
+    long missing = MaterialAssemblage.SCALE - allocated;
     for (int index = 0; index < missing; index++) {
       rounded.merge(remainders.get(index).element(), 1L, Long::sum);
     }
@@ -174,6 +204,35 @@ public final class MaterialCatalogSnapshot {
     if (result.isEmpty()) {
       throw new IllegalArgumentException("material catalog must contain minerals");
     }
+    return Collections.unmodifiableMap(result);
+  }
+
+  private Map<String, NonCrystallineConstituentDefinition> uniqueNonCrystallineConstituents(
+      List<NonCrystallineConstituentDefinition> definitions) {
+    TreeMap<String, NonCrystallineConstituentDefinition> result = new TreeMap<>();
+    definitions.forEach(
+        definition -> {
+          if (result.putIfAbsent(definition.id(), definition) != null) {
+            throw new IllegalArgumentException(
+                "duplicate non-crystalline constituent " + definition.id());
+          }
+        });
+    return Collections.unmodifiableMap(result);
+  }
+
+  private static Map<String, MaterialConstituentDefinition> combineConstituents(
+      Map<String, MineralDefinition> minerals,
+      Map<String, NonCrystallineConstituentDefinition> nonCrystallineConstituents) {
+    TreeMap<String, MaterialConstituentDefinition> result = new TreeMap<>();
+    minerals.forEach(result::put);
+    nonCrystallineConstituents.forEach(
+        (id, definition) -> {
+          if (result.putIfAbsent(id, definition) != null) {
+            throw new IllegalArgumentException(
+                "material constituent ID is shared by mineral and non-crystalline definitions "
+                    + id);
+          }
+        });
     return Collections.unmodifiableMap(result);
   }
 
@@ -270,21 +329,21 @@ public final class MaterialCatalogSnapshot {
                                     + recipe.protolithFamilies())));
   }
 
-  private void validateAssemblage(MineralAssemblage assemblage, String owner) {
+  private void validateAssemblage(MaterialAssemblage assemblage, String owner) {
     assemblage
         .modesPpm()
         .keySet()
         .forEach(
-            mineral -> {
-              if (!minerals.containsKey(mineral)) {
+            constituent -> {
+              if (!constituents.containsKey(constituent)) {
                 throw new IllegalArgumentException(
-                    owner + " references unknown mineral " + mineral);
+                    owner + " references unknown material constituent " + constituent);
               }
             });
   }
 
   private SolidSolutionState resolveSolidSolution(
-      SolidSolutionDefinition definition, MineralAssemblage assemblage) {
+      SolidSolutionDefinition definition, MaterialAssemblage assemblage) {
     TreeMap<String, Long> componentModes = new TreeMap<>();
     long phaseMode = 0;
     for (String endmemberId : definition.endmemberIds()) {
@@ -311,8 +370,8 @@ public final class MaterialCatalogSnapshot {
     double weathering = 0.0;
     for (String endmemberId : definition.endmemberIds()) {
       MineralDefinition mineral = requireMineral(endmemberId);
-      double moleFraction = moleFractions.get(endmemberId) / (double) MineralAssemblage.SCALE;
-      double volumeFraction = volumeFractions.get(endmemberId) / (double) MineralAssemblage.SCALE;
+      double moleFraction = moleFractions.get(endmemberId) / (double) MaterialAssemblage.SCALE;
+      double volumeFraction = volumeFractions.get(endmemberId) / (double) MaterialAssemblage.SCALE;
       if (moleFraction > 0.0) {
         mineral
             .formula()
@@ -321,7 +380,7 @@ public final class MaterialCatalogSnapshot {
       hardness += volumeFraction * mineral.hardnessMohs();
       weathering += volumeFraction * mineral.weatheringResistance();
     }
-    BulkComposition bulkComposition = composition(new MineralAssemblage(volumeFractions));
+    BulkComposition bulkComposition = composition(new MaterialAssemblage(volumeFractions));
     return new SolidSolutionState(
         definition.id(),
         definition.mixingModel(),
@@ -339,13 +398,13 @@ public final class MaterialCatalogSnapshot {
     List<StringRemainder> remainders = new ArrayList<>();
     long allocated = 0;
     for (Map.Entry<String, Long> entry : weights.entrySet()) {
-      long numerator = entry.getValue() * MineralAssemblage.SCALE;
+      long numerator = entry.getValue() * MaterialAssemblage.SCALE;
       long whole = numerator / total;
       fractions.put(entry.getKey(), whole);
       allocated += whole;
       remainders.add(new StringRemainder(entry.getKey(), numerator % total));
     }
-    allocateMissing(fractions, remainders, MineralAssemblage.SCALE - allocated);
+    allocateMissing(fractions, remainders, MaterialAssemblage.SCALE - allocated);
     return Collections.unmodifiableMap(fractions);
   }
 
@@ -358,7 +417,7 @@ public final class MaterialCatalogSnapshot {
     List<DoubleRemainder> remainders = new ArrayList<>();
     long allocated = 0;
     for (Map.Entry<String, Double> entry : weights.entrySet()) {
-      double exact = entry.getValue() / total * MineralAssemblage.SCALE;
+      double exact = entry.getValue() / total * MaterialAssemblage.SCALE;
       long whole = (long) StrictMath.floor(exact);
       fractions.put(entry.getKey(), whole);
       allocated += whole;
@@ -368,7 +427,7 @@ public final class MaterialCatalogSnapshot {
         Comparator.comparingDouble(DoubleRemainder::remainder)
             .reversed()
             .thenComparing(DoubleRemainder::id));
-    long missing = MineralAssemblage.SCALE - allocated;
+    long missing = MaterialAssemblage.SCALE - allocated;
     for (int index = 0; index < missing; index++) {
       fractions.merge(remainders.get(index).id(), 1L, Long::sum);
     }
