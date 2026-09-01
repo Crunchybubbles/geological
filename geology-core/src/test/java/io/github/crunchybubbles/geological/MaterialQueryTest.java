@@ -39,14 +39,14 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.10", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.11", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:fb2eea06d3b5434dae80714745b7f74ae8cb155dc323cb952a6d0f3ad13af34c",
+        "sha256:7662c2e4b46e58d5561e3f11c541ce633487147f7e9fcd9254163c8d985196d1",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -341,6 +341,30 @@ class MaterialQueryTest {
       assertFalse(sedimentary.diagenesisClass().isBlank());
       assertTrue(sedimentary.sourceBodyIds().contains(province.geometry().basementId()));
     }
+  }
+
+  @Test
+  void bandedIronFormationExposesSubtypeNeutralAncientRedoxState() {
+    MaterialQueryEngine query = Phase2World.create(2_100L);
+    Province province = query.geology().atlas().provinceAt(new Point2(0.0, 0.0));
+    PetrologicSample bif =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                province.geometry().basin().packageId(),
+                Lithology.BANDED_IRON_FORMATION,
+                new AgeKey(2_100.0, 0),
+                Overprint.NONE));
+
+    var sedimentary = bif.sedimentaryState().orElseThrow();
+    assertEquals("ancient_iron_silica_precipitation_basin", sedimentary.faciesClass());
+    assertEquals("microcrystalline_banded", sedimentary.grainSizeClass());
+    assertEquals("chemical_precipitate_redox_controlled", sedimentary.maturityClass());
+    assertEquals("iron_oxide_carbonate_silica_recrystallization", sedimentary.diagenesisClass());
+    assertTrue(sedimentary.sourceBodyIds().contains(province.geometry().basementId()));
+    assertTrue(bif.resolvedComposition().elementMassPpm().get(ChemicalElement.FE) > 300_000L);
   }
 
   @Test

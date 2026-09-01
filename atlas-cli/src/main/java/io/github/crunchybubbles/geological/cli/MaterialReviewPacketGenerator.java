@@ -140,6 +140,16 @@ final class MaterialReviewPacketGenerator {
                 Overprint.NONE)));
     samples.add(
         sampleJson(
+            "banded-iron-formation-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000401"),
+                Lithology.BANDED_IRON_FORMATION,
+                new AgeKey(2_100.0, 0),
+                Overprint.NONE)));
+    samples.add(
+        sampleJson(
             "gypsum-anhydrite-evaporite-catalog",
             resolve(
                 province,

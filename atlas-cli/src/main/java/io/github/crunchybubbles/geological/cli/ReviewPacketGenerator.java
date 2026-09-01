@@ -640,6 +640,7 @@ final class ReviewPacketGenerator {
       case LIMESTONE -> new Color(194, 195, 177);
       case DOLOSTONE -> new Color(156, 157, 142);
       case CHERT -> new Color(125, 115, 104);
+      case BANDED_IRON_FORMATION -> new Color(135, 86, 78);
       case GYPSUM_ANHYDRITE_EVAPORITE -> new Color(213, 202, 183);
       case HALITE_POTASH_EVAPORITE -> new Color(218, 188, 184);
       case KOMATIITIC_ULTRAMAFIC -> new Color(63, 85, 63);

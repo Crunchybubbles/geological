@@ -28,13 +28,13 @@ class MaterialCatalogTest {
   void packagedCatalogCoversEveryImplementedMaterialAndClosesChemistry() {
     MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
 
-    assertEquals(31, catalog.minerals().size());
+    assertEquals(32, catalog.minerals().size());
     assertEquals(6, catalog.solidSolutions().size());
-    assertEquals(19, catalog.rocks().size());
+    assertEquals(20, catalog.rocks().size());
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:6ae5fa63d8d7e8d6a1df02c87bb628f634ae592fbf34707c760065965893f3b1",
+        "sha256:6bce99b7023d2de2444e52d411158be77204db24fa8b67e0d31e83391938ceba",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -219,6 +219,27 @@ class MaterialCatalogTest {
                 .primaryAssemblage()
                 .modesPpm()
                 .get("geological:mineral/kaolinite"));
+  }
+
+  @Test
+  void bandedIronFormationBalancesSilicaOxidesAndIronCarbonate() {
+    MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
+    var bif = catalog.requireRock(Lithology.BANDED_IRON_FORMATION);
+    MineralDefinition siderite = catalog.requireMineral("geological:mineral/siderite");
+
+    assertEquals(RockTexture.BANDED_IRON_SILICA, bif.texture());
+    assertEquals(GeneticFamily.SEDIMENTARY, bif.geneticFamily());
+    assertEquals(1.0, siderite.formula().get(ChemicalElement.FE).doubleValue());
+    assertEquals(1.0, siderite.formula().get(ChemicalElement.C).doubleValue());
+    assertEquals(3.0, siderite.formula().get(ChemicalElement.O).doubleValue());
+    assertEquals(580_000L, bif.primaryAssemblage().modesPpm().get("geological:mineral/quartz"));
+    assertEquals(180_000L, bif.primaryAssemblage().modesPpm().get("geological:mineral/magnetite"));
+    assertEquals(120_000L, bif.primaryAssemblage().modesPpm().get("geological:mineral/hematite"));
+    assertEquals(70_000L, bif.primaryAssemblage().modesPpm().get("geological:mineral/siderite"));
+    long ironPpm =
+        catalog.composition(bif.primaryAssemblage()).elementMassPpm().get(ChemicalElement.FE);
+    assertTrue(ironPpm > 300_000L);
+    assertTrue(ironPpm < 400_000L);
   }
 
   @Test

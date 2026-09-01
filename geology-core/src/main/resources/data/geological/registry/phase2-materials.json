@@ -2,7 +2,7 @@
   "authoring_schema": "geological:material_catalog_authoring:v5",
   "evidence": {
     "citation_id": "refs:philpotts_ague_2009",
-    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic, siltstone-carbonate-chert, and sulfate-to-potash evaporite expansions follow published classification and USGS petrologic relationships documented in the public architecture. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Mineral modes, modal covariance axes, protolith-conditioned response targets, textures, and physical-property distributions are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
+    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic, siltstone-carbonate-chert, sulfate-to-potash evaporite, and banded iron-formation expansions follow published classification and USGS petrologic relationships documented in the public architecture. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Mineral modes, modal covariance axes, protolith-conditioned response targets, textures, and physical-property distributions are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
     "publication_year": 2009,
     "title": "Principles of Igneous and Metamorphic Petrology",
     "uri": "https://doi.org/10.1017/CBO9780511813429"
@@ -140,6 +140,13 @@
       "hardness_mohs": 3.5,
       "id": "geological:mineral/dolomite",
       "weathering_resistance": 0.22
+    },
+    {
+      "density_g_cm3": 3.96,
+      "formula": {"Fe": 1, "C": 1, "O": 3},
+      "hardness_mohs": 3.8,
+      "id": "geological:mineral/siderite",
+      "weathering_resistance": 0.18
     },
     {
       "density_g_cm3": 2.32,
@@ -521,6 +528,36 @@
       },
       "permeability_distribution": {"minimum": 0.01, "mode": 0.04, "maximum": 0.12},
       "porosity_distribution": {"minimum": 0.005, "mode": 0.02, "maximum": 0.06}
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.16, "mode": 0.24, "maximum": 0.38},
+      "genetic_family": "SEDIMENTARY",
+      "id": "geological:rock/banded_iron_formation",
+      "lithology": "BANDED_IRON_FORMATION",
+      "modal_spread_fraction": 0.25,
+      "modal_variation_axes": [
+        {
+          "id": "silica_iron_oxide_balance",
+          "loadings_ppm": {"geological:mineral/quartz": 50000, "geological:mineral/magnetite": -30000, "geological:mineral/hematite": -20000}
+        },
+        {
+          "id": "oxide_carbonate_redox_balance",
+          "loadings_ppm": {"geological:mineral/hematite": 10000, "geological:mineral/magnetite": -5000, "geological:mineral/siderite": -5000}
+        }
+      ],
+      "texture": "BANDED_IRON_SILICA",
+      "mineral_modes_ppm": {
+        "geological:mineral/quartz": 580000,
+        "geological:mineral/magnetite": 180000,
+        "geological:mineral/hematite": 120000,
+        "geological:mineral/siderite": 70000,
+        "geological:mineral/dolomite": 20000,
+        "geological:mineral/calcite": 10000,
+        "geological:mineral/pyrite": 10000,
+        "geological:mineral/kaolinite": 10000
+      },
+      "permeability_distribution": {"minimum": 0.015, "mode": 0.045, "maximum": 0.12},
+      "porosity_distribution": {"minimum": 0.01, "mode": 0.035, "maximum": 0.08}
     },
     {
       "erodibility_distribution": {"minimum": 0.55, "mode": 0.7, "maximum": 0.86},

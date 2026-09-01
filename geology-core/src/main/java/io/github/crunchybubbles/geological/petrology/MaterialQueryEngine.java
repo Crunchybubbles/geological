@@ -359,6 +359,13 @@ public final class MaterialQueryEngine {
                   "silica_rich",
                   "silica_precipitation_and_recrystallization",
                   sources);
+          case BANDED_IRON_FORMATION ->
+              new SedimentaryState(
+                  "ancient_iron_silica_precipitation_basin",
+                  "microcrystalline_banded",
+                  "chemical_precipitate_redox_controlled",
+                  "iron_oxide_carbonate_silica_recrystallization",
+                  sources);
           case GYPSUM_ANHYDRITE_EVAPORITE ->
               new SedimentaryState(
                   "restricted_evaporite_margin",
