@@ -1,8 +1,8 @@
 {
-  "authoring_schema": "geological:material_catalog_authoring:v6",
+  "authoring_schema": "geological:material_catalog_authoring:v7",
   "evidence": {
     "citation_id": "refs:philpotts_ague_2009",
-    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic, siltstone-carbonate-chert, sulfate-to-potash evaporite, banded iron-formation, and coal expansions follow published classification and USGS relationships documented in the public architecture. Non-crystalline organic matter uses an explicit closed bulk-element proxy rather than a fictitious mineral formula. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Constituent modes, modal covariance axes, protolith-conditioned response targets, textures, physical-property distributions, and organic bulk chemistry are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
+    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic, sedimentary, and pelitic slate-phyllite-to-schist expansions follow published classification and USGS relationships documented in the public architecture. Non-crystalline organic matter uses an explicit closed bulk-element proxy rather than a fictitious mineral formula. Primary metamorphic recipes author a non-metamorphic original protolith plus coarse grade, facies, path, and peak P-T envelope; they are not independent decorative rock rolls. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Constituent modes, modal covariance axes, protolith-conditioned response targets, textures, physical-property distributions, P-T envelopes, and organic bulk chemistry are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
     "publication_year": 2009,
     "title": "Principles of Igneous and Metamorphic Petrology",
     "uri": "https://doi.org/10.1017/CBO9780511813429"
@@ -226,6 +226,20 @@
       "weathering_resistance": 0.76
     },
     {
+      "density_g_cm3": 2.25,
+      "formula": {"C": 1},
+      "hardness_mohs": 1.5,
+      "id": "geological:mineral/graphite",
+      "weathering_resistance": 0.95
+    },
+    {
+      "density_g_cm3": 4.32,
+      "formula": {"Fe": 3, "Al": 2, "Si": 3, "O": 12},
+      "hardness_mohs": 7.5,
+      "id": "geological:mineral/almandine",
+      "weathering_resistance": 0.72
+    },
+    {
       "density_g_cm3": 19.3,
       "formula": {"Au": 1},
       "hardness_mohs": 2.8,
@@ -303,7 +317,100 @@
         "geological:mineral/muscovite": 40000
       },
       "permeability_distribution": {"minimum": 0.03, "mode": 0.05, "maximum": 0.08},
-      "porosity_distribution": {"minimum": 0.006, "mode": 0.01, "maximum": 0.018}
+      "porosity_distribution": {"minimum": 0.006, "mode": 0.01, "maximum": 0.018},
+      "primary_metamorphism": {
+        "facies": "AMPHIBOLITE",
+        "grade": "HIGH",
+        "path": "COLLISION_CLOCKWISE",
+        "peak_pressure_mpa": [400.0, 800.0],
+        "peak_temperature_c": [600.0, 750.0],
+        "protolith_rock_id": "geological:rock/felsic_stock"
+      }
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.38, "mode": 0.48, "maximum": 0.6},
+      "genetic_family": "METAMORPHIC",
+      "id": "geological:rock/slate_phyllite",
+      "lithology": "SLATE_PHYLLITE",
+      "modal_spread_fraction": 0.3,
+      "modal_variation_axes": [
+        {
+          "id": "quartz_phyllosilicate_balance",
+          "loadings_ppm": {"geological:mineral/quartz": 30000, "geological:mineral/muscovite": -20000, "geological:mineral/clinochlore": -10000}
+        },
+        {
+          "id": "white_mica_chlorite_balance",
+          "loadings_ppm": {"geological:mineral/muscovite": 18000, "geological:mineral/clinochlore": -18000}
+        },
+        {
+          "id": "carbon_sulfide_balance",
+          "loadings_ppm": {"geological:mineral/graphite": 3000, "geological:mineral/pyrite": -3000}
+        }
+      ],
+      "texture": "SLATY_PHYLLITIC",
+      "constituent_modes_ppm": {
+        "geological:mineral/quartz": 420000,
+        "geological:mineral/muscovite": 270000,
+        "geological:mineral/clinochlore": 180000,
+        "geological:mineral/albite": 80000,
+        "geological:mineral/calcite": 20000,
+        "geological:mineral/graphite": 10000,
+        "geological:mineral/pyrite": 10000,
+        "geological:mineral/magnetite": 10000
+      },
+      "permeability_distribution": {"minimum": 0.01, "mode": 0.035, "maximum": 0.09},
+      "porosity_distribution": {"minimum": 0.006, "mode": 0.014, "maximum": 0.028},
+      "primary_metamorphism": {
+        "facies": "GREENSCHIST",
+        "grade": "LOW",
+        "path": "COLLISION_CLOCKWISE",
+        "peak_pressure_mpa": [200.0, 600.0],
+        "peak_temperature_c": [250.0, 450.0],
+        "protolith_rock_id": "geological:rock/basin_shale"
+      }
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.32, "mode": 0.43, "maximum": 0.58},
+      "genetic_family": "METAMORPHIC",
+      "id": "geological:rock/mica_schist",
+      "lithology": "MICA_SCHIST",
+      "modal_spread_fraction": 0.35,
+      "modal_variation_axes": [
+        {
+          "id": "mica_quartz_balance",
+          "loadings_ppm": {"geological:mineral/quartz": -50000, "geological:mineral/muscovite": 30000, "geological:mineral/phlogopite": 10000, "geological:mineral/annite": 10000}
+        },
+        {
+          "id": "garnet_chlorite_balance",
+          "loadings_ppm": {"geological:mineral/almandine": 10000, "geological:mineral/clinochlore": -10000}
+        },
+        {
+          "id": "plagioclase_sodic_calcic_balance",
+          "loadings_ppm": {"geological:mineral/albite": 7000, "geological:mineral/anorthite": -7000}
+        }
+      ],
+      "texture": "SCHISTOSE",
+      "constituent_modes_ppm": {
+        "geological:mineral/quartz": 380000,
+        "geological:mineral/muscovite": 220000,
+        "geological:mineral/phlogopite": 100000,
+        "geological:mineral/annite": 100000,
+        "geological:mineral/albite": 80000,
+        "geological:mineral/anorthite": 20000,
+        "geological:mineral/clinochlore": 30000,
+        "geological:mineral/almandine": 50000,
+        "geological:mineral/magnetite": 20000
+      },
+      "permeability_distribution": {"minimum": 0.015, "mode": 0.05, "maximum": 0.13},
+      "porosity_distribution": {"minimum": 0.004, "mode": 0.01, "maximum": 0.022},
+      "primary_metamorphism": {
+        "facies": "AMPHIBOLITE",
+        "grade": "MEDIUM",
+        "path": "COLLISION_CLOCKWISE",
+        "peak_pressure_mpa": [350.0, 900.0],
+        "peak_temperature_c": [500.0, 650.0],
+        "protolith_rock_id": "geological:rock/basin_shale"
+      }
     },
     {
       "erodibility_distribution": {"minimum": 0.34, "mode": 0.42, "maximum": 0.52},

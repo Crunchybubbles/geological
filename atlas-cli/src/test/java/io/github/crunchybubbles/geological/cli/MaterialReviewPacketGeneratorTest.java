@@ -60,6 +60,13 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"chemical_precipitate_redox_controlled\""));
     assertTrue(firstJson.contains("\"buried_peat_mire\""));
     assertTrue(firstJson.contains("\"peat_derived_rank_unresolved\""));
+    assertTrue(firstJson.contains("\"slate-phyllite-catalog\""));
+    assertTrue(firstJson.contains("\"mica-schist-catalog\""));
+    assertTrue(firstJson.contains("geological:mineral/graphite"));
+    assertTrue(firstJson.contains("geological:mineral/almandine"));
+    assertTrue(firstJson.contains("\"primaryMetamorphism\""));
+    assertTrue(firstJson.contains("\"protolithRockId\""));
+    assertTrue(firstJson.contains("\"grade\""));
     assertTrue(firstJson.contains("\"restricted_evaporite_basin_center\""));
     assertTrue(firstJson.contains("\"salt_recrystallization_dissolution_and_halokinesis\""));
     assertTrue(firstJson.contains("\"magmaLineage\""));

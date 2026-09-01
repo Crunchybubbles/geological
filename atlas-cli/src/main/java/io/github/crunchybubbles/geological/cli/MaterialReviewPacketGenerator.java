@@ -18,6 +18,7 @@ import io.github.crunchybubbles.geological.petrology.MaterialQueryEngine;
 import io.github.crunchybubbles.geological.petrology.ModalVariationAxis;
 import io.github.crunchybubbles.geological.petrology.NonCrystallineConstituentDefinition;
 import io.github.crunchybubbles.geological.petrology.PetrologicSample;
+import io.github.crunchybubbles.geological.petrology.PrimaryMetamorphicDefinition;
 import io.github.crunchybubbles.geological.petrology.ProcessFluidState;
 import io.github.crunchybubbles.geological.petrology.ReservoirTransfer;
 import io.github.crunchybubbles.geological.petrology.RockDefinition;
@@ -178,6 +179,26 @@ final class MaterialReviewPacketGenerator {
                 StableId.parse("00000000000000000000000000000501"),
                 Lithology.COAL,
                 new AgeKey(80.0, 0),
+                Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "slate-phyllite-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000601"),
+                Lithology.SLATE_PHYLLITE,
+                new AgeKey(420.0, 0),
+                Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "mica-schist-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000602"),
+                Lithology.MICA_SCHIST,
+                new AgeKey(410.0, 0),
                 Overprint.NONE)));
     RiftArcGeometry.PlutonPulse stock = pulses.getLast();
     samples.add(
@@ -352,6 +373,10 @@ final class MaterialReviewPacketGenerator {
         rock.geneticFamily().name(),
         "texture",
         rock.texture().name(),
+        "primaryMetamorphism",
+        rock.primaryMetamorphism()
+            .map(MaterialReviewPacketGenerator::primaryMetamorphismJson)
+            .orElse(null),
         "modalSpreadFraction",
         rock.modalSpreadFraction(),
         "modalVariationAxes",
@@ -368,6 +393,23 @@ final class MaterialReviewPacketGenerator {
 
   private Map<String, Object> modalVariationAxisJson(ModalVariationAxis axis) {
     return JsonWriter.object("id", axis.id(), "loadingsPpm", axis.loadingsPpm());
+  }
+
+  private static Map<String, Object> primaryMetamorphismJson(
+      PrimaryMetamorphicDefinition metamorphism) {
+    return JsonWriter.object(
+        "protolithRockId",
+        metamorphism.protolithRockId(),
+        "grade",
+        metamorphism.grade().name(),
+        "facies",
+        metamorphism.facies().name(),
+        "path",
+        metamorphism.path().name(),
+        "temperatureC",
+        List.of(metamorphism.minimumTemperatureCelsius(), metamorphism.maximumTemperatureCelsius()),
+        "pressureMpa",
+        List.of(metamorphism.minimumPressureMpa(), metamorphism.maximumPressureMpa()));
   }
 
   private static Map<String, Object> distributionJson(UnitIntervalDistribution distribution) {
@@ -468,6 +510,10 @@ final class MaterialReviewPacketGenerator {
         sample.sedimentaryState().map(this::sedimentaryStateJson).orElse(null),
         "metamorphism",
         JsonWriter.object(
+            "protolithRockId",
+            sample.metamorphism().protolithRockId(),
+            "grade",
+            sample.metamorphism().grade().name(),
             "facies",
             sample.metamorphism().facies().name(),
             "path",

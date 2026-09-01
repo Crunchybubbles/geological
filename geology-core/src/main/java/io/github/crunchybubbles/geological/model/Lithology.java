@@ -2,6 +2,8 @@ package io.github.crunchybubbles.geological.model;
 
 public enum Lithology {
   GRANITIC_GNEISS(0.82),
+  SLATE_PHYLLITE(0.56),
+  MICA_SCHIST(0.62),
   BASAL_CONGLOMERATE(0.58),
   MARINE_VOLCANICLASTIC(0.55),
   BASIN_SHALE(0.35),

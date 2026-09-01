@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /** Bulk rock classification, central constituent recipe, and body-scale property distributions. */
@@ -14,6 +15,7 @@ public record RockDefinition(
     Lithology lithology,
     GeneticFamily geneticFamily,
     RockTexture texture,
+    Optional<PrimaryMetamorphicDefinition> primaryMetamorphism,
     MaterialAssemblage primaryAssemblage,
     double modalSpreadFraction,
     List<ModalVariationAxis> modalVariationAxes,
@@ -26,12 +28,17 @@ public record RockDefinition(
         || lithology == null
         || geneticFamily == null
         || texture == null
+        || primaryMetamorphism == null
         || primaryAssemblage == null
         || modalVariationAxes == null
         || porosityDistribution == null
         || permeabilityDistribution == null
         || erodibilityDistribution == null) {
       throw new IllegalArgumentException("rock definition must be complete");
+    }
+    if ((geneticFamily == GeneticFamily.METAMORPHIC) != primaryMetamorphism.isPresent()) {
+      throw new IllegalArgumentException(
+          "primary metamorphism is required exactly for metamorphic rock definitions");
     }
     if (!Double.isFinite(modalSpreadFraction)
         || modalSpreadFraction < 0.0

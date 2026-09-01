@@ -19,8 +19,10 @@ import io.github.crunchybubbles.geological.petrology.LigandCapacities;
 import io.github.crunchybubbles.geological.petrology.MaterialAssemblage;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
 import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
+import io.github.crunchybubbles.geological.petrology.MetamorphicGrade;
 import io.github.crunchybubbles.geological.petrology.MetamorphicPath;
 import io.github.crunchybubbles.geological.petrology.ModalVariationAxis;
+import io.github.crunchybubbles.geological.petrology.PrimaryMetamorphicDefinition;
 import io.github.crunchybubbles.geological.petrology.ProcessFluidState;
 import io.github.crunchybubbles.geological.petrology.RedoxClass;
 import io.github.crunchybubbles.geological.petrology.RockDefinition;
@@ -94,6 +96,65 @@ class MaterialSchemaTest {
                 state.sulfurState(),
                 state.ligandCapacities(),
                 -1));
+  }
+
+  @Test
+  void primaryMetamorphismIsRequiredOnlyForMetamorphicRockRecipes() {
+    PrimaryMetamorphicDefinition metamorphism =
+        new PrimaryMetamorphicDefinition(
+            "test:shale",
+            MetamorphicGrade.LOW,
+            MetamorphicFacies.GREENSCHIST,
+            MetamorphicPath.COLLISION_CLOCKWISE,
+            250.0,
+            450.0,
+            200.0,
+            600.0);
+    UnitIntervalDistribution property = new UnitIntervalDistribution(0.1, 0.2, 0.3);
+    MaterialAssemblage assemblage = assemblage("test:quartz");
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new PrimaryMetamorphicDefinition(
+                "test:shale",
+                MetamorphicGrade.NONE,
+                MetamorphicFacies.GREENSCHIST,
+                MetamorphicPath.COLLISION_CLOCKWISE,
+                250.0,
+                450.0,
+                200.0,
+                600.0));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new RockDefinition(
+                "test:metamorphic",
+                Lithology.GRANITIC_GNEISS,
+                GeneticFamily.METAMORPHIC,
+                RockTexture.FOLIATED_CRYSTALLINE,
+                Optional.empty(),
+                assemblage,
+                0.0,
+                List.of(),
+                property,
+                property,
+                property));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new RockDefinition(
+                "test:igneous",
+                Lithology.FELSIC_STOCK,
+                GeneticFamily.IGNEOUS,
+                RockTexture.PHANERITIC_CRYSTALLINE,
+                Optional.of(metamorphism),
+                assemblage,
+                0.0,
+                List.of(),
+                property,
+                property,
+                property));
   }
 
   @Test
@@ -202,6 +263,16 @@ class MaterialSchemaTest {
         Lithology.GRANITIC_GNEISS,
         GeneticFamily.METAMORPHIC,
         RockTexture.FOLIATED_CRYSTALLINE,
+        Optional.of(
+            new PrimaryMetamorphicDefinition(
+                "test:protolith",
+                MetamorphicGrade.HIGH,
+                MetamorphicFacies.AMPHIBOLITE,
+                MetamorphicPath.COLLISION_CLOCKWISE,
+                600.0,
+                750.0,
+                400.0,
+                800.0)),
         central,
         spread,
         axes,

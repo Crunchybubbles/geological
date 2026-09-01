@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.crunchybubbles.geological.atlas.Province;
 import io.github.crunchybubbles.geological.atlas.ProvinceGrammar;
 import io.github.crunchybubbles.geological.atlas.RiftArcGeometry;
+import io.github.crunchybubbles.geological.determinism.StableId;
 import io.github.crunchybubbles.geological.model.AgeKey;
 import io.github.crunchybubbles.geological.model.Lithology;
 import io.github.crunchybubbles.geological.model.Overprint;
@@ -21,6 +22,7 @@ import io.github.crunchybubbles.geological.petrology.MaterialAssemblage;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
 import io.github.crunchybubbles.geological.petrology.MaterialQueryEngine;
 import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
+import io.github.crunchybubbles.geological.petrology.MetamorphicGrade;
 import io.github.crunchybubbles.geological.petrology.PetrologicColumnResult;
 import io.github.crunchybubbles.geological.petrology.PetrologicSample;
 import io.github.crunchybubbles.geological.petrology.PetrologicState;
@@ -39,14 +41,14 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.12", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.13", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:fc95d1bdfe7b0e4537bb162b337c62ba6601e83b6ecac2be9238173f732e3317",
+        "sha256:b36f49aa99a8f3b344c5418882cdb27164fd6efc460603a4f508d45c99c2120e",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -444,6 +446,47 @@ class MaterialQueryTest {
   }
 
   @Test
+  void peliticMetamorphicProductsRetainShaleProtolithAndProgressInGrade() {
+    MaterialQueryEngine query = Phase2World.create(7_071L);
+    Province province = query.geology().atlas().provinceAt(new Point2(0.0, 0.0));
+    PetrologicSample slate =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000601"),
+                Lithology.SLATE_PHYLLITE,
+                new AgeKey(420.0, 0),
+                Overprint.NONE));
+    PetrologicSample schist =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000602"),
+                Lithology.MICA_SCHIST,
+                new AgeKey(410.0, 0),
+                Overprint.NONE));
+
+    assertEquals("geological:rock/basin_shale", slate.metamorphism().protolithRockId());
+    assertEquals("geological:rock/basin_shale", schist.metamorphism().protolithRockId());
+    assertEquals(MetamorphicGrade.LOW, slate.metamorphism().grade());
+    assertEquals(MetamorphicGrade.MEDIUM, schist.metamorphism().grade());
+    assertEquals(MetamorphicFacies.GREENSCHIST, slate.metamorphism().facies());
+    assertEquals(MetamorphicFacies.AMPHIBOLITE, schist.metamorphism().facies());
+    assertTrue(
+        slate.metamorphism().maximumPeakTemperatureCelsius()
+            < schist.metamorphism().maximumPeakTemperatureCelsius());
+    assertTrue(
+        slate.primaryAssemblage().modesPpm().get("geological:mineral/muscovite")
+            > schist.primaryAssemblage().modesPpm().get("geological:mineral/muscovite"));
+    assertTrue(slate.primaryAssemblage().modesPpm().containsKey("geological:mineral/graphite"));
+    assertTrue(schist.primaryAssemblage().modesPpm().containsKey("geological:mineral/almandine"));
+  }
+
+  @Test
   void contactMetamorphismIsIsochemicalWhileHydrothermalAlterationCarriesTransfers() {
     MaterialQueryEngine query = Phase2World.create(99L);
     Province province =
@@ -459,6 +502,7 @@ class MaterialQueryTest {
             new AgeKey(1850.0, 0),
             Overprint.CONTACT_HORNFELS);
     PetrologicSample hornfels = query.resolve(province, contact);
+    assertEquals(MetamorphicGrade.HIGH, hornfels.metamorphism().grade());
     assertEquals(MetamorphicFacies.HORNBLENDE_HORNFELS, hornfels.metamorphism().facies());
     assertEquals(MaterialProcessClass.ISOCHEMICAL_METAMORPHISM, hornfels.processClass());
     assertTrue(hornfels.fluidState().isEmpty());

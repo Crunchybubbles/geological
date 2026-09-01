@@ -230,6 +230,7 @@ public final class MaterialQueryEngine {
     if (alteration.facies() != MetamorphicFacies.NONE) {
       return new MetamorphicHistory(
           rock.id(),
+          MetamorphicGrade.HIGH,
           alteration.facies(),
           alteration.path(),
           alteration.minimumTemperatureCelsius(),
@@ -238,19 +239,22 @@ public final class MaterialQueryEngine {
           alteration.maximumPressureMpa(),
           events(province, EventType.CONTACT_METAMORPHISM));
     }
-    if (rock.lithology() == Lithology.GRANITIC_GNEISS) {
+    if (rock.primaryMetamorphism().isPresent()) {
+      PrimaryMetamorphicDefinition primary = rock.primaryMetamorphism().orElseThrow();
       return new MetamorphicHistory(
-          rock.id(),
-          MetamorphicFacies.AMPHIBOLITE,
-          MetamorphicPath.COLLISION_CLOCKWISE,
-          600.0,
-          750.0,
-          400.0,
-          800.0,
+          primary.protolithRockId(),
+          primary.grade(),
+          primary.facies(),
+          primary.path(),
+          primary.minimumTemperatureCelsius(),
+          primary.maximumTemperatureCelsius(),
+          primary.minimumPressureMpa(),
+          primary.maximumPressureMpa(),
           events(province, EventType.ESTABLISH_BASEMENT));
     }
     return new MetamorphicHistory(
         rock.id(),
+        MetamorphicGrade.NONE,
         MetamorphicFacies.NONE,
         MetamorphicPath.NONE,
         alteration.minimumTemperatureCelsius(),

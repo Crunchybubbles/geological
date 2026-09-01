@@ -285,6 +285,27 @@ public final class MaterialCatalogSnapshot {
   }
 
   private void validateReferences() {
+    Map<String, RockDefinition> rocksById = new HashMap<>();
+    rocks.values().forEach(rock -> rocksById.put(rock.id(), rock));
+    rocks
+        .values()
+        .forEach(
+            rock ->
+                rock.primaryMetamorphism()
+                    .ifPresent(
+                        metamorphism -> {
+                          RockDefinition protolith = rocksById.get(metamorphism.protolithRockId());
+                          if (protolith == null) {
+                            throw new IllegalArgumentException(
+                                rock.id()
+                                    + " references unknown metamorphic protolith "
+                                    + metamorphism.protolithRockId());
+                          }
+                          if (protolith.geneticFamily() == GeneticFamily.METAMORPHIC) {
+                            throw new IllegalArgumentException(
+                                rock.id() + " must reference a non-metamorphic original protolith");
+                          }
+                        }));
     Map<String, String> endmemberOwners = new HashMap<>();
     solidSolutions
         .values()

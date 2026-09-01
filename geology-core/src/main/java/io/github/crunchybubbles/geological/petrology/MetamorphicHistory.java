@@ -6,6 +6,7 @@ import java.util.List;
 /** Compact P-T-t response attached to a resolved bulk-rock parcel. */
 public record MetamorphicHistory(
     String protolithRockId,
+    MetamorphicGrade grade,
     MetamorphicFacies facies,
     MetamorphicPath path,
     double minimumPeakTemperatureCelsius,
@@ -14,8 +15,23 @@ public record MetamorphicHistory(
     double maximumPeakPressureMpa,
     List<StableId> eventIds) {
   public MetamorphicHistory {
-    if (protolithRockId == null || protolithRockId.isBlank() || facies == null || path == null) {
+    if (protolithRockId == null
+        || protolithRockId.isBlank()
+        || grade == null
+        || facies == null
+        || path == null) {
       throw new IllegalArgumentException("metamorphic history identity must be complete");
+    }
+    boolean inactive =
+        grade == MetamorphicGrade.NONE
+            && facies == MetamorphicFacies.NONE
+            && path == MetamorphicPath.NONE;
+    boolean active =
+        grade != MetamorphicGrade.NONE
+            && facies != MetamorphicFacies.NONE
+            && path != MetamorphicPath.NONE;
+    if (!inactive && !active) {
+      throw new IllegalArgumentException("metamorphic grade, facies, and path must agree");
     }
     if (!Double.isFinite(minimumPeakTemperatureCelsius)
         || !Double.isFinite(maximumPeakTemperatureCelsius)

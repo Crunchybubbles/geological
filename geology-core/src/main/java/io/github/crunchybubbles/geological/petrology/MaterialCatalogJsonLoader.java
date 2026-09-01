@@ -26,7 +26,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 /** Strict JSON boundary for the typed constituent, rock, and alteration data pack. */
 public final class MaterialCatalogJsonLoader {
-  public static final String AUTHORING_SCHEMA = "geological:material_catalog_authoring:v6";
+  public static final String AUTHORING_SCHEMA = "geological:material_catalog_authoring:v7";
   private static final int MAX_DOCUMENT_BYTES = 1_048_576;
   private static final Pattern IDENTIFIER = Pattern.compile("[a-z0-9_.-]+:[a-z0-9_./-]+");
   private static final JsonMapper JSON =
@@ -264,8 +264,21 @@ public final class MaterialCatalogJsonLoader {
               "constituent_modes_ppm",
               "permeability_distribution",
               "porosity_distribution",
+              "primary_metamorphism",
               "texture");
-      requireObject(item, source, path, fields, fields);
+      Set<String> requiredFields =
+          Set.of(
+              "erodibility_distribution",
+              "genetic_family",
+              "id",
+              "lithology",
+              "modal_spread_fraction",
+              "modal_variation_axes",
+              "constituent_modes_ppm",
+              "permeability_distribution",
+              "porosity_distribution",
+              "texture");
+      requireObject(item, source, path, fields, requiredFields);
       result.add(
           new RockDefinition(
               identifier(text(item, "id", source, path), source, path + ".id"),
@@ -284,6 +297,8 @@ public final class MaterialCatalogJsonLoader {
                   text(item, "texture", source, path),
                   source,
                   path + ".texture"),
+              primaryMetamorphism(
+                  item.get("primary_metamorphism"), source, path + ".primary_metamorphism"),
               modes(
                   item.get("constituent_modes_ppm"),
                   source,
@@ -305,6 +320,41 @@ public final class MaterialCatalogJsonLoader {
       index++;
     }
     return List.copyOf(result);
+  }
+
+  private static Optional<PrimaryMetamorphicDefinition> primaryMetamorphism(
+      JsonNode node, String source, String path) {
+    if (node == null) {
+      return Optional.empty();
+    }
+    Set<String> fields =
+        Set.of(
+            "facies",
+            "grade",
+            "path",
+            "peak_pressure_mpa",
+            "peak_temperature_c",
+            "protolith_rock_id");
+    requireObject(node, source, path, fields, fields);
+    double[] temperature = interval(node.get("peak_temperature_c"), source, path);
+    double[] pressure = interval(node.get("peak_pressure_mpa"), source, path);
+    return Optional.of(
+        new PrimaryMetamorphicDefinition(
+            identifier(
+                text(node, "protolith_rock_id", source, path), source, path + ".protolith_rock_id"),
+            enumValue(
+                MetamorphicGrade.class, text(node, "grade", source, path), source, path + ".grade"),
+            enumValue(
+                MetamorphicFacies.class,
+                text(node, "facies", source, path),
+                source,
+                path + ".facies"),
+            enumValue(
+                MetamorphicPath.class, text(node, "path", source, path), source, path + ".path"),
+            temperature[0],
+            temperature[1],
+            pressure[0],
+            pressure[1]));
   }
 
   private static List<ModalVariationAxis> modalVariationAxes(
@@ -524,7 +574,7 @@ public final class MaterialCatalogJsonLoader {
       List<AlterationDefinition> alterations) {
     StringBuilder output = new StringBuilder();
     output.append(
-        "{\"canonical_schema\":\"geological:material_catalog_snapshot:v6\",\"evidence\":{");
+        "{\"canonical_schema\":\"geological:material_catalog_snapshot:v7\",\"evidence\":{");
     field(output, "citation_id", evidence.citationId());
     output.append(',');
     field(output, "parameter_basis", evidence.parameterBasis());
@@ -676,6 +726,28 @@ public final class MaterialCatalogJsonLoader {
           appendDistribution(output, rock.permeabilityDistribution());
           output.append(",\"porosity_distribution\":");
           appendDistribution(output, rock.porosityDistribution());
+          rock.primaryMetamorphism()
+              .ifPresent(
+                  metamorphism -> {
+                    output.append(",\"primary_metamorphism\":{");
+                    field(output, "facies", metamorphism.facies().name());
+                    output.append(',');
+                    field(output, "grade", metamorphism.grade().name());
+                    output.append(',');
+                    field(output, "path", metamorphism.path().name());
+                    output
+                        .append(",\"peak_pressure_mpa\":[")
+                        .append(Double.toString(metamorphism.minimumPressureMpa()))
+                        .append(',')
+                        .append(Double.toString(metamorphism.maximumPressureMpa()))
+                        .append("],\"peak_temperature_c\":[")
+                        .append(Double.toString(metamorphism.minimumTemperatureCelsius()))
+                        .append(',')
+                        .append(Double.toString(metamorphism.maximumTemperatureCelsius()))
+                        .append("],");
+                    field(output, "protolith_rock_id", metamorphism.protolithRockId());
+                    output.append('}');
+                  });
           output.append(',');
           field(output, "texture", rock.texture().name());
           output.append('}');

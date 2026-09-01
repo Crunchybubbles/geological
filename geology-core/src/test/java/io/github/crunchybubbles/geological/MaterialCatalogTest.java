@@ -15,6 +15,8 @@ import io.github.crunchybubbles.geological.petrology.MaterialCatalogJsonLoader;
 import io.github.crunchybubbles.geological.petrology.MaterialCatalogSnapshot;
 import io.github.crunchybubbles.geological.petrology.MaterialConstituentKind;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
+import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
+import io.github.crunchybubbles.geological.petrology.MetamorphicGrade;
 import io.github.crunchybubbles.geological.petrology.MineralDefinition;
 import io.github.crunchybubbles.geological.petrology.RockTexture;
 import io.github.crunchybubbles.geological.petrology.SolidSolutionState;
@@ -29,15 +31,15 @@ class MaterialCatalogTest {
   void packagedCatalogCoversEveryImplementedMaterialAndClosesChemistry() {
     MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
 
-    assertEquals(32, catalog.minerals().size());
+    assertEquals(34, catalog.minerals().size());
     assertEquals(1, catalog.nonCrystallineConstituents().size());
-    assertEquals(33, catalog.constituents().size());
+    assertEquals(35, catalog.constituents().size());
     assertEquals(6, catalog.solidSolutions().size());
-    assertEquals(21, catalog.rocks().size());
+    assertEquals(23, catalog.rocks().size());
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:45f005fc57c516b599129070398b55096f3025bb1eb63e300e4b1f8ce276278a",
+        "sha256:6e067f9a6eda1ee95960c157d69adb055f9b973f5fdb1280ed71c7c61c952639",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -66,6 +68,10 @@ class MaterialCatalogTest {
                   rock.permeabilityDistribution().contains(rock.permeabilityIndex()), rock.id());
               assertTrue(
                   rock.erodibilityDistribution().contains(rock.erodibilityIndex()), rock.id());
+              assertEquals(
+                  rock.geneticFamily() == GeneticFamily.METAMORPHIC,
+                  rock.primaryMetamorphism().isPresent(),
+                  rock.id());
               assertEquals(
                   MaterialAssemblage.SCALE,
                   rock.primaryAssemblage().modesPpm().values().stream()
@@ -270,6 +276,47 @@ class MaterialCatalogTest {
   }
 
   @Test
+  void peliticMetamorphicSliceAuthorsProtolithGradeAndIndexMinerals() {
+    MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
+    var slate = catalog.requireRock(Lithology.SLATE_PHYLLITE);
+    var schist = catalog.requireRock(Lithology.MICA_SCHIST);
+    var slateMetamorphism = slate.primaryMetamorphism().orElseThrow();
+    var schistMetamorphism = schist.primaryMetamorphism().orElseThrow();
+    MineralDefinition graphite = catalog.requireMineral("geological:mineral/graphite");
+    MineralDefinition almandine = catalog.requireMineral("geological:mineral/almandine");
+
+    assertEquals(RockTexture.SLATY_PHYLLITIC, slate.texture());
+    assertEquals(RockTexture.SCHISTOSE, schist.texture());
+    assertEquals("geological:rock/basin_shale", slateMetamorphism.protolithRockId());
+    assertEquals("geological:rock/basin_shale", schistMetamorphism.protolithRockId());
+    assertEquals(MetamorphicGrade.LOW, slateMetamorphism.grade());
+    assertEquals(MetamorphicGrade.MEDIUM, schistMetamorphism.grade());
+    assertEquals(MetamorphicFacies.GREENSCHIST, slateMetamorphism.facies());
+    assertEquals(MetamorphicFacies.AMPHIBOLITE, schistMetamorphism.facies());
+    assertEquals(
+        "geological:rock/felsic_stock",
+        catalog
+            .requireRock(Lithology.GRANITIC_GNEISS)
+            .primaryMetamorphism()
+            .orElseThrow()
+            .protolithRockId());
+    assertTrue(
+        slateMetamorphism.maximumTemperatureCelsius()
+            < schistMetamorphism.maximumTemperatureCelsius());
+    assertEquals(1.0, graphite.formula().get(ChemicalElement.C).doubleValue());
+    assertEquals(3.0, almandine.formula().get(ChemicalElement.FE).doubleValue());
+    assertEquals(2.0, almandine.formula().get(ChemicalElement.AL).doubleValue());
+    assertEquals(3.0, almandine.formula().get(ChemicalElement.SI).doubleValue());
+    assertEquals(12.0, almandine.formula().get(ChemicalElement.O).doubleValue());
+    assertEquals(10_000L, slate.primaryAssemblage().modesPpm().get("geological:mineral/graphite"));
+    assertEquals(
+        50_000L, schist.primaryAssemblage().modesPpm().get("geological:mineral/almandine"));
+    assertTrue(
+        catalog.composition(slate.primaryAssemblage()).elementMassPpm().get(ChemicalElement.C)
+            > 0L);
+  }
+
+  @Test
   void evaporiteSliceSeparatesHydratedSulfateFromLateChlorideSalts() {
     MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
     var sulfate = catalog.requireRock(Lithology.GYPSUM_ANHYDRITE_EVAPORITE);
@@ -327,7 +374,12 @@ class MaterialCatalogTest {
         reordered.replace(
             "{\"C\": 800000, \"H\": 50000, \"N\": 15000, \"O\": 120000, \"S\": 15000}",
             "{\"S\": 15000, \"O\": 120000, \"N\": 15000, \"H\": 50000, \"C\": 800000}");
+    reordered =
+        reordered.replace(
+            "\"facies\": \"AMPHIBOLITE\",\n        \"grade\": \"HIGH\"",
+            "\"grade\": \"HIGH\",\n        \"facies\": \"AMPHIBOLITE\"");
     assertTrue(reordered.contains("\"METAMORPHIC\", \"IGNEOUS\""));
+    assertTrue(reordered.contains("\"grade\": \"HIGH\",\n        \"facies\": \"AMPHIBOLITE\""));
 
     MaterialCatalogSnapshot loaded =
         new MaterialCatalogJsonLoader()
@@ -452,13 +504,40 @@ class MaterialCatalogTest {
                             sharedConstituentId.getBytes(StandardCharsets.UTF_8)),
                         "shared-constituent-id.json"));
     assertTrue(sharedIdFailure.getMessage().contains("shared by mineral and non-crystalline"));
+
+    String missingPrimaryMetamorphism =
+        authored.replace("\"genetic_family\": \"METAMORPHIC\"", "\"genetic_family\": \"IGNEOUS\"");
+    MaterialCatalogAuthoringException primaryFailure =
+        assertThrows(
+            MaterialCatalogAuthoringException.class,
+            () ->
+                new MaterialCatalogJsonLoader()
+                    .load(
+                        new ByteArrayInputStream(
+                            missingPrimaryMetamorphism.getBytes(StandardCharsets.UTF_8)),
+                        "invalid-primary-metamorphism.json"));
+    assertTrue(primaryFailure.getMessage().contains("required exactly for metamorphic"));
+
+    String unknownProtolith =
+        authored.replace(
+            "\"protolith_rock_id\": \"geological:rock/felsic_stock\"",
+            "\"protolith_rock_id\": \"geological:rock/unknown\"");
+    MaterialCatalogAuthoringException protolithFailure =
+        assertThrows(
+            MaterialCatalogAuthoringException.class,
+            () ->
+                new MaterialCatalogJsonLoader()
+                    .load(
+                        new ByteArrayInputStream(unknownProtolith.getBytes(StandardCharsets.UTF_8)),
+                        "unknown-protolith.json"));
+    assertTrue(protolithFailure.getMessage().contains("unknown metamorphic protolith"));
   }
 
   @Test
   void strictCatalogBoundaryRejectsUnknownFieldsAndUnclosedModes() {
     String unknown =
         """
-        {"authoring_schema":"geological:material_catalog_authoring:v6","evidence":{},
+        {"authoring_schema":"geological:material_catalog_authoring:v7","evidence":{},
         "minerals":[],"non_crystalline_constituents":[],"rocks":[],
         "solid_solutions":[],"overprints":[],"surprise":true}
         """;
@@ -475,7 +554,7 @@ class MaterialCatalogTest {
     String unclosed =
         """
         {
-          "authoring_schema":"geological:material_catalog_authoring:v6",
+          "authoring_schema":"geological:material_catalog_authoring:v7",
           "evidence":{"citation_id":"refs:test","parameter_basis":"test tunable",
             "publication_year":2000,"title":"Test","uri":"https://example.invalid/test"},
           "minerals":[{"density_g_cm3":2.65,"formula":{"Si":1,"O":2},
