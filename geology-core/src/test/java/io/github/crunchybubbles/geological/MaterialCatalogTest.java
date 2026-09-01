@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.crunchybubbles.geological.model.Lithology;
 import io.github.crunchybubbles.geological.model.Overprint;
+import io.github.crunchybubbles.geological.petrology.ChemicalElement;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
 import io.github.crunchybubbles.geological.petrology.MaterialCatalogAuthoringException;
 import io.github.crunchybubbles.geological.petrology.MaterialCatalogJsonLoader;
@@ -14,6 +15,7 @@ import io.github.crunchybubbles.geological.petrology.MaterialCatalogSnapshot;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
 import io.github.crunchybubbles.geological.petrology.MineralAssemblage;
 import io.github.crunchybubbles.geological.petrology.MineralDefinition;
+import io.github.crunchybubbles.geological.petrology.RockTexture;
 import io.github.crunchybubbles.geological.petrology.SolidSolutionState;
 import io.github.crunchybubbles.geological.query.Phase2World;
 import java.io.ByteArrayInputStream;
@@ -26,12 +28,13 @@ class MaterialCatalogTest {
   void packagedCatalogCoversEveryImplementedMaterialAndClosesChemistry() {
     MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
 
-    assertEquals(22, catalog.minerals().size());
-    assertEquals(4, catalog.solidSolutions().size());
+    assertEquals(26, catalog.minerals().size());
+    assertEquals(6, catalog.solidSolutions().size());
+    assertEquals(13, catalog.rocks().size());
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:bc94c35362707f4d73c656b0b3093107331922de86d71b8759778aee55240480",
+        "sha256:d78beb50fa432e5ee91ba0cbc256d66a4fc6340f79229087c09616fe589a234a",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -145,6 +148,40 @@ class MaterialCatalogTest {
   }
 
   @Test
+  void maficUltramaficSliceHasDistinctTexturesAndCompositionalPhases() {
+    MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
+    var ultramafic = catalog.requireRock(Lithology.KOMATIITIC_ULTRAMAFIC);
+    var basalt = catalog.requireRock(Lithology.BASALTIC);
+    var gabbro = catalog.requireRock(Lithology.GABBROIC);
+
+    assertEquals(RockTexture.ULTRAMAFIC_CRYSTALLINE, ultramafic.texture());
+    assertEquals(RockTexture.APHANITIC_CRYSTALLINE, basalt.texture());
+    assertEquals(RockTexture.PHANERITIC_CRYSTALLINE, gabbro.texture());
+    for (var rock : java.util.List.of(ultramafic, basalt, gabbro)) {
+      assertEquals(GeneticFamily.IGNEOUS, rock.geneticFamily());
+      var states = catalog.solidSolutionStates(rock.primaryAssemblage());
+      assertTrue(
+          states.stream()
+              .anyMatch(state -> state.definitionId().equals("geological:solid_solution/olivine")));
+      assertTrue(
+          states.stream()
+              .anyMatch(
+                  state -> state.definitionId().equals("geological:solid_solution/orthopyroxene")));
+    }
+
+    SolidSolutionState olivine =
+        catalog.solidSolutionStates(ultramafic.primaryAssemblage()).stream()
+            .filter(state -> state.definitionId().equals("geological:solid_solution/olivine"))
+            .findFirst()
+            .orElseThrow();
+    assertEquals(600_000L, olivine.phaseModePpm());
+    assertEquals(4.0, olivine.idealFormulaAtoms().get(ChemicalElement.O));
+    assertTrue(
+        olivine.endmemberMoleFractionsPpm().get("geological:mineral/forsterite")
+            > olivine.endmemberMoleFractionsPpm().get("geological:mineral/fayalite"));
+  }
+
+  @Test
   void canonicalCatalogIgnoresProtolithFamilyAuthoringOrder() throws Exception {
     String authored = packagedCatalogJson();
     String reordered =
@@ -153,6 +190,14 @@ class MaterialCatalogTest {
         reordered.replace(
             "\"geological:mineral/albite\", \"geological:mineral/anorthite\"",
             "\"geological:mineral/anorthite\", \"geological:mineral/albite\"");
+    reordered =
+        reordered.replace(
+            "\"geological:mineral/forsterite\", \"geological:mineral/fayalite\"",
+            "\"geological:mineral/fayalite\", \"geological:mineral/forsterite\"");
+    reordered =
+        reordered.replace(
+            "\"geological:mineral/enstatite\", \"geological:mineral/ferrosilite\"",
+            "\"geological:mineral/ferrosilite\", \"geological:mineral/enstatite\"");
     assertTrue(reordered.contains("\"METAMORPHIC\", \"IGNEOUS\""));
 
     MaterialCatalogSnapshot loaded =

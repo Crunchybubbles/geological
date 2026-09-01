@@ -3,6 +3,7 @@ package io.github.crunchybubbles.geological.cli;
 import io.github.crunchybubbles.geological.atlas.Province;
 import io.github.crunchybubbles.geological.atlas.ProvinceGrammar;
 import io.github.crunchybubbles.geological.atlas.RiftArcGeometry;
+import io.github.crunchybubbles.geological.determinism.StableId;
 import io.github.crunchybubbles.geological.model.AgeKey;
 import io.github.crunchybubbles.geological.model.Lithology;
 import io.github.crunchybubbles.geological.model.Overprint;
@@ -65,6 +66,36 @@ final class MaterialReviewPacketGenerator {
                   pulse.birthAge(),
                   Overprint.NONE)));
     }
+    samples.add(
+        sampleJson(
+            "komatiitic-ultramafic-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000101"),
+                Lithology.KOMATIITIC_ULTRAMAFIC,
+                new AgeKey(2_700.0, 0),
+                Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "basaltic-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000102"),
+                Lithology.BASALTIC,
+                new AgeKey(250.0, 0),
+                Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "gabbroic-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000103"),
+                Lithology.GABBROIC,
+                new AgeKey(250.0, 1),
+                Overprint.NONE)));
     RiftArcGeometry.PlutonPulse stock = pulses.getLast();
     samples.add(
         sampleJson(

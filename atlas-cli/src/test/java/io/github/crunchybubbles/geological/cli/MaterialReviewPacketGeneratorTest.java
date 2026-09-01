@@ -31,6 +31,10 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"loadingsPpm\""));
     assertTrue(firstJson.contains("\"solidSolutionCount\""));
     assertTrue(firstJson.contains("geological:solid_solution/plagioclase"));
+    assertTrue(firstJson.contains("geological:solid_solution/olivine"));
+    assertTrue(firstJson.contains("\"komatiitic-ultramafic-catalog\""));
+    assertTrue(firstJson.contains("\"basaltic-catalog\""));
+    assertTrue(firstJson.contains("\"gabbroic-catalog\""));
     assertTrue(firstJson.contains("\"endmemberMoleFractionsPpm\""));
     assertTrue(firstJson.contains("\"idealFormulaAtoms\""));
     assertTrue(firstJson.contains("\"protolithFamilies\""));

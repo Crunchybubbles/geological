@@ -2,7 +2,7 @@
   "authoring_schema": "geological:material_catalog_authoring:v5",
   "evidence": {
     "citation_id": "refs:philpotts_ague_2009",
-    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Mineral modes, modal covariance axes, protolith-conditioned response targets, textures, and physical-property distributions are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
+    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic expansion follows IUGS classification relationships and the cited USGS stratiform-chromite petrology synthesis. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Mineral modes, modal covariance axes, protolith-conditioned response targets, textures, and physical-property distributions are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
     "publication_year": 2009,
     "title": "Principles of Igneous and Metamorphic Petrology",
     "uri": "https://doi.org/10.1017/CBO9780511813429"
@@ -77,6 +77,34 @@
       "hardness_mohs": 5.8,
       "id": "geological:mineral/hedenbergite",
       "weathering_resistance": 0.37
+    },
+    {
+      "density_g_cm3": 3.27,
+      "formula": {"Mg": 2, "Si": 1, "O": 4},
+      "hardness_mohs": 7.0,
+      "id": "geological:mineral/forsterite",
+      "weathering_resistance": 0.18
+    },
+    {
+      "density_g_cm3": 4.39,
+      "formula": {"Fe": 2, "Si": 1, "O": 4},
+      "hardness_mohs": 6.5,
+      "id": "geological:mineral/fayalite",
+      "weathering_resistance": 0.12
+    },
+    {
+      "density_g_cm3": 3.2,
+      "formula": {"Mg": 2, "Si": 2, "O": 6},
+      "hardness_mohs": 5.5,
+      "id": "geological:mineral/enstatite",
+      "weathering_resistance": 0.32
+    },
+    {
+      "density_g_cm3": 4.0,
+      "formula": {"Fe": 2, "Si": 2, "O": 6},
+      "hardness_mohs": 5.5,
+      "id": "geological:mineral/ferrosilite",
+      "weathering_resistance": 0.26
     },
     {
       "density_g_cm3": 2.65,
@@ -182,6 +210,16 @@
     {
       "endmember_ids": ["geological:mineral/diopside", "geological:mineral/hedenbergite"],
       "id": "geological:solid_solution/calcic_clinopyroxene",
+      "mixing_model": "IDEAL_ENDMEMBER_INTERPOLATION"
+    },
+    {
+      "endmember_ids": ["geological:mineral/forsterite", "geological:mineral/fayalite"],
+      "id": "geological:solid_solution/olivine",
+      "mixing_model": "IDEAL_ENDMEMBER_INTERPOLATION"
+    },
+    {
+      "endmember_ids": ["geological:mineral/enstatite", "geological:mineral/ferrosilite"],
+      "id": "geological:solid_solution/orthopyroxene",
       "mixing_model": "IDEAL_ENDMEMBER_INTERPOLATION"
     }
   ],
@@ -335,6 +373,100 @@
       },
       "permeability_distribution": {"minimum": 0.42, "mode": 0.58, "maximum": 0.72},
       "porosity_distribution": {"minimum": 0.09, "mode": 0.13, "maximum": 0.18}
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.18, "mode": 0.24, "maximum": 0.32},
+      "genetic_family": "IGNEOUS",
+      "id": "geological:rock/komatiitic_ultramafic",
+      "lithology": "KOMATIITIC_ULTRAMAFIC",
+      "modal_spread_fraction": 0.12,
+      "modal_variation_axes": [
+        {
+          "id": "olivine_pyroxene_balance",
+          "loadings_ppm": {"geological:mineral/forsterite": 30000, "geological:mineral/fayalite": 5000, "geological:mineral/enstatite": -20000, "geological:mineral/ferrosilite": -2000, "geological:mineral/diopside": -12000, "geological:mineral/hedenbergite": -1000}
+        },
+        {
+          "id": "mafic_magnesium_iron_balance",
+          "loadings_ppm": {"geological:mineral/forsterite": 5000, "geological:mineral/fayalite": -4000, "geological:mineral/enstatite": 1000, "geological:mineral/ferrosilite": -2000}
+        }
+      ],
+      "texture": "ULTRAMAFIC_CRYSTALLINE",
+      "mineral_modes_ppm": {
+        "geological:mineral/forsterite": 520000,
+        "geological:mineral/fayalite": 80000,
+        "geological:mineral/enstatite": 180000,
+        "geological:mineral/ferrosilite": 40000,
+        "geological:mineral/diopside": 100000,
+        "geological:mineral/hedenbergite": 20000,
+        "geological:mineral/anorthite": 30000,
+        "geological:mineral/albite": 10000,
+        "geological:mineral/magnetite": 20000
+      },
+      "permeability_distribution": {"minimum": 0.015, "mode": 0.035, "maximum": 0.07},
+      "porosity_distribution": {"minimum": 0.004, "mode": 0.009, "maximum": 0.018}
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.2, "mode": 0.27, "maximum": 0.36},
+      "genetic_family": "IGNEOUS",
+      "id": "geological:rock/basaltic",
+      "lithology": "BASALTIC",
+      "modal_spread_fraction": 0.2,
+      "modal_variation_axes": [
+        {
+          "id": "plagioclase_mafic_balance",
+          "loadings_ppm": {"geological:mineral/anorthite": 20000, "geological:mineral/albite": 10000, "geological:mineral/diopside": -12000, "geological:mineral/hedenbergite": -4000, "geological:mineral/forsterite": -8000, "geological:mineral/fayalite": -3000, "geological:mineral/enstatite": -2000, "geological:mineral/ferrosilite": -1000}
+        },
+        {
+          "id": "mafic_magnesium_iron_balance",
+          "loadings_ppm": {"geological:mineral/forsterite": 8000, "geological:mineral/fayalite": -4000, "geological:mineral/enstatite": 2000, "geological:mineral/ferrosilite": -2000, "geological:mineral/diopside": 4000, "geological:mineral/hedenbergite": -8000}
+        }
+      ],
+      "texture": "APHANITIC_CRYSTALLINE",
+      "mineral_modes_ppm": {
+        "geological:mineral/anorthite": 300000,
+        "geological:mineral/albite": 180000,
+        "geological:mineral/diopside": 180000,
+        "geological:mineral/hedenbergite": 60000,
+        "geological:mineral/forsterite": 100000,
+        "geological:mineral/fayalite": 40000,
+        "geological:mineral/enstatite": 50000,
+        "geological:mineral/ferrosilite": 30000,
+        "geological:mineral/magnetite": 50000,
+        "geological:mineral/quartz": 10000
+      },
+      "permeability_distribution": {"minimum": 0.025, "mode": 0.06, "maximum": 0.13},
+      "porosity_distribution": {"minimum": 0.008, "mode": 0.025, "maximum": 0.06}
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.15, "mode": 0.2, "maximum": 0.27},
+      "genetic_family": "IGNEOUS",
+      "id": "geological:rock/gabbroic",
+      "lithology": "GABBROIC",
+      "modal_spread_fraction": 0.15,
+      "modal_variation_axes": [
+        {
+          "id": "plagioclase_pyroxene_balance",
+          "loadings_ppm": {"geological:mineral/anorthite": 15000, "geological:mineral/albite": 8000, "geological:mineral/diopside": -12000, "geological:mineral/hedenbergite": -4000, "geological:mineral/enstatite": -5000, "geological:mineral/ferrosilite": -2000}
+        },
+        {
+          "id": "olivine_pyroxene_balance",
+          "loadings_ppm": {"geological:mineral/forsterite": 8000, "geological:mineral/fayalite": 3000, "geological:mineral/diopside": -6000, "geological:mineral/hedenbergite": -2000, "geological:mineral/enstatite": -2000, "geological:mineral/ferrosilite": -1000}
+        }
+      ],
+      "texture": "PHANERITIC_CRYSTALLINE",
+      "mineral_modes_ppm": {
+        "geological:mineral/anorthite": 350000,
+        "geological:mineral/albite": 130000,
+        "geological:mineral/diopside": 230000,
+        "geological:mineral/hedenbergite": 60000,
+        "geological:mineral/forsterite": 90000,
+        "geological:mineral/fayalite": 30000,
+        "geological:mineral/enstatite": 50000,
+        "geological:mineral/ferrosilite": 20000,
+        "geological:mineral/magnetite": 40000
+      },
+      "permeability_distribution": {"minimum": 0.02, "mode": 0.045, "maximum": 0.085},
+      "porosity_distribution": {"minimum": 0.005, "mode": 0.012, "maximum": 0.026}
     },
     {
       "erodibility_distribution": {"minimum": 0.16, "mode": 0.2, "maximum": 0.25},
