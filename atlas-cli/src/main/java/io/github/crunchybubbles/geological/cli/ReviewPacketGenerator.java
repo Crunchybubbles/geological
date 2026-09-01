@@ -636,6 +636,10 @@ final class ReviewPacketGenerator {
       case MARINE_VOLCANICLASTIC -> new Color(67, 118, 105);
       case BASIN_SHALE -> new Color(75, 79, 88);
       case BASIN_SANDSTONE -> new Color(205, 174, 111);
+      case SILTSTONE -> new Color(152, 133, 111);
+      case LIMESTONE -> new Color(194, 195, 177);
+      case DOLOSTONE -> new Color(156, 157, 142);
+      case CHERT -> new Color(125, 115, 104);
       case KOMATIITIC_ULTRAMAFIC -> new Color(63, 85, 63);
       case BASALTIC -> new Color(62, 72, 78);
       case GABBROIC -> new Color(78, 91, 87);

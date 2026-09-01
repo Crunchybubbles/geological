@@ -28,13 +28,13 @@ class MaterialCatalogTest {
   void packagedCatalogCoversEveryImplementedMaterialAndClosesChemistry() {
     MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
 
-    assertEquals(26, catalog.minerals().size());
+    assertEquals(27, catalog.minerals().size());
     assertEquals(6, catalog.solidSolutions().size());
-    assertEquals(13, catalog.rocks().size());
+    assertEquals(17, catalog.rocks().size());
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:d78beb50fa432e5ee91ba0cbc256d66a4fc6340f79229087c09616fe589a234a",
+        "sha256:2149f60d2662878a563f8105228307db8401ac92fa7d38f3c2d1f34316706f2a",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -179,6 +179,46 @@ class MaterialCatalogTest {
     assertTrue(
         olivine.endmemberMoleFractionsPpm().get("geological:mineral/forsterite")
             > olivine.endmemberMoleFractionsPpm().get("geological:mineral/fayalite"));
+  }
+
+  @Test
+  void sedimentarySliceSeparatesGrainSizeCarbonateChemistryAndSilica() {
+    MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
+    var siltstone = catalog.requireRock(Lithology.SILTSTONE);
+    var limestone = catalog.requireRock(Lithology.LIMESTONE);
+    var dolostone = catalog.requireRock(Lithology.DOLOSTONE);
+    var chert = catalog.requireRock(Lithology.CHERT);
+
+    assertEquals(RockTexture.CLASTIC_SILT, siltstone.texture());
+    assertEquals(RockTexture.BEDDED_CARBONATE, limestone.texture());
+    assertEquals(RockTexture.BEDDED_CARBONATE, dolostone.texture());
+    assertEquals(RockTexture.MICROCRYSTALLINE_SILICA, chert.texture());
+    for (var rock : java.util.List.of(siltstone, limestone, dolostone, chert)) {
+      assertEquals(GeneticFamily.SEDIMENTARY, rock.geneticFamily());
+    }
+
+    MineralDefinition dolomite = catalog.requireMineral("geological:mineral/dolomite");
+    assertEquals(1.0, dolomite.formula().get(ChemicalElement.CA).doubleValue());
+    assertEquals(1.0, dolomite.formula().get(ChemicalElement.MG).doubleValue());
+    assertEquals(2.0, dolomite.formula().get(ChemicalElement.C).doubleValue());
+    assertEquals(6.0, dolomite.formula().get(ChemicalElement.O).doubleValue());
+    assertTrue(
+        catalog.composition(dolostone.primaryAssemblage()).elementMassPpm().get(ChemicalElement.MG)
+            > catalog
+                .composition(limestone.primaryAssemblage())
+                .elementMassPpm()
+                .get(ChemicalElement.MG));
+    assertTrue(
+        limestone.primaryAssemblage().modesPpm().get("geological:mineral/calcite")
+            > dolostone.primaryAssemblage().modesPpm().get("geological:mineral/calcite"));
+    assertEquals(920_000L, chert.primaryAssemblage().modesPpm().get("geological:mineral/quartz"));
+    assertTrue(
+        siltstone.primaryAssemblage().modesPpm().get("geological:mineral/kaolinite")
+            > catalog
+                .requireRock(Lithology.BASIN_SANDSTONE)
+                .primaryAssemblage()
+                .modesPpm()
+                .get("geological:mineral/kaolinite"));
   }
 
   @Test

@@ -331,6 +331,34 @@ public final class MaterialQueryEngine {
                   "submature",
                   "quartz_calcite_cemented",
                   sources);
+          case SILTSTONE ->
+              new SedimentaryState(
+                  "delta_front_to_offshore_transition",
+                  "silt",
+                  "submature_micaceous",
+                  "compacted_clay_matrix_and_calcite_cement",
+                  sources);
+          case LIMESTONE ->
+              new SedimentaryState(
+                  "carbonate_platform",
+                  "carbonate_mud_to_sand",
+                  "biochemical_chemical",
+                  "calcite_lithified",
+                  sources);
+          case DOLOSTONE ->
+              new SedimentaryState(
+                  "dolomitized_carbonate_platform",
+                  "carbonate_crystalline",
+                  "replacement_modified",
+                  "magnesium_replacement_and_recrystallization",
+                  sources);
+          case CHERT ->
+              new SedimentaryState(
+                  "marine_bedded_silica",
+                  "microcrystalline",
+                  "silica_rich",
+                  "silica_precipitation_and_recrystallization",
+                  sources);
           default ->
               throw new IllegalStateException("unmapped sedimentary lithology " + rock.lithology());
         });

@@ -12,6 +12,7 @@ import io.github.crunchybubbles.geological.model.Point3;
 import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
 import io.github.crunchybubbles.geological.petrology.ChemicalElement;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
+import io.github.crunchybubbles.geological.petrology.MagmaLineageState;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessLedger;
 import io.github.crunchybubbles.geological.petrology.MaterialQueryEngine;
 import io.github.crunchybubbles.geological.petrology.ModalVariationAxis;
@@ -19,6 +20,7 @@ import io.github.crunchybubbles.geological.petrology.PetrologicSample;
 import io.github.crunchybubbles.geological.petrology.ProcessFluidState;
 import io.github.crunchybubbles.geological.petrology.ReservoirTransfer;
 import io.github.crunchybubbles.geological.petrology.RockDefinition;
+import io.github.crunchybubbles.geological.petrology.SedimentaryState;
 import io.github.crunchybubbles.geological.petrology.SolidSolutionDefinition;
 import io.github.crunchybubbles.geological.petrology.SolidSolutionState;
 import io.github.crunchybubbles.geological.petrology.SurfacePetrologicSample;
@@ -95,6 +97,46 @@ final class MaterialReviewPacketGenerator {
                 StableId.parse("00000000000000000000000000000103"),
                 Lithology.GABBROIC,
                 new AgeKey(250.0, 1),
+                Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "siltstone-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000201"),
+                Lithology.SILTSTONE,
+                new AgeKey(180.0, 0),
+                Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "limestone-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000202"),
+                Lithology.LIMESTONE,
+                new AgeKey(180.0, 1),
+                Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "dolostone-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000203"),
+                Lithology.DOLOSTONE,
+                new AgeKey(170.0, 0),
+                Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "chert-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000204"),
+                Lithology.CHERT,
+                new AgeKey(165.0, 0),
                 Overprint.NONE)));
     RiftArcGeometry.PlutonPulse stock = pulses.getLast();
     samples.add(
@@ -356,6 +398,10 @@ final class MaterialReviewPacketGenerator {
         sample.permeabilityIndex(),
         "erodibilityIndex",
         sample.erodibilityIndex(),
+        "magmaLineage",
+        sample.magmaLineage().map(this::magmaLineageJson).orElse(null),
+        "sedimentaryState",
+        sample.sedimentaryState().map(this::sedimentaryStateJson).orElse(null),
         "metamorphism",
         JsonWriter.object(
             "facies",
@@ -378,6 +424,40 @@ final class MaterialReviewPacketGenerator {
         sample.fluidState().map(this::fluidStateJson).orElse(null),
         "reservoirSystemIds",
         sample.reservoirLedgers().stream().map(ledger -> ledger.systemId().toString()).toList());
+  }
+
+  private Map<String, Object> magmaLineageJson(MagmaLineageState state) {
+    return JsonWriter.object(
+        "systemId",
+        state.systemId().toString(),
+        "pulseId",
+        state.pulseId().toString(),
+        "pulseOrder",
+        state.pulseOrder(),
+        "differentiationProgress",
+        state.differentiationProgress(),
+        "sourceReservoirClass",
+        state.sourceReservoirClass(),
+        "waterClass",
+        state.waterClass(),
+        "oxidationClass",
+        state.oxidationClass(),
+        "residualFluidPotential",
+        state.residualFluidPotential());
+  }
+
+  private Map<String, Object> sedimentaryStateJson(SedimentaryState state) {
+    return JsonWriter.object(
+        "faciesClass",
+        state.faciesClass(),
+        "grainSizeClass",
+        state.grainSizeClass(),
+        "maturityClass",
+        state.maturityClass(),
+        "diagenesisClass",
+        state.diagenesisClass(),
+        "sourceBodyIds",
+        state.sourceBodyIds().stream().map(Object::toString).toList());
   }
 
   private Map<String, Object> solidSolutionStateJson(SolidSolutionState state) {

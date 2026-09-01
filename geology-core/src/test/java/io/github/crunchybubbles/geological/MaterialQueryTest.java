@@ -39,14 +39,14 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.8", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.9", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:45491bfdea58fe1e5c196e278ba4ae9c8ca8235c30910c857b01c111bbb129ea",
+        "sha256:d1941b8e2daefbc1b9ee609c53a7d180128182f37066279e1f9340794c910f39",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -310,6 +310,37 @@ class MaterialQueryTest {
             .orElseThrow()
             .sourceBodyIds()
             .contains(province.proofIds().magmaLineageId()));
+  }
+
+  @Test
+  void expandedSedimentaryClassesExposeDistinctFaciesAndDiagenesis() {
+    MaterialQueryEngine query = Phase2World.create(4_104L);
+    Province province = query.geology().atlas().provinceAt(new Point2(0.0, 0.0));
+    for (Lithology lithology :
+        List.of(Lithology.SILTSTONE, Lithology.LIMESTONE, Lithology.DOLOSTONE, Lithology.CHERT)) {
+      PetrologicSample material =
+          query.resolve(
+              province,
+              sample(
+                  province,
+                  new Point3(0.0, 0.0, 0.0),
+                  province.geometry().basin().packageId(),
+                  lithology,
+                  new AgeKey(180.0, 0),
+                  Overprint.NONE));
+      var sedimentary = material.sedimentaryState().orElseThrow();
+      String expectedFacies =
+          switch (lithology) {
+            case SILTSTONE -> "delta_front_to_offshore_transition";
+            case LIMESTONE -> "carbonate_platform";
+            case DOLOSTONE -> "dolomitized_carbonate_platform";
+            case CHERT -> "marine_bedded_silica";
+            default -> throw new AssertionError("unexpected fixture " + lithology);
+          };
+      assertEquals(expectedFacies, sedimentary.faciesClass());
+      assertFalse(sedimentary.diagenesisClass().isBlank());
+      assertTrue(sedimentary.sourceBodyIds().contains(province.geometry().basementId()));
+    }
   }
 
   @Test

@@ -2,7 +2,7 @@
   "authoring_schema": "geological:material_catalog_authoring:v5",
   "evidence": {
     "citation_id": "refs:philpotts_ague_2009",
-    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic expansion follows IUGS classification relationships and the cited USGS stratiform-chromite petrology synthesis. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Mineral modes, modal covariance axes, protolith-conditioned response targets, textures, and physical-property distributions are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
+    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic and siltstone-carbonate-chert expansions follow published classification and USGS petrologic relationships documented in the public architecture. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Mineral modes, modal covariance axes, protolith-conditioned response targets, textures, and physical-property distributions are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
     "publication_year": 2009,
     "title": "Principles of Igneous and Metamorphic Petrology",
     "uri": "https://doi.org/10.1017/CBO9780511813429"
@@ -133,6 +133,13 @@
       "hardness_mohs": 3.0,
       "id": "geological:mineral/calcite",
       "weathering_resistance": 0.16
+    },
+    {
+      "density_g_cm3": 2.85,
+      "formula": {"Ca": 1, "Mg": 1, "C": 2, "O": 6},
+      "hardness_mohs": 3.5,
+      "id": "geological:mineral/dolomite",
+      "weathering_resistance": 0.22
     },
     {
       "density_g_cm3": 2.6,
@@ -373,6 +380,119 @@
       },
       "permeability_distribution": {"minimum": 0.42, "mode": 0.58, "maximum": 0.72},
       "porosity_distribution": {"minimum": 0.09, "mode": 0.13, "maximum": 0.18}
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.4, "mode": 0.5, "maximum": 0.62},
+      "genetic_family": "SEDIMENTARY",
+      "id": "geological:rock/siltstone",
+      "lithology": "SILTSTONE",
+      "modal_spread_fraction": 0.15,
+      "modal_variation_axes": [
+        {
+          "id": "quartz_clay_balance",
+          "loadings_ppm": {"geological:mineral/quartz": 18000, "geological:mineral/kaolinite": -12000, "geological:mineral/muscovite": -6000}
+        },
+        {
+          "id": "carbonate_clay_cement_balance",
+          "loadings_ppm": {"geological:mineral/calcite": 7000, "geological:mineral/kaolinite": -4000, "geological:mineral/muscovite": -3000}
+        }
+      ],
+      "texture": "CLASTIC_SILT",
+      "mineral_modes_ppm": {
+        "geological:mineral/quartz": 550000,
+        "geological:mineral/albite": 70000,
+        "geological:mineral/orthoclase": 50000,
+        "geological:mineral/muscovite": 80000,
+        "geological:mineral/clinochlore": 50000,
+        "geological:mineral/kaolinite": 120000,
+        "geological:mineral/calcite": 50000,
+        "geological:mineral/magnetite": 10000,
+        "geological:mineral/pyrite": 20000
+      },
+      "permeability_distribution": {"minimum": 0.15, "mode": 0.3, "maximum": 0.48},
+      "porosity_distribution": {"minimum": 0.06, "mode": 0.1, "maximum": 0.15}
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.28, "mode": 0.42, "maximum": 0.6},
+      "genetic_family": "SEDIMENTARY",
+      "id": "geological:rock/limestone",
+      "lithology": "LIMESTONE",
+      "modal_spread_fraction": 0.2,
+      "modal_variation_axes": [
+        {
+          "id": "carbonate_silicate_dilution",
+          "loadings_ppm": {"geological:mineral/calcite": 11000, "geological:mineral/quartz": -5000, "geological:mineral/kaolinite": -4000, "geological:mineral/muscovite": -2000}
+        },
+        {
+          "id": "calcite_dolomite_balance",
+          "loadings_ppm": {"geological:mineral/calcite": 10000, "geological:mineral/dolomite": -10000}
+        }
+      ],
+      "texture": "BEDDED_CARBONATE",
+      "mineral_modes_ppm": {
+        "geological:mineral/calcite": 880000,
+        "geological:mineral/dolomite": 50000,
+        "geological:mineral/quartz": 30000,
+        "geological:mineral/kaolinite": 20000,
+        "geological:mineral/pyrite": 10000,
+        "geological:mineral/muscovite": 10000
+      },
+      "permeability_distribution": {"minimum": 0.04, "mode": 0.18, "maximum": 0.45},
+      "porosity_distribution": {"minimum": 0.02, "mode": 0.07, "maximum": 0.18}
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.22, "mode": 0.34, "maximum": 0.5},
+      "genetic_family": "SEDIMENTARY",
+      "id": "geological:rock/dolostone",
+      "lithology": "DOLOSTONE",
+      "modal_spread_fraction": 0.15,
+      "modal_variation_axes": [
+        {
+          "id": "dolomite_calcite_balance",
+          "loadings_ppm": {"geological:mineral/dolomite": 12000, "geological:mineral/calcite": -12000}
+        },
+        {
+          "id": "carbonate_silicate_dilution",
+          "loadings_ppm": {"geological:mineral/dolomite": 7000, "geological:mineral/quartz": -4000, "geological:mineral/kaolinite": -3000}
+        }
+      ],
+      "texture": "BEDDED_CARBONATE",
+      "mineral_modes_ppm": {
+        "geological:mineral/dolomite": 820000,
+        "geological:mineral/calcite": 80000,
+        "geological:mineral/quartz": 50000,
+        "geological:mineral/kaolinite": 20000,
+        "geological:mineral/albite": 10000,
+        "geological:mineral/pyrite": 10000,
+        "geological:mineral/magnetite": 10000
+      },
+      "permeability_distribution": {"minimum": 0.06, "mode": 0.24, "maximum": 0.55},
+      "porosity_distribution": {"minimum": 0.025, "mode": 0.08, "maximum": 0.2}
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.08, "mode": 0.14, "maximum": 0.24},
+      "genetic_family": "SEDIMENTARY",
+      "id": "geological:rock/chert",
+      "lithology": "CHERT",
+      "modal_spread_fraction": 0.2,
+      "modal_variation_axes": [
+        {
+          "id": "silica_clay_oxide_balance",
+          "loadings_ppm": {"geological:mineral/quartz": 11000, "geological:mineral/kaolinite": -4000, "geological:mineral/muscovite": -2000, "geological:mineral/hematite": -3000, "geological:mineral/magnetite": -2000}
+        }
+      ],
+      "texture": "MICROCRYSTALLINE_SILICA",
+      "mineral_modes_ppm": {
+        "geological:mineral/quartz": 920000,
+        "geological:mineral/hematite": 20000,
+        "geological:mineral/magnetite": 10000,
+        "geological:mineral/kaolinite": 20000,
+        "geological:mineral/muscovite": 10000,
+        "geological:mineral/calcite": 10000,
+        "geological:mineral/pyrite": 10000
+      },
+      "permeability_distribution": {"minimum": 0.01, "mode": 0.04, "maximum": 0.12},
+      "porosity_distribution": {"minimum": 0.005, "mode": 0.02, "maximum": 0.06}
     },
     {
       "erodibility_distribution": {"minimum": 0.18, "mode": 0.24, "maximum": 0.32},
