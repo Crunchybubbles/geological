@@ -184,6 +184,7 @@ public final class MaterialQueryEngine {
     return new PetrologicSample(
         geological,
         rock,
+        alteration.responseTexture().orElse(rock.texture()),
         recipe.primaryAssemblage(),
         recipe.resolvedAssemblage(),
         recipe.primarySolidSolutions(),

@@ -39,7 +39,7 @@ class MaterialCatalogTest {
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:e644d96e97dd2aad801ac5239c9eeb0e302484db6962434849e42974b24ecc07",
+        "sha256:d995ffa0d66acdf1139ad6d60c6792f18bf286fadae0e24d92c6acd829e77b26",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -93,6 +93,9 @@ class MaterialCatalogTest {
                   alteration.processClass() == MaterialProcessClass.HYDROTHERMAL_METASOMATISM
                       || alteration.processClass() == MaterialProcessClass.WEATHERING;
               assertEquals(requiresFluid, alteration.fluidState().isPresent());
+              assertEquals(
+                  alteration.processClass() == MaterialProcessClass.ISOCHEMICAL_METAMORPHISM,
+                  alteration.responseTexture().isPresent());
               if (alteration.replacementPpm() > 0) {
                 assertTrue(alteration.targetRecipes().size() >= 3, alteration.overprint().name());
                 assertEquals(
@@ -110,6 +113,9 @@ class MaterialCatalogTest {
                     alteration.overprint() + "/" + family);
               }
             });
+    assertEquals(
+        RockTexture.HORNFELSIC,
+        catalog.requireAlteration(Overprint.CONTACT_HORNFELS).responseTexture().orElseThrow());
     assertFalse(
         catalog
             .requireAlteration(Overprint.OXIDIZED_GOSSAN)
@@ -572,6 +578,19 @@ class MaterialCatalogTest {
                         "incomplete-recipes.json"));
     assertTrue(recipeFailure.getMessage().contains("cover every protolith family"));
 
+    String missingResponseTexture =
+        authored.replace("\"response_texture\": \"HORNFELSIC\"", "\"response_texture\": null");
+    MaterialCatalogAuthoringException textureFailure =
+        assertThrows(
+            MaterialCatalogAuthoringException.class,
+            () ->
+                new MaterialCatalogJsonLoader()
+                    .load(
+                        new ByteArrayInputStream(
+                            missingResponseTexture.getBytes(StandardCharsets.UTF_8)),
+                        "missing-response-texture.json"));
+    assertTrue(textureFailure.getMessage().contains("explicit response texture"));
+
     String invalidLigand =
         authored.replace(
             "{\"chloride\": 3, \"reduced_sulfur\": 2, \"carbonate\": 1, \"fluorine_boron\": 2}",
@@ -687,7 +706,7 @@ class MaterialCatalogTest {
   void strictCatalogBoundaryRejectsUnknownFieldsAndUnclosedModes() {
     String unknown =
         """
-        {"authoring_schema":"geological:material_catalog_authoring:v7","evidence":{},
+        {"authoring_schema":"geological:material_catalog_authoring:v8","evidence":{},
         "minerals":[],"non_crystalline_constituents":[],"rocks":[],
         "solid_solutions":[],"overprints":[],"surprise":true}
         """;
@@ -704,7 +723,7 @@ class MaterialCatalogTest {
     String unclosed =
         """
         {
-          "authoring_schema":"geological:material_catalog_authoring:v7",
+          "authoring_schema":"geological:material_catalog_authoring:v8",
           "evidence":{"citation_id":"refs:test","parameter_basis":"test tunable",
             "publication_year":2000,"title":"Test","uri":"https://example.invalid/test"},
           "minerals":[{"density_g_cm3":2.65,"formula":{"Si":1,"O":2},

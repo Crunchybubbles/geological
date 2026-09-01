@@ -99,6 +99,64 @@ class MaterialSchemaTest {
   }
 
   @Test
+  void responseTextureIsRequiredExactlyForIsochemicalMetamorphism() {
+    AlterationDefinition hornfels =
+        new AlterationDefinition(
+            Overprint.CONTACT_HORNFELS,
+            MaterialProcessClass.ISOCHEMICAL_METAMORPHISM,
+            Optional.empty(),
+            0,
+            List.of(),
+            Optional.of(RockTexture.HORNFELSIC),
+            MetamorphicFacies.HORNBLENDE_HORNFELS,
+            MetamorphicPath.CONTACT_LOW_P,
+            500.0,
+            700.0,
+            100.0,
+            300.0,
+            0.7,
+            -0.08);
+
+    assertEquals(RockTexture.HORNFELSIC, hornfels.responseTexture().orElseThrow());
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new AlterationDefinition(
+                hornfels.overprint(),
+                hornfels.processClass(),
+                hornfels.fluidState(),
+                hornfels.replacementPpm(),
+                hornfels.targetRecipes(),
+                Optional.empty(),
+                hornfels.facies(),
+                hornfels.path(),
+                hornfels.minimumTemperatureCelsius(),
+                hornfels.maximumTemperatureCelsius(),
+                hornfels.minimumPressureMpa(),
+                hornfels.maximumPressureMpa(),
+                hornfels.porosityMultiplier(),
+                hornfels.erodibilityDelta()));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new AlterationDefinition(
+                Overprint.NONE,
+                MaterialProcessClass.NONE,
+                Optional.empty(),
+                0,
+                List.of(),
+                Optional.of(RockTexture.HORNFELSIC),
+                MetamorphicFacies.NONE,
+                MetamorphicPath.NONE,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0));
+  }
+
+  @Test
   void primaryMetamorphismIsRequiredOnlyForMetamorphicRockRecipes() {
     PrimaryMetamorphicDefinition metamorphism =
         new PrimaryMetamorphicDefinition(
@@ -234,6 +292,7 @@ class MaterialSchemaTest {
         fluidState,
         250_000,
         recipes,
+        Optional.empty(),
         MetamorphicFacies.NONE,
         MetamorphicPath.NONE,
         300.0,

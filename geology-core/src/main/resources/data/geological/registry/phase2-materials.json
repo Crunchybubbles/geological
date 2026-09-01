@@ -1,8 +1,8 @@
 {
-  "authoring_schema": "geological:material_catalog_authoring:v7",
+  "authoring_schema": "geological:material_catalog_authoring:v8",
   "evidence": {
     "citation_id": "refs:philpotts_ague_2009",
-    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic, sedimentary, pelitic slate-phyllite-to-schist, basalt-derived greenschist-to-amphibolite-to-granulite, and sandstone-to-quartzite and limestone-to-marble expansions follow published classification and USGS relationships documented in the public architecture. Hornblende is represented by simplified hydroxyl magnesiohornblende-ferrohornblende endmembers, not by the lower-aluminum actinolite proxy used in greenschist; high-grade mafic granulite uses an anhydrous plagioclase-orthopyroxene-clinopyroxene-garnet proxy rather than retaining amphibolite's dominant hornblende. Non-crystalline organic matter uses an explicit closed bulk-element proxy rather than a fictitious mineral formula. Primary metamorphic recipes author a non-metamorphic original protolith plus coarse grade, facies, path, and peak P-T envelope; they are not independent decorative rock rolls. Quartzite and marble are authored at one low-grade regional proof envelope even though those composition-and-texture rock classes occur across broader metamorphic conditions. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Constituent modes, modal covariance axes, protolith-conditioned response targets, textures, physical-property distributions, P-T envelopes, and organic bulk chemistry are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
+    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic, sedimentary, pelitic slate-phyllite-to-schist, basalt-derived greenschist-to-amphibolite-to-granulite, and sandstone-to-quartzite and limestone-to-marble expansions follow published classification and USGS relationships documented in the public architecture. Hornblende is represented by simplified hydroxyl magnesiohornblende-ferrohornblende endmembers, not by the lower-aluminum actinolite proxy used in greenschist; high-grade mafic granulite uses an anhydrous plagioclase-orthopyroxene-clinopyroxene-garnet proxy rather than retaining amphibolite's dominant hornblende. Non-crystalline organic matter uses an explicit closed bulk-element proxy rather than a fictitious mineral formula. Primary metamorphic recipes author a non-metamorphic original protolith plus coarse grade, facies, path, and peak P-T envelope; they are not independent decorative rock rolls. Quartzite and marble are authored at one low-grade regional proof envelope even though those composition-and-texture rock classes occur across broader metamorphic conditions. Contact hornfels is an isochemical, host-preserving response with an explicit hornfelsic resolved texture rather than a fixed-composition primary lithology; the original rock still controls its mineralogy. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Constituent modes, modal covariance axes, protolith-conditioned response targets, primary and resolved textures, physical-property distributions, P-T envelopes, and organic bulk chemistry are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
     "publication_year": 2009,
     "title": "Principles of Igneous and Metamorphic Petrology",
     "uri": "https://doi.org/10.1017/CBO9780511813429"
@@ -1257,6 +1257,7 @@
       "porosity_multiplier": 1.0,
       "process_class": "NONE",
       "replacement_ppm": 0,
+      "response_texture": null,
       "target_recipes": []
     },
     {
@@ -1278,6 +1279,7 @@
       "porosity_multiplier": 1.35,
       "process_class": "WEATHERING",
       "replacement_ppm": 200000,
+      "response_texture": null,
       "target_recipes": [
         {"protolith_families": ["IGNEOUS", "METAMORPHIC"], "target_modes_ppm": {
           "geological:mineral/quartz": 200000,
@@ -1314,6 +1316,7 @@
       "porosity_multiplier": 0.7,
       "process_class": "ISOCHEMICAL_METAMORPHISM",
       "replacement_ppm": 0,
+      "response_texture": "HORNFELSIC",
       "target_recipes": []
     },
     {
@@ -1335,6 +1338,7 @@
       "porosity_multiplier": 0.9,
       "process_class": "HYDROTHERMAL_METASOMATISM",
       "replacement_ppm": 300000,
+      "response_texture": null,
       "target_recipes": [
         {"protolith_families": ["IGNEOUS", "METAMORPHIC"], "target_modes_ppm": {
           "geological:mineral/orthoclase": 450000,
@@ -1383,6 +1387,7 @@
       "porosity_multiplier": 1.2,
       "process_class": "HYDROTHERMAL_METASOMATISM",
       "replacement_ppm": 400000,
+      "response_texture": null,
       "target_recipes": [
         {"protolith_families": ["IGNEOUS", "METAMORPHIC"], "target_modes_ppm": {
           "geological:mineral/quartz": 350000,
@@ -1427,6 +1432,7 @@
       "porosity_multiplier": 1.08,
       "process_class": "HYDROTHERMAL_METASOMATISM",
       "replacement_ppm": 280000,
+      "response_texture": null,
       "target_recipes": [
         {"protolith_families": ["IGNEOUS", "METAMORPHIC"], "target_modes_ppm": {
           "geological:mineral/clinochlore": 300000,
@@ -1474,6 +1480,7 @@
       "porosity_multiplier": 1.15,
       "process_class": "HYDROTHERMAL_METASOMATISM",
       "replacement_ppm": 350000,
+      "response_texture": null,
       "target_recipes": [
         {"protolith_families": ["IGNEOUS", "METAMORPHIC"], "target_modes_ppm": {
           "geological:mineral/clinochlore": 500000,
@@ -1520,6 +1527,7 @@
       "porosity_multiplier": 1.45,
       "process_class": "WEATHERING",
       "replacement_ppm": 500000,
+      "response_texture": null,
       "target_recipes": [
         {"protolith_families": ["IGNEOUS", "METAMORPHIC"], "target_modes_ppm": {
           "geological:mineral/goethite": 400000,
@@ -1571,6 +1579,7 @@
       "porosity_multiplier": 1.4,
       "process_class": "WEATHERING",
       "replacement_ppm": 300000,
+      "response_texture": null,
       "target_recipes": [
         {"protolith_families": ["IGNEOUS", "METAMORPHIC"], "target_modes_ppm": {
           "geological:mineral/kaolinite": 400000,

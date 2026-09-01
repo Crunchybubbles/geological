@@ -26,6 +26,7 @@ import io.github.crunchybubbles.geological.petrology.MetamorphicGrade;
 import io.github.crunchybubbles.geological.petrology.PetrologicColumnResult;
 import io.github.crunchybubbles.geological.petrology.PetrologicSample;
 import io.github.crunchybubbles.geological.petrology.PetrologicState;
+import io.github.crunchybubbles.geological.petrology.RockTexture;
 import io.github.crunchybubbles.geological.petrology.SalinityClass;
 import io.github.crunchybubbles.geological.petrology.SolidSolutionState;
 import io.github.crunchybubbles.geological.petrology.SurfaceMaterialKind;
@@ -41,14 +42,14 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.16", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.17", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:a1bd5c3058b8051d89968a0b8548cb304eac4677e4676f89366455f9a58cafa7",
+        "sha256:c22cfa903a0055aadf9614fce20cfe2fd6b4520f2cad9283dbf5f2e1521a5a6e",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -664,6 +665,8 @@ class MaterialQueryTest {
     assertEquals(MetamorphicGrade.HIGH, hornfels.metamorphism().grade());
     assertEquals(MetamorphicFacies.HORNBLENDE_HORNFELS, hornfels.metamorphism().facies());
     assertEquals(MaterialProcessClass.ISOCHEMICAL_METAMORPHISM, hornfels.processClass());
+    assertEquals(RockTexture.HORNFELSIC, hornfels.resolvedTexture());
+    assertNotEquals(hornfels.rock().texture(), hornfels.resolvedTexture());
     assertTrue(hornfels.fluidState().isEmpty());
     assertTrue(hornfels.elementLedger().isIsochemical());
     assertEquals(

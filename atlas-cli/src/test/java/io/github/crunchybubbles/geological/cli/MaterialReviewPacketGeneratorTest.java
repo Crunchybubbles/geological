@@ -26,6 +26,10 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"surfacePlacerContext\""));
     assertTrue(firstJson.contains("\"normalizedExchangeMagnitudePpm\""));
     assertTrue(firstJson.contains("\"texture\""));
+    assertTrue(firstJson.contains("\"responseTexture\""));
+    assertTrue(firstJson.contains("\"primaryTexture\""));
+    assertTrue(firstJson.contains("\"resolvedTexture\""));
+    assertTrue(firstJson.contains("\"HORNFELSIC\""));
     assertTrue(firstJson.contains("\"porosityDistribution\""));
     assertTrue(firstJson.contains("\"modalVariationAxes\""));
     assertTrue(firstJson.contains("\"loadingsPpm\""));

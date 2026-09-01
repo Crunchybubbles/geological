@@ -8,6 +8,7 @@ import java.util.Optional;
 public record PetrologicSample(
     GeologicalSample geology,
     RockDefinition rock,
+    RockTexture resolvedTexture,
     MaterialAssemblage primaryAssemblage,
     MaterialAssemblage resolvedAssemblage,
     List<SolidSolutionState> primarySolidSolutions,
@@ -28,6 +29,7 @@ public record PetrologicSample(
   public PetrologicSample {
     if (geology == null
         || rock == null
+        || resolvedTexture == null
         || primaryAssemblage == null
         || resolvedAssemblage == null
         || primarySolidSolutions == null

@@ -26,7 +26,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 /** Strict JSON boundary for the typed constituent, rock, and alteration data pack. */
 public final class MaterialCatalogJsonLoader {
-  public static final String AUTHORING_SCHEMA = "geological:material_catalog_authoring:v7";
+  public static final String AUTHORING_SCHEMA = "geological:material_catalog_authoring:v8";
   private static final int MAX_DOCUMENT_BYTES = 1_048_576;
   private static final Pattern IDENTIFIER = Pattern.compile("[a-z0-9_.-]+:[a-z0-9_./-]+");
   private static final JsonMapper JSON =
@@ -402,8 +402,11 @@ public final class MaterialCatalogJsonLoader {
               "porosity_multiplier",
               "process_class",
               "replacement_ppm",
+              "response_texture",
               "target_recipes");
-      requireObject(item, source, path, fields, fields);
+      Set<String> nonNullFields = new java.util.HashSet<>(fields);
+      nonNullFields.remove("response_texture");
+      requireObject(item, source, path, fields, nonNullFields);
       long replacement = longInteger(item, "replacement_ppm", source, path);
       List<AlterationAssemblageRecipe> targets =
           targetRecipes(item.get("target_recipes"), source, path + ".target_recipes");
@@ -424,6 +427,11 @@ public final class MaterialCatalogJsonLoader {
               fluidState(item.get("fluid_state"), source, path + ".fluid_state"),
               replacement,
               targets,
+              optionalEnum(
+                  RockTexture.class,
+                  item.get("response_texture"),
+                  source,
+                  path + ".response_texture"),
               enumValue(
                   MetamorphicFacies.class,
                   text(item, "facies", source, path),
@@ -574,7 +582,7 @@ public final class MaterialCatalogJsonLoader {
       List<AlterationDefinition> alterations) {
     StringBuilder output = new StringBuilder();
     output.append(
-        "{\"canonical_schema\":\"geological:material_catalog_snapshot:v7\",\"evidence\":{");
+        "{\"canonical_schema\":\"geological:material_catalog_snapshot:v8\",\"evidence\":{");
     field(output, "citation_id", evidence.citationId());
     output.append(',');
     field(output, "parameter_basis", evidence.parameterBasis());
@@ -675,6 +683,12 @@ public final class MaterialCatalogJsonLoader {
           field(output, "process_class", alteration.processClass().name());
           output.append(',');
           field(output, "replacement_ppm", alteration.replacementPpm());
+          output.append(",\"response_texture\":");
+          if (alteration.responseTexture().isPresent()) {
+            string(output, alteration.responseTexture().orElseThrow().name());
+          } else {
+            output.append("null");
+          }
           output.append(",\"target_recipes\":[");
           appendSeparated(
               output,
@@ -910,6 +924,20 @@ public final class MaterialCatalogJsonLoader {
     } catch (IllegalArgumentException exception) {
       throw error(source, path, "unsupported " + type.getSimpleName() + " " + value);
     }
+  }
+
+  private static <T extends Enum<T>> Optional<T> optionalEnum(
+      Class<T> type, JsonNode node, String source, String path) {
+    if (node == null) {
+      throw error(source, path, "is required");
+    }
+    if (node.isNull()) {
+      return Optional.empty();
+    }
+    if (!node.isString() || node.stringValue().isBlank()) {
+      throw error(source, path, "must be null or a non-blank string");
+    }
+    return Optional.of(enumValue(type, node.stringValue(), source, path));
   }
 
   private static <T> void appendSeparated(

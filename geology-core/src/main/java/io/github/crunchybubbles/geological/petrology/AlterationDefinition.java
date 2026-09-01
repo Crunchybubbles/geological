@@ -13,6 +13,7 @@ public record AlterationDefinition(
     Optional<ProcessFluidState> fluidState,
     long replacementPpm,
     List<AlterationAssemblageRecipe> targetRecipes,
+    Optional<RockTexture> responseTexture,
     MetamorphicFacies facies,
     MetamorphicPath path,
     double minimumTemperatureCelsius,
@@ -26,6 +27,7 @@ public record AlterationDefinition(
         || processClass == null
         || fluidState == null
         || targetRecipes == null
+        || responseTexture == null
         || facies == null
         || path == null) {
       throw new IllegalArgumentException("alteration definition identity must be complete");
@@ -36,6 +38,11 @@ public record AlterationDefinition(
     if (requiresFluid != fluidState.isPresent()) {
       throw new IllegalArgumentException(
           "hydrothermal and weathering processes require an explicit fluid state");
+    }
+    boolean requiresResponseTexture = processClass == MaterialProcessClass.ISOCHEMICAL_METAMORPHISM;
+    if (requiresResponseTexture != responseTexture.isPresent()) {
+      throw new IllegalArgumentException(
+          "isochemical metamorphism requires an explicit response texture");
     }
     targetRecipes =
         List.copyOf(targetRecipes).stream()

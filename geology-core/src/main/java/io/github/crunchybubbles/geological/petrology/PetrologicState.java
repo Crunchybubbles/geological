@@ -8,6 +8,7 @@ import java.util.Optional;
 public record PetrologicState(
     MaterialState geology,
     RockDefinition rock,
+    RockTexture resolvedTexture,
     MaterialAssemblage primaryAssemblage,
     MaterialAssemblage resolvedAssemblage,
     List<SolidSolutionState> primarySolidSolutions,
@@ -28,6 +29,7 @@ public record PetrologicState(
   public PetrologicState {
     if (geology == null
         || rock == null
+        || resolvedTexture == null
         || primaryAssemblage == null
         || resolvedAssemblage == null
         || primarySolidSolutions == null
@@ -66,6 +68,7 @@ public record PetrologicState(
     return new PetrologicState(
         MaterialState.from(sample.geology()),
         sample.rock(),
+        sample.resolvedTexture(),
         sample.primaryAssemblage(),
         sample.resolvedAssemblage(),
         sample.primarySolidSolutions(),
