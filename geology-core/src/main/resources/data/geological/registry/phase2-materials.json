@@ -2,7 +2,7 @@
   "authoring_schema": "geological:material_catalog_authoring:v7",
   "evidence": {
     "citation_id": "refs:philpotts_ague_2009",
-    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic, sedimentary, pelitic slate-phyllite-to-schist, and basalt-derived greenschist-to-amphibolite expansions follow published classification and USGS relationships documented in the public architecture. Hornblende is represented by simplified hydroxyl magnesiohornblende-ferrohornblende endmembers, not by the lower-aluminum actinolite proxy used in greenschist. Non-crystalline organic matter uses an explicit closed bulk-element proxy rather than a fictitious mineral formula. Primary metamorphic recipes author a non-metamorphic original protolith plus coarse grade, facies, path, and peak P-T envelope; they are not independent decorative rock rolls. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Constituent modes, modal covariance axes, protolith-conditioned response targets, textures, physical-property distributions, P-T envelopes, and organic bulk chemistry are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
+    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic, sedimentary, pelitic slate-phyllite-to-schist, and basalt-derived greenschist-to-amphibolite-to-granulite expansions follow published classification and USGS relationships documented in the public architecture. Hornblende is represented by simplified hydroxyl magnesiohornblende-ferrohornblende endmembers, not by the lower-aluminum actinolite proxy used in greenschist; high-grade mafic granulite uses an anhydrous plagioclase-orthopyroxene-clinopyroxene-garnet proxy rather than retaining amphibolite's dominant hornblende. Non-crystalline organic matter uses an explicit closed bulk-element proxy rather than a fictitious mineral formula. Primary metamorphic recipes author a non-metamorphic original protolith plus coarse grade, facies, path, and peak P-T envelope; they are not independent decorative rock rolls. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Constituent modes, modal covariance axes, protolith-conditioned response targets, textures, physical-property distributions, P-T envelopes, and organic bulk chemistry are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
     "publication_year": 2009,
     "title": "Principles of Igneous and Metamorphic Petrology",
     "uri": "https://doi.org/10.1017/CBO9780511813429"
@@ -520,6 +520,53 @@
         "path": "COLLISION_CLOCKWISE",
         "peak_pressure_mpa": [350.0, 1000.0],
         "peak_temperature_c": [500.0, 750.0],
+        "protolith_rock_id": "geological:rock/basaltic"
+      }
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.12, "mode": 0.18, "maximum": 0.27},
+      "genetic_family": "METAMORPHIC",
+      "id": "geological:rock/granulite",
+      "lithology": "GRANULITE",
+      "modal_spread_fraction": 0.2,
+      "modal_variation_axes": [
+        {
+          "id": "plagioclase_pyroxene_balance",
+          "loadings_ppm": {"geological:mineral/anorthite": 20000, "geological:mineral/albite": 10000, "geological:mineral/enstatite": -12000, "geological:mineral/ferrosilite": -3000, "geological:mineral/diopside": -12000, "geological:mineral/hedenbergite": -3000}
+        },
+        {
+          "id": "orthopyroxene_clinopyroxene_balance",
+          "loadings_ppm": {"geological:mineral/enstatite": 15000, "geological:mineral/ferrosilite": 5000, "geological:mineral/diopside": -15000, "geological:mineral/hedenbergite": -5000}
+        },
+        {
+          "id": "pyroxene_magnesium_iron_balance",
+          "loadings_ppm": {"geological:mineral/enstatite": 5000, "geological:mineral/ferrosilite": -5000, "geological:mineral/diopside": 4000, "geological:mineral/hedenbergite": -4000}
+        },
+        {
+          "id": "garnet_quartz_balance",
+          "loadings_ppm": {"geological:mineral/almandine": 10000, "geological:mineral/quartz": -10000}
+        }
+      ],
+      "texture": "GRANOBLASTIC",
+      "constituent_modes_ppm": {
+        "geological:mineral/anorthite": 260000,
+        "geological:mineral/albite": 100000,
+        "geological:mineral/enstatite": 190000,
+        "geological:mineral/ferrosilite": 70000,
+        "geological:mineral/diopside": 170000,
+        "geological:mineral/hedenbergite": 60000,
+        "geological:mineral/almandine": 80000,
+        "geological:mineral/quartz": 50000,
+        "geological:mineral/magnetite": 20000
+      },
+      "permeability_distribution": {"minimum": 0.006, "mode": 0.02, "maximum": 0.06},
+      "porosity_distribution": {"minimum": 0.002, "mode": 0.006, "maximum": 0.014},
+      "primary_metamorphism": {
+        "facies": "GRANULITE",
+        "grade": "HIGH",
+        "path": "COLLISION_CLOCKWISE",
+        "peak_pressure_mpa": [500.0, 1200.0],
+        "peak_temperature_c": [700.0, 900.0],
         "protolith_rock_id": "geological:rock/basaltic"
       }
     },

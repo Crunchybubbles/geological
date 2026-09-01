@@ -5,5 +5,6 @@ public enum MetamorphicFacies {
   NONE,
   GREENSCHIST,
   AMPHIBOLITE,
+  GRANULITE,
   HORNBLENDE_HORNFELS
 }

@@ -35,11 +35,11 @@ class MaterialCatalogTest {
     assertEquals(1, catalog.nonCrystallineConstituents().size());
     assertEquals(37, catalog.constituents().size());
     assertEquals(7, catalog.solidSolutions().size());
-    assertEquals(25, catalog.rocks().size());
+    assertEquals(26, catalog.rocks().size());
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:26164b575cd2888e4677c608ceb1728612b7275fc75c11316467cf58c7eb68cd",
+        "sha256:4d0dec57d11b6cfc6b6f0ddc3fe8b897621f08db2872551ae4494467d446a4d6",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -368,6 +368,51 @@ class MaterialCatalogTest {
         330_000L,
         amphibolite.primaryAssemblage().modesPpm().get("geological:mineral/albite")
             + amphibolite.primaryAssemblage().modesPpm().get("geological:mineral/anorthite"));
+  }
+
+  @Test
+  void granuliteCompletesMaficProgressionWithDryTwoPyroxeneAssemblage() {
+    MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
+    var amphibolite = catalog.requireRock(Lithology.AMPHIBOLITE);
+    var granulite = catalog.requireRock(Lithology.GRANULITE);
+    var amphiboliteMetamorphism = amphibolite.primaryMetamorphism().orElseThrow();
+    var granuliteMetamorphism = granulite.primaryMetamorphism().orElseThrow();
+
+    assertEquals(RockTexture.GRANOBLASTIC, granulite.texture());
+    assertEquals("geological:rock/basaltic", granuliteMetamorphism.protolithRockId());
+    assertEquals(MetamorphicGrade.HIGH, granuliteMetamorphism.grade());
+    assertEquals(MetamorphicFacies.GRANULITE, granuliteMetamorphism.facies());
+    assertTrue(
+        amphiboliteMetamorphism.maximumTemperatureCelsius()
+            < granuliteMetamorphism.maximumTemperatureCelsius());
+    assertEquals(
+        0L,
+        catalog
+            .composition(granulite.primaryAssemblage())
+            .elementMassPpm()
+            .getOrDefault(ChemicalElement.H, 0L));
+
+    var solutionIds =
+        catalog.solidSolutionStates(granulite.primaryAssemblage()).stream()
+            .map(SolidSolutionState::definitionId)
+            .collect(java.util.stream.Collectors.toSet());
+    assertTrue(solutionIds.contains("geological:solid_solution/plagioclase"));
+    assertTrue(solutionIds.contains("geological:solid_solution/orthopyroxene"));
+    assertTrue(solutionIds.contains("geological:solid_solution/calcic_clinopyroxene"));
+    assertFalse(solutionIds.contains("geological:solid_solution/hornblende"));
+    assertFalse(solutionIds.contains("geological:solid_solution/calcic_amphibole"));
+    assertEquals(
+        360_000L,
+        granulite.primaryAssemblage().modesPpm().get("geological:mineral/albite")
+            + granulite.primaryAssemblage().modesPpm().get("geological:mineral/anorthite"));
+    assertEquals(
+        260_000L,
+        granulite.primaryAssemblage().modesPpm().get("geological:mineral/enstatite")
+            + granulite.primaryAssemblage().modesPpm().get("geological:mineral/ferrosilite"));
+    assertEquals(
+        230_000L,
+        granulite.primaryAssemblage().modesPpm().get("geological:mineral/diopside")
+            + granulite.primaryAssemblage().modesPpm().get("geological:mineral/hedenbergite"));
   }
 
   @Test

@@ -41,14 +41,14 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.14", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.15", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:29de1e4f2d784599f98719ad6030998a5d33c15e771731ec61222ca91af06056",
+        "sha256:ee0e3fac69b0b5a00029f63b346cd36e74035142e123d234bd09981141d7e1dc",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -541,6 +541,58 @@ class MaterialQueryTest {
     assertTrue(
         amphibolite.primaryAssemblage().modesPpm().get("geological:mineral/anorthite")
             > greenschist.primaryAssemblage().modesPpm().get("geological:mineral/anorthite"));
+  }
+
+  @Test
+  void granuliteRetainsBasaltProtolithWhileReplacingHydrousAmphiboleWithPyroxenes() {
+    MaterialQueryEngine query = Phase2World.create(7_373L);
+    Province province = query.geology().atlas().provinceAt(new Point2(0.0, 0.0));
+    PetrologicSample amphibolite =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000702"),
+                Lithology.AMPHIBOLITE,
+                new AgeKey(390.0, 0),
+                Overprint.NONE));
+    PetrologicSample granulite =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000703"),
+                Lithology.GRANULITE,
+                new AgeKey(380.0, 0),
+                Overprint.NONE));
+
+    assertEquals("geological:rock/basaltic", granulite.metamorphism().protolithRockId());
+    assertEquals(MetamorphicGrade.HIGH, granulite.metamorphism().grade());
+    assertEquals(MetamorphicFacies.GRANULITE, granulite.metamorphism().facies());
+    assertTrue(
+        amphibolite.metamorphism().maximumPeakTemperatureCelsius()
+            < granulite.metamorphism().maximumPeakTemperatureCelsius());
+    assertTrue(
+        amphibolite.primarySolidSolutions().stream()
+            .anyMatch(
+                state -> state.definitionId().equals("geological:solid_solution/hornblende")));
+    assertFalse(
+        granulite.primarySolidSolutions().stream()
+            .anyMatch(
+                state -> state.definitionId().equals("geological:solid_solution/hornblende")));
+    assertTrue(
+        granulite.primarySolidSolutions().stream()
+            .anyMatch(
+                state -> state.definitionId().equals("geological:solid_solution/orthopyroxene")));
+    assertTrue(
+        granulite.primarySolidSolutions().stream()
+            .anyMatch(
+                state ->
+                    state.definitionId().equals("geological:solid_solution/calcic_clinopyroxene")));
+    assertEquals(
+        0L, granulite.primaryComposition().elementMassPpm().getOrDefault(ChemicalElement.H, 0L));
   }
 
   @Test
