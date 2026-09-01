@@ -200,6 +200,26 @@ final class MaterialReviewPacketGenerator {
                 Lithology.MICA_SCHIST,
                 new AgeKey(410.0, 0),
                 Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "greenschist-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000701"),
+                Lithology.GREENSCHIST,
+                new AgeKey(400.0, 0),
+                Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "amphibolite-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000702"),
+                Lithology.AMPHIBOLITE,
+                new AgeKey(390.0, 0),
+                Overprint.NONE)));
     RiftArcGeometry.PlutonPulse stock = pulses.getLast();
     samples.add(
         sampleJson(

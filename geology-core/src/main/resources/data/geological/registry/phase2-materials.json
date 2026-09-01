@@ -2,7 +2,7 @@
   "authoring_schema": "geological:material_catalog_authoring:v7",
   "evidence": {
     "citation_id": "refs:philpotts_ague_2009",
-    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic, sedimentary, and pelitic slate-phyllite-to-schist expansions follow published classification and USGS relationships documented in the public architecture. Non-crystalline organic matter uses an explicit closed bulk-element proxy rather than a fictitious mineral formula. Primary metamorphic recipes author a non-metamorphic original protolith plus coarse grade, facies, path, and peak P-T envelope; they are not independent decorative rock rolls. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Constituent modes, modal covariance axes, protolith-conditioned response targets, textures, physical-property distributions, P-T envelopes, and organic bulk chemistry are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
+    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic, sedimentary, pelitic slate-phyllite-to-schist, and basalt-derived greenschist-to-amphibolite expansions follow published classification and USGS relationships documented in the public architecture. Hornblende is represented by simplified hydroxyl magnesiohornblende-ferrohornblende endmembers, not by the lower-aluminum actinolite proxy used in greenschist. Non-crystalline organic matter uses an explicit closed bulk-element proxy rather than a fictitious mineral formula. Primary metamorphic recipes author a non-metamorphic original protolith plus coarse grade, facies, path, and peak P-T envelope; they are not independent decorative rock rolls. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Constituent modes, modal covariance axes, protolith-conditioned response targets, textures, physical-property distributions, P-T envelopes, and organic bulk chemistry are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
     "publication_year": 2009,
     "title": "Principles of Igneous and Metamorphic Petrology",
     "uri": "https://doi.org/10.1017/CBO9780511813429"
@@ -63,6 +63,20 @@
       "hardness_mohs": 5.5,
       "id": "geological:mineral/ferroactinolite",
       "weathering_resistance": 0.4
+    },
+    {
+      "density_g_cm3": 3.15,
+      "formula": {"Ca": 2, "Mg": 4, "Al": 2, "Si": 7, "O": 24, "H": 2},
+      "hardness_mohs": 5.5,
+      "id": "geological:mineral/magnesiohornblende",
+      "weathering_resistance": 0.43
+    },
+    {
+      "density_g_cm3": 3.45,
+      "formula": {"Ca": 2, "Fe": 4, "Al": 2, "Si": 7, "O": 24, "H": 2},
+      "hardness_mohs": 5.5,
+      "id": "geological:mineral/ferrohornblende",
+      "weathering_resistance": 0.37
     },
     {
       "density_g_cm3": 3.28,
@@ -273,6 +287,11 @@
       "mixing_model": "IDEAL_ENDMEMBER_INTERPOLATION"
     },
     {
+      "endmember_ids": ["geological:mineral/magnesiohornblende", "geological:mineral/ferrohornblende"],
+      "id": "geological:solid_solution/hornblende",
+      "mixing_model": "IDEAL_ENDMEMBER_INTERPOLATION"
+    },
+    {
       "endmember_ids": ["geological:mineral/diopside", "geological:mineral/hedenbergite"],
       "id": "geological:solid_solution/calcic_clinopyroxene",
       "mixing_model": "IDEAL_ENDMEMBER_INTERPOLATION"
@@ -410,6 +429,98 @@
         "peak_pressure_mpa": [350.0, 900.0],
         "peak_temperature_c": [500.0, 650.0],
         "protolith_rock_id": "geological:rock/basin_shale"
+      }
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.28, "mode": 0.38, "maximum": 0.5},
+      "genetic_family": "METAMORPHIC",
+      "id": "geological:rock/greenschist",
+      "lithology": "GREENSCHIST",
+      "modal_spread_fraction": 0.3,
+      "modal_variation_axes": [
+        {
+          "id": "chlorite_epidote_balance",
+          "loadings_ppm": {"geological:mineral/clinochlore": 30000, "geological:mineral/epidote": -30000}
+        },
+        {
+          "id": "actinolite_silica_carbonate_balance",
+          "loadings_ppm": {"geological:mineral/tremolite": 10000, "geological:mineral/ferroactinolite": 10000, "geological:mineral/quartz": -15000, "geological:mineral/calcite": -5000}
+        },
+        {
+          "id": "albite_epidote_balance",
+          "loadings_ppm": {"geological:mineral/albite": 15000, "geological:mineral/anorthite": 5000, "geological:mineral/epidote": -20000}
+        }
+      ],
+      "texture": "SCHISTOSE",
+      "constituent_modes_ppm": {
+        "geological:mineral/clinochlore": 300000,
+        "geological:mineral/albite": 190000,
+        "geological:mineral/anorthite": 30000,
+        "geological:mineral/epidote": 180000,
+        "geological:mineral/tremolite": 100000,
+        "geological:mineral/ferroactinolite": 80000,
+        "geological:mineral/quartz": 80000,
+        "geological:mineral/calcite": 20000,
+        "geological:mineral/magnetite": 20000
+      },
+      "permeability_distribution": {"minimum": 0.015, "mode": 0.05, "maximum": 0.12},
+      "porosity_distribution": {"minimum": 0.005, "mode": 0.012, "maximum": 0.025},
+      "primary_metamorphism": {
+        "facies": "GREENSCHIST",
+        "grade": "LOW",
+        "path": "COLLISION_CLOCKWISE",
+        "peak_pressure_mpa": [200.0, 800.0],
+        "peak_temperature_c": [300.0, 500.0],
+        "protolith_rock_id": "geological:rock/basaltic"
+      }
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.16, "mode": 0.24, "maximum": 0.34},
+      "genetic_family": "METAMORPHIC",
+      "id": "geological:rock/amphibolite",
+      "lithology": "AMPHIBOLITE",
+      "modal_spread_fraction": 0.25,
+      "modal_variation_axes": [
+        {
+          "id": "hornblende_plagioclase_balance",
+          "loadings_ppm": {"geological:mineral/magnesiohornblende": 20000, "geological:mineral/ferrohornblende": 20000, "geological:mineral/anorthite": -30000, "geological:mineral/albite": -10000}
+        },
+        {
+          "id": "hornblende_magnesium_iron_balance",
+          "loadings_ppm": {"geological:mineral/magnesiohornblende": 15000, "geological:mineral/ferrohornblende": -15000}
+        },
+        {
+          "id": "plagioclase_calcic_sodic_balance",
+          "loadings_ppm": {"geological:mineral/anorthite": 15000, "geological:mineral/albite": -15000}
+        },
+        {
+          "id": "garnet_chlorite_balance",
+          "loadings_ppm": {"geological:mineral/almandine": 10000, "geological:mineral/clinochlore": -10000}
+        }
+      ],
+      "texture": "NEMATOBLASTIC",
+      "constituent_modes_ppm": {
+        "geological:mineral/magnesiohornblende": 220000,
+        "geological:mineral/ferrohornblende": 220000,
+        "geological:mineral/anorthite": 210000,
+        "geological:mineral/albite": 120000,
+        "geological:mineral/quartz": 80000,
+        "geological:mineral/clinochlore": 40000,
+        "geological:mineral/epidote": 20000,
+        "geological:mineral/phlogopite": 15000,
+        "geological:mineral/annite": 15000,
+        "geological:mineral/almandine": 40000,
+        "geological:mineral/magnetite": 20000
+      },
+      "permeability_distribution": {"minimum": 0.01, "mode": 0.035, "maximum": 0.09},
+      "porosity_distribution": {"minimum": 0.003, "mode": 0.008, "maximum": 0.018},
+      "primary_metamorphism": {
+        "facies": "AMPHIBOLITE",
+        "grade": "MEDIUM",
+        "path": "COLLISION_CLOCKWISE",
+        "peak_pressure_mpa": [350.0, 1000.0],
+        "peak_temperature_c": [500.0, 750.0],
+        "protolith_rock_id": "geological:rock/basaltic"
       }
     },
     {

@@ -62,6 +62,11 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"peat_derived_rank_unresolved\""));
     assertTrue(firstJson.contains("\"slate-phyllite-catalog\""));
     assertTrue(firstJson.contains("\"mica-schist-catalog\""));
+    assertTrue(firstJson.contains("\"greenschist-catalog\""));
+    assertTrue(firstJson.contains("\"amphibolite-catalog\""));
+    assertTrue(firstJson.contains("geological:mineral/magnesiohornblende"));
+    assertTrue(firstJson.contains("geological:mineral/ferrohornblende"));
+    assertTrue(firstJson.contains("geological:solid_solution/hornblende"));
     assertTrue(firstJson.contains("geological:mineral/graphite"));
     assertTrue(firstJson.contains("geological:mineral/almandine"));
     assertTrue(firstJson.contains("\"primaryMetamorphism\""));

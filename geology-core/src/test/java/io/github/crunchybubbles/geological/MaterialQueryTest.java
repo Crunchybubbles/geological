@@ -41,14 +41,14 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.13", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.14", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:b36f49aa99a8f3b344c5418882cdb27164fd6efc460603a4f508d45c99c2120e",
+        "sha256:29de1e4f2d784599f98719ad6030998a5d33c15e771731ec61222ca91af06056",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -484,6 +484,63 @@ class MaterialQueryTest {
             > schist.primaryAssemblage().modesPpm().get("geological:mineral/muscovite"));
     assertTrue(slate.primaryAssemblage().modesPpm().containsKey("geological:mineral/graphite"));
     assertTrue(schist.primaryAssemblage().modesPpm().containsKey("geological:mineral/almandine"));
+  }
+
+  @Test
+  void maficMetamorphicProductsRetainBasaltProtolithAndChangeAmphibolePhaseWithGrade() {
+    MaterialQueryEngine query = Phase2World.create(7_272L);
+    Province province = query.geology().atlas().provinceAt(new Point2(0.0, 0.0));
+    PetrologicSample greenschist =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000701"),
+                Lithology.GREENSCHIST,
+                new AgeKey(400.0, 0),
+                Overprint.NONE));
+    PetrologicSample amphibolite =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000702"),
+                Lithology.AMPHIBOLITE,
+                new AgeKey(390.0, 0),
+                Overprint.NONE));
+
+    assertEquals("geological:rock/basaltic", greenschist.metamorphism().protolithRockId());
+    assertEquals("geological:rock/basaltic", amphibolite.metamorphism().protolithRockId());
+    assertEquals(MetamorphicGrade.LOW, greenschist.metamorphism().grade());
+    assertEquals(MetamorphicGrade.MEDIUM, amphibolite.metamorphism().grade());
+    assertEquals(MetamorphicFacies.GREENSCHIST, greenschist.metamorphism().facies());
+    assertEquals(MetamorphicFacies.AMPHIBOLITE, amphibolite.metamorphism().facies());
+    assertTrue(
+        greenschist.metamorphism().maximumPeakTemperatureCelsius()
+            < amphibolite.metamorphism().maximumPeakTemperatureCelsius());
+    assertTrue(
+        greenschist.primarySolidSolutions().stream()
+            .anyMatch(
+                state ->
+                    state.definitionId().equals("geological:solid_solution/calcic_amphibole")));
+    assertFalse(
+        greenschist.primarySolidSolutions().stream()
+            .anyMatch(
+                state -> state.definitionId().equals("geological:solid_solution/hornblende")));
+    assertTrue(
+        amphibolite.primarySolidSolutions().stream()
+            .anyMatch(
+                state -> state.definitionId().equals("geological:solid_solution/hornblende")));
+    assertFalse(
+        amphibolite.primarySolidSolutions().stream()
+            .anyMatch(
+                state ->
+                    state.definitionId().equals("geological:solid_solution/calcic_amphibole")));
+    assertTrue(
+        amphibolite.primaryAssemblage().modesPpm().get("geological:mineral/anorthite")
+            > greenschist.primaryAssemblage().modesPpm().get("geological:mineral/anorthite"));
   }
 
   @Test

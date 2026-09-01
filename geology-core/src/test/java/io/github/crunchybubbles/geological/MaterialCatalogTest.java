@@ -31,15 +31,15 @@ class MaterialCatalogTest {
   void packagedCatalogCoversEveryImplementedMaterialAndClosesChemistry() {
     MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
 
-    assertEquals(34, catalog.minerals().size());
+    assertEquals(36, catalog.minerals().size());
     assertEquals(1, catalog.nonCrystallineConstituents().size());
-    assertEquals(35, catalog.constituents().size());
-    assertEquals(6, catalog.solidSolutions().size());
-    assertEquals(23, catalog.rocks().size());
+    assertEquals(37, catalog.constituents().size());
+    assertEquals(7, catalog.solidSolutions().size());
+    assertEquals(25, catalog.rocks().size());
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:6e067f9a6eda1ee95960c157d69adb055f9b973f5fdb1280ed71c7c61c952639",
+        "sha256:26164b575cd2888e4677c608ceb1728612b7275fc75c11316467cf58c7eb68cd",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -317,6 +317,60 @@ class MaterialCatalogTest {
   }
 
   @Test
+  void maficMetamorphicSliceSeparatesActinoliteGreenschistFromHornblendeAmphibolite() {
+    MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
+    var greenschist = catalog.requireRock(Lithology.GREENSCHIST);
+    var amphibolite = catalog.requireRock(Lithology.AMPHIBOLITE);
+    var greenschistMetamorphism = greenschist.primaryMetamorphism().orElseThrow();
+    var amphiboliteMetamorphism = amphibolite.primaryMetamorphism().orElseThrow();
+    MineralDefinition magnesiohornblende =
+        catalog.requireMineral("geological:mineral/magnesiohornblende");
+    MineralDefinition ferrohornblende =
+        catalog.requireMineral("geological:mineral/ferrohornblende");
+
+    assertEquals(RockTexture.SCHISTOSE, greenschist.texture());
+    assertEquals(RockTexture.NEMATOBLASTIC, amphibolite.texture());
+    assertEquals("geological:rock/basaltic", greenschistMetamorphism.protolithRockId());
+    assertEquals("geological:rock/basaltic", amphiboliteMetamorphism.protolithRockId());
+    assertEquals(MetamorphicGrade.LOW, greenschistMetamorphism.grade());
+    assertEquals(MetamorphicGrade.MEDIUM, amphiboliteMetamorphism.grade());
+    assertEquals(MetamorphicFacies.GREENSCHIST, greenschistMetamorphism.facies());
+    assertEquals(MetamorphicFacies.AMPHIBOLITE, amphiboliteMetamorphism.facies());
+    assertTrue(
+        greenschistMetamorphism.maximumTemperatureCelsius()
+            < amphiboliteMetamorphism.maximumTemperatureCelsius());
+
+    assertEquals(2.0, magnesiohornblende.formula().get(ChemicalElement.CA).doubleValue());
+    assertEquals(4.0, magnesiohornblende.formula().get(ChemicalElement.MG).doubleValue());
+    assertEquals(2.0, magnesiohornblende.formula().get(ChemicalElement.AL).doubleValue());
+    assertEquals(7.0, magnesiohornblende.formula().get(ChemicalElement.SI).doubleValue());
+    assertEquals(24.0, magnesiohornblende.formula().get(ChemicalElement.O).doubleValue());
+    assertEquals(2.0, magnesiohornblende.formula().get(ChemicalElement.H).doubleValue());
+    assertEquals(4.0, ferrohornblende.formula().get(ChemicalElement.FE).doubleValue());
+
+    SolidSolutionState actinolite =
+        catalog.solidSolutionStates(greenschist.primaryAssemblage()).stream()
+            .filter(
+                state -> state.definitionId().equals("geological:solid_solution/calcic_amphibole"))
+            .findFirst()
+            .orElseThrow();
+    SolidSolutionState hornblende =
+        catalog.solidSolutionStates(amphibolite.primaryAssemblage()).stream()
+            .filter(state -> state.definitionId().equals("geological:solid_solution/hornblende"))
+            .findFirst()
+            .orElseThrow();
+    assertEquals(180_000L, actinolite.phaseModePpm());
+    assertEquals(440_000L, hornblende.phaseModePpm());
+    assertEquals(8.0, actinolite.idealFormulaAtoms().get(ChemicalElement.SI), 1.0e-12);
+    assertEquals(7.0, hornblende.idealFormulaAtoms().get(ChemicalElement.SI), 1.0e-12);
+    assertEquals(2.0, hornblende.idealFormulaAtoms().get(ChemicalElement.AL), 1.0e-12);
+    assertEquals(
+        330_000L,
+        amphibolite.primaryAssemblage().modesPpm().get("geological:mineral/albite")
+            + amphibolite.primaryAssemblage().modesPpm().get("geological:mineral/anorthite"));
+  }
+
+  @Test
   void evaporiteSliceSeparatesHydratedSulfateFromLateChlorideSalts() {
     MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
     var sulfate = catalog.requireRock(Lithology.GYPSUM_ANHYDRITE_EVAPORITE);
@@ -370,6 +424,10 @@ class MaterialCatalogTest {
         reordered.replace(
             "\"geological:mineral/enstatite\", \"geological:mineral/ferrosilite\"",
             "\"geological:mineral/ferrosilite\", \"geological:mineral/enstatite\"");
+    reordered =
+        reordered.replace(
+            "\"geological:mineral/magnesiohornblende\", \"geological:mineral/ferrohornblende\"",
+            "\"geological:mineral/ferrohornblende\", \"geological:mineral/magnesiohornblende\"");
     reordered =
         reordered.replace(
             "{\"C\": 800000, \"H\": 50000, \"N\": 15000, \"O\": 120000, \"S\": 15000}",
