@@ -84,6 +84,26 @@ final class MaterialReviewPacketGenerator {
                 Lithology.GRANITIC_GNEISS,
                 new AgeKey(1_850.0, 0),
                 Overprint.CONTACT_HORNFELS)));
+    samples.add(
+        sampleJson(
+            "basin-sandstone-phyllic",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                province.geometry().basin().packageId(),
+                Lithology.BASIN_SANDSTONE,
+                province.geometry().basin().birthAge(),
+                Overprint.PHYLLIC_ALTERATION)));
+    samples.add(
+        sampleJson(
+            "vms-massive-sulfide-gossan",
+            resolve(
+                province,
+                province.geometry().vmsCenter(),
+                province.proofIds().vmsDepositId(),
+                Lithology.VMS_MASSIVE_SULFIDE,
+                new AgeKey(241.0, 0),
+                Overprint.OXIDIZED_GOSSAN)));
     samples.add(sampleJson("surface-placer", placer.material()));
 
     Path output = outputDirectory.resolve("phase2-material-review.json");
@@ -264,6 +284,8 @@ final class MaterialReviewPacketGenerator {
         sample.geology().overprint().name(),
         "rockDefinitionId",
         sample.rock().id(),
+        "geneticFamily",
+        sample.rock().geneticFamily().name(),
         "primaryModesPpm",
         sample.primaryAssemblage().modesPpm(),
         "resolvedModesPpm",

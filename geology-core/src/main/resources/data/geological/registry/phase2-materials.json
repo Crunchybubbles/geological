@@ -2,7 +2,7 @@
   "authoring_schema": "geological:material_catalog_authoring:v4",
   "evidence": {
     "citation_id": "refs:philpotts_ague_2009",
-    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. Mineral modes, modal covariance axes, textures, and physical-property distributions are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
+    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. Mineral modes, modal covariance axes, protolith-conditioned response targets, textures, and physical-property distributions are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
     "publication_year": 2009,
     "title": "Principles of Igneous and Metamorphic Petrology",
     "uri": "https://doi.org/10.1017/CBO9780511813429"
@@ -499,13 +499,30 @@
       "porosity_multiplier": 1.35,
       "process_class": "WEATHERING",
       "replacement_ppm": 200000,
-      "target_recipes": [{"protolith_families": ["IGNEOUS", "SEDIMENTARY", "METAMORPHIC", "HYDROTHERMAL", "SURFICIAL"], "target_modes_ppm": {
-        "geological:mineral/quartz": 200000,
-        "geological:mineral/kaolinite": 400000,
-        "geological:mineral/goethite": 250000,
-        "geological:mineral/hematite": 100000,
-        "geological:mineral/magnetite": 50000
-      }}]
+      "target_recipes": [
+        {"protolith_families": ["IGNEOUS", "METAMORPHIC"], "target_modes_ppm": {
+          "geological:mineral/quartz": 200000,
+          "geological:mineral/kaolinite": 400000,
+          "geological:mineral/goethite": 250000,
+          "geological:mineral/hematite": 100000,
+          "geological:mineral/magnetite": 50000
+        }},
+        {"protolith_families": ["SEDIMENTARY", "SURFICIAL"], "target_modes_ppm": {
+          "geological:mineral/quartz": 400000,
+          "geological:mineral/kaolinite": 300000,
+          "geological:mineral/goethite": 150000,
+          "geological:mineral/hematite": 80000,
+          "geological:mineral/muscovite": 50000,
+          "geological:mineral/magnetite": 20000
+        }},
+        {"protolith_families": ["HYDROTHERMAL"], "target_modes_ppm": {
+          "geological:mineral/quartz": 150000,
+          "geological:mineral/kaolinite": 150000,
+          "geological:mineral/goethite": 400000,
+          "geological:mineral/hematite": 200000,
+          "geological:mineral/magnetite": 100000
+        }}
+      ]
     },
     {
       "erodibility_delta": -0.08,
@@ -539,14 +556,34 @@
       "porosity_multiplier": 0.9,
       "process_class": "HYDROTHERMAL_METASOMATISM",
       "replacement_ppm": 300000,
-      "target_recipes": [{"protolith_families": ["IGNEOUS", "SEDIMENTARY", "METAMORPHIC", "HYDROTHERMAL", "SURFICIAL"], "target_modes_ppm": {
-        "geological:mineral/orthoclase": 450000,
-        "geological:mineral/phlogopite": 150000,
-        "geological:mineral/quartz": 200000,
-        "geological:mineral/magnetite": 80000,
-        "geological:mineral/chalcopyrite": 60000,
-        "geological:mineral/pyrite": 60000
-      }}]
+      "target_recipes": [
+        {"protolith_families": ["IGNEOUS", "METAMORPHIC"], "target_modes_ppm": {
+          "geological:mineral/orthoclase": 450000,
+          "geological:mineral/phlogopite": 150000,
+          "geological:mineral/quartz": 200000,
+          "geological:mineral/magnetite": 80000,
+          "geological:mineral/chalcopyrite": 60000,
+          "geological:mineral/pyrite": 60000
+        }},
+        {"protolith_families": ["SEDIMENTARY", "SURFICIAL"], "target_modes_ppm": {
+          "geological:mineral/orthoclase": 350000,
+          "geological:mineral/phlogopite": 100000,
+          "geological:mineral/quartz": 350000,
+          "geological:mineral/muscovite": 80000,
+          "geological:mineral/magnetite": 40000,
+          "geological:mineral/chalcopyrite": 40000,
+          "geological:mineral/pyrite": 40000
+        }},
+        {"protolith_families": ["HYDROTHERMAL"], "target_modes_ppm": {
+          "geological:mineral/orthoclase": 250000,
+          "geological:mineral/phlogopite": 100000,
+          "geological:mineral/quartz": 150000,
+          "geological:mineral/magnetite": 100000,
+          "geological:mineral/chalcopyrite": 150000,
+          "geological:mineral/pyrite": 200000,
+          "geological:mineral/sphalerite": 50000
+        }}
+      ]
     },
     {
       "erodibility_delta": 0.05,
@@ -567,13 +604,30 @@
       "porosity_multiplier": 1.2,
       "process_class": "HYDROTHERMAL_METASOMATISM",
       "replacement_ppm": 400000,
-      "target_recipes": [{"protolith_families": ["IGNEOUS", "SEDIMENTARY", "METAMORPHIC", "HYDROTHERMAL", "SURFICIAL"], "target_modes_ppm": {
-        "geological:mineral/quartz": 350000,
-        "geological:mineral/muscovite": 350000,
-        "geological:mineral/pyrite": 180000,
-        "geological:mineral/chalcopyrite": 40000,
-        "geological:mineral/kaolinite": 80000
-      }}]
+      "target_recipes": [
+        {"protolith_families": ["IGNEOUS", "METAMORPHIC"], "target_modes_ppm": {
+          "geological:mineral/quartz": 350000,
+          "geological:mineral/muscovite": 350000,
+          "geological:mineral/pyrite": 180000,
+          "geological:mineral/chalcopyrite": 40000,
+          "geological:mineral/kaolinite": 80000
+        }},
+        {"protolith_families": ["SEDIMENTARY", "SURFICIAL"], "target_modes_ppm": {
+          "geological:mineral/quartz": 450000,
+          "geological:mineral/muscovite": 250000,
+          "geological:mineral/pyrite": 150000,
+          "geological:mineral/chalcopyrite": 30000,
+          "geological:mineral/kaolinite": 120000
+        }},
+        {"protolith_families": ["HYDROTHERMAL"], "target_modes_ppm": {
+          "geological:mineral/quartz": 200000,
+          "geological:mineral/muscovite": 180000,
+          "geological:mineral/pyrite": 350000,
+          "geological:mineral/chalcopyrite": 120000,
+          "geological:mineral/sphalerite": 70000,
+          "geological:mineral/kaolinite": 80000
+        }}
+      ]
     },
     {
       "erodibility_delta": 0.02,
@@ -594,14 +648,33 @@
       "porosity_multiplier": 1.08,
       "process_class": "HYDROTHERMAL_METASOMATISM",
       "replacement_ppm": 280000,
-      "target_recipes": [{"protolith_families": ["IGNEOUS", "SEDIMENTARY", "METAMORPHIC", "HYDROTHERMAL", "SURFICIAL"], "target_modes_ppm": {
-        "geological:mineral/clinochlore": 300000,
-        "geological:mineral/epidote": 250000,
-        "geological:mineral/calcite": 250000,
-        "geological:mineral/quartz": 100000,
-        "geological:mineral/pyrite": 60000,
-        "geological:mineral/magnetite": 40000
-      }}]
+      "target_recipes": [
+        {"protolith_families": ["IGNEOUS", "METAMORPHIC"], "target_modes_ppm": {
+          "geological:mineral/clinochlore": 300000,
+          "geological:mineral/epidote": 250000,
+          "geological:mineral/calcite": 250000,
+          "geological:mineral/quartz": 100000,
+          "geological:mineral/pyrite": 60000,
+          "geological:mineral/magnetite": 40000
+        }},
+        {"protolith_families": ["SEDIMENTARY", "SURFICIAL"], "target_modes_ppm": {
+          "geological:mineral/clinochlore": 200000,
+          "geological:mineral/epidote": 150000,
+          "geological:mineral/calcite": 300000,
+          "geological:mineral/quartz": 250000,
+          "geological:mineral/pyrite": 70000,
+          "geological:mineral/magnetite": 30000
+        }},
+        {"protolith_families": ["HYDROTHERMAL"], "target_modes_ppm": {
+          "geological:mineral/clinochlore": 250000,
+          "geological:mineral/epidote": 150000,
+          "geological:mineral/calcite": 100000,
+          "geological:mineral/quartz": 100000,
+          "geological:mineral/pyrite": 300000,
+          "geological:mineral/chalcopyrite": 50000,
+          "geological:mineral/magnetite": 50000
+        }}
+      ]
     },
     {
       "erodibility_delta": 0.04,
@@ -622,14 +695,32 @@
       "porosity_multiplier": 1.15,
       "process_class": "HYDROTHERMAL_METASOMATISM",
       "replacement_ppm": 350000,
-      "target_recipes": [{"protolith_families": ["IGNEOUS", "SEDIMENTARY", "METAMORPHIC", "HYDROTHERMAL", "SURFICIAL"], "target_modes_ppm": {
-        "geological:mineral/clinochlore": 450000,
-        "geological:mineral/quartz": 180000,
-        "geological:mineral/pyrite": 220000,
-        "geological:mineral/chalcopyrite": 80000,
-        "geological:mineral/sphalerite": 50000,
-        "geological:mineral/magnetite": 20000
-      }}]
+      "target_recipes": [
+        {"protolith_families": ["IGNEOUS", "METAMORPHIC"], "target_modes_ppm": {
+          "geological:mineral/clinochlore": 500000,
+          "geological:mineral/quartz": 200000,
+          "geological:mineral/pyrite": 150000,
+          "geological:mineral/chalcopyrite": 70000,
+          "geological:mineral/sphalerite": 30000,
+          "geological:mineral/magnetite": 50000
+        }},
+        {"protolith_families": ["SEDIMENTARY", "SURFICIAL"], "target_modes_ppm": {
+          "geological:mineral/clinochlore": 400000,
+          "geological:mineral/quartz": 250000,
+          "geological:mineral/pyrite": 200000,
+          "geological:mineral/chalcopyrite": 60000,
+          "geological:mineral/sphalerite": 60000,
+          "geological:mineral/magnetite": 30000
+        }},
+        {"protolith_families": ["HYDROTHERMAL"], "target_modes_ppm": {
+          "geological:mineral/clinochlore": 250000,
+          "geological:mineral/quartz": 100000,
+          "geological:mineral/pyrite": 350000,
+          "geological:mineral/chalcopyrite": 150000,
+          "geological:mineral/sphalerite": 100000,
+          "geological:mineral/magnetite": 50000
+        }}
+      ]
     },
     {
       "erodibility_delta": 0.18,
@@ -650,14 +741,37 @@
       "porosity_multiplier": 1.45,
       "process_class": "WEATHERING",
       "replacement_ppm": 500000,
-      "target_recipes": [{"protolith_families": ["IGNEOUS", "SEDIMENTARY", "METAMORPHIC", "HYDROTHERMAL", "SURFICIAL"], "target_modes_ppm": {
-        "geological:mineral/goethite": 500000,
-        "geological:mineral/hematite": 250000,
-        "geological:mineral/quartz": 149950,
-        "geological:mineral/kaolinite": 80000,
-        "geological:mineral/magnetite": 20000,
-        "geological:mineral/native_gold": 50
-      }}]
+      "target_recipes": [
+        {"protolith_families": ["IGNEOUS", "METAMORPHIC"], "target_modes_ppm": {
+          "geological:mineral/goethite": 400000,
+          "geological:mineral/hematite": 250000,
+          "geological:mineral/quartz": 200000,
+          "geological:mineral/kaolinite": 100000,
+          "geological:mineral/magnetite": 50000
+        }},
+        {"protolith_families": ["SEDIMENTARY"], "target_modes_ppm": {
+          "geological:mineral/goethite": 300000,
+          "geological:mineral/hematite": 180000,
+          "geological:mineral/quartz": 350000,
+          "geological:mineral/kaolinite": 140000,
+          "geological:mineral/magnetite": 30000
+        }},
+        {"protolith_families": ["HYDROTHERMAL"], "target_modes_ppm": {
+          "geological:mineral/goethite": 550000,
+          "geological:mineral/hematite": 300000,
+          "geological:mineral/quartz": 80000,
+          "geological:mineral/kaolinite": 50000,
+          "geological:mineral/magnetite": 20000
+        }},
+        {"protolith_families": ["SURFICIAL"], "target_modes_ppm": {
+          "geological:mineral/goethite": 300000,
+          "geological:mineral/hematite": 180000,
+          "geological:mineral/quartz": 349999,
+          "geological:mineral/kaolinite": 140000,
+          "geological:mineral/magnetite": 30000,
+          "geological:mineral/native_gold": 1
+        }}
+      ]
     },
     {
       "erodibility_delta": 0.15,
@@ -678,14 +792,41 @@
       "porosity_multiplier": 1.4,
       "process_class": "WEATHERING",
       "replacement_ppm": 300000,
-      "target_recipes": [{"protolith_families": ["IGNEOUS", "SEDIMENTARY", "METAMORPHIC", "HYDROTHERMAL", "SURFICIAL"], "target_modes_ppm": {
-        "geological:mineral/kaolinite": 400000,
-        "geological:mineral/quartz": 250000,
-        "geological:mineral/goethite": 150000,
-        "geological:mineral/hematite": 80000,
-        "geological:mineral/magnetite": 20000,
-        "geological:mineral/muscovite": 100000
-      }}]
+      "target_recipes": [
+        {"protolith_families": ["IGNEOUS", "METAMORPHIC"], "target_modes_ppm": {
+          "geological:mineral/kaolinite": 400000,
+          "geological:mineral/quartz": 250000,
+          "geological:mineral/goethite": 150000,
+          "geological:mineral/hematite": 80000,
+          "geological:mineral/magnetite": 20000,
+          "geological:mineral/muscovite": 100000
+        }},
+        {"protolith_families": ["SEDIMENTARY"], "target_modes_ppm": {
+          "geological:mineral/quartz": 350000,
+          "geological:mineral/kaolinite": 300000,
+          "geological:mineral/goethite": 120000,
+          "geological:mineral/hematite": 80000,
+          "geological:mineral/muscovite": 120000,
+          "geological:mineral/magnetite": 30000
+        }},
+        {"protolith_families": ["HYDROTHERMAL"], "target_modes_ppm": {
+          "geological:mineral/quartz": 220000,
+          "geological:mineral/kaolinite": 180000,
+          "geological:mineral/goethite": 300000,
+          "geological:mineral/hematite": 180000,
+          "geological:mineral/muscovite": 40000,
+          "geological:mineral/magnetite": 80000
+        }},
+        {"protolith_families": ["SURFICIAL"], "target_modes_ppm": {
+          "geological:mineral/quartz": 449999,
+          "geological:mineral/kaolinite": 220000,
+          "geological:mineral/goethite": 120000,
+          "geological:mineral/hematite": 60000,
+          "geological:mineral/magnetite": 30000,
+          "geological:mineral/muscovite": 120000,
+          "geological:mineral/native_gold": 1
+        }}
+      ]
     }
   ]
 }

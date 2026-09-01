@@ -2,7 +2,7 @@
 
 Geological is a causal geology and terrain-generation project for Minecraft Java 1.21.1 on NeoForge 21.1.x. Its selected world preset will eventually own the canonical Overworld, Nether, and End through dimension-specific geological histories rather than add a separate geology dimension.
 
-The repository contains the **Phase 0 standalone geological atlas proof**, the **Phase 1 platform-neutral query core**, and the first five **Phase 2 petrologic material-state increments**. It intentionally produces no Minecraft blocks: deterministic random-access geology, validated scientific identity, explainable point queries, transient column/run plans, correlated body-scale bulk-rock mineralogy and physical properties, typed process-fluid conditions, and coarse element-reservoir conservation are proven before coupling the model to NeoForge.
+The repository contains the **Phase 0 standalone geological atlas proof**, the **Phase 1 platform-neutral query core**, and the first six **Phase 2 petrologic material-state increments**. It intentionally produces no Minecraft blocks: deterministic random-access geology, validated scientific identity, explainable point queries, transient column/run plans, correlated body-scale bulk-rock mineralogy and physical properties, host-conditioned alteration/weathering responses, typed process-fluid conditions, and coarse element-reservoir conservation are proven before coupling the model to NeoForge.
 
 ## Stable identity
 
@@ -30,7 +30,7 @@ On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, col
 
 ## Modules
 
-- `geology-core` is a platform-neutral Java library. It implements stable identity, cell- and object-keyed deterministic random streams, strict public JSON registry authoring and canonical compilation, atlas descriptors, stratigraphic and unconformity kernels, varied event grammar, bounded spatial candidates, exact interval-proved column runs, causal mineral-system proofs, Overworld surface queries, and on-demand Phase 2 mineral assemblage, bulk-composition, and typed reservoir-ledger resolution for points, columns, and surface materials.
+- `geology-core` is a platform-neutral Java library. It implements stable identity, cell- and object-keyed deterministic random streams, strict public JSON registry authoring and canonical compilation, atlas descriptors, stratigraphic and unconformity kernels, varied event grammar, bounded spatial candidates, exact interval-proved column runs, causal mineral-system proofs, Overworld surface queries, and on-demand Phase 2 mineral assemblage, host-conditioned process response, bulk-composition, and typed reservoir-ledger resolution for points, columns, and surface materials.
 - `atlas-cli` is a standalone renderer and measurement harness. It emits maps, cross-sections, the canonical registry snapshot, stratigraphic/deformation/provenance traces, column proofs, and engineering observations. It depends on the core but no Minecraft or loader classes.
 
 See [the Phase 0 architecture](docs/architecture/phase-0-atlas.md), [Phase 1 query-core increment](docs/architecture/phase-1-query-core.md), [Phase 2 material-state increment](docs/architecture/phase-2-material-state.md), [registry authoring contract](docs/architecture/registry-authoring.md), [reproducibility contract](docs/architecture/reproducibility.md), and [toolchain policy](docs/development/toolchain.md) before extending the model.

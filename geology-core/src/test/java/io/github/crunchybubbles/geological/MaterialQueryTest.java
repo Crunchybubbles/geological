@@ -16,6 +16,7 @@ import io.github.crunchybubbles.geological.model.Point3;
 import io.github.crunchybubbles.geological.petrology.ChemicalElement;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
+import io.github.crunchybubbles.geological.petrology.GeneticFamily;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
 import io.github.crunchybubbles.geological.petrology.MaterialQueryEngine;
 import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
@@ -37,14 +38,14 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.5", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.6", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:f0abc63e80c379923a49805ebe64d0967179ecf3e710abe3ed3e4fb510efadb4",
+        "sha256:acbc4da5aaa2025b612930046335f0e910477559ba78721154ea033becab5bca",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -163,6 +164,46 @@ class MaterialQueryTest {
     query.clearCaches();
     assertEquals(0, query.bodyRecipeCacheSize());
     assertEquals(firstMaterial, query.resolve(province, firstUnaltered));
+  }
+
+  @Test
+  void massTransferResponsesSelectTheTargetForTheHostGeneticFamily() {
+    MaterialQueryEngine query = Phase2World.create(6_006L);
+    Province province = query.geology().atlas().provinceAt(new Point2(0.0, 0.0));
+    var phyllic = query.catalog().requireAlteration(Overprint.PHYLLIC_ALTERATION);
+
+    assertNotEquals(
+        phyllic.targetAssemblage(GeneticFamily.IGNEOUS),
+        phyllic.targetAssemblage(GeneticFamily.SEDIMENTARY));
+    assertNotEquals(
+        phyllic.targetAssemblage(GeneticFamily.SEDIMENTARY),
+        phyllic.targetAssemblage(GeneticFamily.HYDROTHERMAL));
+
+    for (Lithology lithology :
+        List.of(
+            Lithology.FELSIC_STOCK,
+            Lithology.BASIN_SANDSTONE,
+            Lithology.GRANITIC_GNEISS,
+            Lithology.VMS_MASSIVE_SULFIDE,
+            Lithology.ALLUVIAL_GRAVEL)) {
+      PetrologicSample material =
+          query.resolve(
+              province,
+              sample(
+                  province,
+                  new Point3(0.0, 0.0, 0.0),
+                  province.geometry().basementId(),
+                  lithology,
+                  new AgeKey(100.0, 0),
+                  Overprint.PHYLLIC_ALTERATION));
+      MineralAssemblage expected =
+          MineralAssemblage.blend(
+              material.primaryAssemblage(),
+              phyllic.targetAssemblage(material.rock().geneticFamily()),
+              phyllic.replacementPpm());
+
+      assertEquals(expected, material.resolvedAssemblage(), lithology.name());
+    }
   }
 
   @Test

@@ -1,6 +1,7 @@
 package io.github.crunchybubbles.geological;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -28,7 +29,7 @@ class MaterialCatalogTest {
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:b7291775f45f73ac91000ed6a30d73bf975b5c39bc1edf1ec06b6436c7921d0b",
+        "sha256:37cd427dca5c3e9e972bd022e90fa888d59d26b67dffed78c81ffabbb34cd388",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -78,6 +79,16 @@ class MaterialCatalogTest {
                   alteration.processClass() == MaterialProcessClass.HYDROTHERMAL_METASOMATISM
                       || alteration.processClass() == MaterialProcessClass.WEATHERING;
               assertEquals(requiresFluid, alteration.fluidState().isPresent());
+              if (alteration.replacementPpm() > 0) {
+                assertTrue(alteration.targetRecipes().size() >= 3, alteration.overprint().name());
+                assertEquals(
+                    alteration.targetRecipes().size(),
+                    alteration.targetRecipes().stream()
+                        .map(recipe -> recipe.targetAssemblage())
+                        .distinct()
+                        .count(),
+                    alteration.overprint().name());
+              }
               for (GeneticFamily family : GeneticFamily.values()) {
                 assertEquals(
                     alteration.replacementPpm() > 0,
@@ -85,16 +96,34 @@ class MaterialCatalogTest {
                     alteration.overprint() + "/" + family);
               }
             });
+    assertFalse(
+        catalog
+            .requireAlteration(Overprint.OXIDIZED_GOSSAN)
+            .targetAssemblage(GeneticFamily.HYDROTHERMAL)
+            .modesPpm()
+            .containsKey("geological:mineral/native_gold"));
+    assertEquals(
+        1L,
+        catalog
+            .requireAlteration(Overprint.OXIDIZED_GOSSAN)
+            .targetAssemblage(GeneticFamily.SURFICIAL)
+            .modesPpm()
+            .get("geological:mineral/native_gold"));
+    assertEquals(
+        1L,
+        catalog
+            .requireAlteration(Overprint.WEATHERED_REGOLITH)
+            .targetAssemblage(GeneticFamily.SURFICIAL)
+            .modesPpm()
+            .get("geological:mineral/native_gold"));
   }
 
   @Test
   void canonicalCatalogIgnoresProtolithFamilyAuthoringOrder() throws Exception {
     String authored = packagedCatalogJson();
     String reordered =
-        authored.replace(
-            "\"IGNEOUS\", \"SEDIMENTARY\", \"METAMORPHIC\", \"HYDROTHERMAL\", \"SURFICIAL\"",
-            "\"SURFICIAL\", \"HYDROTHERMAL\", \"METAMORPHIC\", \"SEDIMENTARY\", \"IGNEOUS\"");
-    assertTrue(reordered.contains("\"SURFICIAL\", \"HYDROTHERMAL\""));
+        authored.replace("\"IGNEOUS\", \"METAMORPHIC\"", "\"METAMORPHIC\", \"IGNEOUS\"");
+    assertTrue(reordered.contains("\"METAMORPHIC\", \"IGNEOUS\""));
 
     MaterialCatalogSnapshot loaded =
         new MaterialCatalogJsonLoader()
@@ -125,10 +154,7 @@ class MaterialCatalogTest {
                         "invalid-distribution.json"));
     assertTrue(distributionFailure.getMessage().contains("minimum <= mode <= maximum"));
 
-    String incompleteRecipes =
-        authored.replace(
-            "\"IGNEOUS\", \"SEDIMENTARY\", \"METAMORPHIC\", \"HYDROTHERMAL\", \"SURFICIAL\"",
-            "\"IGNEOUS\"");
+    String incompleteRecipes = authored.replace("\"IGNEOUS\", \"METAMORPHIC\"", "\"IGNEOUS\"");
     MaterialCatalogAuthoringException recipeFailure =
         assertThrows(
             MaterialCatalogAuthoringException.class,

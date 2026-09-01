@@ -30,6 +30,9 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"modalVariationAxes\""));
     assertTrue(firstJson.contains("\"loadingsPpm\""));
     assertTrue(firstJson.contains("\"protolithFamilies\""));
+    assertTrue(firstJson.contains("\"geneticFamily\""));
+    assertTrue(firstJson.contains("\"basin-sandstone-phyllic\""));
+    assertTrue(firstJson.contains("\"vms-massive-sulfide-gossan\""));
     assertTrue(firstJson.contains("\"ligandCapacities\""));
   }
 }
