@@ -17,6 +17,7 @@ import io.github.crunchybubbles.geological.petrology.MaterialConstituentKind;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
 import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
 import io.github.crunchybubbles.geological.petrology.MetamorphicGrade;
+import io.github.crunchybubbles.geological.petrology.MetamorphicPath;
 import io.github.crunchybubbles.geological.petrology.MineralDefinition;
 import io.github.crunchybubbles.geological.petrology.RockTexture;
 import io.github.crunchybubbles.geological.petrology.SolidSolutionState;
@@ -31,15 +32,15 @@ class MaterialCatalogTest {
   void packagedCatalogCoversEveryImplementedMaterialAndClosesChemistry() {
     MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
 
-    assertEquals(36, catalog.minerals().size());
+    assertEquals(40, catalog.minerals().size());
     assertEquals(1, catalog.nonCrystallineConstituents().size());
-    assertEquals(37, catalog.constituents().size());
+    assertEquals(41, catalog.constituents().size());
     assertEquals(7, catalog.solidSolutions().size());
-    assertEquals(28, catalog.rocks().size());
+    assertEquals(29, catalog.rocks().size());
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:d995ffa0d66acdf1139ad6d60c6792f18bf286fadae0e24d92c6acd829e77b26",
+        "sha256:5f6ff06dbc2896e2d711a6aae7d188c93dc8b9b599954772745d2c16e539dd57",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -466,6 +467,53 @@ class MaterialCatalogTest {
             .anyMatch(
                 state -> state.definitionId().equals("geological:solid_solution/plagioclase")));
     assertTrue(catalog.solidSolutionStates(marble.primaryAssemblage()).isEmpty());
+  }
+
+  @Test
+  void serpentiniteRetainsUltramaficProtolithAndHydratedMeshAssemblage() {
+    MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
+    var ultramafic = catalog.requireRock(Lithology.KOMATIITIC_ULTRAMAFIC);
+    var serpentinite = catalog.requireRock(Lithology.SERPENTINITE);
+    var metamorphism = serpentinite.primaryMetamorphism().orElseThrow();
+
+    assertEquals(RockTexture.SERPENTINIZED_MESH, serpentinite.texture());
+    assertEquals("geological:rock/komatiitic_ultramafic", metamorphism.protolithRockId());
+    assertEquals(MetamorphicGrade.LOW, metamorphism.grade());
+    assertEquals(MetamorphicFacies.SUBGREENSCHIST, metamorphism.facies());
+    assertEquals(MetamorphicPath.HYDROTHERMAL_HYDRATION, metamorphism.path());
+    assertEquals(25.0, metamorphism.minimumTemperatureCelsius());
+    assertEquals(300.0, metamorphism.maximumTemperatureCelsius());
+
+    long serpentineMode =
+        serpentinite.primaryAssemblage().modesPpm().get("geological:mineral/lizardite")
+            + serpentinite.primaryAssemblage().modesPpm().get("geological:mineral/chrysotile")
+            + serpentinite.primaryAssemblage().modesPpm().get("geological:mineral/antigorite");
+    assertEquals(850_000L, serpentineMode);
+    for (String mineralId :
+        java.util.List.of(
+            "geological:mineral/lizardite",
+            "geological:mineral/chrysotile",
+            "geological:mineral/antigorite")) {
+      MineralDefinition mineral = catalog.requireMineral(mineralId);
+      assertEquals(3.0, mineral.formula().get(ChemicalElement.MG).doubleValue());
+      assertEquals(2.0, mineral.formula().get(ChemicalElement.SI).doubleValue());
+      assertEquals(9.0, mineral.formula().get(ChemicalElement.O).doubleValue());
+      assertEquals(4.0, mineral.formula().get(ChemicalElement.H).doubleValue());
+    }
+    MineralDefinition brucite = catalog.requireMineral("geological:mineral/brucite");
+    assertEquals(2.0, brucite.formula().get(ChemicalElement.H).doubleValue());
+    assertTrue(
+        catalog
+                .composition(serpentinite.primaryAssemblage())
+                .elementMassPpm()
+                .get(ChemicalElement.H)
+            > catalog
+                .composition(ultramafic.primaryAssemblage())
+                .elementMassPpm()
+                .getOrDefault(ChemicalElement.H, 0L));
+    assertTrue(
+        catalog.composition(serpentinite.primaryAssemblage()).density()
+            < catalog.composition(ultramafic.primaryAssemblage()).density());
   }
 
   @Test

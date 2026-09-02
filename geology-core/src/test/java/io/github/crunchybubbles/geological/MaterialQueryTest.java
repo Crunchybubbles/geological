@@ -23,6 +23,7 @@ import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
 import io.github.crunchybubbles.geological.petrology.MaterialQueryEngine;
 import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
 import io.github.crunchybubbles.geological.petrology.MetamorphicGrade;
+import io.github.crunchybubbles.geological.petrology.MetamorphicPath;
 import io.github.crunchybubbles.geological.petrology.PetrologicColumnResult;
 import io.github.crunchybubbles.geological.petrology.PetrologicSample;
 import io.github.crunchybubbles.geological.petrology.PetrologicState;
@@ -42,14 +43,14 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.17", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.18", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:c22cfa903a0055aadf9614fce20cfe2fd6b4520f2cad9283dbf5f2e1521a5a6e",
+        "sha256:cc2b95e703cd9e6bcb706b34968cbd11f387473dbbb8a560d070bd571ea57122",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -644,6 +645,46 @@ class MaterialQueryTest {
             .anyMatch(
                 state -> state.definitionId().equals("geological:solid_solution/plagioclase")));
     assertTrue(marble.primarySolidSolutions().isEmpty());
+  }
+
+  @Test
+  void serpentiniteQueryPreservesUltramaficInheritanceAndHydrationSignal() {
+    MaterialQueryEngine query = Phase2World.create(8_182L);
+    Province province = query.geology().atlas().provinceAt(new Point2(0.0, 0.0));
+    PetrologicSample ultramafic =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000101"),
+                Lithology.KOMATIITIC_ULTRAMAFIC,
+                new AgeKey(2_700.0, 0),
+                Overprint.NONE));
+    PetrologicSample serpentinite =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000901"),
+                Lithology.SERPENTINITE,
+                new AgeKey(350.0, 0),
+                Overprint.NONE));
+
+    assertEquals(
+        "geological:rock/komatiitic_ultramafic", serpentinite.metamorphism().protolithRockId());
+    assertEquals(MetamorphicGrade.LOW, serpentinite.metamorphism().grade());
+    assertEquals(MetamorphicFacies.SUBGREENSCHIST, serpentinite.metamorphism().facies());
+    assertEquals(MetamorphicPath.HYDROTHERMAL_HYDRATION, serpentinite.metamorphism().path());
+    assertEquals(RockTexture.SERPENTINIZED_MESH, serpentinite.resolvedTexture());
+    assertEquals(MaterialProcessClass.NONE, serpentinite.processClass());
+    assertTrue(
+        serpentinite.primaryComposition().elementMassPpm().get(ChemicalElement.H)
+            > ultramafic.primaryComposition().elementMassPpm().getOrDefault(ChemicalElement.H, 0L));
+    assertTrue(
+        serpentinite.primaryComposition().density() < ultramafic.primaryComposition().density());
+    assertEquals(serpentinite.primaryComposition(), serpentinite.resolvedComposition());
   }
 
   @Test

@@ -2,7 +2,7 @@
   "authoring_schema": "geological:material_catalog_authoring:v8",
   "evidence": {
     "citation_id": "refs:philpotts_ague_2009",
-    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic, sedimentary, pelitic slate-phyllite-to-schist, basalt-derived greenschist-to-amphibolite-to-granulite, and sandstone-to-quartzite and limestone-to-marble expansions follow published classification and USGS relationships documented in the public architecture. Hornblende is represented by simplified hydroxyl magnesiohornblende-ferrohornblende endmembers, not by the lower-aluminum actinolite proxy used in greenschist; high-grade mafic granulite uses an anhydrous plagioclase-orthopyroxene-clinopyroxene-garnet proxy rather than retaining amphibolite's dominant hornblende. Non-crystalline organic matter uses an explicit closed bulk-element proxy rather than a fictitious mineral formula. Primary metamorphic recipes author a non-metamorphic original protolith plus coarse grade, facies, path, and peak P-T envelope; they are not independent decorative rock rolls. Quartzite and marble are authored at one low-grade regional proof envelope even though those composition-and-texture rock classes occur across broader metamorphic conditions. Contact hornfels is an isochemical, host-preserving response with an explicit hornfelsic resolved texture rather than a fixed-composition primary lithology; the original rock still controls its mineralogy. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Constituent modes, modal covariance axes, protolith-conditioned response targets, primary and resolved textures, physical-property distributions, P-T envelopes, and organic bulk chemistry are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
+    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic, sedimentary, pelitic slate-phyllite-to-schist, basalt-derived greenschist-to-amphibolite-to-granulite, sandstone-to-quartzite and limestone-to-marble, and ultramafic-to-serpentinite expansions follow published classification and USGS relationships documented in the public architecture. Hornblende is represented by simplified hydroxyl magnesiohornblende-ferrohornblende endmembers, not by the lower-aluminum actinolite proxy used in greenschist; high-grade mafic granulite uses an anhydrous plagioclase-orthopyroxene-clinopyroxene-garnet proxy rather than retaining amphibolite's dominant hornblende. Lizardite, chrysotile, and antigorite use one simplified ideal serpentine-group formula while remaining separate texture and temperature proxies; serpentinite records a shallow low-temperature hydration proof path without claiming reaction-progress or water-rock mass-balance resolution. Non-crystalline organic matter uses an explicit closed bulk-element proxy rather than a fictitious mineral formula. Primary metamorphic recipes author a non-metamorphic original protolith plus coarse grade, facies, path, and peak P-T envelope; they are not independent decorative rock rolls. Quartzite and marble are authored at one low-grade regional proof envelope even though those composition-and-texture rock classes occur across broader metamorphic conditions. Contact hornfels is an isochemical, host-preserving response with an explicit hornfelsic resolved texture rather than a fixed-composition primary lithology; the original rock still controls its mineralogy. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Constituent modes, modal covariance axes, protolith-conditioned response targets, primary and resolved textures, physical-property distributions, P-T envelopes, and organic bulk chemistry are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
     "publication_year": 2009,
     "title": "Principles of Igneous and Metamorphic Petrology",
     "uri": "https://doi.org/10.1017/CBO9780511813429"
@@ -119,6 +119,34 @@
       "hardness_mohs": 5.5,
       "id": "geological:mineral/ferrosilite",
       "weathering_resistance": 0.26
+    },
+    {
+      "density_g_cm3": 2.55,
+      "formula": {"Mg": 3, "Si": 2, "O": 9, "H": 4},
+      "hardness_mohs": 2.5,
+      "id": "geological:mineral/lizardite",
+      "weathering_resistance": 0.5
+    },
+    {
+      "density_g_cm3": 2.55,
+      "formula": {"Mg": 3, "Si": 2, "O": 9, "H": 4},
+      "hardness_mohs": 2.5,
+      "id": "geological:mineral/chrysotile",
+      "weathering_resistance": 0.48
+    },
+    {
+      "density_g_cm3": 2.62,
+      "formula": {"Mg": 3, "Si": 2, "O": 9, "H": 4},
+      "hardness_mohs": 3.5,
+      "id": "geological:mineral/antigorite",
+      "weathering_resistance": 0.6
+    },
+    {
+      "density_g_cm3": 2.39,
+      "formula": {"Mg": 1, "O": 2, "H": 2},
+      "hardness_mohs": 2.5,
+      "id": "geological:mineral/brucite",
+      "weathering_resistance": 0.28
     },
     {
       "density_g_cm3": 2.65,
@@ -647,6 +675,48 @@
         "peak_pressure_mpa": [200.0, 650.0],
         "peak_temperature_c": [300.0, 500.0],
         "protolith_rock_id": "geological:rock/limestone"
+      }
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.3, "mode": 0.45, "maximum": 0.6},
+      "genetic_family": "METAMORPHIC",
+      "id": "geological:rock/serpentinite",
+      "lithology": "SERPENTINITE",
+      "modal_spread_fraction": 0.18,
+      "modal_variation_axes": [
+        {
+          "id": "serpentine_species_balance",
+          "loadings_ppm": {"geological:mineral/lizardite": 40000, "geological:mineral/antigorite": -30000, "geological:mineral/chrysotile": -10000}
+        },
+        {
+          "id": "hydration_relict_balance",
+          "loadings_ppm": {"geological:mineral/lizardite": 2000, "geological:mineral/chrysotile": 1000, "geological:mineral/brucite": 1000, "geological:mineral/forsterite": -3000, "geological:mineral/enstatite": -1000}
+        },
+        {
+          "id": "magnetite_brucite_balance",
+          "loadings_ppm": {"geological:mineral/magnetite": 8000, "geological:mineral/brucite": -8000}
+        }
+      ],
+      "texture": "SERPENTINIZED_MESH",
+      "constituent_modes_ppm": {
+        "geological:mineral/lizardite": 425000,
+        "geological:mineral/antigorite": 250000,
+        "geological:mineral/chrysotile": 175000,
+        "geological:mineral/brucite": 60000,
+        "geological:mineral/magnetite": 50000,
+        "geological:mineral/forsterite": 20000,
+        "geological:mineral/enstatite": 10000,
+        "geological:mineral/clinochlore": 10000
+      },
+      "permeability_distribution": {"minimum": 0.02, "mode": 0.08, "maximum": 0.2},
+      "porosity_distribution": {"minimum": 0.004, "mode": 0.015, "maximum": 0.04},
+      "primary_metamorphism": {
+        "facies": "SUBGREENSCHIST",
+        "grade": "LOW",
+        "path": "HYDROTHERMAL_HYDRATION",
+        "peak_pressure_mpa": [1.0, 10.0],
+        "peak_temperature_c": [25.0, 300.0],
+        "protolith_rock_id": "geological:rock/komatiitic_ultramafic"
       }
     },
     {

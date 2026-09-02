@@ -250,6 +250,16 @@ final class MaterialReviewPacketGenerator {
                 Lithology.MARBLE,
                 new AgeKey(360.0, 0),
                 Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "serpentinite-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000901"),
+                Lithology.SERPENTINITE,
+                new AgeKey(350.0, 0),
+                Overprint.NONE)));
     RiftArcGeometry.PlutonPulse stock = pulses.getLast();
     samples.add(
         sampleJson(

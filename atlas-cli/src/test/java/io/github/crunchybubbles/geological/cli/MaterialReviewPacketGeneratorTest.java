@@ -71,6 +71,12 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"granulite-catalog\""));
     assertTrue(firstJson.contains("\"quartzite-catalog\""));
     assertTrue(firstJson.contains("\"marble-catalog\""));
+    assertTrue(firstJson.contains("\"serpentinite-catalog\""));
+    assertTrue(firstJson.contains("geological:mineral/lizardite"));
+    assertTrue(firstJson.contains("geological:mineral/chrysotile"));
+    assertTrue(firstJson.contains("geological:mineral/antigorite"));
+    assertTrue(firstJson.contains("geological:mineral/brucite"));
+    assertTrue(firstJson.contains("\"SERPENTINIZED_MESH\""));
     assertTrue(firstJson.contains("geological:mineral/magnesiohornblende"));
     assertTrue(firstJson.contains("geological:mineral/ferrohornblende"));
     assertTrue(firstJson.contains("geological:solid_solution/hornblende"));
