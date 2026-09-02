@@ -1,5 +1,7 @@
 package io.github.crunchybubbles.geological.petrology;
 
+import io.github.crunchybubbles.geological.determinism.StableId;
+import io.github.crunchybubbles.geological.model.Lithology;
 import io.github.crunchybubbles.geological.query.MaterialState;
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +26,7 @@ public record PetrologicState(
     double permeabilityIndex,
     double erodibilityIndex,
     Optional<MagmaLineageState> magmaLineage,
+    Optional<MantleCargoState> mantleCargo,
     Optional<SedimentaryState> sedimentaryState,
     List<ElementReservoirLedger> reservoirLedgers) {
   public PetrologicState {
@@ -42,6 +45,7 @@ public record PetrologicState(
         || processClass == null
         || fluidState == null
         || magmaLineage == null
+        || mantleCargo == null
         || sedimentaryState == null
         || reservoirLedgers == null) {
       throw new IllegalArgumentException("petrologic state must be complete");
@@ -55,6 +59,7 @@ public record PetrologicState(
       }
     }
     requireFluidState(processClass, fluidState);
+    requireMantleCargo(geology.rockBodyId(), rock, mantleCargo);
     reservoirLedgers =
         List.copyOf(reservoirLedgers).stream()
             .sorted(java.util.Comparator.comparing(ElementReservoirLedger::systemId))
@@ -84,6 +89,7 @@ public record PetrologicState(
         sample.permeabilityIndex(),
         sample.erodibilityIndex(),
         sample.magmaLineage(),
+        sample.mantleCargo(),
         sample.sedimentaryState(),
         sample.reservoirLedgers());
   }
@@ -112,6 +118,16 @@ public record PetrologicState(
             || processClass == MaterialProcessClass.WEATHERING;
     if (requiresFluid != fluidState.isPresent()) {
       throw new IllegalArgumentException("petrologic process and fluid state do not agree");
+    }
+  }
+
+  private static void requireMantleCargo(
+      StableId rockBodyId, RockDefinition rock, Optional<MantleCargoState> mantleCargo) {
+    if ((rock.lithology() == Lithology.KIMBERLITIC) != mantleCargo.isPresent()) {
+      throw new IllegalArgumentException("mantle cargo is required exactly for kimberlitic rock");
+    }
+    if (mantleCargo.isPresent() && !mantleCargo.orElseThrow().carrierBodyId().equals(rockBodyId)) {
+      throw new IllegalArgumentException("mantle cargo carrier does not match rock body");
     }
   }
 }

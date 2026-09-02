@@ -658,6 +658,7 @@ final class ReviewPacketGenerator {
       case RHYOLITIC -> new Color(201, 177, 168);
       case ALKALINE -> new Color(151, 128, 146);
       case CARBONATITIC -> new Color(205, 202, 183);
+      case KIMBERLITIC -> new Color(72, 92, 76);
       case GABBROIC -> new Color(78, 91, 87);
       case DIORITE_PULSE -> new Color(112, 119, 120);
       case GRANODIORITE_PULSE -> new Color(175, 164, 151);

@@ -52,6 +52,16 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("geological:mineral/nepheline"));
     assertTrue(firstJson.contains("geological:mineral/aegirine"));
     assertTrue(firstJson.contains("geological:mineral/fluorapatite"));
+    assertTrue(firstJson.contains("\"kimberlitic-catalog\""));
+    assertTrue(firstJson.contains("\"MACROCRYSTIC_VOLATILE_RICH\""));
+    assertTrue(firstJson.contains("\"mantleCargo\""));
+    assertTrue(firstJson.contains("\"SOURCE_CONTEXT_UNRESOLVED\""));
+    assertTrue(firstJson.contains("\"diamondGradePpbByMass\": 0"));
+    assertTrue(firstJson.contains("geological:mineral/diamond"));
+    assertTrue(firstJson.contains("geological:mineral/pyrope"));
+    assertTrue(firstJson.contains("geological:mineral/chromite"));
+    assertTrue(firstJson.contains("geological:mineral/ilmenite"));
+    assertTrue(firstJson.contains("geological:mineral/perovskite"));
     assertTrue(firstJson.contains("geological:mineral/dolomite"));
     assertTrue(firstJson.contains("\"siltstone-catalog\""));
     assertTrue(firstJson.contains("\"limestone-catalog\""));

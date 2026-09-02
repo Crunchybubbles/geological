@@ -32,15 +32,15 @@ class MaterialCatalogTest {
   void packagedCatalogCoversEveryImplementedMaterialAndClosesChemistry() {
     MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
 
-    assertEquals(43, catalog.minerals().size());
+    assertEquals(48, catalog.minerals().size());
     assertEquals(1, catalog.nonCrystallineConstituents().size());
-    assertEquals(44, catalog.constituents().size());
-    assertEquals(7, catalog.solidSolutions().size());
-    assertEquals(33, catalog.rocks().size());
+    assertEquals(49, catalog.constituents().size());
+    assertEquals(8, catalog.solidSolutions().size());
+    assertEquals(34, catalog.rocks().size());
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:248a2031415f222752975c6e96d4920e760b8c8d8cc0142f53808f3e58777a49",
+        "sha256:c1973876f47c2c46d8ea759bc031563e53e407a4e95958bbefcd4f9d74c2c504",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -299,6 +299,57 @@ class MaterialCatalogTest {
     assertTrue(
         carbonatiteComposition.elementMassPpm().get(ChemicalElement.P)
             > alkalineComposition.elementMassPpm().get(ChemicalElement.P));
+  }
+
+  @Test
+  void kimberliteRecipeKeepsCarrierMineralogySeparateFromPotentialMantleCargo() {
+    MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
+    var kimberlite = catalog.requireRock(Lithology.KIMBERLITIC);
+
+    assertEquals(GeneticFamily.IGNEOUS, kimberlite.geneticFamily());
+    assertEquals(RockTexture.MACROCRYSTIC_VOLATILE_RICH, kimberlite.texture());
+    assertEquals(
+        340_000L,
+        kimberlite.primaryAssemblage().modesPpm().get("geological:mineral/forsterite")
+            + kimberlite.primaryAssemblage().modesPpm().get("geological:mineral/fayalite"));
+    assertEquals(
+        240_000L,
+        kimberlite.primaryAssemblage().modesPpm().get("geological:mineral/lizardite")
+            + kimberlite.primaryAssemblage().modesPpm().get("geological:mineral/chrysotile"));
+    assertFalse(
+        kimberlite.primaryAssemblage().modesPpm().containsKey("geological:mineral/diamond"));
+    assertFalse(kimberlite.primaryAssemblage().modesPpm().containsKey("geological:mineral/pyrope"));
+    assertFalse(
+        kimberlite.primaryAssemblage().modesPpm().containsKey("geological:mineral/chromite"));
+
+    MineralDefinition diamond = catalog.requireMineral("geological:mineral/diamond");
+    MineralDefinition graphite = catalog.requireMineral("geological:mineral/graphite");
+    assertEquals(1.0, diamond.formula().get(ChemicalElement.C).doubleValue());
+    assertEquals(10.0, diamond.hardnessMohs());
+    assertTrue(
+        diamond.densityGramsPerCubicCentimeter() > graphite.densityGramsPerCubicCentimeter());
+    MineralDefinition pyrope = catalog.requireMineral("geological:mineral/pyrope");
+    assertEquals(3.0, pyrope.formula().get(ChemicalElement.MG).doubleValue());
+    assertEquals(2.0, pyrope.formula().get(ChemicalElement.AL).doubleValue());
+    MineralDefinition chromite = catalog.requireMineral("geological:mineral/chromite");
+    assertEquals(2.0, chromite.formula().get(ChemicalElement.CR).doubleValue());
+    assertEquals(
+        1.0,
+        catalog
+            .requireMineral("geological:mineral/ilmenite")
+            .formula()
+            .get(ChemicalElement.TI)
+            .doubleValue());
+    assertEquals(
+        1.0,
+        catalog
+            .requireMineral("geological:mineral/perovskite")
+            .formula()
+            .get(ChemicalElement.CA)
+            .doubleValue());
+    assertEquals(
+        java.util.List.of("geological:mineral/almandine", "geological:mineral/pyrope"),
+        catalog.requireSolidSolution("geological:solid_solution/garnet").endmemberIds());
   }
 
   @Test

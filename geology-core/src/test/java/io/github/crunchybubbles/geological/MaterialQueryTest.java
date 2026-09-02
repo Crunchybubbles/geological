@@ -3,6 +3,7 @@ package io.github.crunchybubbles.geological;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.crunchybubbles.geological.atlas.Province;
@@ -18,6 +19,8 @@ import io.github.crunchybubbles.geological.petrology.ChemicalElement;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
+import io.github.crunchybubbles.geological.petrology.MantleCargoState;
+import io.github.crunchybubbles.geological.petrology.MantleCargoStatus;
 import io.github.crunchybubbles.geological.petrology.MaterialAssemblage;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
 import io.github.crunchybubbles.geological.petrology.MaterialQueryEngine;
@@ -38,19 +41,20 @@ import io.github.crunchybubbles.geological.query.Phase1World;
 import io.github.crunchybubbles.geological.query.Phase2World;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.20", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.21", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:e433903aa8be658a501cbb6ea4dcdbaac10f06737650f47f642a613f62a07323",
+        "sha256:94532b75d23b125bfde9e79422a6588945606ff17b8ca672e1fbdaebe321569e",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -165,6 +169,92 @@ class MaterialQueryTest {
     assertTrue(
         carbonatite.primaryComposition().elementMassPpm().get(ChemicalElement.P)
             > alkaline.primaryComposition().elementMassPpm().get(ChemicalElement.P));
+  }
+
+  @Test
+  void kimberliteCarrierDoesNotInventUnresolvedDiamondFertility() {
+    MaterialQueryEngine query = Phase2World.create(8_183L);
+    Province province = query.geology().atlas().provinceAt(new Point2(0.0, 0.0));
+    StableId bodyId = StableId.parse("00000000000000000000000000000108");
+    PetrologicSample kimberlite =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                bodyId,
+                Lithology.KIMBERLITIC,
+                new AgeKey(225.0, 0),
+                Overprint.NONE));
+
+    assertEquals(RockTexture.MACROCRYSTIC_VOLATILE_RICH, kimberlite.resolvedTexture());
+    assertTrue(kimberlite.magmaLineage().isEmpty());
+    assertFalse(
+        kimberlite.primaryAssemblage().modesPpm().containsKey("geological:mineral/diamond"));
+    var cargo = kimberlite.mantleCargo().orElseThrow();
+    assertEquals(bodyId, cargo.carrierBodyId());
+    assertEquals(MantleCargoStatus.SOURCE_CONTEXT_UNRESOLVED, cargo.status());
+    assertTrue(cargo.sourceReservoirId().isEmpty());
+    assertEquals("geological:mineral/diamond", cargo.diamondMineralId());
+    assertEquals(0L, cargo.diamondGradePpbByMass());
+    assertEquals(
+        List.of(
+            "geological:mineral/chromite",
+            "geological:mineral/diopside",
+            "geological:mineral/ilmenite",
+            "geological:mineral/pyrope"),
+        cargo.candidateIndicatorMineralIds());
+    assertEquals(cargo, PetrologicState.from(kimberlite).mantleCargo().orElseThrow());
+  }
+
+  @Test
+  void mantleCargoRequiresResolvedSourceAndPositiveGradeToClaimDiamonds() {
+    StableId carrier = StableId.parse("00000000000000000000000000000108");
+    StableId source = StableId.parse("00000000000000000000000000000901");
+    List<String> indicators = List.of("geological:mineral/pyrope", "geological:mineral/chromite");
+
+    MantleCargoState bearing =
+        new MantleCargoState(
+            carrier,
+            Optional.of(source),
+            MantleCargoStatus.DIAMOND_BEARING,
+            "geological:mineral/diamond",
+            100L,
+            indicators);
+    assertEquals(source, bearing.sourceReservoirId().orElseThrow());
+    assertEquals(
+        List.of("geological:mineral/chromite", "geological:mineral/pyrope"),
+        bearing.candidateIndicatorMineralIds());
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new MantleCargoState(
+                carrier,
+                Optional.empty(),
+                MantleCargoStatus.DIAMOND_BEARING,
+                "geological:mineral/diamond",
+                100L,
+                indicators));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new MantleCargoState(
+                carrier,
+                Optional.of(source),
+                MantleCargoStatus.BARREN,
+                "geological:mineral/diamond",
+                1L,
+                indicators));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new MantleCargoState(
+                carrier,
+                Optional.of(source),
+                MantleCargoStatus.SOURCE_CONTEXT_UNRESOLVED,
+                "geological:mineral/diamond",
+                0L,
+                indicators));
   }
 
   @Test

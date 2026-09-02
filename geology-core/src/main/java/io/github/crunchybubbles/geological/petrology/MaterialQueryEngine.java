@@ -200,6 +200,7 @@ public final class MaterialQueryEngine {
         recipe.permeabilityIndex(),
         recipe.erodibilityIndex(),
         magmaLineage(province, geological),
+        mantleCargo(geological),
         sedimentaryState(province, rock),
         ledgersForSample(province, geological));
   }
@@ -296,6 +297,29 @@ public final class MaterialQueryEngine {
       }
     }
     return Optional.empty();
+  }
+
+  private Optional<MantleCargoState> mantleCargo(GeologicalSample sample) {
+    if (sample.lithology() != Lithology.KIMBERLITIC) {
+      return Optional.empty();
+    }
+    String diamondMineralId = "geological:mineral/diamond";
+    List<String> indicatorMineralIds =
+        List.of(
+            "geological:mineral/chromite",
+            "geological:mineral/diopside",
+            "geological:mineral/ilmenite",
+            "geological:mineral/pyrope");
+    catalog.requireMineral(diamondMineralId);
+    indicatorMineralIds.forEach(catalog::requireMineral);
+    return Optional.of(
+        new MantleCargoState(
+            sample.rockBodyId(),
+            Optional.empty(),
+            MantleCargoStatus.SOURCE_CONTEXT_UNRESOLVED,
+            diamondMineralId,
+            0L,
+            indicatorMineralIds));
   }
 
   private static Optional<SedimentaryState> sedimentaryState(

@@ -19,6 +19,7 @@ public enum ChemicalElement {
   K("K", 39.0983),
   CA("Ca", 40.078),
   TI("Ti", 47.867),
+  CR("Cr", 51.9961),
   FE("Fe", 55.845),
   CU("Cu", 63.546),
   ZN("Zn", 65.38),

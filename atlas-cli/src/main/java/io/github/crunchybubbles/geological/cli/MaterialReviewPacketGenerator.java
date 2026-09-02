@@ -13,6 +13,7 @@ import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
 import io.github.crunchybubbles.geological.petrology.ChemicalElement;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.MagmaLineageState;
+import io.github.crunchybubbles.geological.petrology.MantleCargoState;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessLedger;
 import io.github.crunchybubbles.geological.petrology.MaterialQueryEngine;
 import io.github.crunchybubbles.geological.petrology.ModalVariationAxis;
@@ -139,6 +140,16 @@ final class MaterialReviewPacketGenerator {
                 StableId.parse("00000000000000000000000000000107"),
                 Lithology.CARBONATITIC,
                 new AgeKey(230.0, 0),
+                Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "kimberlitic-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000108"),
+                Lithology.KIMBERLITIC,
+                new AgeKey(225.0, 0),
                 Overprint.NONE)));
     samples.add(
         sampleJson(
@@ -612,6 +623,8 @@ final class MaterialReviewPacketGenerator {
         sample.erodibilityIndex(),
         "magmaLineage",
         sample.magmaLineage().map(this::magmaLineageJson).orElse(null),
+        "mantleCargo",
+        sample.mantleCargo().map(this::mantleCargoJson).orElse(null),
         "sedimentaryState",
         sample.sedimentaryState().map(this::sedimentaryStateJson).orElse(null),
         "metamorphism",
@@ -660,6 +673,22 @@ final class MaterialReviewPacketGenerator {
         state.oxidationClass(),
         "residualFluidPotential",
         state.residualFluidPotential());
+  }
+
+  private Map<String, Object> mantleCargoJson(MantleCargoState state) {
+    return JsonWriter.object(
+        "carrierBodyId",
+        state.carrierBodyId().toString(),
+        "sourceReservoirId",
+        state.sourceReservoirId().map(Object::toString).orElse(null),
+        "status",
+        state.status().name(),
+        "diamondMineralId",
+        state.diamondMineralId(),
+        "diamondGradePpbByMass",
+        state.diamondGradePpbByMass(),
+        "candidateIndicatorMineralIds",
+        state.candidateIndicatorMineralIds());
   }
 
   private Map<String, Object> sedimentaryStateJson(SedimentaryState state) {
