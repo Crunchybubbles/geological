@@ -26,6 +26,7 @@ import io.github.crunchybubbles.geological.petrology.RockDefinition;
 import io.github.crunchybubbles.geological.petrology.SedimentaryState;
 import io.github.crunchybubbles.geological.petrology.SolidSolutionDefinition;
 import io.github.crunchybubbles.geological.petrology.SolidSolutionState;
+import io.github.crunchybubbles.geological.petrology.SurfaceMaterialKind;
 import io.github.crunchybubbles.geological.petrology.SurfacePetrologicSample;
 import io.github.crunchybubbles.geological.petrology.UnitIntervalDistribution;
 import io.github.crunchybubbles.geological.query.GeologicalSample;
@@ -55,6 +56,8 @@ final class MaterialReviewPacketGenerator {
     Province province = referenceProvince();
     SurfacePetrologicSample placer =
         query.surface(province.frame().toWorld(province.geometry().placerCenter()));
+    SurfacePetrologicSample colluvium =
+        findSurfaceMaterial(province, SurfaceMaterialKind.COLLUVIAL_MANTLE);
 
     List<Map<String, Object>> samples = new ArrayList<>();
     List<RiftArcGeometry.PlutonPulse> pulses = province.geometry().plutonPulses();
@@ -393,6 +396,7 @@ final class MaterialReviewPacketGenerator {
                 new AgeKey(241.0, 0),
                 Overprint.OXIDIZED_GOSSAN)));
     samples.add(sampleJson("surface-placer", placer.material()));
+    samples.add(sampleJson("surface-colluvial-mantle", colluvium.material()));
 
     Path output = outputDirectory.resolve("phase2-material-review.json");
     JsonWriter.write(
@@ -455,24 +459,64 @@ final class MaterialReviewPacketGenerator {
             "elementReservoirLedgers",
             query.elementReservoirLedgers(province).stream().map(this::reservoirJson).toList(),
             "surfacePlacerContext",
-            JsonWriter.object(
-                "kind",
-                placer.context().kind().name(),
-                "materialBodyId",
-                placer.context().materialBodyId().toString(),
-                "sourceBodyIds",
-                placer.context().sourceBodyIds().stream().map(Object::toString).toList(),
-                "depositId",
-                placer.context().depositId().map(Object::toString).orElse(null),
-                "budgetElement",
-                placer.context().budgetElement().orElse(null),
-                "budgetUnit",
-                placer.context().budgetUnit().orElse(null),
-                "sourceInventoryFixedUnits",
-                placer.context().sourceInventoryFixedUnits(),
-                "trappedInventoryFixedUnits",
-                placer.context().trappedInventoryFixedUnits())));
+            surfaceContextJson(placer),
+            "surfaceColluviumContext",
+            surfaceContextJson(colluvium)));
     return output;
+  }
+
+  private SurfacePetrologicSample findSurfaceMaterial(Province province, SurfaceMaterialKind kind) {
+    double extent = province.cellSize() * 0.45;
+    double step = province.cellSize() / 40.0;
+    for (double z = -extent; z <= extent; z += step) {
+      for (double x = -extent; x <= extent; x += step) {
+        SurfacePetrologicSample candidate =
+            query.surface(province.frame().toWorld(new Point2(x + 0.25, z - 0.25)));
+        if (candidate.context().kind() == kind
+            && candidate.surface().bedrock().provinceId().equals(province.id())) {
+          return candidate;
+        }
+      }
+    }
+    throw new IllegalStateException("reference province contains no " + kind + " fixture");
+  }
+
+  private static Map<String, Object> surfaceContextJson(SurfacePetrologicSample surface) {
+    return JsonWriter.object(
+        "kind",
+        surface.context().kind().name(),
+        "point",
+        pointJson(surface.surface().fields().point()),
+        "slope",
+        surface.surface().fields().slope(),
+        "weatheringDepth",
+        surface.surface().fields().weatheringDepth(),
+        "channelDistance",
+        surface.surface().fields().drainage().channelDistance(),
+        "channel",
+        surface.surface().fields().drainage().channel(),
+        "outcrop",
+        surface.surface().fields().outcrop(),
+        "formationAgeMa",
+        surface.material().geology().formationAge().ageMa(),
+        "formationAgeOrdinal",
+        surface.material().geology().formationAge().ordinal(),
+        "underlyingBedrockBodyId",
+        surface.surface().bedrock().rockBodyId().toString(),
+        "materialBodyId",
+        surface.context().materialBodyId().toString(),
+        "sourceBodyIds",
+        surface.context().sourceBodyIds().stream().map(Object::toString).toList(),
+        "depositId",
+        surface.context().depositId().map(Object::toString).orElse(null),
+        "budgetElement",
+        surface.context().budgetElement().orElse(null),
+        "budgetUnit",
+        surface.context().budgetUnit().orElse(null),
+        "sourceInventoryFixedUnits",
+        surface.context().sourceInventoryFixedUnits(),
+        "trappedInventoryFixedUnits",
+        surface.context().trappedInventoryFixedUnits());
   }
 
   private Province referenceProvince() {

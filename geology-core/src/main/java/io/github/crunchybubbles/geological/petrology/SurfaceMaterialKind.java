@@ -4,5 +4,6 @@ package io.github.crunchybubbles.geological.petrology;
 public enum SurfaceMaterialKind {
   BEDROCK_OUTCROP,
   IN_SITU_REGOLITH,
+  COLLUVIAL_MANTLE,
   ALLUVIAL_PLACER
 }

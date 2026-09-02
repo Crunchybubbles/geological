@@ -24,6 +24,11 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"materialProcess\""));
     assertTrue(firstJson.contains("\"elementReservoirLedgers\""));
     assertTrue(firstJson.contains("\"surfacePlacerContext\""));
+    assertTrue(firstJson.contains("\"surfaceColluviumContext\""));
+    assertTrue(firstJson.contains("\"surface-colluvial-mantle\""));
+    assertTrue(firstJson.contains("\"COLLUVIAL_MANTLE\""));
+    assertTrue(firstJson.contains("\"underlyingBedrockBodyId\""));
+    assertTrue(firstJson.contains("\"formationAgeMa\": 0.02"));
     assertTrue(firstJson.contains("\"normalizedExchangeMagnitudePpm\""));
     assertTrue(firstJson.contains("\"texture\""));
     assertTrue(firstJson.contains("\"responseTexture\""));

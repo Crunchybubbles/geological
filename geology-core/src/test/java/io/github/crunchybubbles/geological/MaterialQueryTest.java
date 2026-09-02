@@ -47,7 +47,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.23", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.24", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1200,6 +1200,55 @@ class MaterialQueryTest {
       assertTrue(surface.context().depositId().isEmpty());
     }
     assertEquals(Overprint.WEATHERED_REGOLITH, weathered.material().geology().overprint());
+  }
+
+  @Test
+  void midSlopeWeatheredMaterialFormsAYoungSourceLinkedColluvialMantle() {
+    MaterialQueryEngine query = Phase2World.create(2_025L);
+    SurfacePetrologicSample colluvium = null;
+    Point2 fixture = null;
+    for (int z = -1_500; z <= 1_500 && colluvium == null; z += 50) {
+      for (int x = -1_500; x <= 1_500 && colluvium == null; x += 50) {
+        Point2 point = new Point2(x + 0.25, z - 0.25);
+        SurfacePetrologicSample candidate = query.surface(point);
+        if (candidate.context().kind() == SurfaceMaterialKind.COLLUVIAL_MANTLE) {
+          colluvium = candidate;
+          fixture = point;
+        }
+      }
+    }
+
+    SurfacePetrologicSample transported =
+        Objects.requireNonNull(colluvium, "no colluvial mantle fixture found");
+    Point2 point = Objects.requireNonNull(fixture, "no colluvial fixture point found");
+    var phase1Surface = query.geology().surface(point);
+    assertEquals(Lithology.SOIL_COLLUVIUM, transported.surface().surfaceMaterial());
+    assertEquals(Lithology.SOIL_COLLUVIUM, transported.material().rock().lithology());
+    assertEquals(Overprint.NONE, transported.surface().surfaceOverprint());
+    assertNotEquals(Lithology.SOIL_COLLUVIUM, phase1Surface.surfaceMaterial());
+    assertEquals(phase1Surface.fields(), transported.surface().fields());
+    assertEquals(phase1Surface.bedrock(), transported.surface().bedrock());
+    assertFalse(transported.surface().fields().outcrop());
+    assertFalse(transported.surface().fields().drainage().channel());
+    assertTrue(transported.surface().fields().slope() >= 0.10);
+    assertTrue(transported.surface().fields().weatheringDepth() >= 4.0);
+    assertTrue(transported.surface().fields().drainage().channelDistance() >= 32.0);
+    assertEquals(new AgeKey(0.02, 0), transported.material().geology().formationAge());
+    assertNotEquals(
+        transported.surface().bedrock().rockBodyId(), transported.context().materialBodyId());
+    assertEquals(
+        List.of(transported.surface().bedrock().rockBodyId()),
+        transported.context().sourceBodyIds());
+    assertTrue(transported.material().geology().depositIds().isEmpty());
+    assertTrue(transported.context().depositId().isEmpty());
+    assertTrue(transported.context().budgetElement().isEmpty());
+    assertTrue(transported.context().budgetUnit().isEmpty());
+    assertEquals(0L, transported.context().sourceInventoryFixedUnits());
+    assertEquals(0L, transported.context().trappedInventoryFixedUnits());
+
+    query.clearCaches();
+    assertEquals(transported, query.surface(point));
+    assertEquals(transported, Phase2World.create(2_025L).surface(point));
   }
 
   @Test

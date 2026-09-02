@@ -7,6 +7,7 @@ import io.github.crunchybubbles.geological.atlas.RiftArcGeometry;
 import io.github.crunchybubbles.geological.determinism.StableId;
 import io.github.crunchybubbles.geological.mineral.DepositType;
 import io.github.crunchybubbles.geological.mineral.MineralSystemDecision;
+import io.github.crunchybubbles.geological.model.AgeKey;
 import io.github.crunchybubbles.geological.model.EventType;
 import io.github.crunchybubbles.geological.model.GeologicalEvent;
 import io.github.crunchybubbles.geological.model.Lithology;
@@ -31,6 +32,11 @@ import java.util.Set;
  * Phase 2 facade deriving material composition and process state from immutable Phase 1 geology.
  */
 public final class MaterialQueryEngine {
+  private static final double COLLUVIUM_MINIMUM_SLOPE = 0.10;
+  private static final double COLLUVIUM_MINIMUM_WEATHERING_DEPTH = 4.0;
+  private static final double COLLUVIUM_MINIMUM_CHANNEL_DISTANCE = 32.0;
+  private static final AgeKey COLLUVIUM_FORMATION_AGE = new AgeKey(0.02, 0);
+
   private final GeologyQueryEngine geology;
   private final MaterialCatalogSnapshot catalog;
   private final Map<RecipeKey, RecipeTemplate> recipeTemplates;
@@ -141,6 +147,31 @@ public final class MaterialQueryEngine {
               Optional.of(placer.ledger().unit()),
               placer.ledger().sourceAmount(),
               trapped);
+    } else if (formsColluvialMantle(surface)) {
+      StableId colluvialBodyId = colluvialBodyId(bedrock.rockBodyId());
+      surface =
+          new SurfaceSample(surface.fields(), bedrock, Lithology.SOIL_COLLUVIUM, Overprint.NONE);
+      surfaceGeology =
+          new GeologicalSample(
+              bedrock.point(),
+              bedrock.macroDomainId(),
+              bedrock.provinceId(),
+              colluvialBodyId,
+              surface.surfaceMaterial(),
+              COLLUVIUM_FORMATION_AGE,
+              surface.surfaceOverprint(),
+              false,
+              List.of());
+      context =
+          new SurfaceMaterialContext(
+              SurfaceMaterialKind.COLLUVIAL_MANTLE,
+              colluvialBodyId,
+              List.of(bedrock.rockBodyId()),
+              Optional.empty(),
+              Optional.empty(),
+              Optional.empty(),
+              0,
+              0);
     } else {
       SurfaceMaterialKind kind =
           surface.fields().outcrop()
@@ -169,6 +200,23 @@ public final class MaterialQueryEngine {
               0);
     }
     return new SurfacePetrologicSample(surface, resolve(province, surfaceGeology), context);
+  }
+
+  private static boolean formsColluvialMantle(SurfaceSample surface) {
+    return !surface.fields().outcrop()
+        && !surface.fields().drainage().channel()
+        && surface.fields().slope() >= COLLUVIUM_MINIMUM_SLOPE
+        && surface.fields().weatheringDepth() >= COLLUVIUM_MINIMUM_WEATHERING_DEPTH
+        && surface.fields().drainage().channelDistance() >= COLLUVIUM_MINIMUM_CHANNEL_DISTANCE;
+  }
+
+  private StableId colluvialBodyId(StableId sourceBodyId) {
+    return StableId.first128(
+        geology
+            .atlas()
+            .identity()
+            .objectStream("surface-material", "colluvial-mantle", sourceBodyId)
+            .bytes("material-body-id", 0));
   }
 
   public PetrologicSample resolve(Province province, GeologicalSample geological) {

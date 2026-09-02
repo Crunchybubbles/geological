@@ -60,5 +60,15 @@ public record SurfaceMaterialContext(
       throw new IllegalArgumentException(
           "non-placer surface material cannot carry a placer budget");
     }
+    if (kind == SurfaceMaterialKind.COLLUVIAL_MANTLE && sourceBodyIds.contains(materialBodyId)) {
+      throw new IllegalArgumentException(
+          "transported colluvial material must differ from its source body");
+    }
+    if ((kind == SurfaceMaterialKind.BEDROCK_OUTCROP
+            || kind == SurfaceMaterialKind.IN_SITU_REGOLITH)
+        && !sourceBodyIds.contains(materialBodyId)) {
+      throw new IllegalArgumentException(
+          "in-place surface material must retain its source body identity");
+    }
   }
 }
