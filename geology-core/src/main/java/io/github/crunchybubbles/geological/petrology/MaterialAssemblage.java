@@ -1,6 +1,7 @@
 package io.github.crunchybubbles.geological.petrology;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -35,10 +36,33 @@ public record MaterialAssemblage(Map<String, Long> modesPpm) {
     if (replacementPpm == 0) {
       return original;
     }
+    return weightedBlend(
+        replacementPpm == SCALE
+            ? List.of(new Share(target, SCALE))
+            : List.of(
+                new Share(original, SCALE - replacementPpm), new Share(target, replacementPpm)));
+  }
+
+  public static MaterialAssemblage weightedBlend(List<Share> shares) {
+    shares = List.copyOf(shares);
+    if (shares.isEmpty()) {
+      throw new IllegalArgumentException("weighted assemblage requires at least one share");
+    }
+    long fractionTotal = 0;
     TreeMap<String, Long> numerators = new TreeMap<>();
-    original.modesPpm.forEach(
-        (id, mode) -> numerators.merge(id, mode * (SCALE - replacementPpm), Long::sum));
-    target.modesPpm.forEach((id, mode) -> numerators.merge(id, mode * replacementPpm, Long::sum));
+    for (Share share : shares) {
+      fractionTotal = Math.addExact(fractionTotal, share.fractionPpm());
+      share
+          .assemblage()
+          .modesPpm()
+          .forEach(
+              (id, mode) ->
+                  numerators.merge(
+                      id, Math.multiplyExact(mode, share.fractionPpm()), Math::addExact));
+    }
+    if (fractionTotal != SCALE) {
+      throw new IllegalArgumentException("weighted assemblage fractions must close to " + SCALE);
+    }
 
     TreeMap<String, Long> blended = new TreeMap<>();
     TreeMap<String, Long> remainders = new TreeMap<>();
@@ -58,5 +82,14 @@ public record MaterialAssemblage(Map<String, Long> modesPpm) {
         .limit(missing)
         .forEach(entry -> blended.merge(entry.getKey(), 1L, Long::sum));
     return new MaterialAssemblage(blended);
+  }
+
+  public record Share(MaterialAssemblage assemblage, long fractionPpm) {
+    public Share {
+      if (assemblage == null || fractionPpm <= 0 || fractionPpm > SCALE) {
+        throw new IllegalArgumentException(
+            "assemblage share must have material and a fraction in (0, scale]");
+      }
+    }
   }
 }

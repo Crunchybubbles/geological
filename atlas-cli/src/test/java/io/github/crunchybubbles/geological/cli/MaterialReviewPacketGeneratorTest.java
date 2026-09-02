@@ -32,6 +32,12 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"colluvialSourceMix\""));
     assertTrue(firstJson.contains("\"sourceAssemblageFractionPpm\": 650000"));
     assertTrue(firstJson.contains("\"weatheredMatrixFractionPpm\": 350000"));
+    assertTrue(firstJson.contains("\"sourceContributions\""));
+    assertTrue(firstJson.contains("\"upstreamDistanceBlocks\": 96"));
+    assertTrue(firstJson.contains("\"upstreamDistanceBlocks\": 192"));
+    assertTrue(firstJson.contains("\"assemblageFractionPpm\": 350000"));
+    assertTrue(firstJson.contains("\"assemblageFractionPpm\": 200000"));
+    assertTrue(firstJson.contains("\"assemblageFractionPpm\": 100000"));
     assertTrue(firstJson.contains("\"normalizedExchangeMagnitudePpm\""));
     assertTrue(firstJson.contains("\"texture\""));
     assertTrue(firstJson.contains("\"responseTexture\""));

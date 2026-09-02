@@ -280,6 +280,57 @@ class MaterialSchemaTest {
     assertTrue(sawPositive && sawNegative);
   }
 
+  @Test
+  void weightedAssemblageBlendIsExactAndIndependentOfShareOrder() {
+    MaterialAssemblage quartz = assemblage("test:quartz");
+    MaterialAssemblage feldspar = assemblage("test:feldspar");
+    MaterialAssemblage clay = assemblage("test:clay");
+    List<MaterialAssemblage.Share> shares =
+        List.of(
+            new MaterialAssemblage.Share(quartz, 333_333L),
+            new MaterialAssemblage.Share(feldspar, 333_333L),
+            new MaterialAssemblage.Share(clay, 333_334L));
+
+    MaterialAssemblage blended = MaterialAssemblage.weightedBlend(shares);
+
+    assertEquals(
+        Map.of("test:quartz", 333_333L, "test:feldspar", 333_333L, "test:clay", 333_334L),
+        blended.modesPpm());
+    assertEquals(
+        blended,
+        MaterialAssemblage.weightedBlend(List.of(shares.get(2), shares.get(0), shares.get(1))));
+    MaterialAssemblage mixedA =
+        new MaterialAssemblage(Map.of("test:quartz", 500_001L, "test:feldspar", 499_999L));
+    MaterialAssemblage mixedB =
+        new MaterialAssemblage(Map.of("test:quartz", 333_333L, "test:clay", 666_667L));
+    MaterialAssemblage mixedC =
+        new MaterialAssemblage(Map.of("test:feldspar", 250_001L, "test:clay", 749_999L));
+    List<MaterialAssemblage.Share> roundedShares =
+        List.of(
+            new MaterialAssemblage.Share(mixedA, 333_333L),
+            new MaterialAssemblage.Share(mixedB, 333_333L),
+            new MaterialAssemblage.Share(mixedC, 333_334L));
+    MaterialAssemblage rounded = MaterialAssemblage.weightedBlend(roundedShares);
+    assertEquals(
+        Map.of("test:quartz", 277_778L, "test:feldspar", 250_000L, "test:clay", 472_222L),
+        rounded.modesPpm());
+    assertEquals(
+        rounded,
+        MaterialAssemblage.weightedBlend(
+            List.of(roundedShares.get(2), roundedShares.get(0), roundedShares.get(1))));
+    assertEquals(
+        MaterialAssemblage.blend(quartz, feldspar, 500_000L),
+        MaterialAssemblage.weightedBlend(
+            List.of(
+                new MaterialAssemblage.Share(quartz, 500_000L),
+                new MaterialAssemblage.Share(feldspar, 500_000L))));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            MaterialAssemblage.weightedBlend(
+                List.of(new MaterialAssemblage.Share(quartz, 999_999L))));
+  }
+
   private static AlterationDefinition alteration(List<AlterationAssemblageRecipe> recipes) {
     return alteration(recipes, Optional.of(fluidState()));
   }

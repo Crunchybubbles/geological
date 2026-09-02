@@ -16,11 +16,11 @@ public record SurfacePetrologicSample(
       throw new IllegalArgumentException("surface and material identities do not agree");
     }
     if (context.kind() == SurfaceMaterialKind.COLLUVIAL_MANTLE) {
-      ColluvialSourceMix mix = context.colluvialSourceMix().orElseThrow();
+      ColluvialSourceContribution local = context.colluvialSourceMix().orElseThrow().localSource();
       if (surface.surfaceMaterial() != Lithology.SOIL_COLLUVIUM
-          || !mix.sourceBodyId().equals(surface.bedrock().rockBodyId())
-          || mix.sourceLithology() != surface.bedrock().lithology()
-          || mix.sourceOverprint() != surface.bedrock().overprint()) {
+          || !local.sourceBodyId().equals(surface.bedrock().rockBodyId())
+          || local.sourceLithology() != surface.bedrock().lithology()
+          || local.sourceOverprint() != surface.bedrock().overprint()) {
         throw new IllegalArgumentException(
             "colluvial mixture must agree with its surface and local source");
       }

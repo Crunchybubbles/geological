@@ -35,9 +35,12 @@ public final class MaterialQueryEngine {
   private static final double COLLUVIUM_MINIMUM_SLOPE = 0.10;
   private static final double COLLUVIUM_MINIMUM_WEATHERING_DEPTH = 4.0;
   private static final double COLLUVIUM_MINIMUM_CHANNEL_DISTANCE = 32.0;
-  private static final long COLLUVIUM_SOURCE_ASSEMBLAGE_FRACTION_PPM = 650_000L;
-  private static final long COLLUVIUM_WEATHERED_MATRIX_FRACTION_PPM =
-      MaterialAssemblage.SCALE - COLLUVIUM_SOURCE_ASSEMBLAGE_FRACTION_PPM;
+  private static final int COLLUVIUM_NEAR_SOURCE_DISTANCE_BLOCKS = 96;
+  private static final int COLLUVIUM_FAR_SOURCE_DISTANCE_BLOCKS = 192;
+  private static final long COLLUVIUM_LOCAL_SOURCE_FRACTION_PPM = 350_000L;
+  private static final long COLLUVIUM_NEAR_SOURCE_FRACTION_PPM = 200_000L;
+  private static final long COLLUVIUM_FAR_SOURCE_FRACTION_PPM = 100_000L;
+  private static final long COLLUVIUM_WEATHERED_MATRIX_FRACTION_PPM = 350_000L;
   private static final AgeKey COLLUVIUM_FORMATION_AGE = new AgeKey(0.02, 0);
 
   private final GeologyQueryEngine geology;
@@ -154,8 +157,12 @@ public final class MaterialQueryEngine {
               trapped);
       material = resolve(province, surfaceGeology);
     } else if (formsColluvialMantle(surface)) {
-      PetrologicSample sourceMaterial = resolve(province, bedrock);
-      StableId colluvialBodyId = colluvialBodyId(bedrock);
+      List<ResolvedColluvialSource> sources = resolveColluvialSources(surface);
+      ColluvialSourceMix sourceMix =
+          new ColluvialSourceMix(
+              sources.stream().map(ResolvedColluvialSource::contribution).toList(),
+              COLLUVIUM_WEATHERED_MATRIX_FRACTION_PPM);
+      StableId colluvialBodyId = colluvialBodyId(sourceMix);
       surface =
           new SurfaceSample(surface.fields(), bedrock, Lithology.SOIL_COLLUVIUM, Overprint.NONE);
       surfaceGeology =
@@ -173,20 +180,14 @@ public final class MaterialQueryEngine {
           new SurfaceMaterialContext(
               SurfaceMaterialKind.COLLUVIAL_MANTLE,
               colluvialBodyId,
-              List.of(bedrock.rockBodyId()),
-              Optional.of(
-                  new ColluvialSourceMix(
-                      bedrock.rockBodyId(),
-                      bedrock.lithology(),
-                      bedrock.overprint(),
-                      COLLUVIUM_SOURCE_ASSEMBLAGE_FRACTION_PPM,
-                      COLLUVIUM_WEATHERED_MATRIX_FRACTION_PPM)),
+              sourceMix.sourceBodyIds(),
+              Optional.of(sourceMix),
               Optional.empty(),
               Optional.empty(),
               Optional.empty(),
               0,
               0);
-      material = resolveColluvialMaterial(province, surfaceGeology, sourceMaterial);
+      material = resolveColluvialMaterial(province, surfaceGeology, sourceMix, sources);
     } else {
       SurfaceMaterialKind kind =
           surface.fields().outcrop()
@@ -227,25 +228,89 @@ public final class MaterialQueryEngine {
         && surface.fields().drainage().channelDistance() >= COLLUVIUM_MINIMUM_CHANNEL_DISTANCE;
   }
 
-  private StableId colluvialBodyId(GeologicalSample source) {
+  private List<ResolvedColluvialSource> resolveColluvialSources(SurfaceSample surface) {
+    List<ResolvedColluvialSource> sources = new ArrayList<>();
+    sources.add(resolveColluvialSource(surface.bedrock(), 0, COLLUVIUM_LOCAL_SOURCE_FRACTION_PPM));
+    Point2 downstream = surface.fields().drainage().flowDirection();
+    sources.add(
+        resolveColluvialSource(
+            upstreamBedrock(
+                surface.fields().point(), downstream, COLLUVIUM_NEAR_SOURCE_DISTANCE_BLOCKS),
+            COLLUVIUM_NEAR_SOURCE_DISTANCE_BLOCKS,
+            COLLUVIUM_NEAR_SOURCE_FRACTION_PPM));
+    sources.add(
+        resolveColluvialSource(
+            upstreamBedrock(
+                surface.fields().point(), downstream, COLLUVIUM_FAR_SOURCE_DISTANCE_BLOCKS),
+            COLLUVIUM_FAR_SOURCE_DISTANCE_BLOCKS,
+            COLLUVIUM_FAR_SOURCE_FRACTION_PPM));
+    return List.copyOf(sources);
+  }
+
+  private GeologicalSample upstreamBedrock(Point2 point, Point2 downstream, int distanceBlocks) {
+    Point2 upstream = point.add(-downstream.x() * distanceBlocks, -downstream.z() * distanceBlocks);
+    return geology.surface(upstream).bedrock();
+  }
+
+  private ResolvedColluvialSource resolveColluvialSource(
+      GeologicalSample source, int upstreamDistanceBlocks, long fractionPpm) {
+    Province sourceProvince =
+        geology.atlas().provinceAt(new Point2(source.point().x(), source.point().z()));
+    if (!sourceProvince.id().equals(source.provinceId())) {
+      throw new IllegalStateException("colluvial source owner changed between query stages");
+    }
+    ColluvialSourceContribution contribution =
+        new ColluvialSourceContribution(
+            source.rockBodyId(),
+            source.lithology(),
+            source.overprint(),
+            upstreamDistanceBlocks,
+            fractionPpm);
+    return new ResolvedColluvialSource(contribution, resolve(sourceProvince, source));
+  }
+
+  private StableId colluvialBodyId(ColluvialSourceMix sourceMix) {
+    StringBuilder purpose = new StringBuilder("material-body-id");
+    for (ColluvialSourceContribution contribution : sourceMix.sourceContributions()) {
+      purpose
+          .append(':')
+          .append(contribution.upstreamDistanceBlocks())
+          .append(':')
+          .append(contribution.sourceBodyId())
+          .append(':')
+          .append(contribution.sourceLithology().name())
+          .append(':')
+          .append(contribution.sourceOverprint().name())
+          .append(':')
+          .append(contribution.assemblageFractionPpm());
+    }
+    purpose.append(":matrix:").append(sourceMix.weatheredMatrixFractionPpm());
     return StableId.first128(
         geology
             .atlas()
             .identity()
-            .objectStream("surface-material", "colluvial-mantle", source.rockBodyId())
-            .bytes(
-                "material-body-id:" + source.lithology().name() + ":" + source.overprint().name(),
-                0));
+            .objectStream(
+                "surface-material", "colluvial-mantle", sourceMix.localSource().sourceBodyId())
+            .bytes(purpose.toString(), 0));
   }
 
   private PetrologicSample resolveColluvialMaterial(
-      Province province, GeologicalSample geological, PetrologicSample sourceMaterial) {
+      Province province,
+      GeologicalSample geological,
+      ColluvialSourceMix sourceMix,
+      List<ResolvedColluvialSource> sources) {
     PetrologicSample generic = resolve(province, geological);
-    MaterialAssemblage mixed =
-        MaterialAssemblage.blend(
-            generic.primaryAssemblage(),
-            sourceMaterial.resolvedAssemblage(),
-            COLLUVIUM_SOURCE_ASSEMBLAGE_FRACTION_PPM);
+    List<MaterialAssemblage.Share> shares = new ArrayList<>();
+    shares.add(
+        new MaterialAssemblage.Share(
+            generic.primaryAssemblage(), sourceMix.weatheredMatrixFractionPpm()));
+    sources.forEach(
+        source ->
+            shares.add(
+                new MaterialAssemblage.Share(
+                    source.material().resolvedAssemblage(),
+                    source.contribution().assemblageFractionPpm())));
+    MaterialAssemblage mixed = MaterialAssemblage.weightedBlend(shares);
     BulkComposition composition = catalog.composition(mixed);
     List<SolidSolutionState> solidSolutions = catalog.solidSolutionStates(mixed);
     ElementTransferLedger elementLedger = ElementTransferLedger.between(composition, composition);
@@ -698,6 +763,9 @@ public final class MaterialQueryEngine {
   private record RecipeTemplate(RockDefinition rock, AlterationDefinition alteration) {}
 
   private record BodyRecipeKey(StableId bodyId, Lithology lithology, Overprint overprint) {}
+
+  private record ResolvedColluvialSource(
+      ColluvialSourceContribution contribution, PetrologicSample material) {}
 
   private record ResolvedRecipe(
       RockDefinition rock,

@@ -11,6 +11,7 @@ import io.github.crunchybubbles.geological.model.Point2;
 import io.github.crunchybubbles.geological.model.Point3;
 import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
 import io.github.crunchybubbles.geological.petrology.ChemicalElement;
+import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceMix;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.MagmaLineageState;
@@ -474,6 +475,8 @@ final class MaterialReviewPacketGenerator {
         SurfacePetrologicSample candidate =
             query.surface(province.frame().toWorld(new Point2(x + 0.25, z - 0.25)));
         if (candidate.context().kind() == kind
+            && (kind != SurfaceMaterialKind.COLLUVIAL_MANTLE
+                || candidate.context().sourceBodyIds().size() > 1)
             && candidate.surface().bedrock().provinceId().equals(province.id())) {
           return candidate;
         }
@@ -528,16 +531,29 @@ final class MaterialReviewPacketGenerator {
 
   private static Map<String, Object> colluvialSourceMixJson(ColluvialSourceMix mix) {
     return JsonWriter.object(
-        "sourceBodyId",
-        mix.sourceBodyId().toString(),
-        "sourceLithology",
-        mix.sourceLithology().name(),
-        "sourceOverprint",
-        mix.sourceOverprint().name(),
         "sourceAssemblageFractionPpm",
         mix.sourceAssemblageFractionPpm(),
         "weatheredMatrixFractionPpm",
-        mix.weatheredMatrixFractionPpm());
+        mix.weatheredMatrixFractionPpm(),
+        "sourceContributions",
+        mix.sourceContributions().stream()
+            .map(MaterialReviewPacketGenerator::colluvialSourceContributionJson)
+            .toList());
+  }
+
+  private static Map<String, Object> colluvialSourceContributionJson(
+      ColluvialSourceContribution contribution) {
+    return JsonWriter.object(
+        "upstreamDistanceBlocks",
+        contribution.upstreamDistanceBlocks(),
+        "sourceBodyId",
+        contribution.sourceBodyId().toString(),
+        "sourceLithology",
+        contribution.sourceLithology().name(),
+        "sourceOverprint",
+        contribution.sourceOverprint().name(),
+        "assemblageFractionPpm",
+        contribution.assemblageFractionPpm());
   }
 
   private Province referenceProvince() {

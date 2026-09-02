@@ -71,9 +71,9 @@ public record SurfaceMaterialContext(
           "transported colluvial material must differ from its source body");
     }
     if (colluvialSourceMix.isPresent()
-        && !sourceBodyIds.equals(List.of(colluvialSourceMix.orElseThrow().sourceBodyId()))) {
+        && !sourceBodyIds.equals(colluvialSourceMix.orElseThrow().sourceBodyIds())) {
       throw new IllegalArgumentException(
-          "colluvial mixture source must be the context's sole source body");
+          "colluvial mixture sources must match the context source bodies");
     }
     if ((kind == SurfaceMaterialKind.BEDROCK_OUTCROP
             || kind == SurfaceMaterialKind.IN_SITU_REGOLITH)
