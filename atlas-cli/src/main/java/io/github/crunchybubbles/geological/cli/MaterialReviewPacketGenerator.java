@@ -122,6 +122,26 @@ final class MaterialReviewPacketGenerator {
                 Overprint.NONE)));
     samples.add(
         sampleJson(
+            "alkaline-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000106"),
+                Lithology.ALKALINE,
+                new AgeKey(235.0, 0),
+                Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "carbonatitic-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000107"),
+                Lithology.CARBONATITIC,
+                new AgeKey(230.0, 0),
+                Overprint.NONE)));
+    samples.add(
+        sampleJson(
             "siltstone-catalog",
             resolve(
                 province,

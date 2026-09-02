@@ -45,6 +45,13 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"rhyolitic-catalog\""));
     assertTrue(firstJson.contains("\"PORPHYRITIC_VOLCANIC\""));
     assertTrue(firstJson.contains("\"FELSITIC_FLOW_BANDED\""));
+    assertTrue(firstJson.contains("\"alkaline-catalog\""));
+    assertTrue(firstJson.contains("\"carbonatitic-catalog\""));
+    assertTrue(firstJson.contains("\"FELDSPATHOID_BEARING_CRYSTALLINE\""));
+    assertTrue(firstJson.contains("\"MAGMATIC_CARBONATE_CRYSTALLINE\""));
+    assertTrue(firstJson.contains("geological:mineral/nepheline"));
+    assertTrue(firstJson.contains("geological:mineral/aegirine"));
+    assertTrue(firstJson.contains("geological:mineral/fluorapatite"));
     assertTrue(firstJson.contains("geological:mineral/dolomite"));
     assertTrue(firstJson.contains("\"siltstone-catalog\""));
     assertTrue(firstJson.contains("\"limestone-catalog\""));

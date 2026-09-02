@@ -32,15 +32,15 @@ class MaterialCatalogTest {
   void packagedCatalogCoversEveryImplementedMaterialAndClosesChemistry() {
     MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
 
-    assertEquals(40, catalog.minerals().size());
+    assertEquals(43, catalog.minerals().size());
     assertEquals(1, catalog.nonCrystallineConstituents().size());
-    assertEquals(41, catalog.constituents().size());
+    assertEquals(44, catalog.constituents().size());
     assertEquals(7, catalog.solidSolutions().size());
-    assertEquals(31, catalog.rocks().size());
+    assertEquals(33, catalog.rocks().size());
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:e2aeceb052712cf4f3b9621995b78465ce2e6982cd11207379263ae104c0a549",
+        "sha256:248a2031415f222752975c6e96d4920e760b8c8d8cc0142f53808f3e58777a49",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -254,6 +254,51 @@ class MaterialCatalogTest {
     assertTrue(rhyoliteSolutions.contains("geological:solid_solution/plagioclase"));
     assertTrue(rhyoliteSolutions.contains("geological:solid_solution/biotite"));
     assertFalse(rhyoliteSolutions.contains("geological:solid_solution/calcic_clinopyroxene"));
+  }
+
+  @Test
+  void alkalineAndCarbonatiteRecipesSeparateFeldspathoidAndCarbonateMagmatism() {
+    MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
+    var alkaline = catalog.requireRock(Lithology.ALKALINE);
+    var carbonatite = catalog.requireRock(Lithology.CARBONATITIC);
+
+    assertEquals(GeneticFamily.IGNEOUS, alkaline.geneticFamily());
+    assertEquals(GeneticFamily.IGNEOUS, carbonatite.geneticFamily());
+    assertEquals(RockTexture.FELDSPATHOID_BEARING_CRYSTALLINE, alkaline.texture());
+    assertEquals(RockTexture.MAGMATIC_CARBONATE_CRYSTALLINE, carbonatite.texture());
+    assertFalse(alkaline.primaryAssemblage().modesPpm().containsKey("geological:mineral/quartz"));
+    assertEquals(
+        750_000L,
+        alkaline.primaryAssemblage().modesPpm().get("geological:mineral/orthoclase")
+            + alkaline.primaryAssemblage().modesPpm().get("geological:mineral/nepheline"));
+    assertTrue(
+        carbonatite.primaryAssemblage().modesPpm().get("geological:mineral/calcite")
+                + carbonatite.primaryAssemblage().modesPpm().get("geological:mineral/dolomite")
+            > 500_000L);
+
+    MineralDefinition nepheline = catalog.requireMineral("geological:mineral/nepheline");
+    assertEquals(1.0, nepheline.formula().get(ChemicalElement.NA).doubleValue());
+    assertEquals(1.0, nepheline.formula().get(ChemicalElement.AL).doubleValue());
+    assertEquals(1.0, nepheline.formula().get(ChemicalElement.SI).doubleValue());
+    assertEquals(4.0, nepheline.formula().get(ChemicalElement.O).doubleValue());
+    MineralDefinition aegirine = catalog.requireMineral("geological:mineral/aegirine");
+    assertEquals(1.0, aegirine.formula().get(ChemicalElement.NA).doubleValue());
+    assertEquals(1.0, aegirine.formula().get(ChemicalElement.FE).doubleValue());
+    MineralDefinition fluorapatite = catalog.requireMineral("geological:mineral/fluorapatite");
+    assertEquals(3.0, fluorapatite.formula().get(ChemicalElement.P).doubleValue());
+    assertEquals(1.0, fluorapatite.formula().get(ChemicalElement.F).doubleValue());
+
+    var alkalineComposition = catalog.composition(alkaline.primaryAssemblage());
+    var carbonatiteComposition = catalog.composition(carbonatite.primaryAssemblage());
+    assertTrue(
+        alkalineComposition.elementMassPpm().get(ChemicalElement.SI)
+            > carbonatiteComposition.elementMassPpm().get(ChemicalElement.SI));
+    assertTrue(
+        carbonatiteComposition.elementMassPpm().get(ChemicalElement.C)
+            > alkalineComposition.elementMassPpm().getOrDefault(ChemicalElement.C, 0L));
+    assertTrue(
+        carbonatiteComposition.elementMassPpm().get(ChemicalElement.P)
+            > alkalineComposition.elementMassPpm().get(ChemicalElement.P));
   }
 
   @Test

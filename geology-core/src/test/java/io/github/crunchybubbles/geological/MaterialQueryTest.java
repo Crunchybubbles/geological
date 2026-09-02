@@ -43,14 +43,14 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.19", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.20", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:8cf719de4a4d6a7bd8250b766c5609a92385a8fb3998abba1f8d481d038b6777",
+        "sha256:e433903aa8be658a501cbb6ea4dcdbaac10f06737650f47f642a613f62a07323",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -123,6 +123,48 @@ class MaterialQueryTest {
     assertTrue(
         rhyolite.primaryComposition().elementMassPpm().get(ChemicalElement.K)
             > andesite.primaryComposition().elementMassPpm().get(ChemicalElement.K));
+  }
+
+  @Test
+  void rareAlkalineAndCarbonatiticQueriesRetainDistinctPrimaryChemistry() {
+    MaterialQueryEngine query = Phase2World.create(8_183L);
+    Province province = query.geology().atlas().provinceAt(new Point2(0.0, 0.0));
+    PetrologicSample alkaline =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000106"),
+                Lithology.ALKALINE,
+                new AgeKey(235.0, 0),
+                Overprint.NONE));
+    PetrologicSample carbonatite =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000107"),
+                Lithology.CARBONATITIC,
+                new AgeKey(230.0, 0),
+                Overprint.NONE));
+
+    assertEquals(RockTexture.FELDSPATHOID_BEARING_CRYSTALLINE, alkaline.resolvedTexture());
+    assertEquals(RockTexture.MAGMATIC_CARBONATE_CRYSTALLINE, carbonatite.resolvedTexture());
+    assertEquals(MetamorphicGrade.NONE, alkaline.metamorphism().grade());
+    assertEquals(MetamorphicGrade.NONE, carbonatite.metamorphism().grade());
+    assertTrue(alkaline.magmaLineage().isEmpty());
+    assertTrue(carbonatite.magmaLineage().isEmpty());
+    assertTrue(
+        alkaline.primaryComposition().elementMassPpm().get(ChemicalElement.SI)
+            > carbonatite.primaryComposition().elementMassPpm().get(ChemicalElement.SI));
+    assertTrue(
+        carbonatite.primaryComposition().elementMassPpm().get(ChemicalElement.C)
+            > alkaline.primaryComposition().elementMassPpm().getOrDefault(ChemicalElement.C, 0L));
+    assertTrue(
+        carbonatite.primaryComposition().elementMassPpm().get(ChemicalElement.P)
+            > alkaline.primaryComposition().elementMassPpm().get(ChemicalElement.P));
   }
 
   @Test
