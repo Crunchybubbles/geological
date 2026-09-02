@@ -654,6 +654,8 @@ final class ReviewPacketGenerator {
       case COAL -> new Color(52, 42, 36);
       case KOMATIITIC_ULTRAMAFIC -> new Color(63, 85, 63);
       case BASALTIC -> new Color(62, 72, 78);
+      case ANDESITIC -> new Color(100, 105, 108);
+      case RHYOLITIC -> new Color(201, 177, 168);
       case GABBROIC -> new Color(78, 91, 87);
       case DIORITE_PULSE -> new Color(112, 119, 120);
       case GRANODIORITE_PULSE -> new Color(175, 164, 151);

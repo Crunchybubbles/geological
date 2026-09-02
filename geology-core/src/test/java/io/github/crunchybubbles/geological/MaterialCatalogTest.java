@@ -36,11 +36,11 @@ class MaterialCatalogTest {
     assertEquals(1, catalog.nonCrystallineConstituents().size());
     assertEquals(41, catalog.constituents().size());
     assertEquals(7, catalog.solidSolutions().size());
-    assertEquals(29, catalog.rocks().size());
+    assertEquals(31, catalog.rocks().size());
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:5f6ff06dbc2896e2d711a6aae7d188c93dc8b9b599954772745d2c16e539dd57",
+        "sha256:e2aeceb052712cf4f3b9621995b78465ce2e6982cd11207379263ae104c0a549",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -195,6 +195,65 @@ class MaterialCatalogTest {
     assertTrue(
         olivine.endmemberMoleFractionsPpm().get("geological:mineral/forsterite")
             > olivine.endmemberMoleFractionsPpm().get("geological:mineral/fayalite"));
+  }
+
+  @Test
+  void andesiteAndRhyoliteExtendVolcanicSilicaAndTextureRange() {
+    MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
+    var basalt = catalog.requireRock(Lithology.BASALTIC);
+    var andesite = catalog.requireRock(Lithology.ANDESITIC);
+    var rhyolite = catalog.requireRock(Lithology.RHYOLITIC);
+
+    assertEquals(RockTexture.APHANITIC_CRYSTALLINE, basalt.texture());
+    assertEquals(RockTexture.PORPHYRITIC_VOLCANIC, andesite.texture());
+    assertEquals(RockTexture.FELSITIC_FLOW_BANDED, rhyolite.texture());
+    assertEquals(
+        500_000L,
+        andesite.primaryAssemblage().modesPpm().get("geological:mineral/albite")
+            + andesite.primaryAssemblage().modesPpm().get("geological:mineral/anorthite"));
+
+    long rhyoliteQuartz = rhyolite.primaryAssemblage().modesPpm().get("geological:mineral/quartz");
+    long rhyoliteAlkaliFeldspar =
+        rhyolite.primaryAssemblage().modesPpm().get("geological:mineral/orthoclase");
+    long rhyolitePlagioclase =
+        rhyolite.primaryAssemblage().modesPpm().get("geological:mineral/albite")
+            + rhyolite.primaryAssemblage().modesPpm().get("geological:mineral/anorthite");
+    assertTrue(
+        (double) rhyoliteQuartz / (rhyoliteQuartz + rhyoliteAlkaliFeldspar + rhyolitePlagioclase)
+            >= 0.2);
+    assertTrue(
+        (double) rhyolitePlagioclase / (rhyoliteAlkaliFeldspar + rhyolitePlagioclase) <= 0.35);
+
+    var andesiteComposition = catalog.composition(andesite.primaryAssemblage());
+    var rhyoliteComposition = catalog.composition(rhyolite.primaryAssemblage());
+    assertTrue(
+        rhyoliteComposition.elementMassPpm().get(ChemicalElement.SI)
+            > andesiteComposition.elementMassPpm().get(ChemicalElement.SI));
+    assertTrue(
+        rhyoliteComposition.elementMassPpm().get(ChemicalElement.K)
+            > andesiteComposition.elementMassPpm().get(ChemicalElement.K));
+    assertTrue(
+        andesiteComposition.elementMassPpm().get(ChemicalElement.FE)
+                + andesiteComposition.elementMassPpm().get(ChemicalElement.MG)
+            > rhyoliteComposition.elementMassPpm().get(ChemicalElement.FE)
+                + rhyoliteComposition.elementMassPpm().get(ChemicalElement.MG));
+
+    var andesiteSolutions =
+        catalog.solidSolutionStates(andesite.primaryAssemblage()).stream()
+            .map(SolidSolutionState::definitionId)
+            .collect(java.util.stream.Collectors.toSet());
+    assertTrue(andesiteSolutions.contains("geological:solid_solution/plagioclase"));
+    assertTrue(andesiteSolutions.contains("geological:solid_solution/hornblende"));
+    assertTrue(andesiteSolutions.contains("geological:solid_solution/calcic_clinopyroxene"));
+    assertTrue(andesiteSolutions.contains("geological:solid_solution/orthopyroxene"));
+    assertTrue(andesiteSolutions.contains("geological:solid_solution/biotite"));
+    var rhyoliteSolutions =
+        catalog.solidSolutionStates(rhyolite.primaryAssemblage()).stream()
+            .map(SolidSolutionState::definitionId)
+            .collect(java.util.stream.Collectors.toSet());
+    assertTrue(rhyoliteSolutions.contains("geological:solid_solution/plagioclase"));
+    assertTrue(rhyoliteSolutions.contains("geological:solid_solution/biotite"));
+    assertFalse(rhyoliteSolutions.contains("geological:solid_solution/calcic_clinopyroxene"));
   }
 
   @Test

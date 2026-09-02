@@ -102,6 +102,26 @@ final class MaterialReviewPacketGenerator {
                 Overprint.NONE)));
     samples.add(
         sampleJson(
+            "andesitic-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000104"),
+                Lithology.ANDESITIC,
+                new AgeKey(245.0, 0),
+                Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "rhyolitic-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000105"),
+                Lithology.RHYOLITIC,
+                new AgeKey(240.0, 0),
+                Overprint.NONE)));
+    samples.add(
+        sampleJson(
             "siltstone-catalog",
             resolve(
                 province,

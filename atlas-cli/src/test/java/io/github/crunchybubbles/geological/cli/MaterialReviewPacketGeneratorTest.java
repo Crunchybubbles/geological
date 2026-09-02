@@ -41,6 +41,10 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"komatiitic-ultramafic-catalog\""));
     assertTrue(firstJson.contains("\"basaltic-catalog\""));
     assertTrue(firstJson.contains("\"gabbroic-catalog\""));
+    assertTrue(firstJson.contains("\"andesitic-catalog\""));
+    assertTrue(firstJson.contains("\"rhyolitic-catalog\""));
+    assertTrue(firstJson.contains("\"PORPHYRITIC_VOLCANIC\""));
+    assertTrue(firstJson.contains("\"FELSITIC_FLOW_BANDED\""));
     assertTrue(firstJson.contains("geological:mineral/dolomite"));
     assertTrue(firstJson.contains("\"siltstone-catalog\""));
     assertTrue(firstJson.contains("\"limestone-catalog\""));

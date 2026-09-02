@@ -3,6 +3,8 @@ package io.github.crunchybubbles.geological.petrology;
 /** Coarse texture class retained independently from lithology and presentation policy. */
 public enum RockTexture {
   APHANITIC_CRYSTALLINE,
+  PORPHYRITIC_VOLCANIC,
+  FELSITIC_FLOW_BANDED,
   PHANERITIC_CRYSTALLINE,
   ULTRAMAFIC_CRYSTALLINE,
   FOLIATED_CRYSTALLINE,

@@ -2,7 +2,7 @@
   "authoring_schema": "geological:material_catalog_authoring:v8",
   "evidence": {
     "citation_id": "refs:philpotts_ague_2009",
-    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic, sedimentary, pelitic slate-phyllite-to-schist, basalt-derived greenschist-to-amphibolite-to-granulite, sandstone-to-quartzite and limestone-to-marble, and ultramafic-to-serpentinite expansions follow published classification and USGS relationships documented in the public architecture. Hornblende is represented by simplified hydroxyl magnesiohornblende-ferrohornblende endmembers, not by the lower-aluminum actinolite proxy used in greenschist; high-grade mafic granulite uses an anhydrous plagioclase-orthopyroxene-clinopyroxene-garnet proxy rather than retaining amphibolite's dominant hornblende. Lizardite, chrysotile, and antigorite use one simplified ideal serpentine-group formula while remaining separate texture and temperature proxies; serpentinite records a shallow low-temperature hydration proof path without claiming reaction-progress or water-rock mass-balance resolution. Non-crystalline organic matter uses an explicit closed bulk-element proxy rather than a fictitious mineral formula. Primary metamorphic recipes author a non-metamorphic original protolith plus coarse grade, facies, path, and peak P-T envelope; they are not independent decorative rock rolls. Quartzite and marble are authored at one low-grade regional proof envelope even though those composition-and-texture rock classes occur across broader metamorphic conditions. Contact hornfels is an isochemical, host-preserving response with an explicit hornfelsic resolved texture rather than a fixed-composition primary lithology; the original rock still controls its mineralogy. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Constituent modes, modal covariance axes, protolith-conditioned response targets, primary and resolved textures, physical-property distributions, P-T envelopes, and organic bulk chemistry are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
+    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic, intermediate-to-felsic volcanic, sedimentary, pelitic slate-phyllite-to-schist, basalt-derived greenschist-to-amphibolite-to-granulite, sandstone-to-quartzite and limestone-to-marble, and ultramafic-to-serpentinite expansions follow published classification and USGS relationships documented in the public architecture. Andesite uses a plagioclase-dominant porphyritic crystalline proxy with amphibole, pyroxene, biotite, olivine, and oxide phases; rhyolite uses a quartz-alkali-feldspar-plagioclase-biotite stony flow-banded proxy. Glassy, vesicular, vitrophyric, and pyroclastic variants remain outside these crystalline recipes. Hornblende is represented by simplified hydroxyl magnesiohornblende-ferrohornblende endmembers, not by the lower-aluminum actinolite proxy used in greenschist; high-grade mafic granulite uses an anhydrous plagioclase-orthopyroxene-clinopyroxene-garnet proxy rather than retaining amphibolite's dominant hornblende. Lizardite, chrysotile, and antigorite use one simplified ideal serpentine-group formula while remaining separate texture and temperature proxies; serpentinite records a shallow low-temperature hydration proof path without claiming reaction-progress or water-rock mass-balance resolution. Non-crystalline organic matter uses an explicit closed bulk-element proxy rather than a fictitious mineral formula. Primary metamorphic recipes author a non-metamorphic original protolith plus coarse grade, facies, path, and peak P-T envelope; they are not independent decorative rock rolls. Quartzite and marble are authored at one low-grade regional proof envelope even though those composition-and-texture rock classes occur across broader metamorphic conditions. Contact hornfels is an isochemical, host-preserving response with an explicit hornfelsic resolved texture rather than a fixed-composition primary lithology; the original rock still controls its mineralogy. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Constituent modes, modal covariance axes, protolith-conditioned response targets, primary and resolved textures, physical-property distributions, P-T envelopes, and organic bulk chemistry are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
     "publication_year": 2009,
     "title": "Principles of Igneous and Metamorphic Petrology",
     "uri": "https://doi.org/10.1017/CBO9780511813429"
@@ -1131,6 +1131,79 @@
       },
       "permeability_distribution": {"minimum": 0.025, "mode": 0.06, "maximum": 0.13},
       "porosity_distribution": {"minimum": 0.008, "mode": 0.025, "maximum": 0.06}
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.22, "mode": 0.3, "maximum": 0.4},
+      "genetic_family": "IGNEOUS",
+      "id": "geological:rock/andesitic",
+      "lithology": "ANDESITIC",
+      "modal_spread_fraction": 0.2,
+      "modal_variation_axes": [
+        {
+          "id": "plagioclase_mafic_balance",
+          "loadings_ppm": {"geological:mineral/albite": 20000, "geological:mineral/anorthite": 20000, "geological:mineral/diopside": -15000, "geological:mineral/hedenbergite": -5000, "geological:mineral/enstatite": -6000, "geological:mineral/ferrosilite": -4000, "geological:mineral/magnetite": -10000}
+        },
+        {
+          "id": "plagioclase_sodic_calcic_balance",
+          "loadings_ppm": {"geological:mineral/albite": 20000, "geological:mineral/anorthite": -20000}
+        },
+        {
+          "id": "hydrous_anhydrous_mafic_balance",
+          "loadings_ppm": {"geological:mineral/magnesiohornblende": 10000, "geological:mineral/ferrohornblende": 6000, "geological:mineral/phlogopite": 3000, "geological:mineral/annite": 3000, "geological:mineral/diopside": -10000, "geological:mineral/hedenbergite": -4000, "geological:mineral/enstatite": -4000, "geological:mineral/ferrosilite": -2000, "geological:mineral/magnetite": -2000}
+        }
+      ],
+      "texture": "PORPHYRITIC_VOLCANIC",
+      "constituent_modes_ppm": {
+        "geological:mineral/albite": 270000,
+        "geological:mineral/anorthite": 230000,
+        "geological:mineral/diopside": 130000,
+        "geological:mineral/hedenbergite": 50000,
+        "geological:mineral/enstatite": 50000,
+        "geological:mineral/ferrosilite": 30000,
+        "geological:mineral/magnesiohornblende": 60000,
+        "geological:mineral/ferrohornblende": 40000,
+        "geological:mineral/phlogopite": 20000,
+        "geological:mineral/annite": 20000,
+        "geological:mineral/magnetite": 60000,
+        "geological:mineral/quartz": 20000,
+        "geological:mineral/forsterite": 15000,
+        "geological:mineral/fayalite": 5000
+      },
+      "permeability_distribution": {"minimum": 0.03, "mode": 0.08, "maximum": 0.18},
+      "porosity_distribution": {"minimum": 0.01, "mode": 0.035, "maximum": 0.09}
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.18, "mode": 0.28, "maximum": 0.42},
+      "genetic_family": "IGNEOUS",
+      "id": "geological:rock/rhyolitic",
+      "lithology": "RHYOLITIC",
+      "modal_spread_fraction": 0.2,
+      "modal_variation_axes": [
+        {
+          "id": "quartz_alkali_feldspar_balance",
+          "loadings_ppm": {"geological:mineral/quartz": 25000, "geological:mineral/orthoclase": -25000}
+        },
+        {
+          "id": "alkali_feldspar_plagioclase_balance",
+          "loadings_ppm": {"geological:mineral/orthoclase": 20000, "geological:mineral/albite": -17000, "geological:mineral/anorthite": -3000}
+        },
+        {
+          "id": "biotite_magnesium_iron_balance",
+          "loadings_ppm": {"geological:mineral/phlogopite": 8000, "geological:mineral/annite": -8000}
+        }
+      ],
+      "texture": "FELSITIC_FLOW_BANDED",
+      "constituent_modes_ppm": {
+        "geological:mineral/quartz": 360000,
+        "geological:mineral/orthoclase": 365000,
+        "geological:mineral/albite": 150000,
+        "geological:mineral/anorthite": 25000,
+        "geological:mineral/phlogopite": 40000,
+        "geological:mineral/annite": 40000,
+        "geological:mineral/magnetite": 20000
+      },
+      "permeability_distribution": {"minimum": 0.02, "mode": 0.06, "maximum": 0.15},
+      "porosity_distribution": {"minimum": 0.008, "mode": 0.025, "maximum": 0.07}
     },
     {
       "erodibility_distribution": {"minimum": 0.15, "mode": 0.2, "maximum": 0.27},

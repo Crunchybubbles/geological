@@ -43,14 +43,14 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.18", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.19", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:cc2b95e703cd9e6bcb706b34968cbd11f387473dbbb8a560d070bd571ea57122",
+        "sha256:8cf719de4a4d6a7bd8250b766c5609a92385a8fb3998abba1f8d481d038b6777",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -84,6 +84,45 @@ class MaterialQueryTest {
           material.magmaLineage().orElseThrow().differentiationProgress() > previousProgress);
       previousProgress = material.magmaLineage().orElseThrow().differentiationProgress();
     }
+  }
+
+  @Test
+  void intermediateAndFelsicVolcanicQueriesRemainDistinctFromIntrusiveLineage() {
+    MaterialQueryEngine query = Phase2World.create(8_183L);
+    Province province = query.geology().atlas().provinceAt(new Point2(0.0, 0.0));
+    PetrologicSample andesite =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000104"),
+                Lithology.ANDESITIC,
+                new AgeKey(245.0, 0),
+                Overprint.NONE));
+    PetrologicSample rhyolite =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000105"),
+                Lithology.RHYOLITIC,
+                new AgeKey(240.0, 0),
+                Overprint.NONE));
+
+    assertEquals(RockTexture.PORPHYRITIC_VOLCANIC, andesite.resolvedTexture());
+    assertEquals(RockTexture.FELSITIC_FLOW_BANDED, rhyolite.resolvedTexture());
+    assertEquals(MetamorphicGrade.NONE, andesite.metamorphism().grade());
+    assertEquals(MetamorphicGrade.NONE, rhyolite.metamorphism().grade());
+    assertTrue(andesite.magmaLineage().isEmpty());
+    assertTrue(rhyolite.magmaLineage().isEmpty());
+    assertTrue(
+        rhyolite.primaryComposition().elementMassPpm().get(ChemicalElement.SI)
+            > andesite.primaryComposition().elementMassPpm().get(ChemicalElement.SI));
+    assertTrue(
+        rhyolite.primaryComposition().elementMassPpm().get(ChemicalElement.K)
+            > andesite.primaryComposition().elementMassPpm().get(ChemicalElement.K));
   }
 
   @Test
