@@ -47,14 +47,14 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.21", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.22", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:94532b75d23b125bfde9e79422a6588945606ff17b8ca672e1fbdaebe321569e",
+        "sha256:ed27654bf53c51add9f267bd4f8f51f6d9c32e8043cf5a7ae552f948973bdb3f",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -205,6 +205,47 @@ class MaterialQueryTest {
             "geological:mineral/pyrope"),
         cargo.candidateIndicatorMineralIds());
     assertEquals(cargo, PetrologicState.from(kimberlite).mantleCargo().orElseThrow());
+  }
+
+  @Test
+  void pyroclasticQueryKeepsPrimaryEruptiveIdentitySeparateFromMarineReworking() {
+    MaterialQueryEngine query = Phase2World.create(8_183L);
+    Province province = query.geology().atlas().provinceAt(new Point2(0.0, 0.0));
+    PetrologicSample pyroclastic =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000109"),
+                Lithology.PYROCLASTIC,
+                new AgeKey(220.0, 0),
+                Overprint.NONE));
+    PetrologicSample marineVolcaniclastic =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                province.geometry().basin().packageId(),
+                Lithology.MARINE_VOLCANICLASTIC,
+                new AgeKey(215.0, 0),
+                Overprint.NONE));
+
+    assertEquals(RockTexture.WELDED_FRAGMENTAL, pyroclastic.resolvedTexture());
+    assertTrue(pyroclastic.sedimentaryState().isEmpty());
+    assertTrue(pyroclastic.magmaLineage().isEmpty());
+    assertTrue(
+        pyroclastic
+            .primaryAssemblage()
+            .modesPpm()
+            .containsKey("geological:constituent/rhyolitic_volcanic_glass"));
+    assertTrue(marineVolcaniclastic.sedimentaryState().isPresent());
+    assertFalse(
+        marineVolcaniclastic
+            .primaryAssemblage()
+            .modesPpm()
+            .containsKey("geological:constituent/rhyolitic_volcanic_glass"));
   }
 
   @Test

@@ -54,6 +54,10 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("geological:mineral/fluorapatite"));
     assertTrue(firstJson.contains("\"kimberlitic-catalog\""));
     assertTrue(firstJson.contains("\"MACROCRYSTIC_VOLATILE_RICH\""));
+    assertTrue(firstJson.contains("\"pyroclastic-catalog\""));
+    assertTrue(firstJson.contains("\"WELDED_FRAGMENTAL\""));
+    assertTrue(firstJson.contains("geological:constituent/rhyolitic_volcanic_glass"));
+    assertTrue(firstJson.contains("\"GLASS\""));
     assertTrue(firstJson.contains("\"mantleCargo\""));
     assertTrue(firstJson.contains("\"SOURCE_CONTEXT_UNRESOLVED\""));
     assertTrue(firstJson.contains("\"diamondGradePpbByMass\": 0"));

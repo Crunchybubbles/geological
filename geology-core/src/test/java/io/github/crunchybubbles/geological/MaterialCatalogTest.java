@@ -19,6 +19,7 @@ import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
 import io.github.crunchybubbles.geological.petrology.MetamorphicGrade;
 import io.github.crunchybubbles.geological.petrology.MetamorphicPath;
 import io.github.crunchybubbles.geological.petrology.MineralDefinition;
+import io.github.crunchybubbles.geological.petrology.NonCrystallineConstituentDefinition;
 import io.github.crunchybubbles.geological.petrology.RockTexture;
 import io.github.crunchybubbles.geological.petrology.SolidSolutionState;
 import io.github.crunchybubbles.geological.query.Phase2World;
@@ -33,14 +34,14 @@ class MaterialCatalogTest {
     MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
 
     assertEquals(48, catalog.minerals().size());
-    assertEquals(1, catalog.nonCrystallineConstituents().size());
-    assertEquals(49, catalog.constituents().size());
+    assertEquals(2, catalog.nonCrystallineConstituents().size());
+    assertEquals(50, catalog.constituents().size());
     assertEquals(8, catalog.solidSolutions().size());
-    assertEquals(34, catalog.rocks().size());
+    assertEquals(35, catalog.rocks().size());
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:c1973876f47c2c46d8ea759bc031563e53e407a4e95958bbefcd4f9d74c2c504",
+        "sha256:6f7638bce1215cc1ac10d20e6fd08ef16163e32d0598c80707249413d4272b89",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -350,6 +351,40 @@ class MaterialCatalogTest {
     assertEquals(
         java.util.List.of("geological:mineral/almandine", "geological:mineral/pyrope"),
         catalog.requireSolidSolution("geological:solid_solution/garnet").endmemberIds());
+  }
+
+  @Test
+  void pyroclasticRecipeIsPrimaryWeldedGlassRichRockRatherThanReworkedSediment() {
+    MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
+    var pyroclastic = catalog.requireRock(Lithology.PYROCLASTIC);
+    var marineVolcaniclastic = catalog.requireRock(Lithology.MARINE_VOLCANICLASTIC);
+
+    assertEquals(GeneticFamily.IGNEOUS, pyroclastic.geneticFamily());
+    assertEquals(RockTexture.WELDED_FRAGMENTAL, pyroclastic.texture());
+    assertEquals(GeneticFamily.SEDIMENTARY, marineVolcaniclastic.geneticFamily());
+    assertEquals(RockTexture.VOLCANICLASTIC, marineVolcaniclastic.texture());
+    assertEquals(
+        600_000L,
+        pyroclastic
+            .primaryAssemblage()
+            .modesPpm()
+            .get("geological:constituent/rhyolitic_volcanic_glass"));
+    assertFalse(
+        marineVolcaniclastic
+            .primaryAssemblage()
+            .modesPpm()
+            .containsKey("geological:constituent/rhyolitic_volcanic_glass"));
+
+    var glass =
+        (NonCrystallineConstituentDefinition)
+            catalog.requireConstituent("geological:constituent/rhyolitic_volcanic_glass");
+    assertEquals(MaterialConstituentKind.GLASS, glass.kind());
+    assertEquals(
+        MaterialAssemblage.SCALE,
+        glass.elementMassPpm().values().stream().mapToLong(Long::longValue).sum());
+    assertTrue(
+        glass.elementMassPpm().get(ChemicalElement.SI)
+            > glass.elementMassPpm().get(ChemicalElement.AL));
   }
 
   @Test

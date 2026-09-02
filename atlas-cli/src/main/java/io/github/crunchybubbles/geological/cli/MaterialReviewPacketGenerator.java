@@ -153,6 +153,16 @@ final class MaterialReviewPacketGenerator {
                 Overprint.NONE)));
     samples.add(
         sampleJson(
+            "pyroclastic-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000109"),
+                Lithology.PYROCLASTIC,
+                new AgeKey(220.0, 0),
+                Overprint.NONE)));
+    samples.add(
+        sampleJson(
             "siltstone-catalog",
             resolve(
                 province,
