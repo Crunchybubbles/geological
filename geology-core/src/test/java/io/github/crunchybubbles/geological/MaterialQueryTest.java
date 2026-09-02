@@ -47,14 +47,14 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.22", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.23", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:ed27654bf53c51add9f267bd4f8f51f6d9c32e8043cf5a7ae552f948973bdb3f",
+        "sha256:52a851c77fda8a3dfde829e33de6e12844c72451fd64ce631db973b2455511d1",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -246,6 +246,69 @@ class MaterialQueryTest {
             .primaryAssemblage()
             .modesPpm()
             .containsKey("geological:constituent/rhyolitic_volcanic_glass"));
+  }
+
+  @Test
+  void surficialCatalogQueriesKeepDistinctTransportAndResidualBehavior() {
+    MaterialQueryEngine query = Phase2World.create(8_184L);
+    Province province = query.geology().atlas().provinceAt(new Point2(0.0, 0.0));
+    PetrologicSample laterite =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000a01"),
+                Lithology.LATERITE_BAUXITE,
+                new AgeKey(1.5, 0),
+                Overprint.NONE));
+    PetrologicSample colluvium =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000a02"),
+                Lithology.SOIL_COLLUVIUM,
+                new AgeKey(0.02, 0),
+                Overprint.NONE));
+    PetrologicSample till =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000a03"),
+                Lithology.GLACIAL_TILL,
+                new AgeKey(0.015, 0),
+                Overprint.NONE));
+
+    assertEquals(RockTexture.LATERITIC_PISOLITIC, laterite.resolvedTexture());
+    assertEquals(RockTexture.SOIL_COLLUVIAL, colluvium.resolvedTexture());
+    assertEquals(RockTexture.GLACIAL_DIAMICTIC, till.resolvedTexture());
+    for (PetrologicSample material : java.util.List.of(laterite, colluvium, till)) {
+      assertTrue(material.sedimentaryState().isEmpty());
+      assertEquals(MetamorphicGrade.NONE, material.metamorphism().grade());
+      assertEquals(MaterialProcessClass.NONE, material.processClass());
+      assertTrue(material.magmaLineage().isEmpty());
+      assertTrue(material.mantleCargo().isEmpty());
+    }
+    assertTrue(
+        laterite.primaryComposition().elementMassPpm().get(ChemicalElement.AL)
+            > colluvium.primaryComposition().elementMassPpm().get(ChemicalElement.AL));
+    assertTrue(
+        till.permeabilityIndex()
+            < query
+                .resolve(
+                    province,
+                    sample(
+                        province,
+                        new Point3(0.0, 0.0, 0.0),
+                        StableId.parse("00000000000000000000000000000a04"),
+                        Lithology.ALLUVIAL_GRAVEL,
+                        new AgeKey(0.01, 0),
+                        Overprint.NONE))
+                .permeabilityIndex());
   }
 
   @Test

@@ -58,6 +58,14 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"WELDED_FRAGMENTAL\""));
     assertTrue(firstJson.contains("geological:constituent/rhyolitic_volcanic_glass"));
     assertTrue(firstJson.contains("\"GLASS\""));
+    assertTrue(firstJson.contains("\"laterite-bauxite-catalog\""));
+    assertTrue(firstJson.contains("\"LATERITIC_PISOLITIC\""));
+    assertTrue(firstJson.contains("geological:mineral/gibbsite"));
+    assertTrue(firstJson.contains("geological:mineral/boehmite"));
+    assertTrue(firstJson.contains("\"soil-colluvium-catalog\""));
+    assertTrue(firstJson.contains("\"SOIL_COLLUVIAL\""));
+    assertTrue(firstJson.contains("\"glacial-till-catalog\""));
+    assertTrue(firstJson.contains("\"GLACIAL_DIAMICTIC\""));
     assertTrue(firstJson.contains("\"mantleCargo\""));
     assertTrue(firstJson.contains("\"SOURCE_CONTEXT_UNRESOLVED\""));
     assertTrue(firstJson.contains("\"diamondGradePpbByMass\": 0"));

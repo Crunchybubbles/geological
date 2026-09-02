@@ -665,7 +665,10 @@ final class ReviewPacketGenerator {
       case GRANODIORITE_PULSE -> new Color(175, 164, 151);
       case FELSIC_STOCK -> new Color(224, 184, 175);
       case VMS_MASSIVE_SULFIDE -> new Color(72, 91, 91);
+      case LATERITE_BAUXITE -> new Color(174, 91, 55);
+      case SOIL_COLLUVIUM -> new Color(126, 100, 70);
       case ALLUVIAL_GRAVEL -> new Color(154, 126, 76);
+      case GLACIAL_TILL -> new Color(142, 137, 126);
     };
   }
 

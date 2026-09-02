@@ -35,7 +35,10 @@ public enum Lithology {
   GRANODIORITE_PULSE(0.90),
   FELSIC_STOCK(0.92),
   VMS_MASSIVE_SULFIDE(0.72),
-  ALLUVIAL_GRAVEL(0.28);
+  LATERITE_BAUXITE(0.48),
+  SOIL_COLLUVIUM(0.20),
+  ALLUVIAL_GRAVEL(0.28),
+  GLACIAL_TILL(0.25);
 
   private final double strength;
 

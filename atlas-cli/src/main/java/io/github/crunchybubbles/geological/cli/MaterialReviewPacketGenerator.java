@@ -321,6 +321,36 @@ final class MaterialReviewPacketGenerator {
                 Lithology.SERPENTINITE,
                 new AgeKey(350.0, 0),
                 Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "laterite-bauxite-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000a01"),
+                Lithology.LATERITE_BAUXITE,
+                new AgeKey(1.5, 0),
+                Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "soil-colluvium-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000a02"),
+                Lithology.SOIL_COLLUVIUM,
+                new AgeKey(0.02, 0),
+                Overprint.NONE)));
+    samples.add(
+        sampleJson(
+            "glacial-till-catalog",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000a03"),
+                Lithology.GLACIAL_TILL,
+                new AgeKey(0.015, 0),
+                Overprint.NONE)));
     RiftArcGeometry.PlutonPulse stock = pulses.getLast();
     samples.add(
         sampleJson(

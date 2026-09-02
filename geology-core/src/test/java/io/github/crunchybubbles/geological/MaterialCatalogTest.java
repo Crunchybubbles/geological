@@ -33,15 +33,15 @@ class MaterialCatalogTest {
   void packagedCatalogCoversEveryImplementedMaterialAndClosesChemistry() {
     MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
 
-    assertEquals(48, catalog.minerals().size());
+    assertEquals(50, catalog.minerals().size());
     assertEquals(2, catalog.nonCrystallineConstituents().size());
-    assertEquals(50, catalog.constituents().size());
+    assertEquals(52, catalog.constituents().size());
     assertEquals(8, catalog.solidSolutions().size());
-    assertEquals(35, catalog.rocks().size());
+    assertEquals(38, catalog.rocks().size());
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:6f7638bce1215cc1ac10d20e6fd08ef16163e32d0598c80707249413d4272b89",
+        "sha256:438635fd702e355e1873dce49b8b295745e46f9e5e45a0ad2e2607b688505c85",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -385,6 +385,43 @@ class MaterialCatalogTest {
     assertTrue(
         glass.elementMassPpm().get(ChemicalElement.SI)
             > glass.elementMassPpm().get(ChemicalElement.AL));
+  }
+
+  @Test
+  void surficialSliceSeparatesResidualSlopeAndGlacialMaterials() {
+    MaterialCatalogSnapshot catalog = Phase2World.materialCatalog();
+    var laterite = catalog.requireRock(Lithology.LATERITE_BAUXITE);
+    var colluvium = catalog.requireRock(Lithology.SOIL_COLLUVIUM);
+    var alluvium = catalog.requireRock(Lithology.ALLUVIAL_GRAVEL);
+    var till = catalog.requireRock(Lithology.GLACIAL_TILL);
+
+    for (var rock : java.util.List.of(laterite, colluvium, alluvium, till)) {
+      assertEquals(GeneticFamily.SURFICIAL, rock.geneticFamily());
+    }
+    assertEquals(RockTexture.LATERITIC_PISOLITIC, laterite.texture());
+    assertEquals(RockTexture.SOIL_COLLUVIAL, colluvium.texture());
+    assertEquals(RockTexture.UNCONSOLIDATED_GRANULAR, alluvium.texture());
+    assertEquals(RockTexture.GLACIAL_DIAMICTIC, till.texture());
+    assertEquals(
+        420_000L,
+        laterite.primaryAssemblage().modesPpm().get("geological:mineral/gibbsite")
+            + laterite.primaryAssemblage().modesPpm().get("geological:mineral/boehmite"));
+    assertFalse(
+        laterite.primaryAssemblage().modesPpm().containsKey("geological:mineral/native_gold"));
+    assertFalse(
+        colluvium.primaryAssemblage().modesPpm().containsKey("geological:mineral/native_gold"));
+    assertFalse(till.primaryAssemblage().modesPpm().containsKey("geological:mineral/native_gold"));
+
+    MineralDefinition gibbsite = catalog.requireMineral("geological:mineral/gibbsite");
+    assertEquals(1.0, gibbsite.formula().get(ChemicalElement.AL).doubleValue());
+    assertEquals(3.0, gibbsite.formula().get(ChemicalElement.O).doubleValue());
+    assertEquals(3.0, gibbsite.formula().get(ChemicalElement.H).doubleValue());
+    MineralDefinition boehmite = catalog.requireMineral("geological:mineral/boehmite");
+    assertEquals(1.0, boehmite.formula().get(ChemicalElement.AL).doubleValue());
+    assertEquals(2.0, boehmite.formula().get(ChemicalElement.O).doubleValue());
+    assertEquals(1.0, boehmite.formula().get(ChemicalElement.H).doubleValue());
+    assertTrue(
+        boehmite.densityGramsPerCubicCentimeter() > gibbsite.densityGramsPerCubicCentimeter());
   }
 
   @Test

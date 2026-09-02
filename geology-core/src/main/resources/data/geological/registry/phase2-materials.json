@@ -2,7 +2,7 @@
   "authoring_schema": "geological:material_catalog_authoring:v8",
   "evidence": {
     "citation_id": "refs:philpotts_ague_2009",
-    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic, intermediate-to-felsic volcanic, alkaline-carbonatitic-kimberlitic, pyroclastic, sedimentary, pelitic slate-phyllite-to-schist, basalt-derived greenschist-to-amphibolite-to-granulite, sandstone-to-quartzite and limestone-to-marble, and ultramafic-to-serpentinite expansions follow published classification and USGS relationships documented in the public architecture. Andesite uses a plagioclase-dominant porphyritic crystalline proxy with amphibole, pyroxene, biotite, olivine, and oxide phases; rhyolite uses a quartz-alkali-feldspar-plagioclase-biotite stony flow-banded proxy. The alkaline recipe is a quartz-free nepheline-syenite proxy dominated by alkali feldspar and nepheline with aegirine; the carbonatite proxy remains more than 50 volume-percent primary calcite and dolomite and carries fluorapatite, oxide, mica, silicate, and sulfide accessories. Rare-earth and niobium ore minerals, sodic amphiboles, exsolution textures, fenitization, ring-complex zoning, and lineage fertility remain unresolved. Kimberlite uses an olivine-macrocryst, serpentine-phlogopite-calcite groundmass proxy with titanate, oxide, apatite, and sulfide accessories. Diamond grade and candidate mantle-indicator identities remain separate typed cargo state: the carrier recipe contains no diamond, pyrope, or chromite, while ilmenite and diopside may occur both as carrier phases and potential cargo indicators. Cargo stays source-context-unresolved with zero diamond grade until cratonic-keel and diamond-forming provenance exists. Pyroclastic rock uses a glass-rich welded ash-flow-tuff proxy with rhyolitic glass, quartz, feldspar, biotite, oxide, and amphibole fragments. The glass chemistry is a closed dry rhyolitic oxide-normalized proof proxy, not a universal analysis; primary eruptive source, transport, cooling-unit zoning, welding grade, devitrification, alteration, and reworking remain unresolved. Glassy, vesicular, and vitrophyric lava variants remain outside the crystalline lava recipes. Hornblende is represented by simplified hydroxyl magnesiohornblende-ferrohornblende endmembers, not by the lower-aluminum actinolite proxy used in greenschist; high-grade mafic granulite uses an anhydrous plagioclase-orthopyroxene-clinopyroxene-garnet proxy rather than retaining amphibolite's dominant hornblende. Lizardite, chrysotile, and antigorite use one simplified ideal serpentine-group formula while remaining separate texture and temperature proxies; serpentinite records a shallow low-temperature hydration proof path without claiming reaction-progress or water-rock mass-balance resolution. Non-crystalline organic matter and volcanic glass use explicit closed bulk-element proxies rather than fictitious mineral formulas. Primary metamorphic recipes author a non-metamorphic original protolith plus coarse grade, facies, path, and peak P-T envelope; they are not independent decorative rock rolls. Quartzite and marble are authored at one low-grade regional proof envelope even though those composition-and-texture rock classes occur across broader metamorphic conditions. Contact hornfels is an isochemical, host-preserving response with an explicit hornfelsic resolved texture rather than a fixed-composition primary lithology; the original rock still controls its mineralogy. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Constituent modes, modal covariance axes, protolith-conditioned response targets, primary and resolved textures, physical-property distributions, P-T envelopes, and non-crystalline bulk chemistry are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
+    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic, intermediate-to-felsic volcanic, alkaline-carbonatitic-kimberlitic, pyroclastic, sedimentary, surficial, pelitic slate-phyllite-to-schist, basalt-derived greenschist-to-amphibolite-to-granulite, sandstone-to-quartzite and limestone-to-marble, and ultramafic-to-serpentinite expansions follow published classification and USGS relationships documented in the public architecture. Andesite uses a plagioclase-dominant porphyritic crystalline proxy with amphibole, pyroxene, biotite, olivine, and oxide phases; rhyolite uses a quartz-alkali-feldspar-plagioclase-biotite stony flow-banded proxy. The alkaline recipe is a quartz-free nepheline-syenite proxy dominated by alkali feldspar and nepheline with aegirine; the carbonatite proxy remains more than 50 volume-percent primary calcite and dolomite and carries fluorapatite, oxide, mica, silicate, and sulfide accessories. Rare-earth and niobium ore minerals, sodic amphiboles, exsolution textures, fenitization, ring-complex zoning, and lineage fertility remain unresolved. Kimberlite uses an olivine-macrocryst, serpentine-phlogopite-calcite groundmass proxy with titanate, oxide, apatite, and sulfide accessories. Diamond grade and candidate mantle-indicator identities remain separate typed cargo state: the carrier recipe contains no diamond, pyrope, or chromite, while ilmenite and diopside may occur both as carrier phases and potential cargo indicators. Cargo stays source-context-unresolved with zero diamond grade until cratonic-keel and diamond-forming provenance exists. Pyroclastic rock uses a glass-rich welded ash-flow-tuff proxy with rhyolitic glass, quartz, feldspar, biotite, oxide, and amphibole fragments. The glass chemistry is a closed dry rhyolitic oxide-normalized proof proxy, not a universal analysis; primary eruptive source, transport, cooling-unit zoning, welding grade, devitrification, alteration, and reworking remain unresolved. Glassy, vesicular, and vitrophyric lava variants remain outside the crystalline lava recipes. Laterite-bauxite uses an aluminum-hydroxide, iron-oxide, and kaolinite residual proxy with gibbsite and boehmite; soil-colluvium uses a loose weathered mineral mixture; glacial till uses an unsorted matrix-rich felsic-mafic-carbonate proxy. None contains native gold or implies an ore deposit. Parent-material provenance, soil horizons and organics, slope transport, glacial erosion and transport, climate gates, profile zoning, and surface-body geometry remain unresolved. Saprolite stays a host-preserving weathering response rather than becoming a parentless primary recipe. Hornblende is represented by simplified hydroxyl magnesiohornblende-ferrohornblende endmembers, not by the lower-aluminum actinolite proxy used in greenschist; high-grade mafic granulite uses an anhydrous plagioclase-orthopyroxene-clinopyroxene-garnet proxy rather than retaining amphibolite's dominant hornblende. Lizardite, chrysotile, and antigorite use one simplified ideal serpentine-group formula while remaining separate texture and temperature proxies; serpentinite records a shallow low-temperature hydration proof path without claiming reaction-progress or water-rock mass-balance resolution. Non-crystalline organic matter and volcanic glass use explicit closed bulk-element proxies rather than fictitious mineral formulas. Primary metamorphic recipes author a non-metamorphic original protolith plus coarse grade, facies, path, and peak P-T envelope; they are not independent decorative rock rolls. Quartzite and marble are authored at one low-grade regional proof envelope even though those composition-and-texture rock classes occur across broader metamorphic conditions. Contact hornfels is an isochemical, host-preserving response with an explicit hornfelsic resolved texture rather than a fixed-composition primary lithology; the original rock still controls its mineralogy. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Constituent modes, modal covariance axes, protolith-conditioned response targets, primary and resolved textures, physical-property distributions, P-T envelopes, and non-crystalline bulk chemistry are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
     "publication_year": 2009,
     "title": "Principles of Igneous and Metamorphic Petrology",
     "uri": "https://doi.org/10.1017/CBO9780511813429"
@@ -322,6 +322,20 @@
       "hardness_mohs": 5.2,
       "id": "geological:mineral/goethite",
       "weathering_resistance": 0.76
+    },
+    {
+      "density_g_cm3": 2.4,
+      "formula": {"Al": 1, "O": 3, "H": 3},
+      "hardness_mohs": 2.8,
+      "id": "geological:mineral/gibbsite",
+      "weathering_resistance": 0.62
+    },
+    {
+      "density_g_cm3": 3.03,
+      "formula": {"Al": 1, "O": 2, "H": 1},
+      "hardness_mohs": 4.5,
+      "id": "geological:mineral/boehmite",
+      "weathering_resistance": 0.68
     },
     {
       "density_g_cm3": 2.25,
@@ -1597,6 +1611,123 @@
       },
       "permeability_distribution": {"minimum": 0.75, "mode": 0.9, "maximum": 0.98},
       "porosity_distribution": {"minimum": 0.2, "mode": 0.28, "maximum": 0.38}
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.28, "mode": 0.5, "maximum": 0.72},
+      "genetic_family": "SURFICIAL",
+      "id": "geological:rock/laterite_bauxite",
+      "lithology": "LATERITE_BAUXITE",
+      "modal_spread_fraction": 0.2,
+      "modal_variation_axes": [
+        {
+          "id": "aluminum_iron_residuum_balance",
+          "loadings_ppm": {"geological:mineral/gibbsite": 40000, "geological:mineral/boehmite": 10000, "geological:mineral/goethite": -30000, "geological:mineral/hematite": -20000}
+        },
+        {
+          "id": "clay_hydroxide_balance",
+          "loadings_ppm": {"geological:mineral/kaolinite": 30000, "geological:mineral/gibbsite": -15000, "geological:mineral/boehmite": -5000, "geological:mineral/quartz": -10000}
+        },
+        {
+          "id": "relict_silicate_oxide_balance",
+          "loadings_ppm": {"geological:mineral/muscovite": 4000, "geological:mineral/magnetite": 4000, "geological:mineral/quartz": 2000, "geological:mineral/kaolinite": -10000}
+        }
+      ],
+      "texture": "LATERITIC_PISOLITIC",
+      "constituent_modes_ppm": {
+        "geological:mineral/gibbsite": 320000,
+        "geological:mineral/boehmite": 100000,
+        "geological:mineral/kaolinite": 200000,
+        "geological:mineral/goethite": 160000,
+        "geological:mineral/hematite": 100000,
+        "geological:mineral/quartz": 80000,
+        "geological:mineral/magnetite": 20000,
+        "geological:mineral/muscovite": 20000
+      },
+      "permeability_distribution": {"minimum": 0.05, "mode": 0.18, "maximum": 0.42},
+      "porosity_distribution": {"minimum": 0.1, "mode": 0.25, "maximum": 0.45}
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.68, "mode": 0.82, "maximum": 0.95},
+      "genetic_family": "SURFICIAL",
+      "id": "geological:rock/soil_colluvium",
+      "lithology": "SOIL_COLLUVIUM",
+      "modal_spread_fraction": 0.3,
+      "modal_variation_axes": [
+        {
+          "id": "quartz_clay_balance",
+          "loadings_ppm": {"geological:mineral/quartz": 40000, "geological:mineral/kaolinite": -40000}
+        },
+        {
+          "id": "feldspar_weathering_balance",
+          "loadings_ppm": {"geological:mineral/albite": -10000, "geological:mineral/anorthite": -5000, "geological:mineral/orthoclase": -10000, "geological:mineral/kaolinite": 15000, "geological:mineral/goethite": 10000}
+        },
+        {
+          "id": "carbonate_oxide_balance",
+          "loadings_ppm": {"geological:mineral/calcite": 6000, "geological:mineral/goethite": -6000}
+        },
+        {
+          "id": "mica_chlorite_balance",
+          "loadings_ppm": {"geological:mineral/muscovite": 10000, "geological:mineral/clinochlore": -10000}
+        }
+      ],
+      "texture": "SOIL_COLLUVIAL",
+      "constituent_modes_ppm": {
+        "geological:mineral/quartz": 300000,
+        "geological:mineral/albite": 100000,
+        "geological:mineral/anorthite": 50000,
+        "geological:mineral/orthoclase": 100000,
+        "geological:mineral/kaolinite": 200000,
+        "geological:mineral/muscovite": 60000,
+        "geological:mineral/clinochlore": 50000,
+        "geological:mineral/goethite": 60000,
+        "geological:mineral/hematite": 30000,
+        "geological:mineral/calcite": 30000,
+        "geological:mineral/magnetite": 20000
+      },
+      "permeability_distribution": {"minimum": 0.16, "mode": 0.38, "maximum": 0.68},
+      "porosity_distribution": {"minimum": 0.22, "mode": 0.38, "maximum": 0.58}
+    },
+    {
+      "erodibility_distribution": {"minimum": 0.42, "mode": 0.62, "maximum": 0.82},
+      "genetic_family": "SURFICIAL",
+      "id": "geological:rock/glacial_till",
+      "lithology": "GLACIAL_TILL",
+      "modal_spread_fraction": 0.25,
+      "modal_variation_axes": [
+        {
+          "id": "felsic_mafic_provenance_balance",
+          "loadings_ppm": {"geological:mineral/quartz": 25000, "geological:mineral/albite": 10000, "geological:mineral/orthoclase": 10000, "geological:mineral/forsterite": -8000, "geological:mineral/enstatite": -12000, "geological:mineral/diopside": -12000, "geological:mineral/clinochlore": -5000, "geological:mineral/magnetite": -3000, "geological:mineral/calcite": -5000}
+        },
+        {
+          "id": "clay_fresh_mineral_balance",
+          "loadings_ppm": {"geological:mineral/kaolinite": 8000, "geological:mineral/albite": -4000, "geological:mineral/anorthite": -4000}
+        },
+        {
+          "id": "carbonate_silica_balance",
+          "loadings_ppm": {"geological:mineral/calcite": 7000, "geological:mineral/quartz": -7000}
+        },
+        {
+          "id": "mica_chlorite_balance",
+          "loadings_ppm": {"geological:mineral/muscovite": 5000, "geological:mineral/clinochlore": -5000}
+        }
+      ],
+      "texture": "GLACIAL_DIAMICTIC",
+      "constituent_modes_ppm": {
+        "geological:mineral/quartz": 300000,
+        "geological:mineral/albite": 150000,
+        "geological:mineral/anorthite": 100000,
+        "geological:mineral/orthoclase": 120000,
+        "geological:mineral/forsterite": 40000,
+        "geological:mineral/enstatite": 50000,
+        "geological:mineral/diopside": 50000,
+        "geological:mineral/clinochlore": 40000,
+        "geological:mineral/muscovite": 30000,
+        "geological:mineral/kaolinite": 40000,
+        "geological:mineral/magnetite": 30000,
+        "geological:mineral/calcite": 50000
+      },
+      "permeability_distribution": {"minimum": 0.02, "mode": 0.08, "maximum": 0.24},
+      "porosity_distribution": {"minimum": 0.12, "mode": 0.22, "maximum": 0.34}
     }
   ],
   "overprints": [
