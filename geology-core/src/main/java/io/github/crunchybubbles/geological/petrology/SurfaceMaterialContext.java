@@ -9,6 +9,7 @@ public record SurfaceMaterialContext(
     SurfaceMaterialKind kind,
     StableId materialBodyId,
     List<StableId> sourceBodyIds,
+    Optional<ColluvialSourceMix> colluvialSourceMix,
     Optional<StableId> depositId,
     Optional<String> budgetElement,
     Optional<String> budgetUnit,
@@ -17,6 +18,7 @@ public record SurfaceMaterialContext(
   public SurfaceMaterialContext {
     if (kind == null
         || materialBodyId == null
+        || colluvialSourceMix == null
         || depositId == null
         || budgetElement == null
         || budgetUnit == null) {
@@ -33,6 +35,10 @@ public record SurfaceMaterialContext(
     }
     if ((kind == SurfaceMaterialKind.ALLUVIAL_PLACER) != depositId.isPresent()) {
       throw new IllegalArgumentException("only alluvial placer material may carry a deposit ID");
+    }
+    if ((kind == SurfaceMaterialKind.COLLUVIAL_MANTLE) != colluvialSourceMix.isPresent()) {
+      throw new IllegalArgumentException(
+          "colluvial source mixture is required exactly for colluvial material");
     }
     if (budgetElement.isPresent() != budgetUnit.isPresent()
         || (kind == SurfaceMaterialKind.ALLUVIAL_PLACER) != budgetElement.isPresent()) {
@@ -63,6 +69,11 @@ public record SurfaceMaterialContext(
     if (kind == SurfaceMaterialKind.COLLUVIAL_MANTLE && sourceBodyIds.contains(materialBodyId)) {
       throw new IllegalArgumentException(
           "transported colluvial material must differ from its source body");
+    }
+    if (colluvialSourceMix.isPresent()
+        && !sourceBodyIds.equals(List.of(colluvialSourceMix.orElseThrow().sourceBodyId()))) {
+      throw new IllegalArgumentException(
+          "colluvial mixture source must be the context's sole source body");
     }
     if ((kind == SurfaceMaterialKind.BEDROCK_OUTCROP
             || kind == SurfaceMaterialKind.IN_SITU_REGOLITH)

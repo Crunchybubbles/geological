@@ -15,7 +15,9 @@ import io.github.crunchybubbles.geological.model.Lithology;
 import io.github.crunchybubbles.geological.model.Overprint;
 import io.github.crunchybubbles.geological.model.Point2;
 import io.github.crunchybubbles.geological.model.Point3;
+import io.github.crunchybubbles.geological.petrology.BodyCompositionSampler;
 import io.github.crunchybubbles.geological.petrology.ChemicalElement;
+import io.github.crunchybubbles.geological.petrology.ColluvialSourceMix;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
@@ -47,7 +49,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.24", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.25", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1239,7 +1241,32 @@ class MaterialQueryTest {
     assertEquals(
         List.of(transported.surface().bedrock().rockBodyId()),
         transported.context().sourceBodyIds());
+    ColluvialSourceMix sourceMix = transported.context().colluvialSourceMix().orElseThrow();
+    assertEquals(transported.surface().bedrock().rockBodyId(), sourceMix.sourceBodyId());
+    assertEquals(transported.surface().bedrock().lithology(), sourceMix.sourceLithology());
+    assertEquals(transported.surface().bedrock().overprint(), sourceMix.sourceOverprint());
+    assertEquals(650_000L, sourceMix.sourceAssemblageFractionPpm());
+    assertEquals(350_000L, sourceMix.weatheredMatrixFractionPpm());
+    Province province = query.geology().atlas().provinceAt(point);
+    PetrologicSample sourceMaterial = query.resolve(province, transported.surface().bedrock());
+    MaterialAssemblage genericMatrix =
+        new BodyCompositionSampler(query.geology().atlas().identity())
+            .sample(
+                query.catalog().requireRock(Lithology.SOIL_COLLUVIUM),
+                transported.context().materialBodyId());
+    MaterialAssemblage expected =
+        MaterialAssemblage.blend(
+            genericMatrix,
+            sourceMaterial.resolvedAssemblage(),
+            sourceMix.sourceAssemblageFractionPpm());
+    assertEquals(expected, transported.material().primaryAssemblage());
+    assertEquals(expected, transported.material().resolvedAssemblage());
+    assertNotEquals(genericMatrix, transported.material().primaryAssemblage());
+    assertEquals(
+        query.catalog().composition(expected), transported.material().primaryComposition());
+    assertTrue(transported.material().elementLedger().isIsochemical());
     assertTrue(transported.material().geology().depositIds().isEmpty());
+    assertTrue(transported.material().reservoirLedgers().isEmpty());
     assertTrue(transported.context().depositId().isEmpty());
     assertTrue(transported.context().budgetElement().isEmpty());
     assertTrue(transported.context().budgetUnit().isEmpty());
@@ -1249,6 +1276,22 @@ class MaterialQueryTest {
     query.clearCaches();
     assertEquals(transported, query.surface(point));
     assertEquals(transported, Phase2World.create(2_025L).surface(point));
+  }
+
+  @Test
+  void colluvialSourceMixRequiresPositiveExactClosure() {
+    StableId source = StableId.parse("00000000000000000000000000000b01");
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialSourceMix(
+                source, Lithology.GRANITIC_GNEISS, Overprint.NONE, 650_000L, 349_999L));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialSourceMix(
+                source, Lithology.GRANITIC_GNEISS, Overprint.NONE, 0L, 1_000_000L));
   }
 
   @Test

@@ -35,6 +35,9 @@ public final class MaterialQueryEngine {
   private static final double COLLUVIUM_MINIMUM_SLOPE = 0.10;
   private static final double COLLUVIUM_MINIMUM_WEATHERING_DEPTH = 4.0;
   private static final double COLLUVIUM_MINIMUM_CHANNEL_DISTANCE = 32.0;
+  private static final long COLLUVIUM_SOURCE_ASSEMBLAGE_FRACTION_PPM = 650_000L;
+  private static final long COLLUVIUM_WEATHERED_MATRIX_FRACTION_PPM =
+      MaterialAssemblage.SCALE - COLLUVIUM_SOURCE_ASSEMBLAGE_FRACTION_PPM;
   private static final AgeKey COLLUVIUM_FORMATION_AGE = new AgeKey(0.02, 0);
 
   private final GeologyQueryEngine geology;
@@ -123,6 +126,7 @@ public final class MaterialQueryEngine {
 
     GeologicalSample surfaceGeology;
     SurfaceMaterialContext context;
+    PetrologicSample material;
     if (surface.fields().drainage().sourceLinkedPlacer()) {
       MineralSystemDecision placer = formedPlacer(province);
       long trapped = placer.ledger().allocations().getOrDefault("placer_trap", 0L);
@@ -142,13 +146,16 @@ public final class MaterialQueryEngine {
               SurfaceMaterialKind.ALLUVIAL_PLACER,
               placer.deposit().id(),
               placer.deposit().sourceIds(),
+              Optional.empty(),
               Optional.of(placer.deposit().id()),
               Optional.of(placer.ledger().element()),
               Optional.of(placer.ledger().unit()),
               placer.ledger().sourceAmount(),
               trapped);
+      material = resolve(province, surfaceGeology);
     } else if (formsColluvialMantle(surface)) {
-      StableId colluvialBodyId = colluvialBodyId(bedrock.rockBodyId());
+      PetrologicSample sourceMaterial = resolve(province, bedrock);
+      StableId colluvialBodyId = colluvialBodyId(bedrock);
       surface =
           new SurfaceSample(surface.fields(), bedrock, Lithology.SOIL_COLLUVIUM, Overprint.NONE);
       surfaceGeology =
@@ -167,11 +174,19 @@ public final class MaterialQueryEngine {
               SurfaceMaterialKind.COLLUVIAL_MANTLE,
               colluvialBodyId,
               List.of(bedrock.rockBodyId()),
+              Optional.of(
+                  new ColluvialSourceMix(
+                      bedrock.rockBodyId(),
+                      bedrock.lithology(),
+                      bedrock.overprint(),
+                      COLLUVIUM_SOURCE_ASSEMBLAGE_FRACTION_PPM,
+                      COLLUVIUM_WEATHERED_MATRIX_FRACTION_PPM)),
               Optional.empty(),
               Optional.empty(),
               Optional.empty(),
               0,
               0);
+      material = resolveColluvialMaterial(province, surfaceGeology, sourceMaterial);
     } else {
       SurfaceMaterialKind kind =
           surface.fields().outcrop()
@@ -196,10 +211,12 @@ public final class MaterialQueryEngine {
               Optional.empty(),
               Optional.empty(),
               Optional.empty(),
+              Optional.empty(),
               0,
               0);
+      material = resolve(province, surfaceGeology);
     }
-    return new SurfacePetrologicSample(surface, resolve(province, surfaceGeology), context);
+    return new SurfacePetrologicSample(surface, material, context);
   }
 
   private static boolean formsColluvialMantle(SurfaceSample surface) {
@@ -210,13 +227,50 @@ public final class MaterialQueryEngine {
         && surface.fields().drainage().channelDistance() >= COLLUVIUM_MINIMUM_CHANNEL_DISTANCE;
   }
 
-  private StableId colluvialBodyId(StableId sourceBodyId) {
+  private StableId colluvialBodyId(GeologicalSample source) {
     return StableId.first128(
         geology
             .atlas()
             .identity()
-            .objectStream("surface-material", "colluvial-mantle", sourceBodyId)
-            .bytes("material-body-id", 0));
+            .objectStream("surface-material", "colluvial-mantle", source.rockBodyId())
+            .bytes(
+                "material-body-id:" + source.lithology().name() + ":" + source.overprint().name(),
+                0));
+  }
+
+  private PetrologicSample resolveColluvialMaterial(
+      Province province, GeologicalSample geological, PetrologicSample sourceMaterial) {
+    PetrologicSample generic = resolve(province, geological);
+    MaterialAssemblage mixed =
+        MaterialAssemblage.blend(
+            generic.primaryAssemblage(),
+            sourceMaterial.resolvedAssemblage(),
+            COLLUVIUM_SOURCE_ASSEMBLAGE_FRACTION_PPM);
+    BulkComposition composition = catalog.composition(mixed);
+    List<SolidSolutionState> solidSolutions = catalog.solidSolutionStates(mixed);
+    ElementTransferLedger elementLedger = ElementTransferLedger.between(composition, composition);
+    return new PetrologicSample(
+        geological,
+        generic.rock(),
+        generic.resolvedTexture(),
+        mixed,
+        mixed,
+        solidSolutions,
+        solidSolutions,
+        composition,
+        composition,
+        elementLedger,
+        generic.materialProcessLedger(),
+        generic.metamorphism(),
+        generic.processClass(),
+        generic.fluidState(),
+        generic.porosityFraction(),
+        generic.permeabilityIndex(),
+        generic.erodibilityIndex(),
+        generic.magmaLineage(),
+        generic.mantleCargo(),
+        generic.sedimentaryState(),
+        generic.reservoirLedgers());
   }
 
   public PetrologicSample resolve(Province province, GeologicalSample geological) {

@@ -11,6 +11,7 @@ import io.github.crunchybubbles.geological.model.Point2;
 import io.github.crunchybubbles.geological.model.Point3;
 import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
 import io.github.crunchybubbles.geological.petrology.ChemicalElement;
+import io.github.crunchybubbles.geological.petrology.ColluvialSourceMix;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.MagmaLineageState;
 import io.github.crunchybubbles.geological.petrology.MantleCargoState;
@@ -507,6 +508,12 @@ final class MaterialReviewPacketGenerator {
         surface.context().materialBodyId().toString(),
         "sourceBodyIds",
         surface.context().sourceBodyIds().stream().map(Object::toString).toList(),
+        "colluvialSourceMix",
+        surface
+            .context()
+            .colluvialSourceMix()
+            .map(MaterialReviewPacketGenerator::colluvialSourceMixJson)
+            .orElse(null),
         "depositId",
         surface.context().depositId().map(Object::toString).orElse(null),
         "budgetElement",
@@ -517,6 +524,20 @@ final class MaterialReviewPacketGenerator {
         surface.context().sourceInventoryFixedUnits(),
         "trappedInventoryFixedUnits",
         surface.context().trappedInventoryFixedUnits());
+  }
+
+  private static Map<String, Object> colluvialSourceMixJson(ColluvialSourceMix mix) {
+    return JsonWriter.object(
+        "sourceBodyId",
+        mix.sourceBodyId().toString(),
+        "sourceLithology",
+        mix.sourceLithology().name(),
+        "sourceOverprint",
+        mix.sourceOverprint().name(),
+        "sourceAssemblageFractionPpm",
+        mix.sourceAssemblageFractionPpm(),
+        "weatheredMatrixFractionPpm",
+        mix.weatheredMatrixFractionPpm());
   }
 
   private Province referenceProvince() {

@@ -29,6 +29,9 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"COLLUVIAL_MANTLE\""));
     assertTrue(firstJson.contains("\"underlyingBedrockBodyId\""));
     assertTrue(firstJson.contains("\"formationAgeMa\": 0.02"));
+    assertTrue(firstJson.contains("\"colluvialSourceMix\""));
+    assertTrue(firstJson.contains("\"sourceAssemblageFractionPpm\": 650000"));
+    assertTrue(firstJson.contains("\"weatheredMatrixFractionPpm\": 350000"));
     assertTrue(firstJson.contains("\"normalizedExchangeMagnitudePpm\""));
     assertTrue(firstJson.contains("\"texture\""));
     assertTrue(firstJson.contains("\"responseTexture\""));
