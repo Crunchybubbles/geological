@@ -51,7 +51,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.26", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.27", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1253,9 +1253,25 @@ class MaterialQueryTest {
     assertEquals(650_000L, sourceMix.sourceAssemblageFractionPpm());
     assertEquals(350_000L, sourceMix.weatheredMatrixFractionPpm());
     assertEquals(
+        1.0,
+        StrictMath.hypot(sourceMix.upslopeDirection().x(), sourceMix.upslopeDirection().z()),
+        1.0e-12);
+    double gradientX =
+        (query.geology().surface(point.add(4.0, 0.0)).fields().elevation()
+                - query.geology().surface(point.add(-4.0, 0.0)).fields().elevation())
+            / 8.0;
+    double gradientZ =
+        (query.geology().surface(point.add(0.0, 4.0)).fields().elevation()
+                - query.geology().surface(point.add(0.0, -4.0)).fields().elevation())
+            / 8.0;
+    double gradientLength = StrictMath.hypot(gradientX, gradientZ);
+    assertEquals(
+        new Point2(gradientX / gradientLength, gradientZ / gradientLength),
+        sourceMix.upslopeDirection());
+    assertEquals(
         List.of(0, 96, 192),
         sourceMix.sourceContributions().stream()
-            .map(ColluvialSourceContribution::upstreamDistanceBlocks)
+            .map(ColluvialSourceContribution::upslopeDistanceBlocks)
             .toList());
     assertEquals(
         List.of(350_000L, 200_000L, 100_000L),
@@ -1269,14 +1285,16 @@ class MaterialQueryTest {
                 transported.context().materialBodyId());
     List<MaterialAssemblage.Share> shares = new ArrayList<>();
     shares.add(new MaterialAssemblage.Share(genericMatrix, sourceMix.weatheredMatrixFractionPpm()));
-    Point2 downstream = transported.surface().fields().drainage().flowDirection();
     for (ColluvialSourceContribution contribution : sourceMix.sourceContributions()) {
-      Point2 sourcePoint =
+      Point2 expectedSourcePoint =
           point.add(
-              -downstream.x() * contribution.upstreamDistanceBlocks(),
-              -downstream.z() * contribution.upstreamDistanceBlocks());
+              sourceMix.upslopeDirection().x() * contribution.upslopeDistanceBlocks(),
+              sourceMix.upslopeDirection().z() * contribution.upslopeDistanceBlocks());
+      assertEquals(expectedSourcePoint, contribution.sourcePoint());
+      Point2 sourcePoint = contribution.sourcePoint();
       GeologicalSample sourceGeology = query.geology().surface(sourcePoint).bedrock();
       Province sourceProvince = query.geology().atlas().provinceAt(sourcePoint);
+      assertEquals(sourceProvince.id(), contribution.sourceProvinceId());
       assertEquals(sourceGeology.rockBodyId(), contribution.sourceBodyId());
       assertEquals(sourceGeology.lithology(), contribution.sourceLithology());
       assertEquals(sourceGeology.overprint(), contribution.sourceOverprint());
@@ -1306,25 +1324,81 @@ class MaterialQueryTest {
   }
 
   @Test
+  void terrainDirectedColluviumResolvesEachCrossProvinceSourceWithItsOwner() {
+    MaterialQueryEngine query = Phase2World.create(2_025L);
+    Point2 point = new Point2(1_950.25, -4_800.25);
+
+    SurfacePetrologicSample transported = query.surface(point);
+
+    assertEquals(SurfaceMaterialKind.COLLUVIAL_MANTLE, transported.context().kind());
+    ColluvialSourceMix mix = transported.context().colluvialSourceMix().orElseThrow();
+    assertEquals(
+        2L,
+        mix.sourceContributions().stream()
+            .map(ColluvialSourceContribution::sourceProvinceId)
+            .distinct()
+            .count());
+    for (ColluvialSourceContribution contribution : mix.sourceContributions()) {
+      Province owner = query.geology().atlas().provinceAt(contribution.sourcePoint());
+      assertEquals(owner.id(), contribution.sourceProvinceId());
+      assertEquals(
+          owner.id(), query.geology().surface(contribution.sourcePoint()).bedrock().provinceId());
+    }
+    assertNotEquals(
+        mix.localSource().sourceProvinceId(),
+        mix.sourceContributions().getLast().sourceProvinceId());
+    assertEquals(transported, Phase2World.create(2_025L).surface(point));
+  }
+
+  @Test
   void colluvialSourceMixRequiresPositiveExactClosure() {
+    Point2 sourcePoint = new Point2(10.0, 20.0);
+    Point2 direction = new Point2(1.0, 0.0);
+    StableId province = StableId.parse("00000000000000000000000000000a01");
     StableId source = StableId.parse("00000000000000000000000000000b01");
     ColluvialSourceContribution local =
         new ColluvialSourceContribution(
-            source, Lithology.GRANITIC_GNEISS, Overprint.NONE, 0, 650_000L);
+            sourcePoint, province, source, Lithology.GRANITIC_GNEISS, Overprint.NONE, 0, 650_000L);
 
     assertThrows(
-        IllegalArgumentException.class, () -> new ColluvialSourceMix(List.of(local), 349_999L));
+        IllegalArgumentException.class,
+        () -> new ColluvialSourceMix(direction, List.of(local), 349_999L));
     assertThrows(
         IllegalArgumentException.class,
         () ->
             new ColluvialSourceMix(
+                direction,
                 List.of(
                     new ColluvialSourceContribution(
-                        source, Lithology.GRANITIC_GNEISS, Overprint.NONE, 96, 650_000L)),
+                        sourcePoint.add(96.0, 0.0),
+                        province,
+                        source,
+                        Lithology.GRANITIC_GNEISS,
+                        Overprint.NONE,
+                        96,
+                        650_000L)),
                 350_000L));
     assertThrows(
         IllegalArgumentException.class,
-        () -> new ColluvialSourceMix(List.of(local, local), 350_000L));
+        () -> new ColluvialSourceMix(direction, List.of(local, local), 350_000L));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new ColluvialSourceMix(new Point2(0.5, 0.0), List.of(local), 350_000L));
+    ColluvialSourceContribution misplaced =
+        new ColluvialSourceContribution(
+            sourcePoint.add(95.0, 0.0),
+            province,
+            source,
+            Lithology.GRANITIC_GNEISS,
+            Overprint.NONE,
+            96,
+            100_000L);
+    ColluvialSourceContribution reducedLocal =
+        new ColluvialSourceContribution(
+            sourcePoint, province, source, Lithology.GRANITIC_GNEISS, Overprint.NONE, 0, 550_000L);
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new ColluvialSourceMix(direction, List.of(reducedLocal, misplaced), 350_000L));
   }
 
   @Test

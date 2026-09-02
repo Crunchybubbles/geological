@@ -1,30 +1,49 @@
 package io.github.crunchybubbles.geological.petrology;
 
 import io.github.crunchybubbles.geological.determinism.StableId;
+import io.github.crunchybubbles.geological.model.Point2;
 import java.util.Comparator;
 import java.util.List;
 
 /** Exact proof-level mixture of bounded source samples and generic weathered matrix. */
 public record ColluvialSourceMix(
-    List<ColluvialSourceContribution> sourceContributions, long weatheredMatrixFractionPpm) {
+    Point2 upslopeDirection,
+    List<ColluvialSourceContribution> sourceContributions,
+    long weatheredMatrixFractionPpm) {
   public ColluvialSourceMix {
-    if (sourceContributions == null) {
-      throw new IllegalArgumentException("colluvial source contributions are required");
+    if (upslopeDirection == null || sourceContributions == null) {
+      throw new IllegalArgumentException(
+          "colluvial direction and source contributions are required");
+    }
+    double directionLength = StrictMath.hypot(upslopeDirection.x(), upslopeDirection.z());
+    if (StrictMath.abs(directionLength - 1.0) > 1.0e-12) {
+      throw new IllegalArgumentException("colluvial upslope direction must be a unit vector");
     }
     sourceContributions =
         List.copyOf(sourceContributions).stream()
             .sorted(
-                Comparator.comparingInt(ColluvialSourceContribution::upstreamDistanceBlocks)
+                Comparator.comparingInt(ColluvialSourceContribution::upslopeDistanceBlocks)
                     .thenComparing(ColluvialSourceContribution::sourceBodyId)
                     .thenComparing(ColluvialSourceContribution::sourceLithology)
                     .thenComparing(ColluvialSourceContribution::sourceOverprint))
             .toList();
     if (sourceContributions.isEmpty()
-        || sourceContributions.getFirst().upstreamDistanceBlocks() != 0) {
+        || sourceContributions.getFirst().upslopeDistanceBlocks() != 0) {
       throw new IllegalArgumentException("colluvial mixture must include its local source");
     }
+    Point2 localPoint = sourceContributions.getFirst().sourcePoint();
+    for (ColluvialSourceContribution contribution : sourceContributions) {
+      Point2 expected =
+          localPoint.add(
+              upslopeDirection.x() * contribution.upslopeDistanceBlocks(),
+              upslopeDirection.z() * contribution.upslopeDistanceBlocks());
+      if (!expected.equals(contribution.sourcePoint())) {
+        throw new IllegalArgumentException(
+            "colluvial source point must follow its exact upslope distance");
+      }
+    }
     if (sourceContributions.stream()
-            .map(ColluvialSourceContribution::upstreamDistanceBlocks)
+            .map(ColluvialSourceContribution::upslopeDistanceBlocks)
             .distinct()
             .count()
         != sourceContributions.size()) {

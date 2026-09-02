@@ -531,6 +531,8 @@ final class MaterialReviewPacketGenerator {
 
   private static Map<String, Object> colluvialSourceMixJson(ColluvialSourceMix mix) {
     return JsonWriter.object(
+        "upslopeDirection",
+        pointJson(mix.upslopeDirection()),
         "sourceAssemblageFractionPpm",
         mix.sourceAssemblageFractionPpm(),
         "weatheredMatrixFractionPpm",
@@ -544,8 +546,12 @@ final class MaterialReviewPacketGenerator {
   private static Map<String, Object> colluvialSourceContributionJson(
       ColluvialSourceContribution contribution) {
     return JsonWriter.object(
-        "upstreamDistanceBlocks",
-        contribution.upstreamDistanceBlocks(),
+        "sourcePoint",
+        pointJson(contribution.sourcePoint()),
+        "sourceProvinceId",
+        contribution.sourceProvinceId().toString(),
+        "upslopeDistanceBlocks",
+        contribution.upslopeDistanceBlocks(),
         "sourceBodyId",
         contribution.sourceBodyId().toString(),
         "sourceLithology",

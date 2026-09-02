@@ -18,6 +18,8 @@ public record SurfacePetrologicSample(
     if (context.kind() == SurfaceMaterialKind.COLLUVIAL_MANTLE) {
       ColluvialSourceContribution local = context.colluvialSourceMix().orElseThrow().localSource();
       if (surface.surfaceMaterial() != Lithology.SOIL_COLLUVIUM
+          || !local.sourcePoint().equals(surface.fields().point())
+          || !local.sourceProvinceId().equals(surface.bedrock().provinceId())
           || !local.sourceBodyId().equals(surface.bedrock().rockBodyId())
           || local.sourceLithology() != surface.bedrock().lithology()
           || local.sourceOverprint() != surface.bedrock().overprint()) {

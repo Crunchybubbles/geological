@@ -32,6 +32,7 @@ import java.util.Set;
  * Phase 2 facade deriving material composition and process state from immutable Phase 1 geology.
  */
 public final class MaterialQueryEngine {
+  private static final double TERRAIN_GRADIENT_STEP_BLOCKS = 4.0;
   private static final double COLLUVIUM_MINIMUM_SLOPE = 0.10;
   private static final double COLLUVIUM_MINIMUM_WEATHERING_DEPTH = 4.0;
   private static final double COLLUVIUM_MINIMUM_CHANNEL_DISTANCE = 32.0;
@@ -157,9 +158,11 @@ public final class MaterialQueryEngine {
               trapped);
       material = resolve(province, surfaceGeology);
     } else if (formsColluvialMantle(surface)) {
-      List<ResolvedColluvialSource> sources = resolveColluvialSources(surface);
+      Point2 upslopeDirection = terrainUpslopeDirection(surface);
+      List<ResolvedColluvialSource> sources = resolveColluvialSources(surface, upslopeDirection);
       ColluvialSourceMix sourceMix =
           new ColluvialSourceMix(
+              upslopeDirection,
               sources.stream().map(ResolvedColluvialSource::contribution).toList(),
               COLLUVIUM_WEATHERED_MATRIX_FRACTION_PPM);
       StableId colluvialBodyId = colluvialBodyId(sourceMix);
@@ -228,43 +231,70 @@ public final class MaterialQueryEngine {
         && surface.fields().drainage().channelDistance() >= COLLUVIUM_MINIMUM_CHANNEL_DISTANCE;
   }
 
-  private List<ResolvedColluvialSource> resolveColluvialSources(SurfaceSample surface) {
+  private List<ResolvedColluvialSource> resolveColluvialSources(
+      SurfaceSample surface, Point2 upslopeDirection) {
     List<ResolvedColluvialSource> sources = new ArrayList<>();
-    sources.add(resolveColluvialSource(surface.bedrock(), 0, COLLUVIUM_LOCAL_SOURCE_FRACTION_PPM));
-    Point2 downstream = surface.fields().drainage().flowDirection();
+    Point2 localPoint = surface.fields().point();
     sources.add(
         resolveColluvialSource(
-            upstreamBedrock(
-                surface.fields().point(), downstream, COLLUVIUM_NEAR_SOURCE_DISTANCE_BLOCKS),
+            localPoint, surface.bedrock(), 0, COLLUVIUM_LOCAL_SOURCE_FRACTION_PPM));
+    sources.add(
+        resolveColluvialSource(
+            upslopePoint(localPoint, upslopeDirection, COLLUVIUM_NEAR_SOURCE_DISTANCE_BLOCKS),
             COLLUVIUM_NEAR_SOURCE_DISTANCE_BLOCKS,
             COLLUVIUM_NEAR_SOURCE_FRACTION_PPM));
     sources.add(
         resolveColluvialSource(
-            upstreamBedrock(
-                surface.fields().point(), downstream, COLLUVIUM_FAR_SOURCE_DISTANCE_BLOCKS),
+            upslopePoint(localPoint, upslopeDirection, COLLUVIUM_FAR_SOURCE_DISTANCE_BLOCKS),
             COLLUVIUM_FAR_SOURCE_DISTANCE_BLOCKS,
             COLLUVIUM_FAR_SOURCE_FRACTION_PPM));
     return List.copyOf(sources);
   }
 
-  private GeologicalSample upstreamBedrock(Point2 point, Point2 downstream, int distanceBlocks) {
-    Point2 upstream = point.add(-downstream.x() * distanceBlocks, -downstream.z() * distanceBlocks);
-    return geology.surface(upstream).bedrock();
+  private Point2 terrainUpslopeDirection(SurfaceSample surface) {
+    Point2 point = surface.fields().point();
+    double step = TERRAIN_GRADIENT_STEP_BLOCKS;
+    double gradientX =
+        (surfaceElevation(point.add(step, 0.0)) - surfaceElevation(point.add(-step, 0.0)))
+            / (2.0 * step);
+    double gradientZ =
+        (surfaceElevation(point.add(0.0, step)) - surfaceElevation(point.add(0.0, -step)))
+            / (2.0 * step);
+    double length = StrictMath.hypot(gradientX, gradientZ);
+    if (length <= 1.0e-12) {
+      throw new IllegalStateException("colluvial terrain gradient must be non-zero");
+    }
+    return new Point2(gradientX / length, gradientZ / length);
+  }
+
+  private double surfaceElevation(Point2 point) {
+    return geology.surface(point).fields().elevation();
+  }
+
+  private static Point2 upslopePoint(Point2 point, Point2 direction, int distanceBlocks) {
+    return point.add(direction.x() * distanceBlocks, direction.z() * distanceBlocks);
   }
 
   private ResolvedColluvialSource resolveColluvialSource(
-      GeologicalSample source, int upstreamDistanceBlocks, long fractionPpm) {
-    Province sourceProvince =
-        geology.atlas().provinceAt(new Point2(source.point().x(), source.point().z()));
+      Point2 sourcePoint, int upslopeDistanceBlocks, long fractionPpm) {
+    return resolveColluvialSource(
+        sourcePoint, geology.surface(sourcePoint).bedrock(), upslopeDistanceBlocks, fractionPpm);
+  }
+
+  private ResolvedColluvialSource resolveColluvialSource(
+      Point2 sourcePoint, GeologicalSample source, int upslopeDistanceBlocks, long fractionPpm) {
+    Province sourceProvince = geology.atlas().provinceAt(sourcePoint);
     if (!sourceProvince.id().equals(source.provinceId())) {
       throw new IllegalStateException("colluvial source owner changed between query stages");
     }
     ColluvialSourceContribution contribution =
         new ColluvialSourceContribution(
+            sourcePoint,
+            sourceProvince.id(),
             source.rockBodyId(),
             source.lithology(),
             source.overprint(),
-            upstreamDistanceBlocks,
+            upslopeDistanceBlocks,
             fractionPpm);
     return new ResolvedColluvialSource(contribution, resolve(sourceProvince, source));
   }
@@ -274,7 +304,9 @@ public final class MaterialQueryEngine {
     for (ColluvialSourceContribution contribution : sourceMix.sourceContributions()) {
       purpose
           .append(':')
-          .append(contribution.upstreamDistanceBlocks())
+          .append(contribution.upslopeDistanceBlocks())
+          .append(':')
+          .append(contribution.sourceProvinceId())
           .append(':')
           .append(contribution.sourceBodyId())
           .append(':')
