@@ -9,11 +9,12 @@ import java.util.List;
 public record ColluvialSourceMix(
     Point2 upslopeDirection,
     List<ColluvialSourceContribution> sourceContributions,
-    long weatheredMatrixFractionPpm) {
+    long weatheredMatrixFractionPpm,
+    ColluvialTextureState textureState) {
   public ColluvialSourceMix {
-    if (upslopeDirection == null || sourceContributions == null) {
+    if (upslopeDirection == null || sourceContributions == null || textureState == null) {
       throw new IllegalArgumentException(
-          "colluvial direction and source contributions are required");
+          "colluvial direction, source contributions, and texture state are required");
     }
     double directionLength = StrictMath.hypot(upslopeDirection.x(), upslopeDirection.z());
     if (StrictMath.abs(directionLength - 1.0) > 1.0e-12) {

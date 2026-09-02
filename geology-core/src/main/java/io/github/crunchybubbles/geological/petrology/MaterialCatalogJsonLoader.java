@@ -26,7 +26,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 /** Strict JSON boundary for the typed constituent, rock, and alteration data pack. */
 public final class MaterialCatalogJsonLoader {
-  public static final String AUTHORING_SCHEMA = "geological:material_catalog_authoring:v8";
+  public static final String AUTHORING_SCHEMA = "geological:material_catalog_authoring:v9";
   private static final int MAX_DOCUMENT_BYTES = 1_048_576;
   private static final Pattern IDENTIFIER = Pattern.compile("[a-z0-9_.-]+:[a-z0-9_./-]+");
   private static final JsonMapper JSON =
@@ -265,6 +265,7 @@ public final class MaterialCatalogJsonLoader {
               "permeability_distribution",
               "porosity_distribution",
               "primary_metamorphism",
+              "sediment_yield_ppm",
               "texture");
       Set<String> requiredFields =
           Set.of(
@@ -277,6 +278,7 @@ public final class MaterialCatalogJsonLoader {
               "constituent_modes_ppm",
               "permeability_distribution",
               "porosity_distribution",
+              "sediment_yield_ppm",
               "texture");
       requireObject(item, source, path, fields, requiredFields);
       result.add(
@@ -307,6 +309,8 @@ public final class MaterialCatalogJsonLoader {
               number(item, "modal_spread_fraction", source, path),
               modalVariationAxes(
                   item.get("modal_variation_axes"), source, path + ".modal_variation_axes"),
+              sedimentGrainSize(
+                  item.get("sediment_yield_ppm"), source, path + ".sediment_yield_ppm"),
               unitDistribution(
                   item.get("porosity_distribution"), source, path + ".porosity_distribution"),
               unitDistribution(
@@ -355,6 +359,15 @@ public final class MaterialCatalogJsonLoader {
             temperature[1],
             pressure[0],
             pressure[1]));
+  }
+
+  private static SedimentGrainSize sedimentGrainSize(JsonNode node, String source, String path) {
+    Set<String> fields = Set.of("fines", "gravel_and_coarser", "sand");
+    requireObject(node, source, path, fields, fields);
+    return new SedimentGrainSize(
+        longInteger(node, "gravel_and_coarser", source, path),
+        longInteger(node, "sand", source, path),
+        longInteger(node, "fines", source, path));
   }
 
   private static List<ModalVariationAxis> modalVariationAxes(
@@ -582,7 +595,7 @@ public final class MaterialCatalogJsonLoader {
       List<AlterationDefinition> alterations) {
     StringBuilder output = new StringBuilder();
     output.append(
-        "{\"canonical_schema\":\"geological:material_catalog_snapshot:v8\",\"evidence\":{");
+        "{\"canonical_schema\":\"geological:material_catalog_snapshot:v9\",\"evidence\":{");
     field(output, "citation_id", evidence.citationId());
     output.append(',');
     field(output, "parameter_basis", evidence.parameterBasis());
@@ -762,6 +775,13 @@ public final class MaterialCatalogJsonLoader {
                     field(output, "protolith_rock_id", metamorphism.protolithRockId());
                     output.append('}');
                   });
+          output.append(",\"sediment_yield_ppm\":{");
+          field(output, "fines", rock.sedimentYield().finesPpm());
+          output.append(',');
+          field(output, "gravel_and_coarser", rock.sedimentYield().gravelAndCoarserPpm());
+          output.append(',');
+          field(output, "sand", rock.sedimentYield().sandPpm());
+          output.append('}');
           output.append(',');
           field(output, "texture", rock.texture().name());
           output.append('}');

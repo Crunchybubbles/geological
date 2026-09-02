@@ -41,7 +41,7 @@ class MaterialCatalogTest {
     assertEquals(Lithology.values().length, catalog.rocks().size());
     assertEquals(Overprint.values().length, catalog.alterations().size());
     assertEquals(
-        "sha256:438635fd702e355e1873dce49b8b295745e46f9e5e45a0ad2e2607b688505c85",
+        "sha256:cf38e7fd1623f9d840ee70d978046e20f427cd88e4e8fd10c3eb158ce0ee815a",
         catalog.digest());
 
     for (MineralDefinition mineral : catalog.minerals()) {
@@ -70,6 +70,12 @@ class MaterialCatalogTest {
                   rock.permeabilityDistribution().contains(rock.permeabilityIndex()), rock.id());
               assertTrue(
                   rock.erodibilityDistribution().contains(rock.erodibilityIndex()), rock.id());
+              assertEquals(
+                  MaterialAssemblage.SCALE,
+                  rock.sedimentYield().gravelAndCoarserPpm()
+                      + rock.sedimentYield().sandPpm()
+                      + rock.sedimentYield().finesPpm(),
+                  rock.id());
               assertEquals(
                   rock.geneticFamily() == GeneticFamily.METAMORPHIC,
                   rock.primaryMetamorphism().isPresent(),
@@ -978,10 +984,10 @@ class MaterialCatalogTest {
   }
 
   @Test
-  void strictCatalogBoundaryRejectsUnknownFieldsAndUnclosedModes() {
+  void strictCatalogBoundaryRejectsUnknownFieldsAndUnclosedFractions() {
     String unknown =
         """
-        {"authoring_schema":"geological:material_catalog_authoring:v8","evidence":{},
+        {"authoring_schema":"geological:material_catalog_authoring:v9","evidence":{},
         "minerals":[],"non_crystalline_constituents":[],"rocks":[],
         "solid_solutions":[],"overprints":[],"surprise":true}
         """;
@@ -998,7 +1004,7 @@ class MaterialCatalogTest {
     String unclosed =
         """
         {
-          "authoring_schema":"geological:material_catalog_authoring:v8",
+          "authoring_schema":"geological:material_catalog_authoring:v9",
           "evidence":{"citation_id":"refs:test","parameter_basis":"test tunable",
             "publication_year":2000,"title":"Test","uri":"https://example.invalid/test"},
           "minerals":[{"density_g_cm3":2.65,"formula":{"Si":1,"O":2},
@@ -1012,6 +1018,7 @@ class MaterialCatalogTest {
             "modal_variation_axes":[],
             "permeability_distribution":{"minimum":0.05,"mode":0.1,"maximum":0.2},
             "porosity_distribution":{"minimum":0.05,"mode":0.1,"maximum":0.2},
+            "sediment_yield_ppm":{"gravel_and_coarser":400000,"sand":400000,"fines":200000},
             "texture":"PHANERITIC_CRYSTALLINE"}],
           "overprints":[]
         }
@@ -1025,6 +1032,40 @@ class MaterialCatalogTest {
                         new ByteArrayInputStream(unclosed.getBytes(StandardCharsets.UTF_8)),
                         "unclosed.json"));
     assertTrue(modeFailure.getMessage().contains("constituent modes must close"));
+
+    String unclosedYield =
+        unclosed
+            .replace("\"test:quartz\":999999", "\"test:quartz\":1000000")
+            .replace("\"fines\":200000", "\"fines\":199999");
+    MaterialCatalogAuthoringException yieldFailure =
+        assertThrows(
+            MaterialCatalogAuthoringException.class,
+            () ->
+                new MaterialCatalogJsonLoader()
+                    .load(
+                        new ByteArrayInputStream(unclosedYield.getBytes(StandardCharsets.UTF_8)),
+                        "unclosed-yield.json"));
+    assertTrue(yieldFailure.getMessage().contains("sediment grain-size fractions must close"));
+
+    String missingYield =
+        unclosed
+            .replace("\"test:quartz\":999999", "\"test:quartz\":1000000")
+            .replace(
+                "\"sediment_yield_ppm\":{\"gravel_and_coarser\":400000,\"sand\":400000,\"fines\":200000},",
+                "");
+    MaterialCatalogAuthoringException missingYieldFailure =
+        assertThrows(
+            MaterialCatalogAuthoringException.class,
+            () ->
+                new MaterialCatalogJsonLoader()
+                    .load(
+                        new ByteArrayInputStream(missingYield.getBytes(StandardCharsets.UTF_8)),
+                        "missing-yield.json"));
+    assertTrue(
+        missingYieldFailure
+            .getMessage()
+            .contains("sediment_yield_ppm: required field is missing or null"),
+        missingYieldFailure.getMessage());
   }
 
   private static String packagedCatalogJson() throws Exception {

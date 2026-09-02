@@ -160,11 +160,13 @@ public final class MaterialQueryEngine {
     } else if (formsColluvialMantle(surface)) {
       Point2 upslopeDirection = terrainUpslopeDirection(surface);
       List<ResolvedColluvialSource> sources = resolveColluvialSources(surface, upslopeDirection);
+      ColluvialTextureState textureState = resolveColluvialTexture(sources);
       ColluvialSourceMix sourceMix =
           new ColluvialSourceMix(
               upslopeDirection,
               sources.stream().map(ResolvedColluvialSource::contribution).toList(),
-              COLLUVIUM_WEATHERED_MATRIX_FRACTION_PPM);
+              COLLUVIUM_WEATHERED_MATRIX_FRACTION_PPM,
+              textureState);
       StableId colluvialBodyId = colluvialBodyId(sourceMix);
       surface =
           new SurfaceSample(surface.fields(), bedrock, Lithology.SOIL_COLLUVIUM, Overprint.NONE);
@@ -317,6 +319,20 @@ public final class MaterialQueryEngine {
           .append(contribution.assemblageFractionPpm());
     }
     purpose.append(":matrix:").append(sourceMix.weatheredMatrixFractionPpm());
+    SedimentGrainSize grainSize = sourceMix.textureState().grainSize();
+    purpose
+        .append(":grain:")
+        .append(grainSize.gravelAndCoarserPpm())
+        .append(':')
+        .append(grainSize.sandPpm())
+        .append(':')
+        .append(grainSize.finesPpm())
+        .append(':')
+        .append(sourceMix.textureState().sorting().name())
+        .append(':')
+        .append(sourceMix.textureState().support().name())
+        .append(':')
+        .append(sourceMix.textureState().clastShape().name());
     return StableId.first128(
         geology
             .atlas()
@@ -324,6 +340,21 @@ public final class MaterialQueryEngine {
             .objectStream(
                 "surface-material", "colluvial-mantle", sourceMix.localSource().sourceBodyId())
             .bytes(purpose.toString(), 0));
+  }
+
+  private ColluvialTextureState resolveColluvialTexture(List<ResolvedColluvialSource> sources) {
+    List<SedimentGrainSize.Share> shares = new ArrayList<>();
+    shares.add(
+        new SedimentGrainSize.Share(
+            catalog.requireRock(Lithology.SOIL_COLLUVIUM).sedimentYield(),
+            COLLUVIUM_WEATHERED_MATRIX_FRACTION_PPM));
+    sources.forEach(
+        source ->
+            shares.add(
+                new SedimentGrainSize.Share(
+                    source.material().rock().sedimentYield(),
+                    source.contribution().assemblageFractionPpm())));
+    return ColluvialTextureState.from(SedimentGrainSize.weightedBlend(shares));
   }
 
   private PetrologicSample resolveColluvialMaterial(

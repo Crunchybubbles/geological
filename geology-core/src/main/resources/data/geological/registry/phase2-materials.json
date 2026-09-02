@@ -1,8 +1,8 @@
 {
-  "authoring_schema": "geological:material_catalog_authoring:v8",
+  "authoring_schema": "geological:material_catalog_authoring:v9",
   "evidence": {
     "citation_id": "refs:philpotts_ague_2009",
-    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic, intermediate-to-felsic volcanic, alkaline-carbonatitic-kimberlitic, pyroclastic, sedimentary, surficial, pelitic slate-phyllite-to-schist, basalt-derived greenschist-to-amphibolite-to-granulite, sandstone-to-quartzite and limestone-to-marble, and ultramafic-to-serpentinite expansions follow published classification and USGS relationships documented in the public architecture. Andesite uses a plagioclase-dominant porphyritic crystalline proxy with amphibole, pyroxene, biotite, olivine, and oxide phases; rhyolite uses a quartz-alkali-feldspar-plagioclase-biotite stony flow-banded proxy. The alkaline recipe is a quartz-free nepheline-syenite proxy dominated by alkali feldspar and nepheline with aegirine; the carbonatite proxy remains more than 50 volume-percent primary calcite and dolomite and carries fluorapatite, oxide, mica, silicate, and sulfide accessories. Rare-earth and niobium ore minerals, sodic amphiboles, exsolution textures, fenitization, ring-complex zoning, and lineage fertility remain unresolved. Kimberlite uses an olivine-macrocryst, serpentine-phlogopite-calcite groundmass proxy with titanate, oxide, apatite, and sulfide accessories. Diamond grade and candidate mantle-indicator identities remain separate typed cargo state: the carrier recipe contains no diamond, pyrope, or chromite, while ilmenite and diopside may occur both as carrier phases and potential cargo indicators. Cargo stays source-context-unresolved with zero diamond grade until cratonic-keel and diamond-forming provenance exists. Pyroclastic rock uses a glass-rich welded ash-flow-tuff proxy with rhyolitic glass, quartz, feldspar, biotite, oxide, and amphibole fragments. The glass chemistry is a closed dry rhyolitic oxide-normalized proof proxy, not a universal analysis; primary eruptive source, transport, cooling-unit zoning, welding grade, devitrification, alteration, and reworking remain unresolved. Glassy, vesicular, and vitrophyric lava variants remain outside the crystalline lava recipes. Laterite-bauxite uses an aluminum-hydroxide, iron-oxide, and kaolinite residual proxy with gibbsite and boehmite; soil-colluvium uses a loose weathered mineral mixture; glacial till uses an unsorted matrix-rich felsic-mafic-carbonate proxy. None contains native gold or implies an ore deposit. Parent-material provenance, soil horizons and organics, slope transport, glacial erosion and transport, climate gates, profile zoning, and surface-body geometry remain unresolved. Saprolite stays a host-preserving weathering response rather than becoming a parentless primary recipe. Hornblende is represented by simplified hydroxyl magnesiohornblende-ferrohornblende endmembers, not by the lower-aluminum actinolite proxy used in greenschist; high-grade mafic granulite uses an anhydrous plagioclase-orthopyroxene-clinopyroxene-garnet proxy rather than retaining amphibolite's dominant hornblende. Lizardite, chrysotile, and antigorite use one simplified ideal serpentine-group formula while remaining separate texture and temperature proxies; serpentinite records a shallow low-temperature hydration proof path without claiming reaction-progress or water-rock mass-balance resolution. Non-crystalline organic matter and volcanic glass use explicit closed bulk-element proxies rather than fictitious mineral formulas. Primary metamorphic recipes author a non-metamorphic original protolith plus coarse grade, facies, path, and peak P-T envelope; they are not independent decorative rock rolls. Quartzite and marble are authored at one low-grade regional proof envelope even though those composition-and-texture rock classes occur across broader metamorphic conditions. Contact hornfels is an isochemical, host-preserving response with an explicit hornfelsic resolved texture rather than a fixed-composition primary lithology; the original rock still controls its mineralogy. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Constituent modes, modal covariance axes, protolith-conditioned response targets, primary and resolved textures, physical-property distributions, P-T envelopes, and non-crystalline bulk chemistry are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
+    "parameter_basis": "Ideal endmember formulas and process relationships follow the cited petrology synthesis. The mafic-ultramafic, intermediate-to-felsic volcanic, alkaline-carbonatitic-kimberlitic, pyroclastic, sedimentary, surficial, pelitic slate-phyllite-to-schist, basalt-derived greenschist-to-amphibolite-to-granulite, sandstone-to-quartzite and limestone-to-marble, and ultramafic-to-serpentinite expansions follow published classification and USGS relationships documented in the public architecture. Andesite uses a plagioclase-dominant porphyritic crystalline proxy with amphibole, pyroxene, biotite, olivine, and oxide phases; rhyolite uses a quartz-alkali-feldspar-plagioclase-biotite stony flow-banded proxy. The alkaline recipe is a quartz-free nepheline-syenite proxy dominated by alkali feldspar and nepheline with aegirine; the carbonatite proxy remains more than 50 volume-percent primary calcite and dolomite and carries fluorapatite, oxide, mica, silicate, and sulfide accessories. Rare-earth and niobium ore minerals, sodic amphiboles, exsolution textures, fenitization, ring-complex zoning, and lineage fertility remain unresolved. Kimberlite uses an olivine-macrocryst, serpentine-phlogopite-calcite groundmass proxy with titanate, oxide, apatite, and sulfide accessories. Diamond grade and candidate mantle-indicator identities remain separate typed cargo state: the carrier recipe contains no diamond, pyrope, or chromite, while ilmenite and diopside may occur both as carrier phases and potential cargo indicators. Cargo stays source-context-unresolved with zero diamond grade until cratonic-keel and diamond-forming provenance exists. Pyroclastic rock uses a glass-rich welded ash-flow-tuff proxy with rhyolitic glass, quartz, feldspar, biotite, oxide, and amphibole fragments. The glass chemistry is a closed dry rhyolitic oxide-normalized proof proxy, not a universal analysis; primary eruptive source, transport, cooling-unit zoning, welding grade, devitrification, alteration, and reworking remain unresolved. Glassy, vesicular, and vitrophyric lava variants remain outside the crystalline lava recipes. Laterite-bauxite uses an aluminum-hydroxide, iron-oxide, and kaolinite residual proxy with gibbsite and boehmite; soil-colluvium uses a loose weathered mineral mixture; glacial till uses an unsorted matrix-rich felsic-mafic-carbonate proxy. None contains native gold or implies an ore deposit. Bounded local, near-upslope, and far-upslope parent-material provenance now informs colluvial constituent and grain-size mixtures; routed slope transport, absolute sediment budgets, soil horizons and organics, glacial erosion and transport, climate gates, profile zoning, and surface-body geometry remain unresolved. Saprolite stays a host-preserving weathering response rather than becoming a parentless primary recipe. Hornblende is represented by simplified hydroxyl magnesiohornblende-ferrohornblende endmembers, not by the lower-aluminum actinolite proxy used in greenschist; high-grade mafic granulite uses an anhydrous plagioclase-orthopyroxene-clinopyroxene-garnet proxy rather than retaining amphibolite's dominant hornblende. Lizardite, chrysotile, and antigorite use one simplified ideal serpentine-group formula while remaining separate texture and temperature proxies; serpentinite records a shallow low-temperature hydration proof path without claiming reaction-progress or water-rock mass-balance resolution. Non-crystalline organic matter and volcanic glass use explicit closed bulk-element proxies rather than fictitious mineral formulas. Primary metamorphic recipes author a non-metamorphic original protolith plus coarse grade, facies, path, and peak P-T envelope; they are not independent decorative rock rolls. Quartzite and marble are authored at one low-grade regional proof envelope even though those composition-and-texture rock classes occur across broader metamorphic conditions. Contact hornfels is an isochemical, host-preserving response with an explicit hornfelsic resolved texture rather than a fixed-composition primary lithology; the original rock still controls its mineralogy. Solid-solution states use ideal endmember interpolation and deliberately omit activity, ordering, solvus, and exsolution models. Constituent modes, sediment-yield spectra, modal covariance axes, protolith-conditioned response targets, primary and resolved textures, physical-property distributions, P-T envelopes, and non-crystalline bulk chemistry are explicit Phase 2 proof tunables pending catalog-by-catalog geological review.",
     "publication_year": 2009,
     "title": "Principles of Igneous and Metamorphic Petrology",
     "uri": "https://doi.org/10.1017/CBO9780511813429"
@@ -446,6 +446,7 @@
         "geological:mineral/muscovite": 40000
       },
       "permeability_distribution": {"minimum": 0.03, "mode": 0.05, "maximum": 0.08},
+      "sediment_yield_ppm": {"gravel_and_coarser": 400000, "sand": 400000, "fines": 200000},
       "porosity_distribution": {"minimum": 0.006, "mode": 0.01, "maximum": 0.018},
       "primary_metamorphism": {
         "facies": "AMPHIBOLITE",
@@ -488,6 +489,7 @@
         "geological:mineral/magnetite": 10000
       },
       "permeability_distribution": {"minimum": 0.01, "mode": 0.035, "maximum": 0.09},
+      "sediment_yield_ppm": {"gravel_and_coarser": 200000, "sand": 250000, "fines": 550000},
       "porosity_distribution": {"minimum": 0.006, "mode": 0.014, "maximum": 0.028},
       "primary_metamorphism": {
         "facies": "GREENSCHIST",
@@ -531,6 +533,7 @@
         "geological:mineral/magnetite": 20000
       },
       "permeability_distribution": {"minimum": 0.015, "mode": 0.05, "maximum": 0.13},
+      "sediment_yield_ppm": {"gravel_and_coarser": 300000, "sand": 300000, "fines": 400000},
       "porosity_distribution": {"minimum": 0.004, "mode": 0.01, "maximum": 0.022},
       "primary_metamorphism": {
         "facies": "AMPHIBOLITE",
@@ -574,6 +577,7 @@
         "geological:mineral/magnetite": 20000
       },
       "permeability_distribution": {"minimum": 0.015, "mode": 0.05, "maximum": 0.12},
+      "sediment_yield_ppm": {"gravel_and_coarser": 300000, "sand": 300000, "fines": 400000},
       "porosity_distribution": {"minimum": 0.005, "mode": 0.012, "maximum": 0.025},
       "primary_metamorphism": {
         "facies": "GREENSCHIST",
@@ -623,6 +627,7 @@
         "geological:mineral/magnetite": 20000
       },
       "permeability_distribution": {"minimum": 0.01, "mode": 0.035, "maximum": 0.09},
+      "sediment_yield_ppm": {"gravel_and_coarser": 450000, "sand": 350000, "fines": 200000},
       "porosity_distribution": {"minimum": 0.003, "mode": 0.008, "maximum": 0.018},
       "primary_metamorphism": {
         "facies": "AMPHIBOLITE",
@@ -670,6 +675,7 @@
         "geological:mineral/magnetite": 20000
       },
       "permeability_distribution": {"minimum": 0.006, "mode": 0.02, "maximum": 0.06},
+      "sediment_yield_ppm": {"gravel_and_coarser": 500000, "sand": 350000, "fines": 150000},
       "porosity_distribution": {"minimum": 0.002, "mode": 0.006, "maximum": 0.014},
       "primary_metamorphism": {
         "facies": "GRANULITE",
@@ -708,6 +714,7 @@
         "geological:mineral/magnetite": 10000
       },
       "permeability_distribution": {"minimum": 0.008, "mode": 0.025, "maximum": 0.07},
+      "sediment_yield_ppm": {"gravel_and_coarser": 550000, "sand": 400000, "fines": 50000},
       "porosity_distribution": {"minimum": 0.003, "mode": 0.008, "maximum": 0.02},
       "primary_metamorphism": {
         "facies": "GREENSCHIST",
@@ -749,6 +756,7 @@
         "geological:mineral/magnetite": 10000
       },
       "permeability_distribution": {"minimum": 0.015, "mode": 0.05, "maximum": 0.15},
+      "sediment_yield_ppm": {"gravel_and_coarser": 350000, "sand": 300000, "fines": 350000},
       "porosity_distribution": {"minimum": 0.004, "mode": 0.012, "maximum": 0.03},
       "primary_metamorphism": {
         "facies": "GREENSCHIST",
@@ -791,6 +799,7 @@
         "geological:mineral/clinochlore": 10000
       },
       "permeability_distribution": {"minimum": 0.02, "mode": 0.08, "maximum": 0.2},
+      "sediment_yield_ppm": {"gravel_and_coarser": 300000, "sand": 250000, "fines": 450000},
       "porosity_distribution": {"minimum": 0.004, "mode": 0.015, "maximum": 0.04},
       "primary_metamorphism": {
         "facies": "SUBGREENSCHIST",
@@ -830,6 +839,7 @@
         "geological:mineral/annite": 20000
       },
       "permeability_distribution": {"minimum": 0.45, "mode": 0.62, "maximum": 0.78},
+      "sediment_yield_ppm": {"gravel_and_coarser": 650000, "sand": 250000, "fines": 100000},
       "porosity_distribution": {"minimum": 0.1, "mode": 0.15, "maximum": 0.21}
     },
     {
@@ -860,6 +870,7 @@
         "geological:mineral/calcite": 70000
       },
       "permeability_distribution": {"minimum": 0.22, "mode": 0.34, "maximum": 0.48},
+      "sediment_yield_ppm": {"gravel_and_coarser": 400000, "sand": 350000, "fines": 250000},
       "porosity_distribution": {"minimum": 0.06, "mode": 0.1, "maximum": 0.15}
     },
     {
@@ -890,6 +901,7 @@
         "geological:mineral/calcite": 40000
       },
       "permeability_distribution": {"minimum": 0.04, "mode": 0.08, "maximum": 0.14},
+      "sediment_yield_ppm": {"gravel_and_coarser": 100000, "sand": 150000, "fines": 750000},
       "porosity_distribution": {"minimum": 0.05, "mode": 0.08, "maximum": 0.12}
     },
     {
@@ -919,6 +931,7 @@
         "geological:mineral/muscovite": 10000
       },
       "permeability_distribution": {"minimum": 0.42, "mode": 0.58, "maximum": 0.72},
+      "sediment_yield_ppm": {"gravel_and_coarser": 250000, "sand": 650000, "fines": 100000},
       "porosity_distribution": {"minimum": 0.09, "mode": 0.13, "maximum": 0.18}
     },
     {
@@ -950,6 +963,7 @@
         "geological:mineral/pyrite": 20000
       },
       "permeability_distribution": {"minimum": 0.15, "mode": 0.3, "maximum": 0.48},
+      "sediment_yield_ppm": {"gravel_and_coarser": 150000, "sand": 250000, "fines": 600000},
       "porosity_distribution": {"minimum": 0.06, "mode": 0.1, "maximum": 0.15}
     },
     {
@@ -978,6 +992,7 @@
         "geological:mineral/muscovite": 10000
       },
       "permeability_distribution": {"minimum": 0.04, "mode": 0.18, "maximum": 0.45},
+      "sediment_yield_ppm": {"gravel_and_coarser": 350000, "sand": 300000, "fines": 350000},
       "porosity_distribution": {"minimum": 0.02, "mode": 0.07, "maximum": 0.18}
     },
     {
@@ -1007,6 +1022,7 @@
         "geological:mineral/magnetite": 10000
       },
       "permeability_distribution": {"minimum": 0.06, "mode": 0.24, "maximum": 0.55},
+      "sediment_yield_ppm": {"gravel_and_coarser": 400000, "sand": 300000, "fines": 300000},
       "porosity_distribution": {"minimum": 0.025, "mode": 0.08, "maximum": 0.2}
     },
     {
@@ -1032,6 +1048,7 @@
         "geological:mineral/pyrite": 10000
       },
       "permeability_distribution": {"minimum": 0.01, "mode": 0.04, "maximum": 0.12},
+      "sediment_yield_ppm": {"gravel_and_coarser": 550000, "sand": 350000, "fines": 100000},
       "porosity_distribution": {"minimum": 0.005, "mode": 0.02, "maximum": 0.06}
     },
     {
@@ -1062,6 +1079,7 @@
         "geological:mineral/kaolinite": 10000
       },
       "permeability_distribution": {"minimum": 0.015, "mode": 0.045, "maximum": 0.12},
+      "sediment_yield_ppm": {"gravel_and_coarser": 450000, "sand": 300000, "fines": 250000},
       "porosity_distribution": {"minimum": 0.01, "mode": 0.035, "maximum": 0.08}
     },
     {
@@ -1091,6 +1109,7 @@
         "geological:mineral/kaolinite": 10000
       },
       "permeability_distribution": {"minimum": 0.03, "mode": 0.12, "maximum": 0.32},
+      "sediment_yield_ppm": {"gravel_and_coarser": 150000, "sand": 250000, "fines": 600000},
       "porosity_distribution": {"minimum": 0.03, "mode": 0.08, "maximum": 0.16}
     },
     {
@@ -1119,6 +1138,7 @@
         "geological:mineral/kaolinite": 10000
       },
       "permeability_distribution": {"minimum": 0.02, "mode": 0.1, "maximum": 0.3},
+      "sediment_yield_ppm": {"gravel_and_coarser": 50000, "sand": 150000, "fines": 800000},
       "porosity_distribution": {"minimum": 0.015, "mode": 0.05, "maximum": 0.12}
     },
     {
@@ -1149,6 +1169,7 @@
         "geological:mineral/clinochlore": 10000
       },
       "permeability_distribution": {"minimum": 0.02, "mode": 0.08, "maximum": 0.22},
+      "sediment_yield_ppm": {"gravel_and_coarser": 100000, "sand": 200000, "fines": 700000},
       "porosity_distribution": {"minimum": 0.03, "mode": 0.08, "maximum": 0.18}
     },
     {
@@ -1180,6 +1201,7 @@
         "geological:mineral/magnetite": 20000
       },
       "permeability_distribution": {"minimum": 0.015, "mode": 0.035, "maximum": 0.07},
+      "sediment_yield_ppm": {"gravel_and_coarser": 500000, "sand": 300000, "fines": 200000},
       "porosity_distribution": {"minimum": 0.004, "mode": 0.009, "maximum": 0.018}
     },
     {
@@ -1212,6 +1234,7 @@
         "geological:mineral/quartz": 10000
       },
       "permeability_distribution": {"minimum": 0.025, "mode": 0.06, "maximum": 0.13},
+      "sediment_yield_ppm": {"gravel_and_coarser": 450000, "sand": 300000, "fines": 250000},
       "porosity_distribution": {"minimum": 0.008, "mode": 0.025, "maximum": 0.06}
     },
     {
@@ -1252,6 +1275,7 @@
         "geological:mineral/fayalite": 5000
       },
       "permeability_distribution": {"minimum": 0.03, "mode": 0.08, "maximum": 0.18},
+      "sediment_yield_ppm": {"gravel_and_coarser": 450000, "sand": 350000, "fines": 200000},
       "porosity_distribution": {"minimum": 0.01, "mode": 0.035, "maximum": 0.09}
     },
     {
@@ -1285,6 +1309,7 @@
         "geological:mineral/magnetite": 20000
       },
       "permeability_distribution": {"minimum": 0.02, "mode": 0.06, "maximum": 0.15},
+      "sediment_yield_ppm": {"gravel_and_coarser": 400000, "sand": 400000, "fines": 200000},
       "porosity_distribution": {"minimum": 0.008, "mode": 0.025, "maximum": 0.07}
     },
     {
@@ -1318,6 +1343,7 @@
         "geological:mineral/fluorapatite": 10000
       },
       "permeability_distribution": {"minimum": 0.015, "mode": 0.045, "maximum": 0.12},
+      "sediment_yield_ppm": {"gravel_and_coarser": 400000, "sand": 350000, "fines": 250000},
       "porosity_distribution": {"minimum": 0.006, "mode": 0.02, "maximum": 0.055}
     },
     {
@@ -1351,6 +1377,7 @@
         "geological:mineral/pyrite": 10000
       },
       "permeability_distribution": {"minimum": 0.02, "mode": 0.07, "maximum": 0.18},
+      "sediment_yield_ppm": {"gravel_and_coarser": 300000, "sand": 250000, "fines": 450000},
       "porosity_distribution": {"minimum": 0.008, "mode": 0.03, "maximum": 0.08}
     },
     {
@@ -1393,6 +1420,7 @@
         "geological:mineral/pyrite": 10000
       },
       "permeability_distribution": {"minimum": 0.05, "mode": 0.14, "maximum": 0.3},
+      "sediment_yield_ppm": {"gravel_and_coarser": 250000, "sand": 250000, "fines": 500000},
       "porosity_distribution": {"minimum": 0.02, "mode": 0.07, "maximum": 0.16}
     },
     {
@@ -1428,6 +1456,7 @@
         "geological:mineral/magnesiohornblende": 10000
       },
       "permeability_distribution": {"minimum": 0.05, "mode": 0.16, "maximum": 0.38},
+      "sediment_yield_ppm": {"gravel_and_coarser": 200000, "sand": 400000, "fines": 400000},
       "porosity_distribution": {"minimum": 0.03, "mode": 0.1, "maximum": 0.22}
     },
     {
@@ -1459,6 +1488,7 @@
         "geological:mineral/magnetite": 40000
       },
       "permeability_distribution": {"minimum": 0.02, "mode": 0.045, "maximum": 0.085},
+      "sediment_yield_ppm": {"gravel_and_coarser": 500000, "sand": 350000, "fines": 150000},
       "porosity_distribution": {"minimum": 0.005, "mode": 0.012, "maximum": 0.026}
     },
     {
@@ -1489,6 +1519,7 @@
         "geological:mineral/quartz": 20000
       },
       "permeability_distribution": {"minimum": 0.035, "mode": 0.06, "maximum": 0.1},
+      "sediment_yield_ppm": {"gravel_and_coarser": 450000, "sand": 400000, "fines": 150000},
       "porosity_distribution": {"minimum": 0.009, "mode": 0.015, "maximum": 0.024}
     },
     {
@@ -1520,6 +1551,7 @@
         "geological:mineral/muscovite": 30000
       },
       "permeability_distribution": {"minimum": 0.03, "mode": 0.05, "maximum": 0.08},
+      "sediment_yield_ppm": {"gravel_and_coarser": 400000, "sand": 450000, "fines": 150000},
       "porosity_distribution": {"minimum": 0.007, "mode": 0.012, "maximum": 0.019}
     },
     {
@@ -1550,6 +1582,7 @@
         "geological:mineral/magnetite": 30000
       },
       "permeability_distribution": {"minimum": 0.025, "mode": 0.04, "maximum": 0.07},
+      "sediment_yield_ppm": {"gravel_and_coarser": 350000, "sand": 500000, "fines": 150000},
       "porosity_distribution": {"minimum": 0.006, "mode": 0.01, "maximum": 0.017}
     },
     {
@@ -1579,6 +1612,7 @@
         "geological:mineral/magnetite": 20000
       },
       "permeability_distribution": {"minimum": 0.07, "mode": 0.12, "maximum": 0.2},
+      "sediment_yield_ppm": {"gravel_and_coarser": 350000, "sand": 300000, "fines": 350000},
       "porosity_distribution": {"minimum": 0.015, "mode": 0.025, "maximum": 0.04}
     },
     {
@@ -1610,6 +1644,7 @@
         "geological:mineral/native_gold": 1
       },
       "permeability_distribution": {"minimum": 0.75, "mode": 0.9, "maximum": 0.98},
+      "sediment_yield_ppm": {"gravel_and_coarser": 600000, "sand": 300000, "fines": 100000},
       "porosity_distribution": {"minimum": 0.2, "mode": 0.28, "maximum": 0.38}
     },
     {
@@ -1644,6 +1679,7 @@
         "geological:mineral/muscovite": 20000
       },
       "permeability_distribution": {"minimum": 0.05, "mode": 0.18, "maximum": 0.42},
+      "sediment_yield_ppm": {"gravel_and_coarser": 150000, "sand": 200000, "fines": 650000},
       "porosity_distribution": {"minimum": 0.1, "mode": 0.25, "maximum": 0.45}
     },
     {
@@ -1685,6 +1721,7 @@
         "geological:mineral/magnetite": 20000
       },
       "permeability_distribution": {"minimum": 0.16, "mode": 0.38, "maximum": 0.68},
+      "sediment_yield_ppm": {"gravel_and_coarser": 100000, "sand": 400000, "fines": 500000},
       "porosity_distribution": {"minimum": 0.22, "mode": 0.38, "maximum": 0.58}
     },
     {
@@ -1727,6 +1764,7 @@
         "geological:mineral/calcite": 50000
       },
       "permeability_distribution": {"minimum": 0.02, "mode": 0.08, "maximum": 0.24},
+      "sediment_yield_ppm": {"gravel_and_coarser": 450000, "sand": 300000, "fines": 250000},
       "porosity_distribution": {"minimum": 0.12, "mode": 0.22, "maximum": 0.34}
     }
   ],

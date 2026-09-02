@@ -13,6 +13,8 @@ import io.github.crunchybubbles.geological.petrology.AcidityClass;
 import io.github.crunchybubbles.geological.petrology.AlterationAssemblageRecipe;
 import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
 import io.github.crunchybubbles.geological.petrology.BodyCompositionSampler;
+import io.github.crunchybubbles.geological.petrology.ClastShape;
+import io.github.crunchybubbles.geological.petrology.ColluvialTextureState;
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
 import io.github.crunchybubbles.geological.petrology.LigandCapacities;
@@ -28,6 +30,9 @@ import io.github.crunchybubbles.geological.petrology.RedoxClass;
 import io.github.crunchybubbles.geological.petrology.RockDefinition;
 import io.github.crunchybubbles.geological.petrology.RockTexture;
 import io.github.crunchybubbles.geological.petrology.SalinityClass;
+import io.github.crunchybubbles.geological.petrology.SedimentGrainSize;
+import io.github.crunchybubbles.geological.petrology.SedimentSorting;
+import io.github.crunchybubbles.geological.petrology.SedimentSupport;
 import io.github.crunchybubbles.geological.petrology.SulfurState;
 import io.github.crunchybubbles.geological.petrology.UnitIntervalDistribution;
 import java.util.List;
@@ -36,6 +41,43 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class MaterialSchemaTest {
+  @Test
+  void sedimentGrainSizeBlendsCloseExactlyAndIgnoreShareOrder() {
+    SedimentGrainSize coarse = new SedimentGrainSize(600_000L, 300_000L, 100_000L);
+    SedimentGrainSize matrix = new SedimentGrainSize(100_000L, 400_000L, 500_000L);
+    SedimentGrainSize expected = new SedimentGrainSize(275_000L, 365_000L, 360_000L);
+
+    List<SedimentGrainSize.Share> shares =
+        List.of(
+            new SedimentGrainSize.Share(coarse, 350_000L),
+            new SedimentGrainSize.Share(matrix, 650_000L));
+    assertEquals(expected, SedimentGrainSize.weightedBlend(shares));
+    assertEquals(expected, SedimentGrainSize.weightedBlend(shares.reversed()));
+    assertThrows(
+        IllegalArgumentException.class, () -> new SedimentGrainSize(600_000L, 300_000L, 99_999L));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            SedimentGrainSize.weightedBlend(
+                List.of(new SedimentGrainSize.Share(coarse, 999_999L))));
+  }
+
+  @Test
+  void colluvialTextureClassifiesSupportWithoutInventingTransportSorting() {
+    ColluvialTextureState matrix =
+        ColluvialTextureState.from(new SedimentGrainSize(250_000L, 350_000L, 400_000L));
+    ColluvialTextureState mixed =
+        ColluvialTextureState.from(new SedimentGrainSize(400_000L, 350_000L, 250_000L));
+    ColluvialTextureState clast =
+        ColluvialTextureState.from(new SedimentGrainSize(500_000L, 350_000L, 150_000L));
+
+    assertEquals(SedimentSupport.MATRIX_SUPPORTED, matrix.support());
+    assertEquals(SedimentSupport.MIXED_SUPPORT, mixed.support());
+    assertEquals(SedimentSupport.CLAST_SUPPORTED, clast.support());
+    assertEquals(SedimentSorting.UNSORTED_TO_POORLY_SORTED, mixed.sorting());
+    assertEquals(ClastShape.ANGULAR_TO_SUBROUNDED, mixed.clastShape());
+  }
+
   @Test
   void triangularPropertyDistributionIsBoundedAndHonorsItsMode() {
     UnitIntervalDistribution distribution = new UnitIntervalDistribution(0.1, 0.3, 0.8);
@@ -195,6 +237,7 @@ class MaterialSchemaTest {
                 assemblage,
                 0.0,
                 List.of(),
+                sedimentYield(),
                 property,
                 property,
                 property));
@@ -210,6 +253,7 @@ class MaterialSchemaTest {
                 assemblage,
                 0.0,
                 List.of(),
+                sedimentYield(),
                 property,
                 property,
                 property));
@@ -386,6 +430,7 @@ class MaterialSchemaTest {
         central,
         spread,
         axes,
+        sedimentYield(),
         property,
         property,
         property);
@@ -393,5 +438,9 @@ class MaterialSchemaTest {
 
   private static MaterialAssemblage assemblage(String mineral) {
     return new MaterialAssemblage(Map.of(mineral, MaterialAssemblage.SCALE));
+  }
+
+  private static SedimentGrainSize sedimentYield() {
+    return new SedimentGrainSize(400_000L, 400_000L, 200_000L);
   }
 }

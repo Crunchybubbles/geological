@@ -19,6 +19,7 @@ public record RockDefinition(
     MaterialAssemblage primaryAssemblage,
     double modalSpreadFraction,
     List<ModalVariationAxis> modalVariationAxes,
+    SedimentGrainSize sedimentYield,
     UnitIntervalDistribution porosityDistribution,
     UnitIntervalDistribution permeabilityDistribution,
     UnitIntervalDistribution erodibilityDistribution) {
@@ -31,6 +32,7 @@ public record RockDefinition(
         || primaryMetamorphism == null
         || primaryAssemblage == null
         || modalVariationAxes == null
+        || sedimentYield == null
         || porosityDistribution == null
         || permeabilityDistribution == null
         || erodibilityDistribution == null) {

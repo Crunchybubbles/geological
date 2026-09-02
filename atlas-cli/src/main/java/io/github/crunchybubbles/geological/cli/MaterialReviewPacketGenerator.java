@@ -25,6 +25,7 @@ import io.github.crunchybubbles.geological.petrology.PrimaryMetamorphicDefinitio
 import io.github.crunchybubbles.geological.petrology.ProcessFluidState;
 import io.github.crunchybubbles.geological.petrology.ReservoirTransfer;
 import io.github.crunchybubbles.geological.petrology.RockDefinition;
+import io.github.crunchybubbles.geological.petrology.SedimentGrainSize;
 import io.github.crunchybubbles.geological.petrology.SedimentaryState;
 import io.github.crunchybubbles.geological.petrology.SolidSolutionDefinition;
 import io.github.crunchybubbles.geological.petrology.SolidSolutionState;
@@ -537,6 +538,16 @@ final class MaterialReviewPacketGenerator {
         mix.sourceAssemblageFractionPpm(),
         "weatheredMatrixFractionPpm",
         mix.weatheredMatrixFractionPpm(),
+        "textureState",
+        JsonWriter.object(
+            "grainSizePpm",
+            sedimentGrainSizeJson(mix.textureState().grainSize()),
+            "sorting",
+            mix.textureState().sorting().name(),
+            "support",
+            mix.textureState().support().name(),
+            "clastShape",
+            mix.textureState().clastShape().name()),
         "sourceContributions",
         mix.sourceContributions().stream()
             .map(MaterialReviewPacketGenerator::colluvialSourceContributionJson)
@@ -619,6 +630,8 @@ final class MaterialReviewPacketGenerator {
         rock.modalSpreadFraction(),
         "modalVariationAxes",
         rock.modalVariationAxes().stream().map(this::modalVariationAxisJson).toList(),
+        "sedimentYieldPpm",
+        sedimentGrainSizeJson(rock.sedimentYield()),
         "porosityDistribution",
         distributionJson(rock.porosityDistribution()),
         "permeabilityDistribution",
@@ -631,6 +644,16 @@ final class MaterialReviewPacketGenerator {
 
   private Map<String, Object> modalVariationAxisJson(ModalVariationAxis axis) {
     return JsonWriter.object("id", axis.id(), "loadingsPpm", axis.loadingsPpm());
+  }
+
+  private static Map<String, Object> sedimentGrainSizeJson(SedimentGrainSize grainSize) {
+    return JsonWriter.object(
+        "gravelAndCoarser",
+        grainSize.gravelAndCoarserPpm(),
+        "sand",
+        grainSize.sandPpm(),
+        "fines",
+        grainSize.finesPpm());
   }
 
   private static Map<String, Object> primaryMetamorphismJson(

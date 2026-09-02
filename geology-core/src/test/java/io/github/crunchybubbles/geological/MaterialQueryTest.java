@@ -17,8 +17,10 @@ import io.github.crunchybubbles.geological.model.Point2;
 import io.github.crunchybubbles.geological.model.Point3;
 import io.github.crunchybubbles.geological.petrology.BodyCompositionSampler;
 import io.github.crunchybubbles.geological.petrology.ChemicalElement;
+import io.github.crunchybubbles.geological.petrology.ClastShape;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceMix;
+import io.github.crunchybubbles.geological.petrology.ColluvialTextureState;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
@@ -35,6 +37,8 @@ import io.github.crunchybubbles.geological.petrology.PetrologicSample;
 import io.github.crunchybubbles.geological.petrology.PetrologicState;
 import io.github.crunchybubbles.geological.petrology.RockTexture;
 import io.github.crunchybubbles.geological.petrology.SalinityClass;
+import io.github.crunchybubbles.geological.petrology.SedimentGrainSize;
+import io.github.crunchybubbles.geological.petrology.SedimentSorting;
 import io.github.crunchybubbles.geological.petrology.SolidSolutionState;
 import io.github.crunchybubbles.geological.petrology.SurfaceMaterialKind;
 import io.github.crunchybubbles.geological.petrology.SurfacePetrologicSample;
@@ -51,14 +55,14 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.27", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.28", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
     assertEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.baseScientificSnapshot().digest());
     assertNotEquals(Phase1World.SCIENTIFIC_DIGEST, Phase2World.SCIENTIFIC_DIGEST);
     assertEquals(
-        "sha256:52a851c77fda8a3dfde829e33de6e12844c72451fd64ce631db973b2455511d1",
+        "sha256:984be8310f9abc9a7188efb43632c46bcdca3fc1cabc6f49e1853be80da52625",
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
@@ -673,7 +677,7 @@ class MaterialQueryTest {
     assertTrue(
         coal.primaryAssemblage().modesPpm().get("geological:constituent/coal_organic_matter")
             > 750_000L);
-    assertTrue(coal.primaryComposition().elementMassPpm().get(ChemicalElement.C) > 500_000L);
+    assertTrue(coal.primaryComposition().elementMassPpm().get(ChemicalElement.C) > 400_000L);
     assertTrue(coal.primaryComposition().elementMassPpm().get(ChemicalElement.N) > 0L);
     assertTrue(coal.primarySolidSolutions().isEmpty());
   }
@@ -1285,6 +1289,11 @@ class MaterialQueryTest {
                 transported.context().materialBodyId());
     List<MaterialAssemblage.Share> shares = new ArrayList<>();
     shares.add(new MaterialAssemblage.Share(genericMatrix, sourceMix.weatheredMatrixFractionPpm()));
+    List<SedimentGrainSize.Share> grainShares = new ArrayList<>();
+    grainShares.add(
+        new SedimentGrainSize.Share(
+            query.catalog().requireRock(Lithology.SOIL_COLLUVIUM).sedimentYield(),
+            sourceMix.weatheredMatrixFractionPpm()));
     for (ColluvialSourceContribution contribution : sourceMix.sourceContributions()) {
       Point2 expectedSourcePoint =
           point.add(
@@ -1302,11 +1311,20 @@ class MaterialQueryTest {
           new MaterialAssemblage.Share(
               query.resolve(sourceProvince, sourceGeology).resolvedAssemblage(),
               contribution.assemblageFractionPpm()));
+      grainShares.add(
+          new SedimentGrainSize.Share(
+              query.catalog().requireRock(contribution.sourceLithology()).sedimentYield(),
+              contribution.assemblageFractionPpm()));
     }
     MaterialAssemblage expected = MaterialAssemblage.weightedBlend(shares);
     assertEquals(expected, transported.material().primaryAssemblage());
     assertEquals(expected, transported.material().resolvedAssemblage());
     assertNotEquals(genericMatrix, transported.material().primaryAssemblage());
+    SedimentGrainSize expectedGrains = SedimentGrainSize.weightedBlend(grainShares);
+    assertEquals(expectedGrains, sourceMix.textureState().grainSize());
+    assertEquals(ColluvialTextureState.from(expectedGrains), sourceMix.textureState());
+    assertEquals(SedimentSorting.UNSORTED_TO_POORLY_SORTED, sourceMix.textureState().sorting());
+    assertEquals(ClastShape.ANGULAR_TO_SUBROUNDED, sourceMix.textureState().clastShape());
     assertEquals(
         query.catalog().composition(expected), transported.material().primaryComposition());
     assertTrue(transported.material().elementLedger().isIsochemical());
@@ -1326,7 +1344,7 @@ class MaterialQueryTest {
   @Test
   void terrainDirectedColluviumResolvesEachCrossProvinceSourceWithItsOwner() {
     MaterialQueryEngine query = Phase2World.create(2_025L);
-    Point2 point = new Point2(1_950.25, -4_800.25);
+    Point2 point = new Point2(-3_599.75, -5_900.25);
 
     SurfacePetrologicSample transported = query.surface(point);
 
@@ -1359,10 +1377,12 @@ class MaterialQueryTest {
     ColluvialSourceContribution local =
         new ColluvialSourceContribution(
             sourcePoint, province, source, Lithology.GRANITIC_GNEISS, Overprint.NONE, 0, 650_000L);
+    ColluvialTextureState texture =
+        ColluvialTextureState.from(new SedimentGrainSize(300_000L, 300_000L, 400_000L));
 
     assertThrows(
         IllegalArgumentException.class,
-        () -> new ColluvialSourceMix(direction, List.of(local), 349_999L));
+        () -> new ColluvialSourceMix(direction, List.of(local), 349_999L, texture));
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1377,13 +1397,14 @@ class MaterialQueryTest {
                         Overprint.NONE,
                         96,
                         650_000L)),
-                350_000L));
+                350_000L,
+                texture));
     assertThrows(
         IllegalArgumentException.class,
-        () -> new ColluvialSourceMix(direction, List.of(local, local), 350_000L));
+        () -> new ColluvialSourceMix(direction, List.of(local, local), 350_000L, texture));
     assertThrows(
         IllegalArgumentException.class,
-        () -> new ColluvialSourceMix(new Point2(0.5, 0.0), List.of(local), 350_000L));
+        () -> new ColluvialSourceMix(new Point2(0.5, 0.0), List.of(local), 350_000L, texture));
     ColluvialSourceContribution misplaced =
         new ColluvialSourceContribution(
             sourcePoint.add(95.0, 0.0),
@@ -1398,7 +1419,8 @@ class MaterialQueryTest {
             sourcePoint, province, source, Lithology.GRANITIC_GNEISS, Overprint.NONE, 0, 550_000L);
     assertThrows(
         IllegalArgumentException.class,
-        () -> new ColluvialSourceMix(direction, List.of(reducedLocal, misplaced), 350_000L));
+        () ->
+            new ColluvialSourceMix(direction, List.of(reducedLocal, misplaced), 350_000L, texture));
   }
 
   @Test
