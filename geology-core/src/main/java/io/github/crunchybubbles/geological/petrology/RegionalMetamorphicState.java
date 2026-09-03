@@ -78,7 +78,7 @@ public record RegionalMetamorphicState(
             1L,
             Math.min(
                 MaterialAssemblage.SCALE, Math.round(MaterialAssemblage.SCALE * taper * taper)));
-    MetamorphicGrade grade = gradeFor(province);
+    MetamorphicGrade grade = gradeFor(province, intensityPpm);
     MetamorphicFacies facies = faciesFor(grade);
     double intensity = intensityPpm / (double) MaterialAssemblage.SCALE;
     double peakTemperatureCelsius = temperatureFor(grade) + 35.0 * intensity;
@@ -96,11 +96,21 @@ public record RegionalMetamorphicState(
             intensityPpm));
   }
 
-  private static MetamorphicGrade gradeFor(Province province) {
-    return switch (province.grammar()) {
-      case EXHUMED_FERTILE_RIFT_TO_ARC -> MetamorphicGrade.MEDIUM;
-      case BURIED_FERTILE_RIFT_TO_ARC -> MetamorphicGrade.HIGH;
-      case BARREN_DRY_RIFT_TO_ARC -> MetamorphicGrade.LOW;
+  private static MetamorphicGrade gradeFor(Province province, long intensityPpm) {
+    MetamorphicGrade maximumGrade =
+        switch (province.grammar()) {
+          case EXHUMED_FERTILE_RIFT_TO_ARC -> MetamorphicGrade.MEDIUM;
+          case BURIED_FERTILE_RIFT_TO_ARC -> MetamorphicGrade.HIGH;
+          case BARREN_DRY_RIFT_TO_ARC -> MetamorphicGrade.LOW;
+        };
+    return switch (maximumGrade) {
+      case HIGH ->
+          intensityPpm >= 650_000L
+              ? MetamorphicGrade.HIGH
+              : intensityPpm >= 300_000L ? MetamorphicGrade.MEDIUM : MetamorphicGrade.LOW;
+      case MEDIUM -> intensityPpm >= 500_000L ? MetamorphicGrade.MEDIUM : MetamorphicGrade.LOW;
+      case LOW -> MetamorphicGrade.LOW;
+      case NONE -> MetamorphicGrade.NONE;
     };
   }
 
