@@ -220,6 +220,19 @@ public record ColluvialSedimentBudget(
         .toList();
   }
 
+  /** Returns each routed source tranche's exact deposited grain spectrum. */
+  public List<ColluvialSourceGrainShare> sourceGrainShares() {
+    return sourceBalances.stream()
+        .map(
+            source ->
+                new ColluvialSourceGrainShare(
+                    source.sourceBodyId(),
+                    source.upslopeDistanceBlocks(),
+                    source.balance().depositedFixedUnits(),
+                    source.balance().depositedGrainMass()))
+        .toList();
+  }
+
   public long sourceFractionPpm(StableId sourceBodyId, int upslopeDistanceBlocks) {
     return sourceDepositShares().stream()
         .filter(

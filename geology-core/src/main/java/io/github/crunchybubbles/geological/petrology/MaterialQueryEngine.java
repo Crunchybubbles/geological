@@ -638,6 +638,21 @@ public final class MaterialQueryEngine {
           .append(':')
           .append(usage.depositedFixedUnits());
     }
+    for (ColluvialSourceGrainShare grainShare : sedimentBudget.sourceGrainShares()) {
+      purpose
+          .append(":source-grain:")
+          .append(grainShare.sourceBodyId())
+          .append(':')
+          .append(grainShare.upslopeDistanceBlocks())
+          .append(':')
+          .append(grainShare.depositedFixedUnits())
+          .append(':')
+          .append(grainShare.depositedGrainMass().gravelAndCoarserFixedUnits())
+          .append(':')
+          .append(grainShare.depositedGrainMass().sandFixedUnits())
+          .append(':')
+          .append(grainShare.depositedGrainMass().finesFixedUnits());
+    }
     return StableId.first128(
         geology
             .atlas()

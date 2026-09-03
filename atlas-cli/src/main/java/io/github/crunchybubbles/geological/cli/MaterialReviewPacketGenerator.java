@@ -18,6 +18,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution;
+import io.github.crunchybubbles.geological.petrology.ColluvialSourceGrainShare;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceMix;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceUsage;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcess;
@@ -696,6 +697,10 @@ final class MaterialReviewPacketGenerator {
         "sourceUsages",
         budget.sourceUsages().stream()
             .map(MaterialReviewPacketGenerator::colluvialSourceUsageJson)
+            .toList(),
+        "sourceGrainShares",
+        budget.sourceGrainShares().stream()
+            .map(MaterialReviewPacketGenerator::colluvialSourceGrainShareJson)
             .toList());
   }
 
@@ -730,6 +735,21 @@ final class MaterialReviewPacketGenerator {
         usage.bypassedFixedUnits(),
         "depositedFixedUnits",
         usage.depositedFixedUnits());
+  }
+
+  private static Map<String, Object> colluvialSourceGrainShareJson(
+      ColluvialSourceGrainShare grainShare) {
+    return JsonWriter.object(
+        "sourceBodyId",
+        grainShare.sourceBodyId().toString(),
+        "upslopeDistanceBlocks",
+        grainShare.upslopeDistanceBlocks(),
+        "depositedFixedUnits",
+        grainShare.depositedFixedUnits(),
+        "depositedGrainMassFixedUnits",
+        colluvialGrainMassJson(grainShare.depositedGrainMass()),
+        "depositedGrainSizePpm",
+        sedimentGrainSizeJson(grainShare.depositedGrainSize()));
   }
 
   private static Map<String, Object> colluvialSedimentInputBalanceJson(

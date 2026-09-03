@@ -21,6 +21,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialHorizonState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
+import io.github.crunchybubbles.geological.petrology.ColluvialSourceGrainShare;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceUsage;
 import io.github.crunchybubbles.geological.petrology.ColluvialTextureState;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcess;
@@ -325,6 +326,19 @@ class MaterialSchemaTest {
               + usage.bypassedFixedUnits()
               + usage.depositedFixedUnits());
     }
+    assertEquals(2, budget.sourceGrainShares().size());
+    assertEquals(
+        List.of(0, 192),
+        budget.sourceGrainShares().stream()
+            .map(ColluvialSourceGrainShare::upslopeDistanceBlocks)
+            .toList());
+    ColluvialSedimentBudget.GrainMass reconstructedDepositedGrainMass =
+        budget.weatheredMatrixBalance().depositedGrainMass();
+    for (ColluvialSourceGrainShare grainShare : budget.sourceGrainShares()) {
+      reconstructedDepositedGrainMass =
+          reconstructedDepositedGrainMass.add(grainShare.depositedGrainMass());
+    }
+    assertEquals(budget.depositedGrainMass(), reconstructedDepositedGrainMass);
     ColluvialSedimentBudget repeatedSourceBudget =
         ColluvialSedimentBudget.derive(
             0.12,
