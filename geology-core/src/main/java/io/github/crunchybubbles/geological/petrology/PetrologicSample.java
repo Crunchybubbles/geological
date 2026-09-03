@@ -100,6 +100,11 @@ public record PetrologicSample(
     return TraceElementVector.from(resolvedComposition);
   }
 
+  /** Returns the optional deterministic transport axes for this sample's process fluid. */
+  public Optional<FluidTransportState> fluidTransportState() {
+    return fluidState.map(FluidTransportState::proofFor);
+  }
+
   private static void requireUnit(double value, String name) {
     if (!Double.isFinite(value) || value < 0.0 || value > 1.0) {
       throw new IllegalArgumentException(name + " must lie in [0, 1]");

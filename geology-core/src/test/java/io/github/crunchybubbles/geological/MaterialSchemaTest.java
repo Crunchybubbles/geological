@@ -44,6 +44,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessMi
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessStageMix;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessUsage;
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
+import io.github.crunchybubbles.geological.petrology.FluidTransportState;
 import io.github.crunchybubbles.geological.petrology.FractureTensorState;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
 import io.github.crunchybubbles.geological.petrology.LigandCapacities;
@@ -188,6 +189,30 @@ class MaterialSchemaTest {
                         SedimentaryReservoirKind.CHEMICAL_PRECIPITATE,
                         MaterialAssemblage.SCALE,
                         List.of()))));
+  }
+
+  @Test
+  void fluidTransportStateDerivesBoundedTemperaturePressureAndPhaseAxes() {
+    FluidTransportState magmatic = FluidTransportState.proofFor(fluidState());
+    FluidTransportState meteoric =
+        FluidTransportState.proofFor(
+            new ProcessFluidState(
+                FluidMedium.METEORIC_WATER,
+                RedoxClass.OXIDIZING,
+                AcidityClass.NEAR_NEUTRAL,
+                SalinityClass.FRESH,
+                SulfurState.DEPLETED,
+                new LigandCapacities(0, 0, 0, 0),
+                0));
+
+    assertEquals(FluidTransportState.TemperatureClass.HOT, magmatic.temperatureClass());
+    assertEquals(FluidTransportState.PressureClass.HIGH, magmatic.pressureClass());
+    assertEquals(FluidTransportState.WaterRockRatioClass.HIGH, magmatic.waterRockRatioClass());
+    assertEquals(FluidTransportState.PhaseBehaviorClass.SEPARATION, magmatic.phaseBehaviorClass());
+    assertEquals(FluidTransportState.TemperatureClass.COOL, meteoric.temperatureClass());
+    assertEquals(FluidTransportState.WaterRockRatioClass.VERY_HIGH, meteoric.waterRockRatioClass());
+    assertEquals(FluidTransportState.PhaseBehaviorClass.MIXING, meteoric.phaseBehaviorClass());
+    assertThrows(IllegalArgumentException.class, () -> FluidTransportState.proofFor(null));
   }
 
   @Test

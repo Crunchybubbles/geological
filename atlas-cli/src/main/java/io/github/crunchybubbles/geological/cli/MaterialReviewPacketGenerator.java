@@ -39,6 +39,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessMi
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessStageMix;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessUsage;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
+import io.github.crunchybubbles.geological.petrology.FluidTransportState;
 import io.github.crunchybubbles.geological.petrology.FractureTensorState;
 import io.github.crunchybubbles.geological.petrology.MagmaLineageState;
 import io.github.crunchybubbles.geological.petrology.MantleCargoState;
@@ -2366,6 +2367,8 @@ final class MaterialReviewPacketGenerator {
         state.sulfurState().name(),
         "integratedFluxClass",
         state.integratedFluxClass(),
+        "transportState",
+        fluidTransportStateJson(FluidTransportState.proofFor(state)),
         "ligandCapacities",
         JsonWriter.object(
             "chloride",
@@ -2376,6 +2379,20 @@ final class MaterialReviewPacketGenerator {
             state.ligandCapacities().carbonate(),
             "fluorineBoron",
             state.ligandCapacities().fluorineBoron()));
+  }
+
+  private Map<String, Object> fluidTransportStateJson(FluidTransportState state) {
+    return JsonWriter.object(
+        "temperatureClass",
+        state.temperatureClass().name(),
+        "pressureClass",
+        state.pressureClass().name(),
+        "waterRockRatioClass",
+        state.waterRockRatioClass().name(),
+        "phaseBehaviorClass",
+        state.phaseBehaviorClass().name(),
+        "integratedFluxClass",
+        state.integratedFluxClass());
   }
 
   private Map<String, Object> reservoirJson(ElementReservoirLedger ledger) {
