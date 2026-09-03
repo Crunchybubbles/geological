@@ -84,7 +84,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.81", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.82", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1413,6 +1413,31 @@ class MaterialQueryTest {
         hornfels.materialProcessLedger().processId().orElseThrow());
     assertEquals(0L, hornfels.materialProcessLedger().exchangeMagnitudePpm());
     assertEquals(hornfels.primaryComposition(), hornfels.resolvedComposition());
+
+    PetrologicSample carbonateContact =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000704"),
+                Lithology.LIMESTONE,
+                new AgeKey(1850.0, 0),
+                Overprint.CONTACT_HORNFELS));
+    assertEquals(
+        MetamorphicReactionState.ReactionMechanism.DECARBONATION,
+        carbonateContact.metamorphism().processState().reactionState().reactionMechanism());
+    assertEquals(
+        250_000L,
+        carbonateContact.metamorphism().processState().reactionState().decarbonationPpm());
+    assertEquals(
+        List.of(
+            new MetamorphicFluidContribution(
+                MetamorphicFluidContribution.FluidSpecies.CARBON_DIOXIDE,
+                MetamorphicFluidContribution.Direction.OUTPUT,
+                250_000L)),
+        carbonateContact.metamorphism().processState().reactionState().fluidContributions());
+    assertEquals(0L, carbonateContact.metamorphism().processState().massTransferPpm());
 
     RiftArcGeometry.PlutonPulse stock = province.geometry().plutonPulses().getLast();
     GeologicalSample potassic =

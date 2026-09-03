@@ -1266,7 +1266,8 @@ public final class MaterialQueryEngine {
               alteration.path(),
               alteration.processClass(),
               alteration.replacementPpm(),
-              alteration.fluidState()),
+              alteration.fluidState(),
+              Optional.of(rock.lithology())),
           RegionalMetamorphicState.proofFor(province, worldPoint));
     }
     if (rock.primaryMetamorphism().isPresent()) {
@@ -1288,7 +1289,8 @@ public final class MaterialQueryEngine {
               primary.path(),
               MaterialProcessClass.NONE,
               0L,
-              Optional.empty()),
+              Optional.empty(),
+              Optional.of(rock.lithology())),
           RegionalMetamorphicState.proofFor(province, worldPoint));
     }
     return new MetamorphicHistory(
@@ -1308,7 +1310,8 @@ public final class MaterialQueryEngine {
             MetamorphicPath.NONE,
             alteration.processClass(),
             alteration.replacementPpm(),
-            alteration.fluidState()),
+            alteration.fluidState(),
+            Optional.of(rock.lithology())),
         RegionalMetamorphicState.proofFor(province, worldPoint));
   }
 

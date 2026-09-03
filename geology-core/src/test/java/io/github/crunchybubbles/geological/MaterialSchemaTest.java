@@ -198,6 +198,15 @@ class MaterialSchemaTest {
             MaterialProcessClass.ISOCHEMICAL_METAMORPHISM,
             0L,
             Optional.empty());
+    MetamorphicProcessState carbonateContact =
+        MetamorphicProcessState.proofFor(
+            MetamorphicGrade.HIGH,
+            MetamorphicFacies.HORNBLENDE_HORNFELS,
+            MetamorphicPath.CONTACT_LOW_P,
+            MaterialProcessClass.ISOCHEMICAL_METAMORPHISM,
+            0L,
+            Optional.empty(),
+            Optional.of(Lithology.LIMESTONE));
     MetamorphicProcessState altered =
         MetamorphicProcessState.proofFor(
             MetamorphicGrade.NONE,
@@ -231,6 +240,13 @@ class MaterialSchemaTest {
     assertEquals(
         MetamorphicReactionState.ReactionMechanism.THERMAL_RECRYSTALLIZATION,
         contact.reactionState().reactionMechanism());
+    assertEquals(
+        MetamorphicReactionState.ReactionMechanism.DECARBONATION,
+        carbonateContact.reactionState().reactionMechanism());
+    assertEquals(250_000L, carbonateContact.reactionState().decarbonationPpm());
+    assertEquals(
+        MetamorphicFluidContribution.FluidSpecies.CARBON_DIOXIDE,
+        carbonateContact.reactionState().fluidContributions().getFirst().fluidSpecies());
     assertEquals(280_000L, altered.reactionProgressPpm());
     assertEquals(280_000L, altered.massTransferPpm());
     assertEquals(

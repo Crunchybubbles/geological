@@ -420,6 +420,16 @@ final class MaterialReviewPacketGenerator {
                 Overprint.CONTACT_HORNFELS)));
     samples.add(
         sampleJson(
+            "limestone-contact-decarbonation",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000704"),
+                Lithology.LIMESTONE,
+                new AgeKey(1_850.0, 1),
+                Overprint.CONTACT_HORNFELS)));
+    samples.add(
+        sampleJson(
             "basin-sandstone-phyllic",
             resolve(
                 province,

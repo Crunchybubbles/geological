@@ -1,5 +1,6 @@
 package io.github.crunchybubbles.geological.petrology;
 
+import io.github.crunchybubbles.geological.model.Lithology;
 import java.util.Optional;
 
 /** Bounded burial, strain, fluid, and reaction evidence for one metamorphic history. */
@@ -53,11 +54,25 @@ public record MetamorphicProcessState(
       MaterialProcessClass processClass,
       long replacementPpm,
       Optional<ProcessFluidState> fluidState) {
+    return proofFor(
+        grade, facies, path, processClass, replacementPpm, fluidState, Optional.empty());
+  }
+
+  /** Derives process state with optional host context for carbonate-contact reactions. */
+  public static MetamorphicProcessState proofFor(
+      MetamorphicGrade grade,
+      MetamorphicFacies facies,
+      MetamorphicPath path,
+      MaterialProcessClass processClass,
+      long replacementPpm,
+      Optional<ProcessFluidState> fluidState,
+      Optional<Lithology> hostLithology) {
     if (grade == null
         || facies == null
         || path == null
         || processClass == null
         || fluidState == null
+        || hostLithology == null
         || replacementPpm < 0
         || replacementPpm > MaterialAssemblage.SCALE) {
       throw new IllegalArgumentException(
@@ -84,7 +99,8 @@ public record MetamorphicProcessState(
           Math.max(700_000L, gradeProgress),
           0L,
           150_000L,
-          MetamorphicReactionState.proofFor(grade, facies, path, processClass, replacementPpm));
+          MetamorphicReactionState.proofFor(
+              grade, facies, path, processClass, replacementPpm, hostLithology));
     }
     if (path == MetamorphicPath.COLLISION_CLOCKWISE) {
       return new MetamorphicProcessState(
@@ -94,7 +110,8 @@ public record MetamorphicProcessState(
           gradeProgress,
           0L,
           250_000L,
-          MetamorphicReactionState.proofFor(grade, facies, path, processClass, replacementPpm));
+          MetamorphicReactionState.proofFor(
+              grade, facies, path, processClass, replacementPpm, hostLithology));
     }
     if (path == MetamorphicPath.HYDROTHERMAL_HYDRATION) {
       return new MetamorphicProcessState(
@@ -104,7 +121,8 @@ public record MetamorphicProcessState(
           Math.max(500_000L, gradeProgress),
           0L,
           700_000L,
-          MetamorphicReactionState.proofFor(grade, facies, path, processClass, replacementPpm));
+          MetamorphicReactionState.proofFor(
+              grade, facies, path, processClass, replacementPpm, hostLithology));
     }
     if (processClass == MaterialProcessClass.HYDROTHERMAL_METASOMATISM) {
       return new MetamorphicProcessState(
@@ -114,7 +132,8 @@ public record MetamorphicProcessState(
           replacementPpm,
           replacementPpm,
           700_000L,
-          MetamorphicReactionState.proofFor(grade, facies, path, processClass, replacementPpm));
+          MetamorphicReactionState.proofFor(
+              grade, facies, path, processClass, replacementPpm, hostLithology));
     }
     if (processClass == MaterialProcessClass.WEATHERING) {
       return new MetamorphicProcessState(
@@ -124,7 +143,8 @@ public record MetamorphicProcessState(
           replacementPpm,
           replacementPpm,
           850_000L,
-          MetamorphicReactionState.proofFor(grade, facies, path, processClass, replacementPpm));
+          MetamorphicReactionState.proofFor(
+              grade, facies, path, processClass, replacementPpm, hostLithology));
     }
     return new MetamorphicProcessState(
         BurialCurveClass.NONE,
@@ -133,7 +153,8 @@ public record MetamorphicProcessState(
         0L,
         0L,
         0L,
-        MetamorphicReactionState.proofFor(grade, facies, path, processClass, replacementPpm));
+        MetamorphicReactionState.proofFor(
+            grade, facies, path, processClass, replacementPpm, hostLithology));
   }
 
   private static StrainClass strainFor(MetamorphicFacies facies) {

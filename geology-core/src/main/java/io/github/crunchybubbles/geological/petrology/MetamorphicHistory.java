@@ -43,7 +43,7 @@ public record MetamorphicHistory(
         eventIds,
         List.of(),
         MetamorphicProcessState.proofFor(
-            grade, facies, path, MaterialProcessClass.NONE, 0L, Optional.empty()),
+            grade, facies, path, MaterialProcessClass.NONE, 0L, Optional.empty(), Optional.empty()),
         Optional.empty());
   }
 

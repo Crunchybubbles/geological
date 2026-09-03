@@ -20,9 +20,11 @@ class MaterialReviewPacketGeneratorTest {
 
     String firstJson = Files.readString(first);
     assertEquals(firstJson, Files.readString(second));
-    assertTrue(firstJson.contains("\"modelVersion\": \"phase2.0-alpha.81\""));
+    assertTrue(firstJson.contains("\"modelVersion\": \"phase2.0-alpha.82\""));
     assertTrue(firstJson.contains("\"eventTimeline\""));
     assertTrue(firstJson.contains("\"fluidContributions\""));
+    assertTrue(firstJson.contains("\"DECARBONATION\""));
+    assertTrue(firstJson.contains("\"CARBON_DIOXIDE\""));
     assertTrue(firstJson.contains("\"regionalState\""));
     assertTrue(firstJson.contains("\"reservoirContributions\""));
     assertTrue(firstJson.contains("\"diagenesisState\""));

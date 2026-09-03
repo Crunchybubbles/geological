@@ -1,7 +1,9 @@
 package io.github.crunchybubbles.geological.petrology;
 
+import io.github.crunchybubbles.geological.model.Lithology;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 
 /** Bounded reaction-family and volatile/melt-response evidence for one metamorphic path. */
 public record MetamorphicReactionState(
@@ -96,13 +98,38 @@ public record MetamorphicReactionState(
       MetamorphicPath path,
       MaterialProcessClass processClass,
       long replacementPpm) {
+    return proofFor(grade, facies, path, processClass, replacementPpm, Optional.empty());
+  }
+
+  /** Derives the proof response with optional host composition context for reactive contacts. */
+  public static MetamorphicReactionState proofFor(
+      MetamorphicGrade grade,
+      MetamorphicFacies facies,
+      MetamorphicPath path,
+      MaterialProcessClass processClass,
+      long replacementPpm,
+      Optional<Lithology> hostLithology) {
     if (grade == null
         || facies == null
         || path == null
         || processClass == null
+        || hostLithology == null
         || replacementPpm < 0
         || replacementPpm > MaterialAssemblage.SCALE) {
       throw new IllegalArgumentException("metamorphic reaction inputs are incomplete");
+    }
+    if (grade == MetamorphicGrade.HIGH
+        && path == MetamorphicPath.CONTACT_LOW_P
+        && hostLithology.filter(MetamorphicReactionState::isCarbonateRich).isPresent()) {
+      return new MetamorphicReactionState(
+          ReactionMechanism.DECARBONATION,
+          RetrogressionClass.LOW,
+          0L,
+          250_000L,
+          0L,
+          SerpentinizationBalance.none(),
+          proofFluidContributions(
+              ReactionMechanism.DECARBONATION, 0L, 250_000L, SerpentinizationBalance.none()));
     }
     if (path == MetamorphicPath.HYDROTHERMAL_HYDRATION) {
       return new MetamorphicReactionState(
@@ -168,6 +195,13 @@ public record MetamorphicReactionState(
           List.of());
     }
     return none();
+  }
+
+  private static boolean isCarbonateRich(Lithology lithology) {
+    return switch (lithology) {
+      case LIMESTONE, DOLOSTONE, MARBLE, CARBONATITIC -> true;
+      default -> false;
+    };
   }
 
   public enum ReactionMechanism {
