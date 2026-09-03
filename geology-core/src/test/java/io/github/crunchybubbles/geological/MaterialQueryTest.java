@@ -71,7 +71,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.55", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.56", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -88,6 +88,49 @@ class MaterialQueryTest {
     assertEquals(
         Phase1World.SCIENTIFIC_DIGEST, query.geology().atlas().identity().scientificDigest());
     assertEquals(Phase2World.SCIENTIFIC_DIGEST, query.materialIdentity().scientificDigest());
+  }
+
+  @Test
+  void customColluvialRoutePolicyChangesSamplingWithoutChangingPhase1Terrain() {
+    MaterialQueryEngine defaultQuery = Phase2World.create(2_025L);
+    ColluvialRoutePolicy customPolicy =
+        new ColluvialRoutePolicy(
+            0.10, 4.0, 32.0, 4.0, 8.0, 32, 64, 128, 60.0, 350_000L, 350_000L, 200_000L, 100_000L);
+    MaterialQueryEngine customQuery =
+        new MaterialQueryEngine(
+            defaultQuery.geology(),
+            defaultQuery.catalog(),
+            defaultQuery.materialIdentity(),
+            customPolicy);
+
+    SurfacePetrologicSample defaultSample = null;
+    Point2 fixture = null;
+    for (int z = -1_500; z <= 1_500 && defaultSample == null; z += 50) {
+      for (int x = -1_500; x <= 1_500 && defaultSample == null; x += 50) {
+        Point2 point = new Point2(x + 0.25, z - 0.25);
+        SurfacePetrologicSample candidate = defaultQuery.surface(point);
+        if (candidate.context().kind() == SurfaceMaterialKind.COLLUVIAL_MANTLE
+            && candidate.context().sourceBodyIds().size() > 1) {
+          defaultSample = candidate;
+          fixture = point;
+        }
+      }
+    }
+
+    Point2 point = Objects.requireNonNull(fixture, "no colluvial fixture point found");
+    SurfacePetrologicSample customSample = customQuery.surface(point);
+    assertEquals(customPolicy, customQuery.colluvialRoutePolicy());
+    assertEquals(
+        defaultQuery.geology().surface(point).fields(),
+        customQuery.geology().surface(point).fields());
+    assertEquals(
+        List.of(0, 64, 128),
+        customSample.context().colluvialSourceMix().orElseThrow().sourceContributions().stream()
+            .map(ColluvialSourceContribution::upslopeDistanceBlocks)
+            .toList());
+    assertNotEquals(
+        Objects.requireNonNull(defaultSample).context().materialBodyId(),
+        customSample.context().materialBodyId());
   }
 
   @Test
