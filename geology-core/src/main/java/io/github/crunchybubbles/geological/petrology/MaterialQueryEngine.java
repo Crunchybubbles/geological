@@ -40,6 +40,7 @@ public final class MaterialQueryEngine {
   private static final double COLLUVIUM_MINIMUM_CHANNEL_DISTANCE = 32.0;
   private static final int COLLUVIUM_NEAR_SOURCE_DISTANCE_BLOCKS = 96;
   private static final int COLLUVIUM_FAR_SOURCE_DISTANCE_BLOCKS = 192;
+  private static final int COLLUVIUM_PATH_REACH_LENGTH_BLOCKS = 32;
   private static final long COLLUVIUM_LOCAL_SOURCE_CAPACITY_FIXED_UNITS = 350_000L;
   private static final long COLLUVIUM_NEAR_SOURCE_CAPACITY_FIXED_UNITS = 200_000L;
   private static final long COLLUVIUM_FAR_SOURCE_CAPACITY_FIXED_UNITS = 100_000L;
@@ -253,25 +254,47 @@ public final class MaterialQueryEngine {
 
   private List<ColluvialSourceCandidate> resolveColluvialSourceCandidates(
       SurfaceSample surface, Point2 upslopeDirection) {
-    List<ColluvialSourceCandidate> sources = new ArrayList<>();
+    List<SurfaceSample> pathSurfaces = new ArrayList<>();
     Point2 localPoint = surface.fields().point();
-    sources.add(
-        resolveColluvialSourceCandidate(surface, 0, COLLUVIUM_LOCAL_SOURCE_CAPACITY_FIXED_UNITS));
-    Point2 nearPoint =
-        upslopePoint(localPoint, upslopeDirection, COLLUVIUM_NEAR_SOURCE_DISTANCE_BLOCKS);
+    for (int distance = 0;
+        distance <= COLLUVIUM_FAR_SOURCE_DISTANCE_BLOCKS;
+        distance += COLLUVIUM_PATH_REACH_LENGTH_BLOCKS) {
+      pathSurfaces.add(
+          distance == 0
+              ? surface
+              : geology.surface(upslopePoint(localPoint, upslopeDirection, distance)));
+    }
+    List<ColluvialSourceCandidate> sources = new ArrayList<>();
     sources.add(
         resolveColluvialSourceCandidate(
-            geology.surface(nearPoint),
-            COLLUVIUM_NEAR_SOURCE_DISTANCE_BLOCKS,
+            pathSurfaces.getFirst(),
+            terrainPath(pathSurfaces, 0),
+            COLLUVIUM_LOCAL_SOURCE_CAPACITY_FIXED_UNITS));
+    sources.add(
+        resolveColluvialSourceCandidate(
+            pathSurfaces.get(
+                COLLUVIUM_NEAR_SOURCE_DISTANCE_BLOCKS / COLLUVIUM_PATH_REACH_LENGTH_BLOCKS),
+            terrainPath(pathSurfaces, COLLUVIUM_NEAR_SOURCE_DISTANCE_BLOCKS),
             COLLUVIUM_NEAR_SOURCE_CAPACITY_FIXED_UNITS));
-    Point2 farPoint =
-        upslopePoint(localPoint, upslopeDirection, COLLUVIUM_FAR_SOURCE_DISTANCE_BLOCKS);
     sources.add(
         resolveColluvialSourceCandidate(
-            geology.surface(farPoint),
-            COLLUVIUM_FAR_SOURCE_DISTANCE_BLOCKS,
+            pathSurfaces.getLast(),
+            terrainPath(pathSurfaces, COLLUVIUM_FAR_SOURCE_DISTANCE_BLOCKS),
             COLLUVIUM_FAR_SOURCE_CAPACITY_FIXED_UNITS));
     return List.copyOf(sources);
+  }
+
+  private static ColluvialSedimentBudget.TerrainPath terrainPath(
+      List<SurfaceSample> pathSurfaces, int sourceDistanceBlocks) {
+    int sourceIndex = sourceDistanceBlocks / COLLUVIUM_PATH_REACH_LENGTH_BLOCKS;
+    List<ColluvialSedimentBudget.TerrainPathSample> samples = new ArrayList<>();
+    for (int index = 0; index <= sourceIndex; index++) {
+      samples.add(
+          new ColluvialSedimentBudget.TerrainPathSample(
+              index * COLLUVIUM_PATH_REACH_LENGTH_BLOCKS,
+              pathSurfaces.get(index).fields().elevation()));
+    }
+    return new ColluvialSedimentBudget.TerrainPath(COLLUVIUM_PATH_REACH_LENGTH_BLOCKS, samples);
   }
 
   private Point2 terrainUpslopeDirection(SurfaceSample surface) {
@@ -358,7 +381,9 @@ public final class MaterialQueryEngine {
   }
 
   private ColluvialSourceCandidate resolveColluvialSourceCandidate(
-      SurfaceSample sourceSurface, int upslopeDistanceBlocks, long capacityFixedUnits) {
+      SurfaceSample sourceSurface,
+      ColluvialSedimentBudget.TerrainPath terrainPath,
+      long capacityFixedUnits) {
     Point2 sourcePoint = sourceSurface.fields().point();
     GeologicalSample source = sourceSurface.bedrock();
     Province sourceProvince = geology.atlas().provinceAt(sourcePoint);
@@ -369,9 +394,10 @@ public final class MaterialQueryEngine {
         sourceSurface,
         sourceProvince.id(),
         resolve(sourceProvince, source),
-        upslopeDistanceBlocks,
+        terrainPath.distanceBlocks(),
         capacityFixedUnits,
-        terrainRoughnessIndex(sourceSurface));
+        terrainRoughnessIndex(sourceSurface),
+        terrainPath);
   }
 
   private ColluvialSedimentBudget resolveColluvialSedimentBudget(
@@ -385,6 +411,7 @@ public final class MaterialQueryEngine {
             depositionSurface.fields().slope(),
             colluviumRock.erodibilityIndex(),
             sources.getFirst().terrainRoughnessIndex(),
+            sources.getFirst().terrainPath(),
             colluviumRock.sedimentYield());
     List<ColluvialSedimentBudget.SourceProductionInput> sourceInputs =
         sources.stream()
@@ -399,6 +426,7 @@ public final class MaterialQueryEngine {
                             source.surface().fields().slope(),
                             source.material().erodibilityIndex(),
                             source.terrainRoughnessIndex(),
+                            source.terrainPath(),
                             source.material().rock().sedimentYield())))
             .toList();
     return ColluvialSedimentBudget.derive(
@@ -526,6 +554,18 @@ public final class MaterialQueryEngine {
         .append(input.erodibilityIndex())
         .append(':')
         .append(input.terrainRoughnessIndex())
+        .append(':')
+        .append(input.terrainPath().reachLengthBlocks())
+        .append(':')
+        .append(input.terrainPath().downslopeContinuityIndex());
+    for (ColluvialSedimentBudget.TerrainPathSample sample : input.terrainPath().samples()) {
+      purpose
+          .append(':')
+          .append(sample.upslopeDistanceBlocks())
+          .append(':')
+          .append(sample.elevation());
+    }
+    purpose
         .append(':')
         .append(input.sedimentYield().gravelAndCoarserPpm())
         .append(':')
@@ -1042,7 +1082,8 @@ public final class MaterialQueryEngine {
       PetrologicSample material,
       int upslopeDistanceBlocks,
       long capacityFixedUnits,
-      double terrainRoughnessIndex) {}
+      double terrainRoughnessIndex,
+      ColluvialSedimentBudget.TerrainPath terrainPath) {}
 
   private record ResolvedColluvialSource(
       ColluvialSourceContribution contribution, PetrologicSample material) {}

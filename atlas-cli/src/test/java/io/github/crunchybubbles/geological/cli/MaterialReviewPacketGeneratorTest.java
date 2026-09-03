@@ -46,7 +46,7 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"unit\": \"phase2_normalized_sediment_mass\""));
     assertTrue(
         firstJson.contains(
-            "\"grainTransportModel\": \"SLOPE_ROUGHNESS_CONDITIONED_DRY_RAVEL_PROOF\""));
+            "\"grainTransportModel\": \"SLOPE_ROUGHNESS_PATH_CONDITIONED_DRY_RAVEL_PROOF\""));
     assertTrue(firstJson.contains("\"sourceCapacityFixedUnits\": 1000000"));
     assertTrue(firstJson.contains("\"mobilizedInventoryFixedUnits\""));
     assertTrue(firstJson.contains("\"retainedInventoryFixedUnits\""));
@@ -62,6 +62,14 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"depositedGrainSizePpm\""));
     assertTrue(firstJson.contains("\"sedimentYieldPpm\""));
     assertTrue(firstJson.contains("\"terrainRoughnessIndex\""));
+    assertTrue(firstJson.contains("\"terrainPath\""));
+    assertTrue(firstJson.contains("\"reachLengthBlocks\": 32"));
+    assertTrue(firstJson.contains("\"elevationSamples\""));
+    assertTrue(firstJson.contains("\"cumulativeDownslopeReliefBlocks\""));
+    assertTrue(firstJson.contains("\"cumulativeBarrierReliefBlocks\""));
+    assertTrue(firstJson.contains("\"descendingReachFraction\""));
+    assertTrue(firstJson.contains("\"downslopeContinuityIndex\""));
+    assertTrue(firstJson.contains("\"transportPathResponse\""));
     assertTrue(firstJson.contains("\"transportDistanceScale\""));
     assertTrue(firstJson.contains("\"transportEFoldingDistanceBlocks\""));
     assertTrue(firstJson.contains("\"weatheredMatrixBalance\""));

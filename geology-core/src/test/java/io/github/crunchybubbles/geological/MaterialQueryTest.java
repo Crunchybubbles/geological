@@ -58,7 +58,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.33", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.34", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1284,7 +1284,8 @@ class MaterialQueryTest {
     ColluvialSedimentBudget sedimentBudget = sourceMix.sedimentBudget();
     assertEquals(ColluvialSedimentBudget.NORMALIZED_MASS_UNIT, sedimentBudget.unit());
     assertEquals(
-        ColluvialSedimentBudget.GrainTransportModel.SLOPE_ROUGHNESS_CONDITIONED_DRY_RAVEL_PROOF,
+        ColluvialSedimentBudget.GrainTransportModel
+            .SLOPE_ROUGHNESS_PATH_CONDITIONED_DRY_RAVEL_PROOF,
         sedimentBudget.grainTransportModel());
     assertEquals(transported.surface().fields().slope(), sedimentBudget.depositionSlope());
     assertEquals(MaterialAssemblage.SCALE, sedimentBudget.sourceCapacityFixedUnits());
@@ -1302,6 +1303,9 @@ class MaterialQueryTest {
         expectedTerrainRoughnessIndex(query, point),
         sedimentBudget.weatheredMatrixBalance().input().terrainRoughnessIndex(),
         1.0e-15);
+    assertEquals(
+        expectedTerrainPath(query, point, sourceMix.upslopeDirection(), 0),
+        sedimentBudget.weatheredMatrixBalance().input().terrainPath());
     assertEquals(
         sedimentBudget.mobilizedInventoryFixedUnits(),
         sedimentBudget.transportLossFixedUnits()
@@ -1388,7 +1392,21 @@ class MaterialQueryTest {
           1.0e-15);
       assertTrue(sourceBalance.balance().input().terrainRoughnessIndex() >= 0.0);
       assertTrue(sourceBalance.balance().input().terrainRoughnessIndex() <= 1.0);
-      assertTrue(sourceBalance.balance().transportDistanceScale() >= 0.20);
+      ColluvialSedimentBudget.TerrainPath expectedPath =
+          expectedTerrainPath(
+              query, point, sourceMix.upslopeDirection(), contribution.upslopeDistanceBlocks());
+      assertEquals(expectedPath, sourceBalance.balance().input().terrainPath());
+      assertEquals(
+          contribution.upslopeDistanceBlocks(),
+          sourceBalance.balance().input().terrainPath().distanceBlocks());
+      assertEquals(
+          contribution.upslopeDistanceBlocks() / 32,
+          sourceBalance.balance().input().terrainPath().reachCount());
+      assertTrue(sourceBalance.balance().input().terrainPath().downslopeContinuityIndex() >= 0.0);
+      assertTrue(sourceBalance.balance().input().terrainPath().downslopeContinuityIndex() <= 1.0);
+      assertTrue(sourceBalance.balance().transportPathResponse() >= 0.50);
+      assertTrue(sourceBalance.balance().transportPathResponse() <= 1.0);
+      assertTrue(sourceBalance.balance().transportDistanceScale() >= 0.10);
       assertTrue(sourceBalance.balance().transportDistanceScale() <= 1.0);
       assertTrue(
           sourceBalance.balance().grainTransportLengths().gravelAndCoarserBlocks()
@@ -1512,15 +1530,16 @@ class MaterialQueryTest {
     UnitIntervalDistribution distribution = new UnitIntervalDistribution(0.1, 0.4, 0.8);
     ColluvialPhysicalState physical =
         ColluvialPhysicalState.derive(texture, distribution, distribution, distribution);
+    ColluvialSedimentBudget.TerrainPath localPath = localTerrainPath(80.0);
     ColluvialSedimentBudget.ProductionInput matrixInput =
         new ColluvialSedimentBudget.ProductionInput(
-            350_000L, 12.0, 0.24, 1.0, 0.0, texture.grainSize());
+            350_000L, 12.0, 0.24, 1.0, 0.0, localPath, texture.grainSize());
     ColluvialSedimentBudget.SourceProductionInput sourceInput =
         new ColluvialSedimentBudget.SourceProductionInput(
             source,
             0,
             new ColluvialSedimentBudget.ProductionInput(
-                650_000L, 12.0, 0.24, 1.0, 0.0, texture.grainSize()));
+                650_000L, 12.0, 0.24, 1.0, 0.0, localPath, texture.grainSize()));
     ColluvialSedimentBudget budget =
         ColluvialSedimentBudget.derive(0.0, matrixInput, List.of(sourceInput));
     ColluvialTextureState otherTexture =
@@ -1543,13 +1562,13 @@ class MaterialQueryTest {
         ColluvialSedimentBudget.derive(
             0.0,
             new ColluvialSedimentBudget.ProductionInput(
-                350_001L, 12.0, 0.24, 1.0, 0.0, texture.grainSize()),
+                350_001L, 12.0, 0.24, 1.0, 0.0, localPath, texture.grainSize()),
             List.of(
                 new ColluvialSedimentBudget.SourceProductionInput(
                     source,
                     0,
                     new ColluvialSedimentBudget.ProductionInput(
-                        649_999L, 12.0, 0.24, 1.0, 0.0, texture.grainSize()))));
+                        649_999L, 12.0, 0.24, 1.0, 0.0, localPath, texture.grainSize()))));
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1721,6 +1740,24 @@ class MaterialQueryTest {
       double offsetZ) {
     double residual = elevation - (centerElevation + gradientX * offsetX + gradientZ * offsetZ);
     return residual * residual;
+  }
+
+  private static ColluvialSedimentBudget.TerrainPath localTerrainPath(double elevation) {
+    return new ColluvialSedimentBudget.TerrainPath(
+        32, List.of(new ColluvialSedimentBudget.TerrainPathSample(0, elevation)));
+  }
+
+  private static ColluvialSedimentBudget.TerrainPath expectedTerrainPath(
+      MaterialQueryEngine query, Point2 origin, Point2 upslopeDirection, int distanceBlocks) {
+    List<ColluvialSedimentBudget.TerrainPathSample> samples = new ArrayList<>();
+    for (int distance = 0; distance <= distanceBlocks; distance += 32) {
+      Point2 samplePoint =
+          origin.add(upslopeDirection.x() * distance, upslopeDirection.z() * distance);
+      samples.add(
+          new ColluvialSedimentBudget.TerrainPathSample(
+              distance, query.geology().surface(samplePoint).fields().elevation()));
+    }
+    return new ColluvialSedimentBudget.TerrainPath(32, samples);
   }
 
   private static GeologicalSample sample(

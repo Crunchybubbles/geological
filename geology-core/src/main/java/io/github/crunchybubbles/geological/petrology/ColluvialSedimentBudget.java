@@ -23,6 +23,7 @@ public record ColluvialSedimentBudget(
   private static final double MINIMUM_SLOPE_MOBILITY = 0.25;
   private static final double MINIMUM_TRANSPORT_SLOPE_RESPONSE = 0.50;
   private static final double MINIMUM_TRANSPORT_ROUGHNESS_RESPONSE = 0.40;
+  private static final double MINIMUM_TRANSPORT_PATH_RESPONSE = 0.50;
   private static final double GRAVEL_AND_COARSER_REFERENCE_E_FOLDING_DISTANCE_BLOCKS = 512.0;
   private static final double SAND_REFERENCE_E_FOLDING_DISTANCE_BLOCKS = 384.0;
   private static final double FINES_REFERENCE_E_FOLDING_DISTANCE_BLOCKS = 256.0;
@@ -30,7 +31,8 @@ public record ColluvialSedimentBudget(
 
   public ColluvialSedimentBudget {
     if (!NORMALIZED_MASS_UNIT.equals(unit)
-        || grainTransportModel != GrainTransportModel.SLOPE_ROUGHNESS_CONDITIONED_DRY_RAVEL_PROOF
+        || grainTransportModel
+            != GrainTransportModel.SLOPE_ROUGHNESS_PATH_CONDITIONED_DRY_RAVEL_PROOF
         || !Double.isFinite(depositionSlope)
         || depositionSlope < 0.0
         || weatheredMatrixBalance == null
@@ -99,7 +101,7 @@ public record ColluvialSedimentBudget(
             .toList();
     return new ColluvialSedimentBudget(
         NORMALIZED_MASS_UNIT,
-        GrainTransportModel.SLOPE_ROUGHNESS_CONDITIONED_DRY_RAVEL_PROOF,
+        GrainTransportModel.SLOPE_ROUGHNESS_PATH_CONDITIONED_DRY_RAVEL_PROOF,
         depositionSlope,
         matrixBalance,
         balances);
@@ -240,6 +242,7 @@ public record ColluvialSedimentBudget(
       ProductionInput input, int upslopeDistanceBlocks, double depositionSlope) {
     if (input == null
         || upslopeDistanceBlocks < 0
+        || input.terrainPath().distanceBlocks() != upslopeDistanceBlocks
         || !Double.isFinite(depositionSlope)
         || depositionSlope < 0.0) {
       throw new IllegalArgumentException("valid colluvial transport inputs are required");
@@ -290,7 +293,12 @@ public record ColluvialSedimentBudget(
                 * clamp(input.slope() / SLOPE_MOBILITY_REFERENCE);
     double roughnessResponse =
         1.0 - (1.0 - MINIMUM_TRANSPORT_ROUGHNESS_RESPONSE) * input.terrainRoughnessIndex();
-    return slopeResponse * roughnessResponse;
+    return slopeResponse * roughnessResponse * transportPathResponse(input);
+  }
+
+  private static double transportPathResponse(ProductionInput input) {
+    return MINIMUM_TRANSPORT_PATH_RESPONSE
+        + (1.0 - MINIMUM_TRANSPORT_PATH_RESPONSE) * input.terrainPath().downslopeContinuityIndex();
   }
 
   private static GrainTransportLengths grainTransportLengths(ProductionInput input) {
@@ -348,13 +356,14 @@ public record ColluvialSedimentBudget(
     return StrictMath.max(0.0, StrictMath.min(1.0, value));
   }
 
-  /** Inputs controlling the mobile share and initial grain spectrum of one capacity tranche. */
+  /** Inputs controlling production, path-conditioned transport, and initial grain spectrum. */
   public record ProductionInput(
       long capacityFixedUnits,
       double weatheringDepth,
       double slope,
       double erodibilityIndex,
       double terrainRoughnessIndex,
+      TerrainPath terrainPath,
       SedimentGrainSize sedimentYield) {
     public ProductionInput {
       if (capacityFixedUnits <= 0
@@ -368,6 +377,7 @@ public record ColluvialSedimentBudget(
           || !Double.isFinite(terrainRoughnessIndex)
           || terrainRoughnessIndex < 0.0
           || terrainRoughnessIndex > 1.0
+          || terrainPath == null
           || sedimentYield == null) {
         throw new IllegalArgumentException("colluvial sediment production input is invalid");
       }
@@ -376,10 +386,101 @@ public record ColluvialSedimentBudget(
 
   /** Explicit proof regime controlling the current grain-class survival ordering. */
   public enum GrainTransportModel {
-    SLOPE_ROUGHNESS_CONDITIONED_DRY_RAVEL_PROOF
+    SLOPE_ROUGHNESS_PATH_CONDITIONED_DRY_RAVEL_PROOF
   }
 
-  /** Effective grain-class transport lengths after bounded slope and roughness conditioning. */
+  /** One elevation observation along the straight, bounded source-to-deposition proof path. */
+  public record TerrainPathSample(int upslopeDistanceBlocks, double elevation) {
+    public TerrainPathSample {
+      if (upslopeDistanceBlocks < 0 || !Double.isFinite(elevation)) {
+        throw new IllegalArgumentException("colluvial terrain-path sample is invalid");
+      }
+    }
+  }
+
+  /** Ordered terrain evidence and derived downhill continuity for one transport path. */
+  public record TerrainPath(int reachLengthBlocks, List<TerrainPathSample> samples) {
+    public TerrainPath {
+      if (reachLengthBlocks <= 0 || samples == null || samples.isEmpty()) {
+        throw new IllegalArgumentException("colluvial terrain path is incomplete");
+      }
+      if (samples.stream().anyMatch(sample -> sample == null)) {
+        throw new IllegalArgumentException("colluvial terrain-path samples must be complete");
+      }
+      samples = List.copyOf(samples);
+      double cumulativeRelief = 0.0;
+      for (int index = 0; index < samples.size(); index++) {
+        TerrainPathSample sample = samples.get(index);
+        long expectedDistance = (long) index * reachLengthBlocks;
+        if (expectedDistance > Integer.MAX_VALUE
+            || sample.upslopeDistanceBlocks() != (int) expectedDistance) {
+          throw new IllegalArgumentException(
+              "colluvial terrain-path samples must begin at zero and be contiguous");
+        }
+        if (index > 0) {
+          double relief = sample.elevation() - samples.get(index - 1).elevation();
+          cumulativeRelief += StrictMath.abs(relief);
+          if (!Double.isFinite(relief) || !Double.isFinite(cumulativeRelief)) {
+            throw new IllegalArgumentException("colluvial terrain-path relief must be finite");
+          }
+        }
+      }
+    }
+
+    public int distanceBlocks() {
+      return samples.getLast().upslopeDistanceBlocks();
+    }
+
+    public int reachCount() {
+      return samples.size() - 1;
+    }
+
+    public double cumulativeDownslopeReliefBlocks() {
+      double relief = 0.0;
+      for (int index = 1; index < samples.size(); index++) {
+        relief += StrictMath.max(0.0, elevationDifference(index));
+      }
+      return relief;
+    }
+
+    public double cumulativeBarrierReliefBlocks() {
+      double relief = 0.0;
+      for (int index = 1; index < samples.size(); index++) {
+        relief += StrictMath.max(0.0, -elevationDifference(index));
+      }
+      return relief;
+    }
+
+    public double descendingReachFraction() {
+      if (reachCount() == 0) {
+        return 1.0;
+      }
+      int descending = 0;
+      for (int index = 1; index < samples.size(); index++) {
+        if (elevationDifference(index) > 0.0) {
+          descending++;
+        }
+      }
+      return (double) descending / reachCount();
+    }
+
+    public double downslopeContinuityIndex() {
+      if (reachCount() == 0) {
+        return 1.0;
+      }
+      double downslopeRelief = cumulativeDownslopeReliefBlocks();
+      double totalRelief = downslopeRelief + cumulativeBarrierReliefBlocks();
+      double reliefDirectionFraction = totalRelief > 0.0 ? downslopeRelief / totalRelief : 0.0;
+      return clamp(0.5 * (descendingReachFraction() + reliefDirectionFraction));
+    }
+
+    private double elevationDifference(int upslopeSampleIndex) {
+      return samples.get(upslopeSampleIndex).elevation()
+          - samples.get(upslopeSampleIndex - 1).elevation();
+    }
+  }
+
+  /** Effective grain-class transport lengths after bounded slope, roughness, and path response. */
   public record GrainTransportLengths(
       double gravelAndCoarserBlocks, double sandBlocks, double finesBlocks) {
     public GrainTransportLengths {
@@ -400,7 +501,10 @@ public record ColluvialSedimentBudget(
   public record SourceProductionInput(
       StableId sourceBodyId, int upslopeDistanceBlocks, ProductionInput input) {
     public SourceProductionInput {
-      if (sourceBodyId == null || upslopeDistanceBlocks < 0 || input == null) {
+      if (sourceBodyId == null
+          || upslopeDistanceBlocks < 0
+          || input == null
+          || input.terrainPath().distanceBlocks() != upslopeDistanceBlocks) {
         throw new IllegalArgumentException("colluvial source production input is incomplete");
       }
     }
@@ -530,6 +634,10 @@ public record ColluvialSedimentBudget(
 
     public double transportDistanceScale() {
       return ColluvialSedimentBudget.transportDistanceScale(input);
+    }
+
+    public double transportPathResponse() {
+      return ColluvialSedimentBudget.transportPathResponse(input);
     }
 
     public GrainTransportLengths grainTransportLengths() {

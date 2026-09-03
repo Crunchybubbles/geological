@@ -665,6 +665,10 @@ final class MaterialReviewPacketGenerator {
         balance.input().erodibilityIndex(),
         "terrainRoughnessIndex",
         balance.input().terrainRoughnessIndex(),
+        "terrainPath",
+        colluvialTerrainPathJson(balance.input().terrainPath()),
+        "transportPathResponse",
+        balance.transportPathResponse(),
         "transportDistanceScale",
         balance.transportDistanceScale(),
         "transportEFoldingDistanceBlocks",
@@ -695,6 +699,35 @@ final class MaterialReviewPacketGenerator {
         colluvialGrainMassJson(balance.bypassedGrainMass()),
         "depositedGrainMassFixedUnits",
         colluvialGrainMassJson(balance.depositedGrainMass()));
+  }
+
+  private static Map<String, Object> colluvialTerrainPathJson(
+      ColluvialSedimentBudget.TerrainPath path) {
+    return JsonWriter.object(
+        "reachLengthBlocks",
+        path.reachLengthBlocks(),
+        "distanceBlocks",
+        path.distanceBlocks(),
+        "reachCount",
+        path.reachCount(),
+        "elevationSamples",
+        path.samples().stream()
+            .map(
+                sample ->
+                    JsonWriter.object(
+                        "upslopeDistanceBlocks",
+                        sample.upslopeDistanceBlocks(),
+                        "elevation",
+                        sample.elevation()))
+            .toList(),
+        "cumulativeDownslopeReliefBlocks",
+        path.cumulativeDownslopeReliefBlocks(),
+        "cumulativeBarrierReliefBlocks",
+        path.cumulativeBarrierReliefBlocks(),
+        "descendingReachFraction",
+        path.descendingReachFraction(),
+        "downslopeContinuityIndex",
+        path.downslopeContinuityIndex());
   }
 
   private static Map<String, Object> colluvialGrainTransportLengthsJson(
