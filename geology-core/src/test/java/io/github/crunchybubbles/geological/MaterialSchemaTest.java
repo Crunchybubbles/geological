@@ -78,6 +78,7 @@ import io.github.crunchybubbles.geological.petrology.SedimentaryInputBudget;
 import io.github.crunchybubbles.geological.petrology.SedimentaryReservoirContribution;
 import io.github.crunchybubbles.geological.petrology.SedimentaryReservoirKind;
 import io.github.crunchybubbles.geological.petrology.SulfurState;
+import io.github.crunchybubbles.geological.petrology.TraceElementVector;
 import io.github.crunchybubbles.geological.petrology.UnitIntervalDistribution;
 import java.util.List;
 import java.util.Map;
@@ -505,6 +506,33 @@ class MaterialSchemaTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> new FractureTensorState(500_000L, 500_000L, 0L, 600_000L, 0L, 0L, 1L, 1L));
+  }
+
+  @Test
+  void traceElementVectorIsSparseAndLogConcentrationConsistent() {
+    BulkComposition composition =
+        new BulkComposition(
+            Map.of(
+                ChemicalElement.C, 450_000L,
+                ChemicalElement.H, 150_000L,
+                ChemicalElement.O, 250_000L,
+                ChemicalElement.S, 50_000L,
+                ChemicalElement.N, 100_000L),
+            1.5);
+    TraceElementVector vector = TraceElementVector.from(composition);
+
+    assertEquals(50_000L, vector.concentrationPpm(ChemicalElement.S));
+    assertTrue(vector.log10PpmMicros(ChemicalElement.S) > 4_000_000L);
+    assertEquals(0L, vector.concentrationPpm(ChemicalElement.C));
+    assertEquals(1, vector.concentrationPpm().size());
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new TraceElementVector(Map.of(ChemicalElement.C, 1L), Map.of(ChemicalElement.C, 0L)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new TraceElementVector(
+                Map.of(ChemicalElement.S, 50_000L), Map.of(ChemicalElement.S, 0L)));
   }
 
   @Test

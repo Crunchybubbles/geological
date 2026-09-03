@@ -126,6 +126,11 @@ public record PetrologicState(
         rock.lithology(), resolvedTexture, processClass, metamorphism.processState().strainState());
   }
 
+  /** Returns sparse deterministic trace-element and log-concentration evidence. */
+  public TraceElementVector traceElementVector() {
+    return TraceElementVector.from(resolvedComposition);
+  }
+
   private static void requireUnit(double value, String name) {
     if (!Double.isFinite(value) || value < 0.0 || value > 1.0) {
       throw new IllegalArgumentException(name + " must lie in [0, 1]");

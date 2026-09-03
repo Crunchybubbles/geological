@@ -62,6 +62,7 @@ import io.github.crunchybubbles.geological.petrology.SolidSolutionDefinition;
 import io.github.crunchybubbles.geological.petrology.SolidSolutionState;
 import io.github.crunchybubbles.geological.petrology.SurfaceMaterialKind;
 import io.github.crunchybubbles.geological.petrology.SurfacePetrologicSample;
+import io.github.crunchybubbles.geological.petrology.TraceElementVector;
 import io.github.crunchybubbles.geological.petrology.UnitIntervalDistribution;
 import io.github.crunchybubbles.geological.query.GeologicalSample;
 import io.github.crunchybubbles.geological.query.Phase1World;
@@ -1843,6 +1844,8 @@ final class MaterialReviewPacketGenerator {
         elementMap(sample.primaryComposition().elementMassPpm()),
         "resolvedElementsPpm",
         elementMap(sample.resolvedComposition().elementMassPpm()),
+        "traceElementVector",
+        traceElementVectorJson(sample.traceElementVector()),
         "density",
         sample.resolvedComposition().density(),
         "porosityFraction",
@@ -2029,6 +2032,14 @@ final class MaterialReviewPacketGenerator {
         state.intensityPpm(),
         "connectivityPpm",
         state.connectivityPpm());
+  }
+
+  private Map<String, Object> traceElementVectorJson(TraceElementVector state) {
+    return JsonWriter.object(
+        "concentrationPpm",
+        elementMap(state.concentrationPpm()),
+        "log10PpmMicros",
+        elementMap(state.log10PpmMicros()));
   }
 
   private Map<String, Object> regionalMetamorphicStateJson(RegionalMetamorphicState state) {
