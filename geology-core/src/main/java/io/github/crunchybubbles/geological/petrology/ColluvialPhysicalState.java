@@ -45,6 +45,10 @@ public record ColluvialPhysicalState(
     return ColluvialCohesionState.from(textureState, erodibilityIndex);
   }
 
+  public ColluvialHydraulicState hydraulicState() {
+    return ColluvialHydraulicState.from(this);
+  }
+
   public static ColluvialPhysicalState derive(
       ColluvialTextureState textureState,
       UnitIntervalDistribution porosityDistribution,

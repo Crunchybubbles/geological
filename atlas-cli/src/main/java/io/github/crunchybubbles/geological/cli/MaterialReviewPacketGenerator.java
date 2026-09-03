@@ -14,6 +14,7 @@ import io.github.crunchybubbles.geological.petrology.ChemicalElement;
 import io.github.crunchybubbles.geological.petrology.ColluvialCohesionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialGrainDispersionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialHorizonState;
+import io.github.crunchybubbles.geological.petrology.ColluvialHydraulicState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialProductionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
@@ -570,6 +571,8 @@ final class MaterialReviewPacketGenerator {
         colluvialPhysicalStateJson(mix.physicalState()),
         "cohesionState",
         colluvialCohesionStateJson(mix.physicalState().cohesionState()),
+        "hydraulicState",
+        colluvialHydraulicStateJson(mix.physicalState().hydraulicState()),
         "horizonState",
         colluvialHorizonStateJson(mix.horizonState()),
         "sedimentBudget",
@@ -627,6 +630,21 @@ final class MaterialReviewPacketGenerator {
         cohesionState.cohesionIndex(),
         "cohesionAdjustedErodibilityIndex",
         cohesionState.cohesionAdjustedErodibilityIndex());
+  }
+
+  private static Map<String, Object> colluvialHydraulicStateJson(
+      ColluvialHydraulicState hydraulicState) {
+    return JsonWriter.object(
+        "hydraulicClass",
+        hydraulicState.hydraulicClass().name(),
+        "waterStorageIndex",
+        hydraulicState.waterStorageIndex(),
+        "infiltrationIndex",
+        hydraulicState.infiltrationIndex(),
+        "drainageIndex",
+        hydraulicState.drainageIndex(),
+        "runoffPartitionIndex",
+        hydraulicState.runoffPartitionIndex());
   }
 
   private static Map<String, Object> colluvialGrainDispersionStateJson(

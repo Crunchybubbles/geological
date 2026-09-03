@@ -18,6 +18,7 @@ import io.github.crunchybubbles.geological.petrology.ClastShape;
 import io.github.crunchybubbles.geological.petrology.ColluvialCohesionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialGrainDispersionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialHorizonState;
+import io.github.crunchybubbles.geological.petrology.ColluvialHydraulicState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialProductionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
@@ -289,6 +290,23 @@ class MaterialSchemaTest {
     assertTrue(fineCohesion.cohesionAdjustedErodibilityIndex() < fine.erodibilityIndex());
     assertTrue(coarseCohesion.cohesionIndex() < fineCohesion.cohesionIndex());
     assertEquals(fineCohesion, fine.cohesionState());
+    for (ColluvialPhysicalState physicalState : List.of(fine, coarse, sorted, sandy)) {
+      ColluvialHydraulicState hydraulicState = physicalState.hydraulicState();
+      assertTrue(hydraulicState.waterStorageIndex() >= 0.0);
+      assertTrue(hydraulicState.waterStorageIndex() <= 1.0);
+      assertTrue(hydraulicState.infiltrationIndex() >= 0.0);
+      assertTrue(hydraulicState.infiltrationIndex() <= 1.0);
+      assertTrue(hydraulicState.drainageIndex() >= 0.0);
+      assertTrue(hydraulicState.drainageIndex() <= 1.0);
+      assertTrue(hydraulicState.runoffPartitionIndex() >= 0.0);
+      assertTrue(hydraulicState.runoffPartitionIndex() <= 1.0);
+      assertEquals(hydraulicState, physicalState.hydraulicState());
+    }
+    assertEquals(
+        ColluvialHydraulicState.HydraulicClass.LOW_INFILTRATION,
+        fine.hydraulicState().hydraulicClass());
+    assertTrue(
+        coarse.hydraulicState().infiltrationIndex() > fine.hydraulicState().infiltrationIndex());
     assertThrows(
         IllegalArgumentException.class,
         () ->

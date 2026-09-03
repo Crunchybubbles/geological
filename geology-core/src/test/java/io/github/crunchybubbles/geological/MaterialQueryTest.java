@@ -20,6 +20,7 @@ import io.github.crunchybubbles.geological.petrology.ChemicalElement;
 import io.github.crunchybubbles.geological.petrology.ClastShape;
 import io.github.crunchybubbles.geological.petrology.ColluvialCohesionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialGrainDispersionState;
+import io.github.crunchybubbles.geological.petrology.ColluvialHydraulicState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialProductionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
@@ -66,7 +67,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.50", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.51", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1257,6 +1258,12 @@ class MaterialQueryTest {
     assertNotEquals(
         transported.surface().bedrock().rockBodyId(), transported.context().materialBodyId());
     ColluvialSourceMix sourceMix = transported.context().colluvialSourceMix().orElseThrow();
+    ColluvialHydraulicState hydraulicState = sourceMix.physicalState().hydraulicState();
+    assertTrue(hydraulicState.infiltrationIndex() >= 0.0);
+    assertTrue(hydraulicState.infiltrationIndex() <= 1.0);
+    assertTrue(hydraulicState.runoffPartitionIndex() >= 0.0);
+    assertTrue(hydraulicState.runoffPartitionIndex() <= 1.0);
+    assertEquals(hydraulicState, sourceMix.physicalState().hydraulicState());
     assertTrue(sourceMix.horizonState().weatheringIndex() >= 0.0);
     assertTrue(sourceMix.horizonState().weatheringIndex() <= 1.0);
     assertEquals(
