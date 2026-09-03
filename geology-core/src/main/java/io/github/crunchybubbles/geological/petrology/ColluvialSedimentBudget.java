@@ -233,6 +233,10 @@ public record ColluvialSedimentBudget(
         .toList();
   }
 
+  public ColluvialTransportProcessMix transportProcessMix() {
+    return ColluvialTransportProcessMix.from(this);
+  }
+
   public long sourceFractionPpm(StableId sourceBodyId, int upslopeDistanceBlocks) {
     return sourceDepositShares().stream()
         .filter(

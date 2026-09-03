@@ -653,6 +653,16 @@ public final class MaterialQueryEngine {
           .append(':')
           .append(grainShare.depositedGrainMass().finesFixedUnits());
     }
+    ColluvialTransportProcessMix processMix = sedimentBudget.transportProcessMix();
+    purpose
+        .append(":process-mix:")
+        .append(processMix.dominantProcess())
+        .append(':')
+        .append(processMix.hillslopeCreepFractionPpm())
+        .append(':')
+        .append(processMix.sheetwashFractionPpm())
+        .append(':')
+        .append(processMix.dryRavelFractionPpm());
     return StableId.first128(
         geology
             .atlas()

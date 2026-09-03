@@ -29,6 +29,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialSourceMix;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceUsage;
 import io.github.crunchybubbles.geological.petrology.ColluvialTextureState;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcess;
+import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessMix;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
@@ -63,7 +64,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.47", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.48", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1294,6 +1295,13 @@ class MaterialQueryTest {
             .map(ColluvialSourceContribution::upslopeDistanceBlocks)
             .toList());
     ColluvialSedimentBudget sedimentBudget = sourceMix.sedimentBudget();
+    ColluvialTransportProcessMix processMix = sedimentBudget.transportProcessMix();
+    assertEquals(
+        MaterialAssemblage.SCALE,
+        processMix.hillslopeCreepFractionPpm()
+            + processMix.sheetwashFractionPpm()
+            + processMix.dryRavelFractionPpm());
+    assertEquals(processMix, sedimentBudget.transportProcessMix());
     assertEquals(ColluvialSedimentBudget.NORMALIZED_MASS_UNIT, sedimentBudget.unit());
     assertEquals(
         ColluvialSedimentBudget.GrainTransportModel

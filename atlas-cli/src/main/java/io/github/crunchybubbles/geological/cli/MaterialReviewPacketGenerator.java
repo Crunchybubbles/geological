@@ -22,6 +22,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialSourceGrainShare;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceMix;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceUsage;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcess;
+import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessMix;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.MagmaLineageState;
 import io.github.crunchybubbles.geological.petrology.MantleCargoState;
@@ -701,7 +702,9 @@ final class MaterialReviewPacketGenerator {
         "sourceGrainShares",
         budget.sourceGrainShares().stream()
             .map(MaterialReviewPacketGenerator::colluvialSourceGrainShareJson)
-            .toList());
+            .toList(),
+        "transportProcessMix",
+        colluvialTransportProcessMixJson(budget.transportProcessMix()));
   }
 
   private static Map<String, Object> colluvialSedimentSourceBalanceJson(
@@ -750,6 +753,19 @@ final class MaterialReviewPacketGenerator {
         colluvialGrainMassJson(grainShare.depositedGrainMass()),
         "depositedGrainSizePpm",
         sedimentGrainSizeJson(grainShare.depositedGrainSize()));
+  }
+
+  private static Map<String, Object> colluvialTransportProcessMixJson(
+      ColluvialTransportProcessMix processMix) {
+    return JsonWriter.object(
+        "dominantProcess",
+        processMix.dominantProcess().name(),
+        "hillslopeCreepFractionPpm",
+        processMix.hillslopeCreepFractionPpm(),
+        "sheetwashFractionPpm",
+        processMix.sheetwashFractionPpm(),
+        "dryRavelFractionPpm",
+        processMix.dryRavelFractionPpm());
   }
 
   private static Map<String, Object> colluvialSedimentInputBalanceJson(

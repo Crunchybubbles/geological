@@ -25,6 +25,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialSourceGrainShare;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceUsage;
 import io.github.crunchybubbles.geological.petrology.ColluvialTextureState;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcess;
+import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessMix;
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
 import io.github.crunchybubbles.geological.petrology.LigandCapacities;
@@ -124,6 +125,49 @@ class MaterialSchemaTest {
         () ->
             new ColluvialTransportProcess(
                 ColluvialTransportProcess.ProcessClass.DRY_RAVEL, 1.0, 0.0, 0.0));
+  }
+
+  @Test
+  void colluvialTransportProcessMixAggregatesDepositedTranchesExactly() {
+    StableId sheetwashSource = StableId.parse("00000000000000000000000000000c11");
+    StableId dryRavelSource = StableId.parse("00000000000000000000000000000c12");
+    SedimentGrainSize grainYield = new SedimentGrainSize(400_000L, 350_000L, 250_000L);
+    ColluvialSedimentBudget.TerrainPath localPath = terrainPath(100.0);
+    ColluvialSedimentBudget.TerrainPath farPath =
+        terrainPath(100.0, 104.0, 103.0, 109.0, 108.0, 112.0, 116.0);
+    ColluvialSedimentBudget budget =
+        ColluvialSedimentBudget.derive(
+            0.12,
+            new ColluvialSedimentBudget.ProductionInput(
+                350_000L, 8.0, 0.02, 0.8, 0.25, 0.0, localPath, grainYield),
+            List.of(
+                new ColluvialSedimentBudget.SourceProductionInput(
+                    sheetwashSource,
+                    0,
+                    new ColluvialSedimentBudget.ProductionInput(
+                        350_000L, 8.0, 0.12, 0.8, 0.25, 1.0, localPath, grainYield)),
+                new ColluvialSedimentBudget.SourceProductionInput(
+                    dryRavelSource,
+                    192,
+                    new ColluvialSedimentBudget.ProductionInput(
+                        300_000L, 8.0, 0.24, 0.8, 0.25, 0.0, farPath, grainYield))));
+
+    ColluvialTransportProcessMix processMix = budget.transportProcessMix();
+    assertEquals(
+        MaterialAssemblage.SCALE,
+        processMix.hillslopeCreepFractionPpm()
+            + processMix.sheetwashFractionPpm()
+            + processMix.dryRavelFractionPpm());
+    assertTrue(processMix.hillslopeCreepFractionPpm() > 0);
+    assertTrue(processMix.sheetwashFractionPpm() > 0);
+    assertTrue(processMix.dryRavelFractionPpm() > 0);
+    assertEquals(processMix, budget.transportProcessMix());
+    assertEquals(ColluvialTransportProcess.ProcessClass.SHEETWASH, processMix.dominantProcess());
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialTransportProcessMix(
+                ColluvialTransportProcess.ProcessClass.DRY_RAVEL, 500_000L, 500_000L, 1L));
   }
 
   @Test
