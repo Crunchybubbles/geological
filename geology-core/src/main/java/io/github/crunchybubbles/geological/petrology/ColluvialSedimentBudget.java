@@ -233,6 +233,37 @@ public record ColluvialSedimentBudget(
         .toList();
   }
 
+  /** Aggregates every matrix/source tranche into exact process-specific ledgers. */
+  public List<ColluvialTransportProcessUsage> transportProcessUsages() {
+    List<InputBalance> balances = new ArrayList<>(sourceBalances.size() + 1);
+    balances.add(weatheredMatrixBalance);
+    sourceBalances.forEach(source -> balances.add(source.balance()));
+    return List.of(ColluvialTransportProcess.ProcessClass.values()).stream()
+        .map(
+            process -> {
+              List<InputBalance> processBalances =
+                  balances.stream()
+                      .filter(balance -> balance.transportProcess().processClass() == process)
+                      .toList();
+              return new ColluvialTransportProcessUsage(
+                  process,
+                  processBalances.size(),
+                  total(processBalances, balance -> balance.input().capacityFixedUnits()),
+                  total(processBalances, InputBalance::mobilizedFixedUnits),
+                  total(processBalances, InputBalance::retainedFixedUnits),
+                  total(processBalances, InputBalance::transportLossFixedUnits),
+                  total(processBalances, InputBalance::bypassedFixedUnits),
+                  total(processBalances, InputBalance::depositedFixedUnits),
+                  totalGrainMass(processBalances, InputBalance::capacityGrainMass),
+                  totalGrainMass(processBalances, InputBalance::mobilizedGrainMass),
+                  totalGrainMass(processBalances, InputBalance::retainedGrainMass),
+                  totalGrainMass(processBalances, InputBalance::transportLossGrainMass),
+                  totalGrainMass(processBalances, InputBalance::bypassedGrainMass),
+                  totalGrainMass(processBalances, InputBalance::depositedGrainMass));
+            })
+        .toList();
+  }
+
   public ColluvialTransportProcessMix transportProcessMix() {
     return ColluvialTransportProcessMix.from(this);
   }
@@ -287,6 +318,23 @@ public record ColluvialSedimentBudget(
     GrainMass result = value.apply(weatheredMatrixBalance);
     for (SourceBalance source : sourceBalances) {
       result = result.add(value.apply(source.balance()));
+    }
+    return result;
+  }
+
+  private static long total(List<InputBalance> balances, ToLongFunction<InputBalance> value) {
+    long result = 0;
+    for (InputBalance balance : balances) {
+      result = Math.addExact(result, value.applyAsLong(balance));
+    }
+    return result;
+  }
+
+  private static GrainMass totalGrainMass(
+      List<InputBalance> balances, Function<InputBalance, GrainMass> value) {
+    GrainMass result = new GrainMass(0, 0, 0);
+    for (InputBalance balance : balances) {
+      result = result.add(value.apply(balance));
     }
     return result;
   }

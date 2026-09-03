@@ -23,6 +23,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialSourceMix;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceUsage;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcess;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessMix;
+import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessUsage;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.MagmaLineageState;
 import io.github.crunchybubbles.geological.petrology.MantleCargoState;
@@ -704,7 +705,11 @@ final class MaterialReviewPacketGenerator {
             .map(MaterialReviewPacketGenerator::colluvialSourceGrainShareJson)
             .toList(),
         "transportProcessMix",
-        colluvialTransportProcessMixJson(budget.transportProcessMix()));
+        colluvialTransportProcessMixJson(budget.transportProcessMix()),
+        "transportProcessUsages",
+        budget.transportProcessUsages().stream()
+            .map(MaterialReviewPacketGenerator::colluvialTransportProcessUsageJson)
+            .toList());
   }
 
   private static Map<String, Object> colluvialSedimentSourceBalanceJson(
@@ -766,6 +771,39 @@ final class MaterialReviewPacketGenerator {
         processMix.sheetwashFractionPpm(),
         "dryRavelFractionPpm",
         processMix.dryRavelFractionPpm());
+  }
+
+  private static Map<String, Object> colluvialTransportProcessUsageJson(
+      ColluvialTransportProcessUsage usage) {
+    return JsonWriter.object(
+        "processClass",
+        usage.processClass().name(),
+        "trancheCount",
+        usage.trancheCount(),
+        "capacityFixedUnits",
+        usage.capacityFixedUnits(),
+        "mobilizedFixedUnits",
+        usage.mobilizedFixedUnits(),
+        "retainedFixedUnits",
+        usage.retainedFixedUnits(),
+        "transportLossFixedUnits",
+        usage.transportLossFixedUnits(),
+        "bypassedFixedUnits",
+        usage.bypassedFixedUnits(),
+        "depositedFixedUnits",
+        usage.depositedFixedUnits(),
+        "capacityGrainMassFixedUnits",
+        colluvialGrainMassJson(usage.capacityGrainMass()),
+        "mobilizedGrainMassFixedUnits",
+        colluvialGrainMassJson(usage.mobilizedGrainMass()),
+        "retainedGrainMassFixedUnits",
+        colluvialGrainMassJson(usage.retainedGrainMass()),
+        "transportLossGrainMassFixedUnits",
+        colluvialGrainMassJson(usage.transportLossGrainMass()),
+        "bypassedGrainMassFixedUnits",
+        colluvialGrainMassJson(usage.bypassedGrainMass()),
+        "depositedGrainMassFixedUnits",
+        colluvialGrainMassJson(usage.depositedGrainMass()));
   }
 
   private static Map<String, Object> colluvialSedimentInputBalanceJson(

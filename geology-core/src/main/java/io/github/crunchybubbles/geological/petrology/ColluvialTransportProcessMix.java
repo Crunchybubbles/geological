@@ -36,9 +36,8 @@ public record ColluvialTransportProcessMix(
       throw new IllegalArgumentException("colluvial sediment budget is required");
     }
     long[] depositedByProcess = new long[ColluvialTransportProcess.ProcessClass.values().length];
-    add(depositedByProcess, budget.weatheredMatrixBalance());
-    for (ColluvialSedimentBudget.SourceBalance source : budget.sourceBalances()) {
-      add(depositedByProcess, source.balance());
+    for (ColluvialTransportProcessUsage usage : budget.transportProcessUsages()) {
+      depositedByProcess[usage.processClass().ordinal()] = usage.depositedFixedUnits();
     }
     long[] fractions = apportion(MaterialAssemblage.SCALE, depositedByProcess);
     ColluvialTransportProcess.ProcessClass dominant =
@@ -52,13 +51,6 @@ public record ColluvialTransportProcessMix(
       }
     }
     return new ColluvialTransportProcessMix(dominant, fractions[0], fractions[1], fractions[2]);
-  }
-
-  private static void add(long[] depositedByProcess, ColluvialSedimentBudget.InputBalance balance) {
-    depositedByProcess[balance.transportProcess().processClass().ordinal()] =
-        Math.addExact(
-            depositedByProcess[balance.transportProcess().processClass().ordinal()],
-            balance.depositedFixedUnits());
   }
 
   private static long[] apportion(long allocation, long[] weights) {

@@ -663,6 +663,31 @@ public final class MaterialQueryEngine {
         .append(processMix.sheetwashFractionPpm())
         .append(':')
         .append(processMix.dryRavelFractionPpm());
+    for (ColluvialTransportProcessUsage usage : sedimentBudget.transportProcessUsages()) {
+      purpose
+          .append(":process-usage:")
+          .append(usage.processClass())
+          .append(':')
+          .append(usage.trancheCount())
+          .append(':')
+          .append(usage.capacityFixedUnits())
+          .append(':')
+          .append(usage.mobilizedFixedUnits())
+          .append(':')
+          .append(usage.retainedFixedUnits())
+          .append(':')
+          .append(usage.transportLossFixedUnits())
+          .append(':')
+          .append(usage.bypassedFixedUnits())
+          .append(':')
+          .append(usage.depositedFixedUnits())
+          .append(':')
+          .append(usage.depositedGrainMass().gravelAndCoarserFixedUnits())
+          .append(':')
+          .append(usage.depositedGrainMass().sandFixedUnits())
+          .append(':')
+          .append(usage.depositedGrainMass().finesFixedUnits());
+    }
     return StableId.first128(
         geology
             .atlas()
