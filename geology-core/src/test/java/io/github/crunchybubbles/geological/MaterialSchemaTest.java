@@ -15,6 +15,7 @@ import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
 import io.github.crunchybubbles.geological.petrology.BodyCompositionSampler;
 import io.github.crunchybubbles.geological.petrology.ClastShape;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
+import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialTextureState;
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
@@ -119,6 +120,51 @@ class MaterialSchemaTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> new ColluvialPhysicalState(fineMatrix, -0.1, 0.2, 0.3, 0.4, 0.5, 0.6));
+  }
+
+  @Test
+  void colluvialSedimentBudgetRequiresExactInputToDepositClosure() {
+    StableId source = StableId.parse("00000000000000000000000000000c01");
+    ColluvialSedimentBudget.SourceDebit debit =
+        new ColluvialSedimentBudget.SourceDebit(source, 0, 650_000L);
+
+    ColluvialSedimentBudget budget =
+        new ColluvialSedimentBudget(
+            ColluvialSedimentBudget.NORMALIZED_MASS_UNIT,
+            MaterialAssemblage.SCALE,
+            MaterialAssemblage.SCALE,
+            350_000L,
+            List.of(debit));
+
+    assertEquals(MaterialAssemblage.SCALE, budget.sourceInventoryFixedUnits());
+    assertEquals(budget.sourceInventoryFixedUnits(), budget.depositedInventoryFixedUnits());
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialSedimentBudget(
+                ColluvialSedimentBudget.NORMALIZED_MASS_UNIT,
+                MaterialAssemblage.SCALE,
+                MaterialAssemblage.SCALE,
+                349_999L,
+                List.of(debit)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialSedimentBudget(
+                ColluvialSedimentBudget.NORMALIZED_MASS_UNIT,
+                MaterialAssemblage.SCALE,
+                MaterialAssemblage.SCALE - 1,
+                350_000L,
+                List.of(debit)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialSedimentBudget(
+                ColluvialSedimentBudget.NORMALIZED_MASS_UNIT,
+                MaterialAssemblage.SCALE + 650_000L,
+                MaterialAssemblage.SCALE + 650_000L,
+                350_000L,
+                List.of(debit, new ColluvialSedimentBudget.SourceDebit(source, 0, 650_000L))));
   }
 
   @Test

@@ -12,6 +12,7 @@ import io.github.crunchybubbles.geological.model.Point3;
 import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
 import io.github.crunchybubbles.geological.petrology.ChemicalElement;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
+import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceMix;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
@@ -551,6 +552,8 @@ final class MaterialReviewPacketGenerator {
             mix.textureState().clastShape().name()),
         "physicalState",
         colluvialPhysicalStateJson(mix.physicalState()),
+        "sedimentBudget",
+        colluvialSedimentBudgetJson(mix.sedimentBudget()),
         "sourceContributions",
         mix.sourceContributions().stream()
             .map(MaterialReviewPacketGenerator::colluvialSourceContributionJson)
@@ -591,6 +594,33 @@ final class MaterialReviewPacketGenerator {
         physicalState.permeabilityIndex(),
         "erodibilityIndex",
         physicalState.erodibilityIndex());
+  }
+
+  private static Map<String, Object> colluvialSedimentBudgetJson(ColluvialSedimentBudget budget) {
+    return JsonWriter.object(
+        "unit",
+        budget.unit(),
+        "sourceInventoryFixedUnits",
+        budget.sourceInventoryFixedUnits(),
+        "depositedInventoryFixedUnits",
+        budget.depositedInventoryFixedUnits(),
+        "weatheredMatrixInputFixedUnits",
+        budget.weatheredMatrixInputFixedUnits(),
+        "sourceDebits",
+        budget.sourceDebits().stream()
+            .map(MaterialReviewPacketGenerator::colluvialSedimentSourceDebitJson)
+            .toList());
+  }
+
+  private static Map<String, Object> colluvialSedimentSourceDebitJson(
+      ColluvialSedimentBudget.SourceDebit debit) {
+    return JsonWriter.object(
+        "sourceBodyId",
+        debit.sourceBodyId().toString(),
+        "upslopeDistanceBlocks",
+        debit.upslopeDistanceBlocks(),
+        "debitedFixedUnits",
+        debit.debitedFixedUnits());
   }
 
   private Province referenceProvince() {

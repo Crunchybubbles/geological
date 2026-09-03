@@ -19,6 +19,7 @@ import io.github.crunchybubbles.geological.petrology.BodyCompositionSampler;
 import io.github.crunchybubbles.geological.petrology.ChemicalElement;
 import io.github.crunchybubbles.geological.petrology.ClastShape;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
+import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceMix;
 import io.github.crunchybubbles.geological.petrology.ColluvialTextureState;
@@ -57,7 +58,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.29", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.30", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1284,6 +1285,20 @@ class MaterialQueryTest {
         sourceMix.sourceContributions().stream()
             .map(ColluvialSourceContribution::assemblageFractionPpm)
             .toList());
+    ColluvialSedimentBudget sedimentBudget = sourceMix.sedimentBudget();
+    assertEquals(ColluvialSedimentBudget.NORMALIZED_MASS_UNIT, sedimentBudget.unit());
+    assertEquals(MaterialAssemblage.SCALE, sedimentBudget.sourceInventoryFixedUnits());
+    assertEquals(MaterialAssemblage.SCALE, sedimentBudget.depositedInventoryFixedUnits());
+    assertEquals(350_000L, sedimentBudget.weatheredMatrixInputFixedUnits());
+    assertEquals(
+        List.of(350_000L, 200_000L, 100_000L),
+        sedimentBudget.sourceDebits().stream()
+            .map(ColluvialSedimentBudget.SourceDebit::debitedFixedUnits)
+            .toList());
+    assertEquals(
+        ColluvialSedimentBudget.normalizedParcel(
+            sourceMix.sourceContributions(), sourceMix.weatheredMatrixFractionPpm()),
+        sedimentBudget);
     MaterialAssemblage genericMatrix =
         new BodyCompositionSampler(query.geology().atlas().identity())
             .sample(
@@ -1356,9 +1371,27 @@ class MaterialQueryTest {
   @Test
   void terrainDirectedColluviumResolvesEachCrossProvinceSourceWithItsOwner() {
     MaterialQueryEngine query = Phase2World.create(2_025L);
-    Point2 point = new Point2(-2_199.75, -6_000.25);
+    Point2 fixture = null;
+    SurfacePetrologicSample crossProvinceColluvium = null;
+    for (int z = -6_200; z <= -5_600 && crossProvinceColluvium == null; z += 100) {
+      for (int x = -6_000; x <= 6_000 && crossProvinceColluvium == null; x += 100) {
+        Point2 candidatePoint = new Point2(x + 0.25, z - 0.25);
+        SurfacePetrologicSample candidate = query.surface(candidatePoint);
+        if (candidate.context().kind() == SurfaceMaterialKind.COLLUVIAL_MANTLE
+            && candidate.context().colluvialSourceMix().orElseThrow().sourceContributions().stream()
+                    .map(ColluvialSourceContribution::sourceProvinceId)
+                    .distinct()
+                    .count()
+                > 1) {
+          fixture = candidatePoint;
+          crossProvinceColluvium = candidate;
+        }
+      }
+    }
 
-    SurfacePetrologicSample transported = query.surface(point);
+    Point2 point = Objects.requireNonNull(fixture, "no cross-province colluvium fixture found");
+    SurfacePetrologicSample transported =
+        Objects.requireNonNull(crossProvinceColluvium, "no cross-province colluvium found");
 
     assertEquals(SurfaceMaterialKind.COLLUVIAL_MANTLE, transported.context().kind());
     ColluvialSourceMix mix = transported.context().colluvialSourceMix().orElseThrow();
@@ -1394,6 +1427,8 @@ class MaterialQueryTest {
     UnitIntervalDistribution distribution = new UnitIntervalDistribution(0.1, 0.4, 0.8);
     ColluvialPhysicalState physical =
         ColluvialPhysicalState.derive(texture, distribution, distribution, distribution);
+    ColluvialSedimentBudget budget =
+        ColluvialSedimentBudget.normalizedParcel(List.of(local), 350_000L);
     ColluvialTextureState otherTexture =
         ColluvialTextureState.from(new SedimentGrainSize(600_000L, 300_000L, 100_000L));
     ColluvialPhysicalState mismatchedPhysical =
@@ -1403,11 +1438,25 @@ class MaterialQueryTest {
         IllegalArgumentException.class,
         () ->
             new ColluvialSourceMix(
-                direction, List.of(local), 350_000L, texture, mismatchedPhysical));
+                direction, List.of(local), 350_000L, texture, mismatchedPhysical, budget));
+
+    ColluvialSedimentBudget mismatchedBudget =
+        new ColluvialSedimentBudget(
+            ColluvialSedimentBudget.NORMALIZED_MASS_UNIT,
+            MaterialAssemblage.SCALE,
+            MaterialAssemblage.SCALE,
+            350_001L,
+            List.of(new ColluvialSedimentBudget.SourceDebit(source, 0, 649_999L)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialSourceMix(
+                direction, List.of(local), 350_000L, texture, physical, mismatchedBudget));
 
     assertThrows(
         IllegalArgumentException.class,
-        () -> new ColluvialSourceMix(direction, List.of(local), 349_999L, texture, physical));
+        () ->
+            new ColluvialSourceMix(direction, List.of(local), 349_999L, texture, physical, budget));
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1424,16 +1473,18 @@ class MaterialQueryTest {
                         650_000L)),
                 350_000L,
                 texture,
-                physical));
-    assertThrows(
-        IllegalArgumentException.class,
-        () ->
-            new ColluvialSourceMix(direction, List.of(local, local), 350_000L, texture, physical));
+                physical,
+                budget));
     assertThrows(
         IllegalArgumentException.class,
         () ->
             new ColluvialSourceMix(
-                new Point2(0.5, 0.0), List.of(local), 350_000L, texture, physical));
+                direction, List.of(local, local), 350_000L, texture, physical, budget));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialSourceMix(
+                new Point2(0.5, 0.0), List.of(local), 350_000L, texture, physical, budget));
     ColluvialSourceContribution misplaced =
         new ColluvialSourceContribution(
             sourcePoint.add(95.0, 0.0),
@@ -1450,7 +1501,7 @@ class MaterialQueryTest {
         IllegalArgumentException.class,
         () ->
             new ColluvialSourceMix(
-                direction, List.of(reducedLocal, misplaced), 350_000L, texture, physical));
+                direction, List.of(reducedLocal, misplaced), 350_000L, texture, physical, budget));
   }
 
   @Test

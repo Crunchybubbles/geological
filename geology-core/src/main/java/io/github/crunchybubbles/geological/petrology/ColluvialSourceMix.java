@@ -11,14 +11,16 @@ public record ColluvialSourceMix(
     List<ColluvialSourceContribution> sourceContributions,
     long weatheredMatrixFractionPpm,
     ColluvialTextureState textureState,
-    ColluvialPhysicalState physicalState) {
+    ColluvialPhysicalState physicalState,
+    ColluvialSedimentBudget sedimentBudget) {
   public ColluvialSourceMix {
     if (upslopeDirection == null
         || sourceContributions == null
         || textureState == null
-        || physicalState == null) {
+        || physicalState == null
+        || sedimentBudget == null) {
       throw new IllegalArgumentException(
-          "colluvial direction, source contributions, texture, and physical state are required");
+          "colluvial direction, sources, texture, physical state, and budget are required");
     }
     if (!textureState.equals(physicalState.textureState())) {
       throw new IllegalArgumentException("colluvial texture and physical state must agree");
@@ -65,6 +67,11 @@ public record ColluvialSourceMix(
         != MaterialAssemblage.SCALE) {
       throw new IllegalArgumentException(
           "colluvial mixture fractions must close to " + MaterialAssemblage.SCALE);
+    }
+    if (!sedimentBudget.equals(
+        ColluvialSedimentBudget.normalizedParcel(
+            sourceContributions, weatheredMatrixFractionPpm))) {
+      throw new IllegalArgumentException("colluvial sediment budget must match the source mixture");
     }
   }
 

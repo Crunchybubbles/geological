@@ -168,13 +168,19 @@ public final class MaterialQueryEngine {
               colluviumRock.porosityDistribution(),
               colluviumRock.permeabilityDistribution(),
               colluviumRock.erodibilityDistribution());
+      List<ColluvialSourceContribution> sourceContributions =
+          sources.stream().map(ResolvedColluvialSource::contribution).toList();
+      ColluvialSedimentBudget sedimentBudget =
+          ColluvialSedimentBudget.normalizedParcel(
+              sourceContributions, COLLUVIUM_WEATHERED_MATRIX_FRACTION_PPM);
       ColluvialSourceMix sourceMix =
           new ColluvialSourceMix(
               upslopeDirection,
-              sources.stream().map(ResolvedColluvialSource::contribution).toList(),
+              sourceContributions,
               COLLUVIUM_WEATHERED_MATRIX_FRACTION_PPM,
               textureState,
-              physicalState);
+              physicalState,
+              sedimentBudget);
       StableId colluvialBodyId = colluvialBodyId(sourceMix);
       surface =
           new SurfaceSample(surface.fields(), bedrock, Lithology.SOIL_COLLUVIUM, Overprint.NONE);
@@ -355,6 +361,25 @@ public final class MaterialQueryEngine {
         .append(physicalState.permeabilityIndex())
         .append(':')
         .append(physicalState.erodibilityIndex());
+    ColluvialSedimentBudget sedimentBudget = sourceMix.sedimentBudget();
+    purpose
+        .append(":sediment-budget:")
+        .append(sedimentBudget.unit())
+        .append(':')
+        .append(sedimentBudget.sourceInventoryFixedUnits())
+        .append(':')
+        .append(sedimentBudget.depositedInventoryFixedUnits())
+        .append(':')
+        .append(sedimentBudget.weatheredMatrixInputFixedUnits());
+    for (ColluvialSedimentBudget.SourceDebit debit : sedimentBudget.sourceDebits()) {
+      purpose
+          .append(':')
+          .append(debit.upslopeDistanceBlocks())
+          .append(':')
+          .append(debit.sourceBodyId())
+          .append(':')
+          .append(debit.debitedFixedUnits());
+    }
     return StableId.first128(
         geology
             .atlas()

@@ -42,6 +42,12 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"porosityQuantile\""));
     assertTrue(firstJson.contains("\"permeabilityQuantile\""));
     assertTrue(firstJson.contains("\"erodibilityQuantile\""));
+    assertTrue(firstJson.contains("\"sedimentBudget\""));
+    assertTrue(firstJson.contains("\"unit\": \"phase2_normalized_sediment_mass\""));
+    assertTrue(firstJson.contains("\"depositedInventoryFixedUnits\": 1000000"));
+    assertTrue(firstJson.contains("\"weatheredMatrixInputFixedUnits\": 350000"));
+    assertTrue(firstJson.contains("\"sourceDebits\""));
+    assertTrue(firstJson.contains("\"debitedFixedUnits\": 350000"));
     assertTrue(firstJson.contains("\"sourceContributions\""));
     assertTrue(firstJson.contains("\"upslopeDirection\""));
     assertTrue(firstJson.contains("\"sourcePoint\""));
