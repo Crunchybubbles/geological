@@ -68,9 +68,7 @@ public record ColluvialSourceMix(
       throw new IllegalArgumentException(
           "colluvial mixture fractions must close to " + MaterialAssemblage.SCALE);
     }
-    if (!sedimentBudget.equals(
-        ColluvialSedimentBudget.normalizedParcel(
-            sourceContributions, weatheredMatrixFractionPpm))) {
+    if (!sedimentBudget.matches(sourceContributions, weatheredMatrixFractionPpm)) {
       throw new IllegalArgumentException("colluvial sediment budget must match the source mixture");
     }
   }

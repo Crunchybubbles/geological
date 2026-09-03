@@ -600,27 +600,65 @@ final class MaterialReviewPacketGenerator {
     return JsonWriter.object(
         "unit",
         budget.unit(),
-        "sourceInventoryFixedUnits",
-        budget.sourceInventoryFixedUnits(),
+        "depositionSlope",
+        budget.depositionSlope(),
+        "sourceCapacityFixedUnits",
+        budget.sourceCapacityFixedUnits(),
+        "mobilizedInventoryFixedUnits",
+        budget.mobilizedInventoryFixedUnits(),
+        "retainedInventoryFixedUnits",
+        budget.retainedInventoryFixedUnits(),
+        "transportLossFixedUnits",
+        budget.transportLossFixedUnits(),
+        "bypassedInventoryFixedUnits",
+        budget.bypassedInventoryFixedUnits(),
         "depositedInventoryFixedUnits",
         budget.depositedInventoryFixedUnits(),
-        "weatheredMatrixInputFixedUnits",
-        budget.weatheredMatrixInputFixedUnits(),
-        "sourceDebits",
-        budget.sourceDebits().stream()
-            .map(MaterialReviewPacketGenerator::colluvialSedimentSourceDebitJson)
+        "weatheredMatrixBalance",
+        colluvialSedimentInputBalanceJson(
+            budget.weatheredMatrixBalance(), budget.weatheredMatrixFractionPpm()),
+        "sourceBalances",
+        budget.sourceBalances().stream()
+            .map(source -> colluvialSedimentSourceBalanceJson(budget, source))
             .toList());
   }
 
-  private static Map<String, Object> colluvialSedimentSourceDebitJson(
-      ColluvialSedimentBudget.SourceDebit debit) {
+  private static Map<String, Object> colluvialSedimentSourceBalanceJson(
+      ColluvialSedimentBudget budget, ColluvialSedimentBudget.SourceBalance source) {
     return JsonWriter.object(
         "sourceBodyId",
-        debit.sourceBodyId().toString(),
+        source.sourceBodyId().toString(),
         "upslopeDistanceBlocks",
-        debit.upslopeDistanceBlocks(),
-        "debitedFixedUnits",
-        debit.debitedFixedUnits());
+        source.upslopeDistanceBlocks(),
+        "massBalance",
+        colluvialSedimentInputBalanceJson(
+            source.balance(),
+            budget.sourceFractionPpm(source.sourceBodyId(), source.upslopeDistanceBlocks())));
+  }
+
+  private static Map<String, Object> colluvialSedimentInputBalanceJson(
+      ColluvialSedimentBudget.InputBalance balance, long normalizedDepositFractionPpm) {
+    return JsonWriter.object(
+        "capacityFixedUnits",
+        balance.input().capacityFixedUnits(),
+        "weatheringDepth",
+        balance.input().weatheringDepth(),
+        "slope",
+        balance.input().slope(),
+        "erodibilityIndex",
+        balance.input().erodibilityIndex(),
+        "mobilizedFixedUnits",
+        balance.mobilizedFixedUnits(),
+        "retainedFixedUnits",
+        balance.retainedFixedUnits(),
+        "transportLossFixedUnits",
+        balance.transportLossFixedUnits(),
+        "bypassedFixedUnits",
+        balance.bypassedFixedUnits(),
+        "depositedFixedUnits",
+        balance.depositedFixedUnits(),
+        "normalizedDepositFractionPpm",
+        normalizedDepositFractionPpm);
   }
 
   private Province referenceProvince() {

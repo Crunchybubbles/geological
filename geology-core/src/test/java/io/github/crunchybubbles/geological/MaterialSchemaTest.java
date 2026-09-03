@@ -123,48 +123,122 @@ class MaterialSchemaTest {
   }
 
   @Test
-  void colluvialSedimentBudgetRequiresExactInputToDepositClosure() {
-    StableId source = StableId.parse("00000000000000000000000000000c01");
-    ColluvialSedimentBudget.SourceDebit debit =
-        new ColluvialSedimentBudget.SourceDebit(source, 0, 650_000L);
+  void colluvialSedimentBudgetClosesCapacityAndDerivesDepositSharesFromDelivery() {
+    StableId local = StableId.parse("00000000000000000000000000000c01");
+    StableId far = StableId.parse("00000000000000000000000000000c02");
+    ColluvialSedimentBudget.ProductionInput matrix =
+        new ColluvialSedimentBudget.ProductionInput(350_000L, 8.0, 0.12, 0.8);
+    ColluvialSedimentBudget.SourceProductionInput localInput =
+        new ColluvialSedimentBudget.SourceProductionInput(
+            local, 0, new ColluvialSedimentBudget.ProductionInput(350_000L, 8.0, 0.12, 0.8));
+    ColluvialSedimentBudget.SourceProductionInput farInput =
+        new ColluvialSedimentBudget.SourceProductionInput(
+            far, 192, new ColluvialSedimentBudget.ProductionInput(300_000L, 8.0, 0.12, 0.8));
 
     ColluvialSedimentBudget budget =
-        new ColluvialSedimentBudget(
-            ColluvialSedimentBudget.NORMALIZED_MASS_UNIT,
-            MaterialAssemblage.SCALE,
-            MaterialAssemblage.SCALE,
-            350_000L,
-            List.of(debit));
+        ColluvialSedimentBudget.derive(0.12, matrix, List.of(farInput, localInput));
 
-    assertEquals(MaterialAssemblage.SCALE, budget.sourceInventoryFixedUnits());
-    assertEquals(budget.sourceInventoryFixedUnits(), budget.depositedInventoryFixedUnits());
+    assertEquals(MaterialAssemblage.SCALE, budget.sourceCapacityFixedUnits());
+    assertEquals(
+        budget.sourceCapacityFixedUnits(),
+        budget.retainedInventoryFixedUnits() + budget.mobilizedInventoryFixedUnits());
+    assertEquals(
+        budget.mobilizedInventoryFixedUnits(),
+        budget.transportLossFixedUnits()
+            + budget.bypassedInventoryFixedUnits()
+            + budget.depositedInventoryFixedUnits());
+    assertEquals(
+        MaterialAssemblage.SCALE,
+        budget.weatheredMatrixFractionPpm()
+            + budget.sourceDepositShares().stream()
+                .mapToLong(ColluvialSedimentBudget.SourceDepositShare::fractionPpm)
+                .sum());
+    assertTrue(budget.retainedInventoryFixedUnits() > 0);
+    assertTrue(budget.transportLossFixedUnits() > 0);
+    assertTrue(budget.bypassedInventoryFixedUnits() > 0);
+    assertTrue(budget.depositedInventoryFixedUnits() > 0);
+    assertEquals(375_000L, budget.mobilizedInventoryFixedUnits());
+    assertEquals(625_000L, budget.retainedInventoryFixedUnits());
+    assertEquals(44_265L, budget.transportLossFixedUnits());
+    assertEquals(82_683L, budget.bypassedInventoryFixedUnits());
+    assertEquals(248_052L, budget.depositedInventoryFixedUnits());
+    assertEquals(396_844L, budget.weatheredMatrixFractionPpm());
+    assertEquals(396_844L, budget.sourceFractionPpm(local, 0));
+    assertEquals(206_312L, budget.sourceFractionPpm(far, 192));
+    assertEquals(
+        budget, ColluvialSedimentBudget.derive(0.12, matrix, List.of(localInput, farInput)));
+
+    ColluvialSedimentBudget lowResponse =
+        singleSourceBudget(local, matrix, 96, 0.12, 4.0, 0.06, 0.2);
+    long lowMobilized = lowResponse.sourceBalances().getFirst().balance().mobilizedFixedUnits();
+    assertTrue(
+        singleSourceBudget(local, matrix, 96, 0.12, 10.0, 0.06, 0.2)
+                .sourceBalances()
+                .getFirst()
+                .balance()
+                .mobilizedFixedUnits()
+            > lowMobilized);
+    assertTrue(
+        singleSourceBudget(local, matrix, 96, 0.12, 4.0, 0.20, 0.2)
+                .sourceBalances()
+                .getFirst()
+                .balance()
+                .mobilizedFixedUnits()
+            > lowMobilized);
+    assertTrue(
+        singleSourceBudget(local, matrix, 96, 0.12, 4.0, 0.06, 0.8)
+                .sourceBalances()
+                .getFirst()
+                .balance()
+                .mobilizedFixedUnits()
+            > lowMobilized);
+    ColluvialSedimentBudget gentleTarget =
+        singleSourceBudget(local, matrix, 96, 0.02, 8.0, 0.12, 0.8);
+    ColluvialSedimentBudget steepTarget =
+        singleSourceBudget(local, matrix, 96, 0.24, 8.0, 0.12, 0.8);
+    assertTrue(
+        steepTarget.bypassedInventoryFixedUnits() > gentleTarget.bypassedInventoryFixedUnits());
+    assertTrue(
+        steepTarget.depositedInventoryFixedUnits() < gentleTarget.depositedInventoryFixedUnits());
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new ColluvialSedimentBudget.ProductionInput(-1L, 8.0, 0.12, 0.8));
     assertThrows(
         IllegalArgumentException.class,
         () ->
-            new ColluvialSedimentBudget(
-                ColluvialSedimentBudget.NORMALIZED_MASS_UNIT,
-                MaterialAssemblage.SCALE,
-                MaterialAssemblage.SCALE,
-                349_999L,
-                List.of(debit)));
+            ColluvialSedimentBudget.derive(
+                0.12,
+                new ColluvialSedimentBudget.ProductionInput(349_999L, 8.0, 0.12, 0.8),
+                List.of(localInput, farInput)));
     assertThrows(
         IllegalArgumentException.class,
         () ->
-            new ColluvialSedimentBudget(
-                ColluvialSedimentBudget.NORMALIZED_MASS_UNIT,
-                MaterialAssemblage.SCALE,
-                MaterialAssemblage.SCALE - 1,
-                350_000L,
-                List.of(debit)));
-    assertThrows(
-        IllegalArgumentException.class,
-        () ->
-            new ColluvialSedimentBudget(
-                ColluvialSedimentBudget.NORMALIZED_MASS_UNIT,
-                MaterialAssemblage.SCALE + 650_000L,
-                MaterialAssemblage.SCALE + 650_000L,
-                350_000L,
-                List.of(debit, new ColluvialSedimentBudget.SourceDebit(source, 0, 650_000L))));
+            ColluvialSedimentBudget.derive(
+                0.12,
+                matrix,
+                List.of(
+                    localInput,
+                    new ColluvialSedimentBudget.SourceProductionInput(far, 0, farInput.input()))));
+  }
+
+  private static ColluvialSedimentBudget singleSourceBudget(
+      StableId source,
+      ColluvialSedimentBudget.ProductionInput matrix,
+      int distance,
+      double depositionSlope,
+      double weatheringDepth,
+      double sourceSlope,
+      double erodibility) {
+    return ColluvialSedimentBudget.derive(
+        depositionSlope,
+        matrix,
+        List.of(
+            new ColluvialSedimentBudget.SourceProductionInput(
+                source,
+                distance,
+                new ColluvialSedimentBudget.ProductionInput(
+                    650_000L, weatheringDepth, sourceSlope, erodibility))));
   }
 
   @Test
