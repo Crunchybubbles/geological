@@ -57,7 +57,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.40", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.41", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1291,7 +1291,7 @@ class MaterialQueryTest {
     assertEquals(ColluvialSedimentBudget.NORMALIZED_MASS_UNIT, sedimentBudget.unit());
     assertEquals(
         ColluvialSedimentBudget.GrainTransportModel
-            .SLOPE_ROUGHNESS_PATH_CONDITIONED_DRY_RAVEL_PROOF,
+            .SLOPE_ROUGHNESS_PATH_GRADE_RUNOFF_CONDITIONED_DRY_RAVEL_PROOF,
         sedimentBudget.grainTransportModel());
     assertEquals(transported.surface().fields().slope(), sedimentBudget.depositionSlope());
     assertEquals(MaterialAssemblage.SCALE, sedimentBudget.sourceCapacityFixedUnits());
@@ -1395,6 +1395,10 @@ class MaterialQueryTest {
       assertEquals(
           expectedTerrainRoughnessIndex(query, sourcePoint),
           sourceBalance.balance().input().terrainRoughnessIndex(),
+          1.0e-15);
+      assertEquals(
+          sourceSurface.fields().drainage().flowAccumulation(),
+          sourceBalance.balance().input().runoffIndex(),
           1.0e-15);
       assertTrue(sourceBalance.balance().input().terrainRoughnessIndex() >= 0.0);
       assertTrue(sourceBalance.balance().input().terrainRoughnessIndex() <= 1.0);

@@ -684,6 +684,8 @@ final class MaterialReviewPacketGenerator {
         balance.input().erodibilityIndex(),
         "terrainRoughnessIndex",
         balance.input().terrainRoughnessIndex(),
+        "runoffIndex",
+        balance.input().runoffIndex(),
         "terrainPath",
         colluvialTerrainPathJson(balance.input().terrainPath()),
         "transportPathResponse",

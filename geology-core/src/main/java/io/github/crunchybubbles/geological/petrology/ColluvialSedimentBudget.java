@@ -22,10 +22,12 @@ public record ColluvialSedimentBudget(
   private static final double WEATHERING_DEPTH_REFERENCE = 12.0;
   private static final double SLOPE_MOBILITY_REFERENCE = 0.24;
   private static final double MINIMUM_SLOPE_MOBILITY = 0.25;
+  private static final double MINIMUM_RUNOFF_MOBILITY_RESPONSE = 0.65;
   private static final double MINIMUM_TRANSPORT_SLOPE_RESPONSE = 0.50;
   private static final double MINIMUM_TRANSPORT_ROUGHNESS_RESPONSE = 0.40;
   private static final double MINIMUM_TRANSPORT_PATH_RESPONSE = 0.50;
   private static final double MINIMUM_TRANSPORT_ROUTE_GRADE_RESPONSE = 0.75;
+  private static final double MINIMUM_TRANSPORT_RUNOFF_RESPONSE = 0.70;
   private static final double PATH_REACH_TOLERANCE_BLOCKS = 1.0e-6;
   private static final double PATH_DIRECTION_TOLERANCE = 1.0e-9;
   private static final double GRAVEL_AND_COARSER_REFERENCE_E_FOLDING_DISTANCE_BLOCKS = 512.0;
@@ -36,7 +38,7 @@ public record ColluvialSedimentBudget(
   public ColluvialSedimentBudget {
     if (!NORMALIZED_MASS_UNIT.equals(unit)
         || grainTransportModel
-            != GrainTransportModel.SLOPE_ROUGHNESS_PATH_CONDITIONED_DRY_RAVEL_PROOF
+            != GrainTransportModel.SLOPE_ROUGHNESS_PATH_GRADE_RUNOFF_CONDITIONED_DRY_RAVEL_PROOF
         || !Double.isFinite(depositionSlope)
         || depositionSlope < 0.0
         || weatheredMatrixBalance == null
@@ -111,7 +113,7 @@ public record ColluvialSedimentBudget(
             .toList();
     return new ColluvialSedimentBudget(
         NORMALIZED_MASS_UNIT,
-        GrainTransportModel.SLOPE_ROUGHNESS_PATH_CONDITIONED_DRY_RAVEL_PROOF,
+        GrainTransportModel.SLOPE_ROUGHNESS_PATH_GRADE_RUNOFF_CONDITIONED_DRY_RAVEL_PROOF,
         depositionSlope,
         matrixBalance,
         balances);
@@ -262,10 +264,13 @@ public record ColluvialSedimentBudget(
     double slopeMobility =
         MINIMUM_SLOPE_MOBILITY
             + (1.0 - MINIMUM_SLOPE_MOBILITY) * clamp(input.slope() / SLOPE_MOBILITY_REFERENCE);
+    double runoffMobility =
+        MINIMUM_RUNOFF_MOBILITY_RESPONSE
+            + (1.0 - MINIMUM_RUNOFF_MOBILITY_RESPONSE) * input.runoffIndex();
     long mobilizedTotal =
         roundedPortion(
             input.capacityFixedUnits(),
-            weatheringAvailability * erodibilityResponse * slopeMobility);
+            weatheringAvailability * erodibilityResponse * slopeMobility * runoffMobility);
     GrainMass capacity = GrainMass.from(input.capacityFixedUnits(), input.sedimentYield());
     GrainMass mobilized = GrainMass.apportion(mobilizedTotal, capacity);
     GrainMass retained = capacity.subtract(mobilized);
@@ -303,7 +308,10 @@ public record ColluvialSedimentBudget(
                 * clamp(input.slope() / SLOPE_MOBILITY_REFERENCE);
     double roughnessResponse =
         1.0 - (1.0 - MINIMUM_TRANSPORT_ROUGHNESS_RESPONSE) * input.terrainRoughnessIndex();
-    return slopeResponse * roughnessResponse * transportPathResponse(input);
+    double runoffResponse =
+        MINIMUM_TRANSPORT_RUNOFF_RESPONSE
+            + (1.0 - MINIMUM_TRANSPORT_RUNOFF_RESPONSE) * input.runoffIndex();
+    return slopeResponse * roughnessResponse * runoffResponse * transportPathResponse(input);
   }
 
   private static double transportPathResponse(ProductionInput input) {
@@ -381,15 +389,35 @@ public record ColluvialSedimentBudget(
         && path.reaches().subList(0, prefix.reaches().size()).equals(prefix.reaches());
   }
 
-  /** Inputs controlling production, path-conditioned transport, and initial grain spectrum. */
+  /** Inputs controlling production, runoff-conditioned transport, and initial grain spectrum. */
   public record ProductionInput(
       long capacityFixedUnits,
       double weatheringDepth,
       double slope,
       double erodibilityIndex,
       double terrainRoughnessIndex,
+      double runoffIndex,
       TerrainPath terrainPath,
       SedimentGrainSize sedimentYield) {
+    public ProductionInput(
+        long capacityFixedUnits,
+        double weatheringDepth,
+        double slope,
+        double erodibilityIndex,
+        double terrainRoughnessIndex,
+        TerrainPath terrainPath,
+        SedimentGrainSize sedimentYield) {
+      this(
+          capacityFixedUnits,
+          weatheringDepth,
+          slope,
+          erodibilityIndex,
+          terrainRoughnessIndex,
+          1.0,
+          terrainPath,
+          sedimentYield);
+    }
+
     public ProductionInput {
       if (capacityFixedUnits <= 0
           || !Double.isFinite(weatheringDepth)
@@ -402,6 +430,9 @@ public record ColluvialSedimentBudget(
           || !Double.isFinite(terrainRoughnessIndex)
           || terrainRoughnessIndex < 0.0
           || terrainRoughnessIndex > 1.0
+          || !Double.isFinite(runoffIndex)
+          || runoffIndex < 0.0
+          || runoffIndex > 1.0
           || terrainPath == null
           || sedimentYield == null) {
         throw new IllegalArgumentException("colluvial sediment production input is invalid");
@@ -411,7 +442,7 @@ public record ColluvialSedimentBudget(
 
   /** Explicit proof regime controlling the current grain-class survival ordering. */
   public enum GrainTransportModel {
-    SLOPE_ROUGHNESS_PATH_CONDITIONED_DRY_RAVEL_PROOF
+    SLOPE_ROUGHNESS_PATH_GRADE_RUNOFF_CONDITIONED_DRY_RAVEL_PROOF
   }
 
   /** One positioned elevation observation along the bounded source route. */

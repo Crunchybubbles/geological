@@ -20,7 +20,7 @@ class MaterialReviewPacketGeneratorTest {
 
     String firstJson = Files.readString(first);
     assertEquals(firstJson, Files.readString(second));
-    assertTrue(firstJson.contains("\"modelVersion\": \"phase2.0-alpha.40\""));
+    assertTrue(firstJson.contains("\"modelVersion\": \"phase2.0-alpha.41\""));
     assertTrue(firstJson.contains(Phase2World.SCIENTIFIC_DIGEST));
     assertTrue(firstJson.contains("\"materialProcess\""));
     assertTrue(firstJson.contains("\"elementReservoirLedgers\""));
@@ -47,7 +47,7 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"unit\": \"phase2_normalized_sediment_mass\""));
     assertTrue(
         firstJson.contains(
-            "\"grainTransportModel\": \"SLOPE_ROUGHNESS_PATH_CONDITIONED_DRY_RAVEL_PROOF\""));
+            "\"grainTransportModel\": \"SLOPE_ROUGHNESS_PATH_GRADE_RUNOFF_CONDITIONED_DRY_RAVEL_PROOF\""));
     assertTrue(firstJson.contains("\"sourceCapacityFixedUnits\": 1000000"));
     assertTrue(firstJson.contains("\"mobilizedInventoryFixedUnits\""));
     assertTrue(firstJson.contains("\"retainedInventoryFixedUnits\""));
@@ -63,6 +63,7 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"depositedGrainSizePpm\""));
     assertTrue(firstJson.contains("\"sedimentYieldPpm\""));
     assertTrue(firstJson.contains("\"terrainRoughnessIndex\""));
+    assertTrue(firstJson.contains("\"runoffIndex\""));
     assertTrue(firstJson.contains("\"terrainPath\""));
     assertTrue(firstJson.contains("\"reachLengthBlocks\": 32"));
     assertTrue(firstJson.contains("\"straightLineDistanceBlocks\""));

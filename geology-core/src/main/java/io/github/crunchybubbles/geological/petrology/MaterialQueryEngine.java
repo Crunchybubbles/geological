@@ -462,6 +462,7 @@ public final class MaterialQueryEngine {
             depositionSurface.fields().slope(),
             colluviumRock.erodibilityIndex(),
             sources.getFirst().terrainRoughnessIndex(),
+            depositionSurface.fields().drainage().flowAccumulation(),
             sources.getFirst().terrainPath(),
             colluviumRock.sedimentYield());
     List<ColluvialSedimentBudget.SourceProductionInput> sourceInputs =
@@ -477,6 +478,7 @@ public final class MaterialQueryEngine {
                             source.surface().fields().slope(),
                             source.material().erodibilityIndex(),
                             source.terrainRoughnessIndex(),
+                            source.surface().fields().drainage().flowAccumulation(),
                             source.terrainPath(),
                             source.material().rock().sedimentYield())))
             .toList();
@@ -617,6 +619,8 @@ public final class MaterialQueryEngine {
         .append(input.erodibilityIndex())
         .append(':')
         .append(input.terrainRoughnessIndex())
+        .append(':')
+        .append(input.runoffIndex())
         .append(':')
         .append(input.terrainPath().reachLengthBlocks())
         .append(':')

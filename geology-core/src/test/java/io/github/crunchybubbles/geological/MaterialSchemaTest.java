@@ -167,7 +167,7 @@ class MaterialSchemaTest {
 
     assertEquals(
         ColluvialSedimentBudget.GrainTransportModel
-            .SLOPE_ROUGHNESS_PATH_CONDITIONED_DRY_RAVEL_PROOF,
+            .SLOPE_ROUGHNESS_PATH_GRADE_RUNOFF_CONDITIONED_DRY_RAVEL_PROOF,
         budget.grainTransportModel());
     assertEquals(MaterialAssemblage.SCALE, budget.sourceCapacityFixedUnits());
     assertEquals(
@@ -280,6 +280,33 @@ class MaterialSchemaTest {
                 .balance()
                 .mobilizedFixedUnits()
             > lowMobilized);
+    ColluvialSedimentBudget.TerrainPath runoffPath = monotonicTerrainPath(96, 0.12);
+    ColluvialSedimentBudget lowRunoffBudget =
+        ColluvialSedimentBudget.derive(
+            0.12,
+            matrix,
+            List.of(
+                new ColluvialSedimentBudget.SourceProductionInput(
+                    local,
+                    96,
+                    new ColluvialSedimentBudget.ProductionInput(
+                        650_000L, 8.0, 0.12, 0.8, 0.25, 0.0, runoffPath, matrix.sedimentYield()))));
+    ColluvialSedimentBudget highRunoffBudget =
+        ColluvialSedimentBudget.derive(
+            0.12,
+            matrix,
+            List.of(
+                new ColluvialSedimentBudget.SourceProductionInput(
+                    local,
+                    96,
+                    new ColluvialSedimentBudget.ProductionInput(
+                        650_000L, 8.0, 0.12, 0.8, 0.25, 1.0, runoffPath, matrix.sedimentYield()))));
+    ColluvialSedimentBudget.InputBalance lowRunoff =
+        lowRunoffBudget.sourceBalances().getFirst().balance();
+    ColluvialSedimentBudget.InputBalance highRunoff =
+        highRunoffBudget.sourceBalances().getFirst().balance();
+    assertTrue(lowRunoff.mobilizedFixedUnits() < highRunoff.mobilizedFixedUnits());
+    assertTrue(lowRunoff.transportDistanceScale() < highRunoff.transportDistanceScale());
     ColluvialSedimentBudget gentleTarget =
         singleSourceBudget(local, matrix, 96, 0.02, 8.0, 0.12, 0.8);
     ColluvialSedimentBudget steepTarget =
