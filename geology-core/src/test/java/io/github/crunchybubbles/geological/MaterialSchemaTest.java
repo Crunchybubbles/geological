@@ -403,6 +403,7 @@ class MaterialSchemaTest {
     assertEquals(
         List.of("EVOLVED_RESIDUAL_MELT", "OXIDIZED_ARC", "VOLATILE_ENRICHED"),
         state.fertilityTags());
+    assertEquals(100_000L, state.residualFluidFractionPpm());
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -433,6 +434,23 @@ class MaterialSchemaTest {
                 state.residualMeltFractionPpm(),
                 state.residualFluidPotential(),
                 List.of("OXIDIZED_ARC", "OXIDIZED_ARC")));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new MagmaDifferentiationState(
+                state.tectonicSetting(),
+                state.sourceReservoirIds(),
+                state.meltingMechanism(),
+                state.sourceLithologyClass(),
+                state.meltFractionClass(),
+                state.sulfurSaturationHistory(),
+                state.crustalAssimilationClass(),
+                state.differentiationPath(),
+                state.cumulativeCrystalFractionPpm(),
+                state.residualMeltFractionPpm(),
+                state.residualMeltFractionPpm() + 1L,
+                state.residualFluidPotential(),
+                state.fertilityTags()));
     assertThrows(
         IllegalArgumentException.class,
         () -> MagmaDifferentiationState.arcProofFor(-1, List.of(basement)));

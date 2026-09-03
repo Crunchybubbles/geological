@@ -2050,6 +2050,8 @@ final class MaterialReviewPacketGenerator {
             state.differentiationState().cumulativeCrystalFractionPpm(),
             "residualMeltFractionPpm",
             state.differentiationState().residualMeltFractionPpm(),
+            "residualFluidFractionPpm",
+            state.differentiationState().residualFluidFractionPpm(),
             "residualFluidPotential",
             state.differentiationState().residualFluidPotential().name(),
             "fertilityTags",

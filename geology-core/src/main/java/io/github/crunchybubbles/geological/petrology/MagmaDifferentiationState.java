@@ -19,6 +19,7 @@ public record MagmaDifferentiationState(
     DifferentiationPath differentiationPath,
     long cumulativeCrystalFractionPpm,
     long residualMeltFractionPpm,
+    long residualFluidFractionPpm,
     ResidualFluidPotential residualFluidPotential,
     List<String> fertilityTags) {
   /** Compatibility constructor for callers that only provide the original fraction ledger. */
@@ -44,8 +45,39 @@ public record MagmaDifferentiationState(
         differentiationPath,
         cumulativeCrystalFractionPpm,
         residualMeltFractionPpm,
+        0L,
         ResidualFluidPotential.UNRESOLVED,
         List.of());
+  }
+
+  /** Compatibility constructor retaining the pre-budget residual-fluid shape. */
+  public MagmaDifferentiationState(
+      TectonicSetting tectonicSetting,
+      List<StableId> sourceReservoirIds,
+      MeltingMechanism meltingMechanism,
+      SourceLithologyClass sourceLithologyClass,
+      MeltFractionClass meltFractionClass,
+      SulfurSaturationHistory sulfurSaturationHistory,
+      CrustalAssimilationClass crustalAssimilationClass,
+      DifferentiationPath differentiationPath,
+      long cumulativeCrystalFractionPpm,
+      long residualMeltFractionPpm,
+      ResidualFluidPotential residualFluidPotential,
+      List<String> fertilityTags) {
+    this(
+        tectonicSetting,
+        sourceReservoirIds,
+        meltingMechanism,
+        sourceLithologyClass,
+        meltFractionClass,
+        sulfurSaturationHistory,
+        crustalAssimilationClass,
+        differentiationPath,
+        cumulativeCrystalFractionPpm,
+        residualMeltFractionPpm,
+        0L,
+        residualFluidPotential,
+        fertilityTags);
   }
 
   public MagmaDifferentiationState {
@@ -65,6 +97,10 @@ public record MagmaDifferentiationState(
         || residualMeltFractionPpm > MaterialAssemblage.SCALE) {
       throw new IllegalArgumentException(
           "magma differentiation state is incomplete or out of bounds");
+    }
+    if (residualFluidFractionPpm < 0 || residualFluidFractionPpm > residualMeltFractionPpm) {
+      throw new IllegalArgumentException(
+          "residual fluid fraction must lie within the residual melt fraction");
     }
     sourceReservoirIds = List.copyOf(sourceReservoirIds).stream().sorted().toList();
     if (sourceReservoirIds.isEmpty()
@@ -97,6 +133,7 @@ public record MagmaDifferentiationState(
               CrustalAssimilationClass.NONE,
               DifferentiationPath.FRACTIONAL_CRYSTALLIZATION,
               250_000L,
+              50_000L,
               ResidualFluidPotential.MODERATE,
               List.of("OXIDIZED_ARC"));
       case 1 ->
@@ -106,6 +143,7 @@ public record MagmaDifferentiationState(
               CrustalAssimilationClass.LIMITED_LOWER_CRUST,
               DifferentiationPath.FRACTIONAL_CRYSTALLIZATION,
               550_000L,
+              100_000L,
               ResidualFluidPotential.HIGH,
               List.of("OXIDIZED_ARC", "SULFIDE_APPROACHING_SATURATION"));
       default ->
@@ -115,6 +153,7 @@ public record MagmaDifferentiationState(
               CrustalAssimilationClass.INCREASING_LOWER_CRUST,
               DifferentiationPath.RESIDUAL_FELSIC_FRACTIONATION,
               850_000L,
+              100_000L,
               ResidualFluidPotential.VERY_HIGH,
               List.of("EVOLVED_RESIDUAL_MELT", "OXIDIZED_ARC", "VOLATILE_ENRICHED"));
     };
@@ -126,6 +165,7 @@ public record MagmaDifferentiationState(
       CrustalAssimilationClass crustalAssimilationClass,
       DifferentiationPath differentiationPath,
       long cumulativeCrystalFractionPpm,
+      long residualFluidFractionPpm,
       ResidualFluidPotential residualFluidPotential,
       List<String> fertilityTags) {
     return new MagmaDifferentiationState(
@@ -139,6 +179,7 @@ public record MagmaDifferentiationState(
         differentiationPath,
         cumulativeCrystalFractionPpm,
         MaterialAssemblage.SCALE - cumulativeCrystalFractionPpm,
+        residualFluidFractionPpm,
         residualFluidPotential,
         fertilityTags);
   }
