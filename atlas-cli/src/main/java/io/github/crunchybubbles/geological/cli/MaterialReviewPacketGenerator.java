@@ -11,11 +11,13 @@ import io.github.crunchybubbles.geological.model.Point2;
 import io.github.crunchybubbles.geological.model.Point3;
 import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
 import io.github.crunchybubbles.geological.petrology.ChemicalElement;
+import io.github.crunchybubbles.geological.petrology.ColluvialAbsoluteMassBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialCohesionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialGrainDispersionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialGrainSourceShare;
 import io.github.crunchybubbles.geological.petrology.ColluvialHorizonState;
 import io.github.crunchybubbles.geological.petrology.ColluvialHydraulicState;
+import io.github.crunchybubbles.geological.petrology.ColluvialMassScale;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialProductionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialRoutePolicy;
@@ -68,6 +70,8 @@ import java.util.TreeMap;
 
 /** Generates deterministic, human-reviewable Phase 2 material and reservoir state. */
 final class MaterialReviewPacketGenerator {
+  private static final ColluvialMassScale REVIEW_MASS_SCALE =
+      new ColluvialMassScale("kg", 2_500.0, 1.0);
   private final long seed;
   private final MaterialQueryEngine query;
 
@@ -980,6 +984,8 @@ final class MaterialReviewPacketGenerator {
         budget.grainTransportModel().name(),
         "transportPolicy",
         colluvialTransportPolicyJson(budget.transportPolicy()),
+        "absoluteMassCalibration",
+        colluvialAbsoluteMassBudgetJson(budget.absoluteMass(REVIEW_MASS_SCALE)),
         "depositionSlope",
         budget.depositionSlope(),
         "sourceCapacityFixedUnits",
@@ -1035,6 +1041,65 @@ final class MaterialReviewPacketGenerator {
             .toList(),
         "transportProcessStageMix",
         colluvialTransportProcessStageMixJson(budget.transportProcessStageMix()));
+  }
+
+  private static Map<String, Object> colluvialAbsoluteMassBudgetJson(
+      ColluvialAbsoluteMassBudget budget) {
+    return JsonWriter.object(
+        "calibrationKind",
+        "caller_supplied_review_proof_scale",
+        "massUnit",
+        budget.massUnit(),
+        "normalizedCapacityMass",
+        budget.scale().normalizedCapacityMass(),
+        "durationYears",
+        budget.scale().durationYears(),
+        "capacityMass",
+        budget.capacityMass(),
+        "mobilizedMass",
+        budget.mobilizedMass(),
+        "retainedMass",
+        budget.retainedMass(),
+        "transportLossMass",
+        budget.transportLossMass(),
+        "bypassedMass",
+        budget.bypassedMass(),
+        "depositedMass",
+        budget.depositedMass(),
+        "capacityRate",
+        budget.capacityRate(),
+        "mobilizedRate",
+        budget.mobilizedRate(),
+        "depositedRate",
+        budget.depositedRate(),
+        "inputBalances",
+        budget.inputBalances().stream()
+            .map(
+                input ->
+                    JsonWriter.object(
+                        "sourceBodyId",
+                        input.sourceBodyId().map(StableId::toString).orElse(null),
+                        "upslopeDistanceBlocks",
+                        input.upslopeDistanceBlocks(),
+                        "capacityFixedUnits",
+                        input.capacityFixedUnits(),
+                        "mobilizedFixedUnits",
+                        input.mobilizedFixedUnits(),
+                        "retainedFixedUnits",
+                        input.retainedFixedUnits(),
+                        "transportLossFixedUnits",
+                        input.transportLossFixedUnits(),
+                        "bypassedFixedUnits",
+                        input.bypassedFixedUnits(),
+                        "depositedFixedUnits",
+                        input.depositedFixedUnits(),
+                        "capacityMass",
+                        budget.scale().mass(input.capacityFixedUnits()),
+                        "mobilizedMass",
+                        budget.scale().mass(input.mobilizedFixedUnits()),
+                        "depositedMass",
+                        budget.scale().mass(input.depositedFixedUnits())))
+            .toList());
   }
 
   private static Map<String, Object> colluvialTransportPolicyJson(ColluvialTransportPolicy policy) {

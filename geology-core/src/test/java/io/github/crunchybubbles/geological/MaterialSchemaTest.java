@@ -15,11 +15,13 @@ import io.github.crunchybubbles.geological.petrology.AlterationAssemblageRecipe;
 import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
 import io.github.crunchybubbles.geological.petrology.BodyCompositionSampler;
 import io.github.crunchybubbles.geological.petrology.ClastShape;
+import io.github.crunchybubbles.geological.petrology.ColluvialAbsoluteMassBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialCohesionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialGrainDispersionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialGrainSourceShare;
 import io.github.crunchybubbles.geological.petrology.ColluvialHorizonState;
 import io.github.crunchybubbles.geological.petrology.ColluvialHydraulicState;
+import io.github.crunchybubbles.geological.petrology.ColluvialMassScale;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialProductionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialRoutePolicy;
@@ -196,6 +198,61 @@ class MaterialSchemaTest {
         tunedDry.transportLossFixedUnits()
             + tunedDry.bypassedFixedUnits()
             + tunedDry.depositedFixedUnits());
+  }
+
+  @Test
+  void callerMassScaleConvertsNormalizedColluvialStagesWithoutChangingClosure() {
+    SedimentGrainSize grainYield = new SedimentGrainSize(400_000L, 350_000L, 250_000L);
+    ColluvialSedimentBudget.TerrainPath localPath = terrainPath(100.0);
+    ColluvialSedimentBudget.TerrainPath farPath =
+        terrainPath(100.0, 104.0, 103.0, 109.0, 108.0, 112.0, 116.0);
+    ColluvialSedimentBudget budget =
+        ColluvialSedimentBudget.derive(
+            0.12,
+            new ColluvialSedimentBudget.ProductionInput(
+                350_000L, 8.0, 0.02, 0.8, 0.25, 0.0, localPath, grainYield),
+            List.of(
+                new ColluvialSedimentBudget.SourceProductionInput(
+                    StableId.parse("00000000000000000000000000000c11"),
+                    0,
+                    new ColluvialSedimentBudget.ProductionInput(
+                        350_000L, 8.0, 0.12, 0.8, 0.25, 1.0, localPath, grainYield)),
+                new ColluvialSedimentBudget.SourceProductionInput(
+                    StableId.parse("00000000000000000000000000000c12"),
+                    192,
+                    new ColluvialSedimentBudget.ProductionInput(
+                        300_000L, 8.0, 0.24, 0.8, 0.25, 0.0, farPath, grainYield))));
+    ColluvialMassScale scale = new ColluvialMassScale("kg", 2_500.0, 2.5);
+    ColluvialAbsoluteMassBudget absolute = budget.absoluteMass(scale);
+
+    assertEquals("kg", absolute.massUnit());
+    assertEquals(1_000_000L, absolute.capacityFixedUnits());
+    assertEquals(2_500.0, absolute.capacityMass(), 1.0e-12);
+    assertEquals(1_000.0, absolute.capacityRate(), 1.0e-12);
+    assertEquals(scale.mass(absolute.mobilizedFixedUnits()), absolute.mobilizedMass(), 1.0e-12);
+    assertEquals(
+        scale.productionRate(absolute.depositedFixedUnits()), absolute.depositedRate(), 1.0e-12);
+    assertEquals(3, absolute.inputBalances().size());
+    assertEquals(
+        absolute.capacityFixedUnits(),
+        absolute.retainedFixedUnits() + absolute.mobilizedFixedUnits());
+    assertEquals(
+        absolute.mobilizedFixedUnits(),
+        absolute.transportLossFixedUnits()
+            + absolute.bypassedFixedUnits()
+            + absolute.depositedFixedUnits());
+    for (ColluvialAbsoluteMassBudget.InputMassBalance input : absolute.inputBalances()) {
+      assertEquals(
+          input.capacityFixedUnits(), input.retainedFixedUnits() + input.mobilizedFixedUnits());
+      assertEquals(
+          input.mobilizedFixedUnits(),
+          input.transportLossFixedUnits()
+              + input.bypassedFixedUnits()
+              + input.depositedFixedUnits());
+    }
+    assertThrows(IllegalArgumentException.class, () -> new ColluvialMassScale("kg", 0.0, 1.0));
+    assertThrows(IllegalArgumentException.class, () -> new ColluvialMassScale("kg", 1.0, 0.0));
+    assertThrows(IllegalArgumentException.class, () -> scale.mass(-1L));
   }
 
   @Test

@@ -511,6 +511,11 @@ public record ColluvialSedimentBudget(
     return transportPolicy;
   }
 
+  /** Returns an explicit caller-calibrated mass/time view of this normalized budget. */
+  public ColluvialAbsoluteMassBudget absoluteMass(ColluvialMassScale scale) {
+    return ColluvialAbsoluteMassBudget.from(this, scale);
+  }
+
   private static double transportDistanceScale(
       ProductionInput input, ColluvialTransportPolicy transportPolicy) {
     double slopeResponse =
