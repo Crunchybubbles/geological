@@ -726,7 +726,11 @@ final class MaterialReviewPacketGenerator {
         "receivingBedrockLithology",
         destination.receivingBedrockLithology().name(),
         "receivingBedrockOverprint",
-        destination.receivingBedrockOverprint().name());
+        destination.receivingBedrockOverprint().name(),
+        "fixedUnits",
+        destination.fixedUnits(),
+        "unit",
+        ColluvialSedimentBudget.NORMALIZED_MASS_UNIT);
   }
 
   private static Map<String, Object> colluvialSourceClaimLedgerJson(

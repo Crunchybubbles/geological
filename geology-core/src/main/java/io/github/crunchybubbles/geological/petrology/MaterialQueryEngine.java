@@ -632,7 +632,8 @@ public final class MaterialQueryEngine {
               ColluvialSinkState.SinkRole.INTERMEDIATE_ROUTE_STORAGE,
               sourceBodyId,
               distance,
-              allocation.transportLossPoint()));
+              allocation.transportLossPoint(),
+              balance.transportLossFixedUnits()));
     }
     if (allocation.hasBypass()) {
       destinations.add(
@@ -640,7 +641,8 @@ public final class MaterialQueryEngine {
               ColluvialSinkState.SinkRole.DOWNSTREAM_CONTINUATION,
               sourceBodyId,
               distance,
-              allocation.bypassPoint()));
+              allocation.bypassPoint(),
+              balance.bypassedFixedUnits()));
     }
   }
 
@@ -648,7 +650,8 @@ public final class MaterialQueryEngine {
       ColluvialSinkState.SinkRole sinkRole,
       Optional<StableId> sourceBodyId,
       int distance,
-      Point2 point) {
+      Point2 point,
+      long fixedUnits) {
     SurfaceSample receivingSurface = geology.surface(point);
     GeologicalSample receivingBedrock = receivingSurface.bedrock();
     Province receivingProvince = geology.atlas().provinceAt(point);
@@ -666,7 +669,8 @@ public final class MaterialQueryEngine {
         receivingSurface.surfaceMaterial(),
         receivingSurface.surfaceOverprint(),
         receivingBedrock.lithology(),
-        receivingBedrock.overprint());
+        receivingBedrock.overprint(),
+        fixedUnits);
   }
 
   private StableId colluvialBodyId(ColluvialSourceMix sourceMix) {

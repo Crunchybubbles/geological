@@ -205,11 +205,19 @@ public record ColluvialSourceMix(
               if (!allocation.hasTransportLoss()) {
                 throw new IllegalArgumentException("transport-loss destination has no loss mass");
               }
+              if (destination.fixedUnits() != balance.transportLossFixedUnits()) {
+                throw new IllegalArgumentException(
+                    "transport-loss destination mass must match its route allocation");
+              }
               yield allocation.transportLossPoint();
             }
             case DOWNSTREAM_CONTINUATION -> {
               if (!allocation.hasBypass()) {
                 throw new IllegalArgumentException("bypass destination has no bypass mass");
+              }
+              if (destination.fixedUnits() != balance.bypassedFixedUnits()) {
+                throw new IllegalArgumentException(
+                    "bypass destination mass must match its route allocation");
               }
               yield allocation.bypassPoint();
             }

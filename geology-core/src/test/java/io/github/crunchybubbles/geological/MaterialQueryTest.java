@@ -77,7 +77,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.61", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.62", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1422,6 +1422,27 @@ class MaterialQueryTest {
       assertEquals(destinationBedrock.rockBodyId(), destination.receivingBedrockBodyId());
       assertEquals(destinationBedrock.lithology(), destination.receivingBedrockLithology());
       assertEquals(destinationBedrock.overprint(), destination.receivingBedrockOverprint());
+      ColluvialSedimentBudget.InputBalance sourceBalance =
+          destination
+              .sourceBodyId()
+              .map(
+                  sourceBodyId ->
+                      sourceMix.sedimentBudget().sourceBalances().stream()
+                          .filter(
+                              source ->
+                                  source.sourceBodyId().equals(sourceBodyId)
+                                      && source.upslopeDistanceBlocks()
+                                          == destination.upslopeDistanceBlocks())
+                          .findFirst()
+                          .orElseThrow()
+                          .balance())
+              .orElse(sourceMix.sedimentBudget().weatheredMatrixBalance());
+      long expectedFixedUnits =
+          destination.sinkRole() == ColluvialSinkState.SinkRole.INTERMEDIATE_ROUTE_STORAGE
+              ? sourceBalance.transportLossFixedUnits()
+              : sourceBalance.bypassedFixedUnits();
+      assertEquals(expectedFixedUnits, destination.fixedUnits());
+      assertTrue(destination.fixedUnits() > 0);
     }
     ColluvialHydraulicState hydraulicState = sourceMix.physicalState().hydraulicState();
     assertTrue(hydraulicState.infiltrationIndex() >= 0.0);

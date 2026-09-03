@@ -17,7 +17,33 @@ public record ColluvialSinkDestination(
     Lithology receivingSurfaceMaterial,
     Overprint receivingSurfaceOverprint,
     Lithology receivingBedrockLithology,
-    Overprint receivingBedrockOverprint) {
+    Overprint receivingBedrockOverprint,
+    long fixedUnits) {
+  public ColluvialSinkDestination(
+      ColluvialSinkState.SinkRole sinkRole,
+      Optional<StableId> sourceBodyId,
+      int upslopeDistanceBlocks,
+      Point2 point,
+      StableId receivingProvinceId,
+      StableId receivingBedrockBodyId,
+      Lithology receivingSurfaceMaterial,
+      Overprint receivingSurfaceOverprint,
+      Lithology receivingBedrockLithology,
+      Overprint receivingBedrockOverprint) {
+    this(
+        sinkRole,
+        sourceBodyId,
+        upslopeDistanceBlocks,
+        point,
+        receivingProvinceId,
+        receivingBedrockBodyId,
+        receivingSurfaceMaterial,
+        receivingSurfaceOverprint,
+        receivingBedrockLithology,
+        receivingBedrockOverprint,
+        0L);
+  }
+
   public ColluvialSinkDestination {
     if (sinkRole == null
         || sinkRole == ColluvialSinkState.SinkRole.NONE
@@ -29,7 +55,8 @@ public record ColluvialSinkDestination(
         || receivingSurfaceMaterial == null
         || receivingSurfaceOverprint == null
         || receivingBedrockLithology == null
-        || receivingBedrockOverprint == null) {
+        || receivingBedrockOverprint == null
+        || fixedUnits < 0) {
       throw new IllegalArgumentException("colluvial sink destination evidence is incomplete");
     }
   }
