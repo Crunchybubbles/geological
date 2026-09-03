@@ -44,6 +44,7 @@ import io.github.crunchybubbles.geological.petrology.MantleCargoState;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessLedger;
 import io.github.crunchybubbles.geological.petrology.MaterialQueryEngine;
 import io.github.crunchybubbles.geological.petrology.MetamorphicEventTiming;
+import io.github.crunchybubbles.geological.petrology.MetamorphicPath;
 import io.github.crunchybubbles.geological.petrology.ModalVariationAxis;
 import io.github.crunchybubbles.geological.petrology.NonCrystallineConstituentDefinition;
 import io.github.crunchybubbles.geological.petrology.PetrologicSample;
@@ -66,6 +67,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -529,6 +531,8 @@ final class MaterialReviewPacketGenerator {
                     .toList(),
                 "overprints",
                 query.catalog().alterations().stream().map(this::alterationJson).toList()),
+            "metamorphicPathVocabulary",
+            Arrays.stream(MetamorphicPath.values()).map(Enum::name).toList(),
             "referenceProvince",
             JsonWriter.object(
                 "id",

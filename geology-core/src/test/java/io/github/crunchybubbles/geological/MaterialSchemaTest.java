@@ -286,6 +286,77 @@ class MaterialSchemaTest {
   }
 
   @Test
+  void extendedMetamorphicPathsRetainDistinctBurialAndRetrogressionEvidence() {
+    MetamorphicProcessState burial =
+        MetamorphicProcessState.proofFor(
+            MetamorphicGrade.MEDIUM,
+            MetamorphicFacies.GREENSCHIST,
+            MetamorphicPath.BURIAL_HEATING,
+            MaterialProcessClass.NONE,
+            0L,
+            Optional.empty());
+    MetamorphicProcessState subduction =
+        MetamorphicProcessState.proofFor(
+            MetamorphicGrade.MEDIUM,
+            MetamorphicFacies.GREENSCHIST,
+            MetamorphicPath.SUBDUCTION_COLD,
+            MaterialProcessClass.NONE,
+            0L,
+            Optional.empty());
+    MetamorphicProcessState exhumation =
+        MetamorphicProcessState.proofFor(
+            MetamorphicGrade.MEDIUM,
+            MetamorphicFacies.GREENSCHIST,
+            MetamorphicPath.EXTENSION_DECOMPRESSION,
+            MaterialProcessClass.NONE,
+            0L,
+            Optional.empty());
+    MetamorphicProcessState polymetamorphic =
+        MetamorphicProcessState.proofFor(
+            MetamorphicGrade.MEDIUM,
+            MetamorphicFacies.GREENSCHIST,
+            MetamorphicPath.POLYMETAMORPHIC,
+            MaterialProcessClass.NONE,
+            0L,
+            Optional.empty());
+
+    assertEquals(
+        MetamorphicProcessState.BurialCurveClass.BURIAL_HEATING, burial.burialCurveClass());
+    assertEquals(
+        MetamorphicProcessState.BurialCurveClass.SUBDUCTION_COOLING, subduction.burialCurveClass());
+    assertEquals(
+        MetamorphicProcessState.BurialCurveClass.EXHUMATION_DECOMPRESSION,
+        exhumation.burialCurveClass());
+    assertEquals(
+        MetamorphicProcessState.BurialCurveClass.POLYMETAMORPHIC_REWORKING,
+        polymetamorphic.burialCurveClass());
+    assertEquals(300_000L, burial.retrogressionPotentialPpm());
+    assertEquals(400_000L, subduction.retrogressionPotentialPpm());
+    assertEquals(650_000L, exhumation.retrogressionPotentialPpm());
+    assertEquals(500_000L, polymetamorphic.retrogressionPotentialPpm());
+    assertEquals(650_000L, burial.strainIntensityPpm());
+    assertEquals(650_000L, subduction.strainIntensityPpm());
+    assertEquals(650_000L, exhumation.strainIntensityPpm());
+    assertEquals(650_000L, polymetamorphic.strainIntensityPpm());
+    assertEquals(
+        MetamorphicReactionState.ReactionMechanism.REGIONAL_RECRYSTALLIZATION,
+        burial.reactionState().reactionMechanism());
+    assertEquals(
+        MetamorphicReactionState.ReactionMechanism.REGIONAL_RECRYSTALLIZATION,
+        subduction.reactionState().reactionMechanism());
+    assertEquals(
+        MetamorphicReactionState.ReactionMechanism.REGIONAL_RECRYSTALLIZATION,
+        exhumation.reactionState().reactionMechanism());
+    assertEquals(
+        MetamorphicReactionState.ReactionMechanism.REGIONAL_RECRYSTALLIZATION,
+        polymetamorphic.reactionState().reactionMechanism());
+    assertTrue(burial.reactionState().fluidContributions().isEmpty());
+    assertTrue(subduction.reactionState().fluidContributions().isEmpty());
+    assertTrue(exhumation.reactionState().fluidContributions().isEmpty());
+    assertTrue(polymetamorphic.reactionState().fluidContributions().isEmpty());
+  }
+
+  @Test
   void metamorphicEventTimelineSortsIdsAndAgesAsPairs() {
     StableId olderId = StableId.parse("00000000000000000000000000000031");
     StableId youngerId = StableId.parse("00000000000000000000000000000032");

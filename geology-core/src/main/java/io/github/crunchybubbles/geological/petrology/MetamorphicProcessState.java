@@ -95,7 +95,8 @@ public record MetamorphicProcessState(
           case HIGH -> 900_000L;
         };
     if (path == MetamorphicPath.CONTACT_LOW_P
-        || processClass == MaterialProcessClass.ISOCHEMICAL_METAMORPHISM) {
+        || (path == MetamorphicPath.NONE
+            && processClass == MaterialProcessClass.ISOCHEMICAL_METAMORPHISM)) {
       return new MetamorphicProcessState(
           BurialCurveClass.CONTACT_HEATING,
           StrainClass.THERMAL_RECRYSTALLIZATION,
@@ -104,6 +105,23 @@ public record MetamorphicProcessState(
           Math.max(700_000L, gradeProgress),
           0L,
           150_000L,
+          MetamorphicReactionState.proofFor(
+              grade, facies, path, processClass, replacementPpm, hostLithology));
+    }
+    if (path == MetamorphicPath.BURIAL_HEATING
+        || path == MetamorphicPath.SUBDUCTION_COLD
+        || path == MetamorphicPath.EXTENSION_DECOMPRESSION
+        || path == MetamorphicPath.POLYMETAMORPHIC) {
+      return new MetamorphicProcessState(
+          burialCurveFor(path),
+          strainFor(facies),
+          path == MetamorphicPath.SUBDUCTION_COLD
+              ? FluidAvailabilityClass.LIMITED_AQUEOUS
+              : FluidAvailabilityClass.BUFFERED_AQUEOUS,
+          gradeProgress,
+          gradeProgress,
+          0L,
+          retrogressionFor(path),
           MetamorphicReactionState.proofFor(
               grade, facies, path, processClass, replacementPpm, hostLithology));
     }
@@ -177,12 +195,36 @@ public record MetamorphicProcessState(
     };
   }
 
+  private static BurialCurveClass burialCurveFor(MetamorphicPath path) {
+    return switch (path) {
+      case BURIAL_HEATING -> BurialCurveClass.BURIAL_HEATING;
+      case SUBDUCTION_COLD -> BurialCurveClass.SUBDUCTION_COOLING;
+      case EXTENSION_DECOMPRESSION -> BurialCurveClass.EXHUMATION_DECOMPRESSION;
+      case POLYMETAMORPHIC -> BurialCurveClass.POLYMETAMORPHIC_REWORKING;
+      default -> throw new IllegalArgumentException("path is not an extended metamorphic path");
+    };
+  }
+
+  private static long retrogressionFor(MetamorphicPath path) {
+    return switch (path) {
+      case EXTENSION_DECOMPRESSION -> 650_000L;
+      case SUBDUCTION_COLD -> 400_000L;
+      case POLYMETAMORPHIC -> 500_000L;
+      case BURIAL_HEATING -> 300_000L;
+      default -> throw new IllegalArgumentException("path is not an extended metamorphic path");
+    };
+  }
+
   public enum BurialCurveClass {
     NONE,
     COLLISIONAL_THICKENING,
     HYDROTHERMAL_HEATING,
     CONTACT_HEATING,
-    SURFACE_WEATHERING
+    SURFACE_WEATHERING,
+    BURIAL_HEATING,
+    SUBDUCTION_COOLING,
+    EXHUMATION_DECOMPRESSION,
+    POLYMETAMORPHIC_REWORKING
   }
 
   public enum StrainClass {

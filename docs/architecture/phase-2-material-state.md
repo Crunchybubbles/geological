@@ -1,8 +1,8 @@
 # Phase 2 petrologic material-state increment
 
-Status: eighty-fifth implementation increment; Phase 2 body generation and geological calibration remain open
+Status: eighty-sixth implementation increment; Phase 2 body generation and geological calibration remain open
 
-Identity: model `phase2.0-alpha.85`, profile `geological:overworld_phase2`
+Identity: model `phase2.0-alpha.86`, profile `geological:overworld_phase2`
 
 Base registry digest: `sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4`
 
@@ -178,6 +178,8 @@ Alpha.83 adds a host-aware partial-melting response for high-grade amphibolite-f
 Alpha.84 adds an exact normalized residual-fluid fraction inside each linked magma pulse's residual melt. Arc pulse proofs now carry bounded fluid fractions that cannot exceed the residual-melt share; legacy constructors retain a zero fraction. The value is a lineage/provenance budget for comparative response, not an absolute volatile mass or ore-fertility claim.
 
 Alpha.85 adds a bounded normalized strain-intensity proxy to metamorphic process state. Contact, collisional, hydrothermal, weathering, and inactive paths receive deterministic intensity evidence tied to their response class, while legacy constructors retain zero. This scalar supplements the categorical fabric state; it is not a grain-scale strain tensor or calibrated deformation rate.
+
+Alpha.86 expands the compact metamorphic P-T-t path vocabulary with burial heating, cold subduction, decompression exhumation, and polymetamorphic reworking. Each path maps to a distinct burial-curve class and deterministic retrogression/strain evidence, while retaining a regional-recrystallization reaction proof with no unsupported fluid contributions. The vocabulary is published in the review artifact; it does not generate new events or bodies.
 
 Phase 1 model/profile/digest golden values are unchanged. Phase 2 composes the frozen Phase 1 registry digest and the typed material-catalog digest into a canonical scientific manifest. Alpha.28's mandatory rock sediment-yield spectra advanced both the material-catalog and composite scientific digests; alpha.29 through alpha.35 reuse that frozen content and its existing property envelopes, so both scientific digests remain unchanged. The Phase 2 model version advances because adaptive routing changes source endpoints, path evidence, delivered mixtures, texture, and budget query semantics. Colluvial body identity is separated by the composition-relevant canonical contribution attributes—routed distance, source province and body, lithology, overprint, and delivered fraction—plus the generic-matrix delivered fraction, resolved grain-size/fabric spectrum, conditioned physical state, and every causal path/production input and exact bulk/grain allocation in the normalized sediment response ledger. The initial direction, route points, and exact source endpoints remain auditable spatial evidence rather than independent identity inputs; sampled elevations, derived continuity, source fields, terrain-roughness indices, runoff inputs, process-selection scores, per-source usage totals, and per-tranche deposited grain spectra participate because they change delivery or its explanation.
 

@@ -166,6 +166,23 @@ public record MetamorphicReactionState(
           proofFluidContributions(
               ReactionMechanism.DEHYDRATION, 450_000L, 0L, SerpentinizationBalance.none()));
     }
+    if (path == MetamorphicPath.BURIAL_HEATING
+        || path == MetamorphicPath.SUBDUCTION_COLD
+        || path == MetamorphicPath.EXTENSION_DECOMPRESSION
+        || path == MetamorphicPath.POLYMETAMORPHIC) {
+      return new MetamorphicReactionState(
+          ReactionMechanism.REGIONAL_RECRYSTALLIZATION,
+          path == MetamorphicPath.EXTENSION_DECOMPRESSION
+              ? RetrogressionClass.HIGH
+              : path == MetamorphicPath.POLYMETAMORPHIC
+                  ? RetrogressionClass.MODERATE
+                  : RetrogressionClass.LOW,
+          0L,
+          0L,
+          0L,
+          SerpentinizationBalance.none(),
+          List.of());
+    }
     if (processClass == MaterialProcessClass.HYDROTHERMAL_METASOMATISM) {
       return new MetamorphicReactionState(
           ReactionMechanism.METASOMATIC_REPLACEMENT,
@@ -187,7 +204,8 @@ public record MetamorphicReactionState(
           List.of());
     }
     if (path == MetamorphicPath.CONTACT_LOW_P
-        || processClass == MaterialProcessClass.ISOCHEMICAL_METAMORPHISM) {
+        || (path == MetamorphicPath.NONE
+            && processClass == MaterialProcessClass.ISOCHEMICAL_METAMORPHISM)) {
       return new MetamorphicReactionState(
           ReactionMechanism.THERMAL_RECRYSTALLIZATION,
           RetrogressionClass.LOW,
