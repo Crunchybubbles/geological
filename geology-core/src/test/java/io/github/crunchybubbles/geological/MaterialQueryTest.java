@@ -24,6 +24,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceMix;
+import io.github.crunchybubbles.geological.petrology.ColluvialSourceUsage;
 import io.github.crunchybubbles.geological.petrology.ColluvialTextureState;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcess;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
@@ -60,7 +61,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.44", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.45", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1298,6 +1299,23 @@ class MaterialQueryTest {
         sedimentBudget.grainTransportModel());
     assertEquals(transported.surface().fields().slope(), sedimentBudget.depositionSlope());
     assertEquals(MaterialAssemblage.SCALE, sedimentBudget.sourceCapacityFixedUnits());
+    assertEquals(
+        sedimentBudget.sourceBalances().stream()
+            .map(ColluvialSedimentBudget.SourceBalance::sourceBodyId)
+            .distinct()
+            .count(),
+        sedimentBudget.sourceUsages().size());
+    for (ColluvialSourceUsage usage : sedimentBudget.sourceUsages()) {
+      assertTrue(usage.trancheCount() > 0);
+      assertEquals(
+          usage.claimedCapacityFixedUnits(),
+          usage.retainedFixedUnits() + usage.mobilizedFixedUnits());
+      assertEquals(
+          usage.mobilizedFixedUnits(),
+          usage.transportLossFixedUnits()
+              + usage.bypassedFixedUnits()
+              + usage.depositedFixedUnits());
+    }
     assertEquals(
         sedimentBudget.sourceCapacityFixedUnits(),
         sedimentBudget.retainedInventoryFixedUnits()

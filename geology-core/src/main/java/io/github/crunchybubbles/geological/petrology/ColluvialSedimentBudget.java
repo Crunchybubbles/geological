@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.ToLongFunction;
 
@@ -185,6 +187,37 @@ public record ColluvialSedimentBudget(
               source.sourceBodyId(), source.upslopeDistanceBlocks(), fractions[index + 1]));
     }
     return List.copyOf(shares);
+  }
+
+  /** Aggregates repeated source-body claims while preserving exact fixed-unit closure. */
+  public List<ColluvialSourceUsage> sourceUsages() {
+    Map<StableId, long[]> totals = new TreeMap<>();
+    for (SourceBalance source : sourceBalances) {
+      long[] total = totals.computeIfAbsent(source.sourceBodyId(), ignored -> new long[7]);
+      InputBalance balance = source.balance();
+      total[0] = Math.addExact(total[0], 1L);
+      total[1] = Math.addExact(total[1], balance.input().capacityFixedUnits());
+      total[2] = Math.addExact(total[2], balance.mobilizedFixedUnits());
+      total[3] = Math.addExact(total[3], balance.retainedFixedUnits());
+      total[4] = Math.addExact(total[4], balance.transportLossFixedUnits());
+      total[5] = Math.addExact(total[5], balance.bypassedFixedUnits());
+      total[6] = Math.addExact(total[6], balance.depositedFixedUnits());
+    }
+    return totals.entrySet().stream()
+        .map(
+            entry -> {
+              long[] total = entry.getValue();
+              return new ColluvialSourceUsage(
+                  entry.getKey(),
+                  Math.toIntExact(total[0]),
+                  total[1],
+                  total[2],
+                  total[3],
+                  total[4],
+                  total[5],
+                  total[6]);
+            })
+        .toList();
   }
 
   public long sourceFractionPpm(StableId sourceBodyId, int upslopeDistanceBlocks) {

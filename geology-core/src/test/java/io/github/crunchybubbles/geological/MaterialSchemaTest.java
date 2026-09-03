@@ -20,6 +20,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialHorizonState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
+import io.github.crunchybubbles.geological.petrology.ColluvialSourceUsage;
 import io.github.crunchybubbles.geological.petrology.ColluvialTextureState;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcess;
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
@@ -280,6 +281,34 @@ class MaterialSchemaTest {
     assertEquals(
         ColluvialSinkState.SinkRole.NONE,
         budget.weatheredMatrixBalance().sinkState().transportLossSink());
+    assertEquals(2, budget.sourceUsages().size());
+    assertEquals(
+        List.of(local, far),
+        budget.sourceUsages().stream().map(ColluvialSourceUsage::sourceBodyId).toList());
+    assertEquals(1, budget.sourceUsages().getFirst().trancheCount());
+    assertEquals(350_000L, budget.sourceUsages().getFirst().claimedCapacityFixedUnits());
+    assertEquals(300_000L, budget.sourceUsages().getLast().claimedCapacityFixedUnits());
+    for (ColluvialSourceUsage usage : budget.sourceUsages()) {
+      assertEquals(
+          usage.claimedCapacityFixedUnits(),
+          usage.retainedFixedUnits() + usage.mobilizedFixedUnits());
+      assertEquals(
+          usage.mobilizedFixedUnits(),
+          usage.transportLossFixedUnits()
+              + usage.bypassedFixedUnits()
+              + usage.depositedFixedUnits());
+    }
+    ColluvialSedimentBudget repeatedSourceBudget =
+        ColluvialSedimentBudget.derive(
+            0.12,
+            matrix,
+            List.of(
+                localInput,
+                new ColluvialSedimentBudget.SourceProductionInput(local, 192, farInput.input())));
+    assertEquals(1, repeatedSourceBudget.sourceUsages().size());
+    assertEquals(2, repeatedSourceBudget.sourceUsages().getFirst().trancheCount());
+    assertEquals(
+        650_000L, repeatedSourceBudget.sourceUsages().getFirst().claimedCapacityFixedUnits());
     assertEquals(6, farPath.reachCount());
     assertEquals(18.0, farPath.cumulativeDownslopeReliefBlocks());
     assertEquals(2.0, farPath.cumulativeBarrierReliefBlocks());

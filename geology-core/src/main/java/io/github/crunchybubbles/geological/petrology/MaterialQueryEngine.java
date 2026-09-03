@@ -607,6 +607,25 @@ public final class MaterialQueryEngine {
           .append(':');
       appendColluvialInputBalance(purpose, source.balance());
     }
+    for (ColluvialSourceUsage usage : sedimentBudget.sourceUsages()) {
+      purpose
+          .append(":source-usage:")
+          .append(usage.sourceBodyId())
+          .append(':')
+          .append(usage.trancheCount())
+          .append(':')
+          .append(usage.claimedCapacityFixedUnits())
+          .append(':')
+          .append(usage.mobilizedFixedUnits())
+          .append(':')
+          .append(usage.retainedFixedUnits())
+          .append(':')
+          .append(usage.transportLossFixedUnits())
+          .append(':')
+          .append(usage.bypassedFixedUnits())
+          .append(':')
+          .append(usage.depositedFixedUnits());
+    }
     return StableId.first128(
         geology
             .atlas()

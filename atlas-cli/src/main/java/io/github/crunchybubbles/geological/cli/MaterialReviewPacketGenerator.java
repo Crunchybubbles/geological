@@ -18,6 +18,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceMix;
+import io.github.crunchybubbles.geological.petrology.ColluvialSourceUsage;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcess;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.MagmaLineageState;
@@ -673,6 +674,10 @@ final class MaterialReviewPacketGenerator {
         "sourceBalances",
         budget.sourceBalances().stream()
             .map(source -> colluvialSedimentSourceBalanceJson(budget, source))
+            .toList(),
+        "sourceUsages",
+        budget.sourceUsages().stream()
+            .map(MaterialReviewPacketGenerator::colluvialSourceUsageJson)
             .toList());
   }
 
@@ -687,6 +692,26 @@ final class MaterialReviewPacketGenerator {
         colluvialSedimentInputBalanceJson(
             source.balance(),
             budget.sourceFractionPpm(source.sourceBodyId(), source.upslopeDistanceBlocks())));
+  }
+
+  private static Map<String, Object> colluvialSourceUsageJson(ColluvialSourceUsage usage) {
+    return JsonWriter.object(
+        "sourceBodyId",
+        usage.sourceBodyId().toString(),
+        "trancheCount",
+        usage.trancheCount(),
+        "claimedCapacityFixedUnits",
+        usage.claimedCapacityFixedUnits(),
+        "mobilizedFixedUnits",
+        usage.mobilizedFixedUnits(),
+        "retainedFixedUnits",
+        usage.retainedFixedUnits(),
+        "transportLossFixedUnits",
+        usage.transportLossFixedUnits(),
+        "bypassedFixedUnits",
+        usage.bypassedFixedUnits(),
+        "depositedFixedUnits",
+        usage.depositedFixedUnits());
   }
 
   private static Map<String, Object> colluvialSedimentInputBalanceJson(
