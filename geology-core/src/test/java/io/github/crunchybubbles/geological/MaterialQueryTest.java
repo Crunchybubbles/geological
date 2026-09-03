@@ -80,7 +80,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.71", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.72", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -992,6 +992,8 @@ class MaterialQueryTest {
     assertEquals(MetamorphicGrade.MEDIUM, schist.metamorphism().grade());
     assertEquals(MetamorphicFacies.GREENSCHIST, slate.metamorphism().facies());
     assertEquals(MetamorphicFacies.AMPHIBOLITE, schist.metamorphism().facies());
+    assertFalse(slate.metamorphism().eventAges().isEmpty());
+    assertFalse(schist.metamorphism().eventAges().isEmpty());
     assertEquals(
         MetamorphicProcessState.BurialCurveClass.COLLISIONAL_THICKENING,
         slate.metamorphism().processState().burialCurveClass());
@@ -1207,6 +1209,7 @@ class MaterialQueryTest {
     assertEquals(MetamorphicGrade.LOW, serpentinite.metamorphism().grade());
     assertEquals(MetamorphicFacies.SUBGREENSCHIST, serpentinite.metamorphism().facies());
     assertEquals(MetamorphicPath.HYDROTHERMAL_HYDRATION, serpentinite.metamorphism().path());
+    assertFalse(serpentinite.metamorphism().eventAges().isEmpty());
     assertEquals(
         MetamorphicProcessState.BurialCurveClass.HYDROTHERMAL_HEATING,
         serpentinite.metamorphism().processState().burialCurveClass());
@@ -1241,6 +1244,7 @@ class MaterialQueryTest {
     PetrologicSample hornfels = query.resolve(province, contact);
     assertEquals(MetamorphicGrade.HIGH, hornfels.metamorphism().grade());
     assertEquals(MetamorphicFacies.HORNBLENDE_HORNFELS, hornfels.metamorphism().facies());
+    assertEquals(96.0, hornfels.metamorphism().eventAges().getFirst().ageMa(), 1.0e-15);
     assertEquals(
         MetamorphicProcessState.BurialCurveClass.CONTACT_HEATING,
         hornfels.metamorphism().processState().burialCurveClass());
@@ -1270,6 +1274,7 @@ class MaterialQueryTest {
             Overprint.POTASSIC_ALTERATION);
     PetrologicSample altered = query.resolve(province, potassic);
     assertEquals(MaterialProcessClass.HYDROTHERMAL_METASOMATISM, altered.processClass());
+    assertFalse(altered.metamorphism().eventAges().isEmpty());
     assertEquals(
         MetamorphicProcessState.FluidAvailabilityClass.HYDROTHERMAL_FLOW,
         altered.metamorphism().processState().fluidAvailabilityClass());

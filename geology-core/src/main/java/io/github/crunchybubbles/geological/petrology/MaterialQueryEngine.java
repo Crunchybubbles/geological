@@ -1244,6 +1244,7 @@ public final class MaterialQueryEngine {
           alteration.minimumPressureMpa(),
           alteration.maximumPressureMpa(),
           events(province, EventType.CONTACT_METAMORPHISM),
+          eventAges(province, EventType.CONTACT_METAMORPHISM),
           MetamorphicProcessState.proofFor(
               MetamorphicGrade.HIGH,
               alteration.facies(),
@@ -1264,6 +1265,7 @@ public final class MaterialQueryEngine {
           primary.minimumPressureMpa(),
           primary.maximumPressureMpa(),
           events(province, EventType.ESTABLISH_BASEMENT),
+          eventAges(province, EventType.ESTABLISH_BASEMENT),
           MetamorphicProcessState.proofFor(
               primary.grade(),
               primary.facies(),
@@ -1282,6 +1284,7 @@ public final class MaterialQueryEngine {
         alteration.minimumPressureMpa(),
         alteration.maximumPressureMpa(),
         processEvents(province, alteration.processClass()),
+        processEventAges(province, alteration.processClass()),
         MetamorphicProcessState.proofFor(
             MetamorphicGrade.NONE,
             MetamorphicFacies.NONE,
@@ -1457,10 +1460,28 @@ public final class MaterialQueryEngine {
     };
   }
 
+  private static List<AgeKey> processEventAges(
+      Province province, MaterialProcessClass processClass) {
+    return switch (processClass) {
+      case NONE -> List.of();
+      case ISOCHEMICAL_METAMORPHISM -> eventAges(province, EventType.CONTACT_METAMORPHISM);
+      case HYDROTHERMAL_METASOMATISM -> eventAges(province, EventType.MINERALIZE);
+      case WEATHERING -> eventAges(province, EventType.WEATHER);
+    };
+  }
+
   private static List<StableId> events(Province province, EventType type) {
     return province.chronicle().events().stream()
         .filter(event -> event.type() == type)
         .map(GeologicalEvent::id)
+        .sorted()
+        .toList();
+  }
+
+  private static List<AgeKey> eventAges(Province province, EventType type) {
+    return province.chronicle().events().stream()
+        .filter(event -> event.type() == type)
+        .map(GeologicalEvent::age)
         .sorted()
         .toList();
   }

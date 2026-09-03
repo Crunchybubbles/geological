@@ -1847,6 +1847,10 @@ final class MaterialReviewPacketGenerator {
                 sample.metamorphism().maximumPeakPressureMpa()),
             "eventIds",
             sample.metamorphism().eventIds().stream().map(Object::toString).toList(),
+            "eventAges",
+            sample.metamorphism().eventAges().stream()
+                .map(age -> JsonWriter.object("ageMa", age.ageMa(), "ordinal", age.ordinal()))
+                .toList(),
             "processState",
             JsonWriter.object(
                 "burialCurveClass",

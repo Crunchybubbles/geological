@@ -1,6 +1,7 @@
 package io.github.crunchybubbles.geological.petrology;
 
 import io.github.crunchybubbles.geological.determinism.StableId;
+import io.github.crunchybubbles.geological.model.AgeKey;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +16,7 @@ public record MetamorphicHistory(
     double minimumPeakPressureMpa,
     double maximumPeakPressureMpa,
     List<StableId> eventIds,
+    List<AgeKey> eventAges,
     MetamorphicProcessState processState) {
   public MetamorphicHistory(
       String protolithRockId,
@@ -36,6 +38,7 @@ public record MetamorphicHistory(
         minimumPeakPressureMpa,
         maximumPeakPressureMpa,
         eventIds,
+        List.of(),
         MetamorphicProcessState.proofFor(
             grade, facies, path, MaterialProcessClass.NONE, 0L, Optional.empty()));
   }
@@ -69,5 +72,6 @@ public record MetamorphicHistory(
       throw new IllegalArgumentException("metamorphic P-T interval must be finite and ordered");
     }
     eventIds = List.copyOf(eventIds).stream().sorted().toList();
+    eventAges = List.copyOf(eventAges).stream().sorted().toList();
   }
 }
