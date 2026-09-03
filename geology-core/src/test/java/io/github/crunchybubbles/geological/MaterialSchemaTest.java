@@ -19,6 +19,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialHorizonState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialTextureState;
+import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcess;
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
 import io.github.crunchybubbles.geological.petrology.LigandCapacities;
@@ -83,6 +84,41 @@ class MaterialSchemaTest {
     assertEquals(0.1, mixed.sortingDominanceIndex(), 1.0e-15);
     assertEquals(0.25, clast.sortingDominanceIndex(), 1.0e-15);
     assertEquals(ClastShape.ANGULAR_TO_SUBROUNDED, mixed.clastShape());
+  }
+
+  @Test
+  void colluvialTransportProcessSelectionUsesSlopeRunoffAndRouteEvidence() {
+    SedimentGrainSize grainYield = new SedimentGrainSize(400_000L, 350_000L, 250_000L);
+    ColluvialSedimentBudget.TerrainPath path = terrainPath(100.0);
+    ColluvialSedimentBudget.ProductionInput creepInput =
+        new ColluvialSedimentBudget.ProductionInput(
+            350_000L, 8.0, 0.02, 0.8, 0.25, 0.0, path, grainYield);
+    ColluvialSedimentBudget.ProductionInput sheetwashInput =
+        new ColluvialSedimentBudget.ProductionInput(
+            350_000L, 8.0, 0.12, 0.8, 0.25, 1.0, path, grainYield);
+    ColluvialSedimentBudget.ProductionInput dryRavelInput =
+        new ColluvialSedimentBudget.ProductionInput(
+            350_000L, 8.0, 0.24, 0.8, 0.25, 0.0, path, grainYield);
+    ColluvialTransportProcess creep = ColluvialTransportProcess.from(creepInput);
+    ColluvialTransportProcess sheetwash = ColluvialTransportProcess.from(sheetwashInput);
+    ColluvialTransportProcess dryRavel = ColluvialTransportProcess.from(dryRavelInput);
+
+    assertEquals(ColluvialTransportProcess.ProcessClass.HILLSLOPE_CREEP, creep.processClass());
+    assertEquals(ColluvialTransportProcess.ProcessClass.SHEETWASH, sheetwash.processClass());
+    assertEquals(ColluvialTransportProcess.ProcessClass.DRY_RAVEL, dryRavel.processClass());
+    assertEquals(creep, ColluvialTransportProcess.from(creepInput));
+    assertEquals(sheetwash, ColluvialTransportProcess.from(sheetwashInput));
+    assertEquals(dryRavel, ColluvialTransportProcess.from(dryRavelInput));
+    for (ColluvialTransportProcess process : List.of(creep, sheetwash, dryRavel)) {
+      assertTrue(process.selectedScore() >= 0.0);
+      assertTrue(process.selectedScore() <= 1.0);
+      assertTrue(process.selectionMargin() >= 0.0);
+    }
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialTransportProcess(
+                ColluvialTransportProcess.ProcessClass.DRY_RAVEL, 1.0, 0.0, 0.0));
   }
 
   @Test

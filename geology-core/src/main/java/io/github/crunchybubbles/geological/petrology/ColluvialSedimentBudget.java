@@ -856,6 +856,10 @@ public record ColluvialSedimentBudget(
       return ColluvialSedimentBudget.transportPathResponse(input);
     }
 
+    public ColluvialTransportProcess transportProcess() {
+      return ColluvialTransportProcess.from(input);
+    }
+
     public GrainTransportLengths grainTransportLengths() {
       return ColluvialSedimentBudget.grainTransportLengths(input);
     }

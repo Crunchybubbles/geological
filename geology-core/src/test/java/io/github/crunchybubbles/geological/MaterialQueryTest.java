@@ -23,6 +23,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceMix;
 import io.github.crunchybubbles.geological.petrology.ColluvialTextureState;
+import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcess;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
@@ -57,7 +58,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.41", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.42", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1402,6 +1403,10 @@ class MaterialQueryTest {
           1.0e-15);
       assertTrue(sourceBalance.balance().input().terrainRoughnessIndex() >= 0.0);
       assertTrue(sourceBalance.balance().input().terrainRoughnessIndex() <= 1.0);
+      ColluvialTransportProcess process = sourceBalance.balance().transportProcess();
+      assertTrue(process.selectedScore() >= 0.0);
+      assertTrue(process.selectedScore() <= 1.0);
+      assertTrue(process.selectionMargin() >= 0.0);
       assertEquals(expectedPath, sourceBalance.balance().input().terrainPath());
       assertEquals(contribution.sourcePoint(), expectedPath.sourcePoint());
       assertEquals(

@@ -609,6 +609,7 @@ public final class MaterialQueryEngine {
   private static void appendColluvialInputBalance(
       StringBuilder purpose, ColluvialSedimentBudget.InputBalance balance) {
     ColluvialSedimentBudget.ProductionInput input = balance.input();
+    ColluvialTransportProcess transportProcess = balance.transportProcess();
     purpose
         .append(input.capacityFixedUnits())
         .append(':')
@@ -621,6 +622,14 @@ public final class MaterialQueryEngine {
         .append(input.terrainRoughnessIndex())
         .append(':')
         .append(input.runoffIndex())
+        .append(":transport-process:")
+        .append(transportProcess.processClass().name())
+        .append(':')
+        .append(transportProcess.hillslopeCreepScore())
+        .append(':')
+        .append(transportProcess.sheetwashScore())
+        .append(':')
+        .append(transportProcess.dryRavelScore())
         .append(':')
         .append(input.terrainPath().reachLengthBlocks())
         .append(':')

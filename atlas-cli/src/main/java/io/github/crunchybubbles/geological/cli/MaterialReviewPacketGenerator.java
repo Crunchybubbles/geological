@@ -16,6 +16,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceMix;
+import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcess;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.MagmaLineageState;
 import io.github.crunchybubbles.geological.petrology.MantleCargoState;
@@ -686,6 +687,8 @@ final class MaterialReviewPacketGenerator {
         balance.input().terrainRoughnessIndex(),
         "runoffIndex",
         balance.input().runoffIndex(),
+        "transportProcess",
+        colluvialTransportProcessJson(balance.transportProcess()),
         "terrainPath",
         colluvialTerrainPathJson(balance.input().terrainPath()),
         "transportPathResponse",
@@ -720,6 +723,23 @@ final class MaterialReviewPacketGenerator {
         colluvialGrainMassJson(balance.bypassedGrainMass()),
         "depositedGrainMassFixedUnits",
         colluvialGrainMassJson(balance.depositedGrainMass()));
+  }
+
+  private static Map<String, Object> colluvialTransportProcessJson(
+      ColluvialTransportProcess process) {
+    return JsonWriter.object(
+        "processClass",
+        process.processClass().name(),
+        "hillslopeCreepScore",
+        process.hillslopeCreepScore(),
+        "sheetwashScore",
+        process.sheetwashScore(),
+        "dryRavelScore",
+        process.dryRavelScore(),
+        "selectedScore",
+        process.selectedScore(),
+        "selectionMargin",
+        process.selectionMargin());
   }
 
   private static Map<String, Object> colluvialTerrainPathJson(
