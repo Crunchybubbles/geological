@@ -39,7 +39,15 @@ public record ColluvialTransportProcessMix(
     for (ColluvialTransportProcessUsage usage : budget.transportProcessUsages()) {
       depositedByProcess[usage.processClass().ordinal()] = usage.depositedFixedUnits();
     }
-    long[] fractions = apportion(MaterialAssemblage.SCALE, depositedByProcess);
+    return fromWeights(depositedByProcess);
+  }
+
+  static ColluvialTransportProcessMix fromWeights(long[] weights) {
+    if (weights == null
+        || weights.length != ColluvialTransportProcess.ProcessClass.values().length) {
+      throw new IllegalArgumentException("colluvial process weights are incomplete");
+    }
+    long[] fractions = apportion(MaterialAssemblage.SCALE, weights);
     ColluvialTransportProcess.ProcessClass dominant =
         ColluvialTransportProcess.ProcessClass.HILLSLOPE_CREEP;
     long selected = fractions[dominant.ordinal()];

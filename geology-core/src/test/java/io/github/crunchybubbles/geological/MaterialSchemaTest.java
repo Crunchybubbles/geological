@@ -29,6 +29,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialSourceUsage;
 import io.github.crunchybubbles.geological.petrology.ColluvialTextureState;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcess;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessMix;
+import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessStageMix;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessUsage;
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
@@ -157,6 +158,21 @@ class MaterialSchemaTest {
                         300_000L, 8.0, 0.24, 0.8, 0.25, 0.0, farPath, grainYield))));
 
     ColluvialTransportProcessMix processMix = budget.transportProcessMix();
+    ColluvialTransportProcessStageMix processStages = budget.transportProcessStageMix();
+    for (ColluvialTransportProcessMix stage :
+        List.of(
+            processStages.capacity(),
+            processStages.mobilized(),
+            processStages.arrived(),
+            processStages.deposited())) {
+      assertEquals(
+          MaterialAssemblage.SCALE,
+          stage.hillslopeCreepFractionPpm()
+              + stage.sheetwashFractionPpm()
+              + stage.dryRavelFractionPpm());
+      assertTrue(stage.dominantProcess() != null);
+    }
+    assertEquals(processStages, budget.transportProcessStageMix());
     List<ColluvialTransportProcessUsage> processUsages = budget.transportProcessUsages();
     assertEquals(3, processUsages.size());
     assertEquals(

@@ -700,6 +700,11 @@ public final class MaterialQueryEngine {
           .append(':')
           .append(usage.depositedGrainMass().finesFixedUnits());
     }
+    ColluvialTransportProcessStageMix processStages = sedimentBudget.transportProcessStageMix();
+    appendProcessMix(purpose, ":process-stage-capacity:", processStages.capacity());
+    appendProcessMix(purpose, ":process-stage-mobilized:", processStages.mobilized());
+    appendProcessMix(purpose, ":process-stage-arrived:", processStages.arrived());
+    appendProcessMix(purpose, ":process-stage-deposited:", processStages.deposited());
     return StableId.first128(
         geology
             .atlas()
@@ -837,6 +842,19 @@ public final class MaterialQueryEngine {
     appendColluvialGrainMass(purpose, balance.transportLossGrainMass());
     appendColluvialGrainMass(purpose, balance.bypassedGrainMass());
     appendColluvialGrainMass(purpose, balance.depositedGrainMass());
+  }
+
+  private static void appendProcessMix(
+      StringBuilder purpose, String prefix, ColluvialTransportProcessMix processMix) {
+    purpose
+        .append(prefix)
+        .append(processMix.dominantProcess())
+        .append(':')
+        .append(processMix.hillslopeCreepFractionPpm())
+        .append(':')
+        .append(processMix.sheetwashFractionPpm())
+        .append(':')
+        .append(processMix.dryRavelFractionPpm());
   }
 
   private static void appendColluvialGrainMass(

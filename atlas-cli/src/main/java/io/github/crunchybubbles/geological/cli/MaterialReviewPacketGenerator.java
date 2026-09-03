@@ -26,6 +26,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialSourceMix;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceUsage;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcess;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessMix;
+import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessStageMix;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessUsage;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.MagmaLineageState;
@@ -729,7 +730,9 @@ final class MaterialReviewPacketGenerator {
         "transportProcessUsages",
         budget.transportProcessUsages().stream()
             .map(MaterialReviewPacketGenerator::colluvialTransportProcessUsageJson)
-            .toList());
+            .toList(),
+        "transportProcessStageMix",
+        colluvialTransportProcessStageMixJson(budget.transportProcessStageMix()));
   }
 
   private static Map<String, Object> colluvialSedimentSourceBalanceJson(
@@ -824,6 +827,19 @@ final class MaterialReviewPacketGenerator {
         colluvialGrainMassJson(usage.bypassedGrainMass()),
         "depositedGrainMassFixedUnits",
         colluvialGrainMassJson(usage.depositedGrainMass()));
+  }
+
+  private static Map<String, Object> colluvialTransportProcessStageMixJson(
+      ColluvialTransportProcessStageMix stageMix) {
+    return JsonWriter.object(
+        "capacity",
+        colluvialTransportProcessMixJson(stageMix.capacity()),
+        "mobilized",
+        colluvialTransportProcessMixJson(stageMix.mobilized()),
+        "arrived",
+        colluvialTransportProcessMixJson(stageMix.arrived()),
+        "deposited",
+        colluvialTransportProcessMixJson(stageMix.deposited()));
   }
 
   private static Map<String, Object> colluvialSedimentInputBalanceJson(
