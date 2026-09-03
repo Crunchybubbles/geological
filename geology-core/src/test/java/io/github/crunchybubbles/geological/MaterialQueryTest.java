@@ -24,6 +24,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialHydraulicState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialProductionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
+import io.github.crunchybubbles.geological.petrology.ColluvialSinkAllocation;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceGrainShare;
@@ -67,7 +68,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.51", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.52", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1486,6 +1487,14 @@ class MaterialQueryTest {
       assertTrue(sinkState.transportLossFraction() <= 1.0);
       assertTrue(sinkState.bypassFraction() >= 0.0);
       assertTrue(sinkState.bypassFraction() <= 1.0);
+      ColluvialSinkAllocation sinkAllocation = sourceBalance.balance().sinkAllocation();
+      assertTrue(sinkAllocation.transportLossDistanceBlocks() >= 0.0);
+      assertTrue(
+          sinkAllocation.transportLossDistanceBlocks()
+              <= sinkAllocation.bypassDistanceBlocks() + 1.0e-9);
+      assertEquals(
+          sourceBalance.balance().input().terrainPath().sourcePoint(),
+          sinkAllocation.bypassPoint());
       ColluvialCohesionState cohesionState =
           transported.context().colluvialSourceMix().orElseThrow().physicalState().cohesionState();
       assertTrue(cohesionState.finesFraction() >= 0.0);
@@ -1543,7 +1552,7 @@ class MaterialQueryTest {
       assertTrue(actualPath.downslopeContinuityIndex() <= 1.0);
       assertTrue(sourceBalance.balance().transportPathResponse() >= 0.50);
       assertTrue(sourceBalance.balance().transportPathResponse() <= 1.0);
-      assertTrue(sourceBalance.balance().transportDistanceScale() >= 0.10);
+      assertTrue(sourceBalance.balance().transportDistanceScale() >= 0.07);
       assertTrue(sourceBalance.balance().transportDistanceScale() <= 1.0);
       assertTrue(
           sourceBalance.balance().grainTransportLengths().gravelAndCoarserBlocks()

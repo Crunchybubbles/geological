@@ -22,6 +22,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialHydraulicState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialProductionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
+import io.github.crunchybubbles.geological.petrology.ColluvialSinkAllocation;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceGrainShare;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceUsage;
@@ -468,6 +469,16 @@ class MaterialSchemaTest {
     assertEquals(1.0, farPath.routeDirectnessIndex(), 1.0e-15);
     assertEquals(16.0, farPath.netUpslopeReliefBlocks(), 1.0e-15);
     assertEquals(25.0 / 72.0, farPath.routeGradeIndex(), 1.0e-15);
+    assertEquals(new Point2(96.0, 0.0), farPath.pointAtRoutedDistance(96.0));
+    assertEquals(farPath.originPoint(), farPath.pointAtRoutedDistance(0.0));
+    assertEquals(farPath.sourcePoint(), farPath.pointAtRoutedDistance(192.0));
+    ColluvialSinkAllocation farAllocation = farBalance.sinkAllocation();
+    assertTrue(farAllocation.hasTransportLoss());
+    assertTrue(farAllocation.hasBypass());
+    assertTrue(farAllocation.transportLossDistanceBlocks() > 0.0);
+    assertTrue(farAllocation.transportLossDistanceBlocks() < farAllocation.bypassDistanceBlocks());
+    assertEquals(farPath.sourcePoint(), farAllocation.bypassPoint());
+    assertEquals(farAllocation, farBalance.sinkAllocation());
     assertEquals(
         0.5 + 0.5 * (47.0 / 60.0) * (0.75 + 0.25 * (25.0 / 72.0)),
         farBalance.transportPathResponse(),

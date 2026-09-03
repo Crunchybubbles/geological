@@ -715,6 +715,7 @@ public final class MaterialQueryEngine {
     ColluvialTransportProcess transportProcess = balance.transportProcess();
     ColluvialProductionState productionState = balance.productionState();
     ColluvialSinkState sinkState = balance.sinkState();
+    ColluvialSinkAllocation sinkAllocation = balance.sinkAllocation();
     purpose
         .append(input.capacityFixedUnits())
         .append(':')
@@ -763,6 +764,18 @@ public final class MaterialQueryEngine {
         .append(sinkState.transportLossFraction())
         .append(':')
         .append(sinkState.bypassFraction())
+        .append(":sink-allocation:")
+        .append(sinkAllocation.transportLossDistanceBlocks())
+        .append(':')
+        .append(sinkAllocation.transportLossPoint().x())
+        .append(':')
+        .append(sinkAllocation.transportLossPoint().z())
+        .append(':')
+        .append(sinkAllocation.bypassDistanceBlocks())
+        .append(':')
+        .append(sinkAllocation.bypassPoint().x())
+        .append(':')
+        .append(sinkAllocation.bypassPoint().z())
         .append(':')
         .append(input.terrainPath().reachLengthBlocks())
         .append(':')

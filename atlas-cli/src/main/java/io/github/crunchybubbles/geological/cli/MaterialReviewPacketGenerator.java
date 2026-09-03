@@ -18,6 +18,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialHydraulicState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialProductionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
+import io.github.crunchybubbles.geological.petrology.ColluvialSinkAllocation;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceGrainShare;
@@ -846,6 +847,8 @@ final class MaterialReviewPacketGenerator {
         colluvialProductionStateJson(balance.productionState()),
         "sinkState",
         colluvialSinkStateJson(balance.sinkState()),
+        "sinkAllocation",
+        colluvialSinkAllocationJson(balance.sinkAllocation()),
         "terrainPath",
         colluvialTerrainPathJson(balance.input().terrainPath()),
         "transportPathResponse",
@@ -934,6 +937,19 @@ final class MaterialReviewPacketGenerator {
         sinkState.transportLossFraction(),
         "bypassFraction",
         sinkState.bypassFraction());
+  }
+
+  private static Map<String, Object> colluvialSinkAllocationJson(
+      ColluvialSinkAllocation allocation) {
+    return JsonWriter.object(
+        "transportLossDistanceBlocks",
+        allocation.transportLossDistanceBlocks(),
+        "transportLossPoint",
+        pointJson(allocation.transportLossPoint()),
+        "bypassDistanceBlocks",
+        allocation.bypassDistanceBlocks(),
+        "bypassPoint",
+        pointJson(allocation.bypassPoint()));
   }
 
   private static Map<String, Object> colluvialTerrainPathJson(

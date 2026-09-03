@@ -689,6 +689,29 @@ public record ColluvialSedimentBudget(
       return samples.getLast().point();
     }
 
+    /** Interpolates a point along the ordered routed centerline. */
+    public Point2 pointAtRoutedDistance(double distanceBlocks) {
+      if (!Double.isFinite(distanceBlocks)
+          || distanceBlocks < 0.0
+          || distanceBlocks > routedDistanceBlocks()) {
+        throw new IllegalArgumentException("colluvial routed distance is outside the path");
+      }
+      if (distanceBlocks == 0.0 || reachCount() == 0) {
+        return originPoint();
+      }
+      if (distanceBlocks == routedDistanceBlocks()) {
+        return sourcePoint();
+      }
+      double reachPosition = distanceBlocks / reachLengthBlocks;
+      int reachIndex = (int) StrictMath.floor(reachPosition);
+      double fraction = reachPosition - reachIndex;
+      Point2 start = samples.get(reachIndex).point();
+      Point2 end = samples.get(reachIndex + 1).point();
+      return new Point2(
+          start.x() + fraction * (end.x() - start.x()),
+          start.z() + fraction * (end.z() - start.z()));
+    }
+
     public double straightLineDistanceBlocks() {
       return StrictMath.hypot(
           sourcePoint().x() - originPoint().x(), sourcePoint().z() - originPoint().z());
@@ -964,6 +987,10 @@ public record ColluvialSedimentBudget(
 
     public ColluvialSinkState sinkState() {
       return ColluvialSinkState.from(this);
+    }
+
+    public ColluvialSinkAllocation sinkAllocation() {
+      return ColluvialSinkAllocation.from(this);
     }
 
     public GrainTransportLengths grainTransportLengths() {
