@@ -27,6 +27,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkAllocation;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkDestination;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
+import io.github.crunchybubbles.geological.petrology.ColluvialSourceCapacityLedger;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceClaim;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceClaimLedger;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceGrainShare;
@@ -254,6 +255,92 @@ class MaterialSchemaTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> ColluvialSourceClaimLedger.from(List.of(first, first)));
+  }
+
+  @Test
+  void colluvialSourceCapacityLedgerReconcilesFiniteMobilizedInventoryExactly() {
+    StableId parcelA = StableId.parse("00000000000000000000000000000011");
+    StableId parcelB = StableId.parse("00000000000000000000000000000012");
+    StableId sourceOne = StableId.parse("00000000000000000000000000000021");
+    StableId sourceTwo = StableId.parse("00000000000000000000000000000022");
+    ColluvialSourceClaim first =
+        new ColluvialSourceClaim(
+            new Point2(1.0, 2.0),
+            parcelA,
+            sourceOne,
+            0,
+            350_000L,
+            100_000L,
+            250_000L,
+            10_000L,
+            20_000L,
+            70_000L);
+    ColluvialSourceClaim second =
+        new ColluvialSourceClaim(
+            new Point2(3.0, 4.0),
+            parcelB,
+            sourceOne,
+            0,
+            350_000L,
+            120_000L,
+            230_000L,
+            12_000L,
+            18_000L,
+            90_000L);
+    ColluvialSourceClaim third =
+        new ColluvialSourceClaim(
+            new Point2(1.0, 2.0),
+            parcelA,
+            sourceTwo,
+            96,
+            200_000L,
+            80_000L,
+            120_000L,
+            8_000L,
+            12_000L,
+            60_000L);
+
+    Map<StableId, Long> capacities = Map.of(sourceOne, 100_000L, sourceTwo, 0L);
+    ColluvialSourceCapacityLedger ledger =
+        ColluvialSourceCapacityLedger.from(List.of(third, first, second), capacities);
+    ColluvialSourceCapacityLedger reordered =
+        ColluvialSourceCapacityLedger.from(List.of(second, third, first), capacities);
+
+    assertEquals(900_000L, ledger.claimedCapacityFixedUnits());
+    assertEquals(300_000L, ledger.requestedMobilizedFixedUnits());
+    assertEquals(100_000L, ledger.allocatedMobilizedFixedUnits());
+    assertEquals(200_000L, ledger.unallocatedMobilizedFixedUnits());
+    assertEquals(800_000L, ledger.retainedFixedUnits());
+    assertEquals(10_000L, ledger.transportLossFixedUnits());
+    assertEquals(17_273L, ledger.bypassedFixedUnits());
+    assertEquals(72_727L, ledger.depositedFixedUnits());
+    assertEquals(0L, ledger.remainingSourceCapacityFixedUnits());
+    assertTrue(ledger.hasDepletion());
+    assertEquals(ledger, reordered);
+
+    for (ColluvialSourceCapacityLedger.ReconciledClaim claim : ledger.claims()) {
+      assertEquals(
+          claim.claimedCapacityFixedUnits(),
+          claim.retainedFixedUnits() + claim.allocatedMobilizedFixedUnits());
+      assertEquals(
+          claim.requestedMobilizedFixedUnits(),
+          claim.allocatedMobilizedFixedUnits() + claim.unallocatedMobilizedFixedUnits());
+      assertEquals(
+          claim.allocatedMobilizedFixedUnits(),
+          claim.transportLossFixedUnits()
+              + claim.bypassedFixedUnits()
+              + claim.depositedFixedUnits());
+    }
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            ColluvialSourceCapacityLedger.from(
+                List.of(first, second, third), Map.of(sourceOne, 1L)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            ColluvialSourceCapacityLedger.from(
+                List.of(first, second, third), Map.of(sourceOne, -1L, sourceTwo, 0L)));
   }
 
   @Test

@@ -29,6 +29,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkAllocation;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkDestination;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
+import io.github.crunchybubbles.geological.petrology.ColluvialSourceCapacityLedger;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceClaimLedger;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceGrainShare;
@@ -67,14 +68,16 @@ import io.github.crunchybubbles.geological.query.Phase1World;
 import io.github.crunchybubbles.geological.query.Phase2World;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TreeMap;
 import org.junit.jupiter.api.Test;
 
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.60", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.61", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -168,6 +171,21 @@ class MaterialQueryTest {
             + ledger.depositedFixedUnits());
     assertEquals(
         ledger, query.colluvialSourceClaimLedger(List.of(fixtures.get(1), fixtures.getFirst())));
+
+    Map<StableId, Long> finiteCapacities = new TreeMap<>();
+    for (ColluvialSourceClaimLedger.SourceAggregate aggregate : ledger.sourceAggregates()) {
+      finiteCapacities.put(aggregate.sourceBodyId(), aggregate.mobilizedFixedUnits() / 2L);
+    }
+    ColluvialSourceCapacityLedger reconciled =
+        query.colluvialSourceCapacityLedger(fixtures, finiteCapacities);
+    assertEquals(ledger.mobilizedFixedUnits(), reconciled.requestedMobilizedFixedUnits());
+    assertTrue(reconciled.allocatedMobilizedFixedUnits() <= reconciled.sourceCapacityFixedUnits());
+    assertTrue(reconciled.hasDepletion());
+    assertEquals(
+        reconciled.claimedCapacityFixedUnits(),
+        reconciled.retainedFixedUnits() + reconciled.allocatedMobilizedFixedUnits());
+    assertEquals(
+        ledger, query.colluvialSourceClaimLedger(List.of(fixtures.getFirst(), fixtures.get(1))));
   }
 
   @Test

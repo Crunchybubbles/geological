@@ -20,7 +20,7 @@ class MaterialReviewPacketGeneratorTest {
 
     String firstJson = Files.readString(first);
     assertEquals(firstJson, Files.readString(second));
-    assertTrue(firstJson.contains("\"modelVersion\": \"phase2.0-alpha.60\""));
+    assertTrue(firstJson.contains("\"modelVersion\": \"phase2.0-alpha.61\""));
     assertTrue(firstJson.contains("\"phase1Geology\""));
     assertTrue(firstJson.contains("\"phase2Material\""));
     assertTrue(firstJson.contains("\"modelVersion\": \"phase1.0-alpha.2\""));
@@ -30,6 +30,10 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"surfacePlacerContext\""));
     assertTrue(firstJson.contains("\"surfaceColluviumContext\""));
     assertTrue(firstJson.contains("\"colluvialSourceClaimLedger\""));
+    assertTrue(firstJson.contains("\"colluvialSourceCapacityLedger\""));
+    assertTrue(firstJson.contains("\"allocatedMobilizedFixedUnits\""));
+    assertTrue(firstJson.contains("\"unallocatedMobilizedFixedUnits\""));
+    assertTrue(firstJson.contains("\"remainingSourceCapacityFixedUnits\""));
     assertTrue(firstJson.contains("\"sourceAggregates\""));
     assertTrue(firstJson.contains("\"surface-colluvial-mantle\""));
     assertTrue(firstJson.contains("\"COLLUVIAL_MANTLE\""));

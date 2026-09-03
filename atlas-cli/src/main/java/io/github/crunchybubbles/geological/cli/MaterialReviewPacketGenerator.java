@@ -23,6 +23,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkAllocation;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkDestination;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
+import io.github.crunchybubbles.geological.petrology.ColluvialSourceCapacityLedger;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceClaim;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceClaimLedger;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution;
@@ -80,8 +81,19 @@ final class MaterialReviewPacketGenerator {
     Province province = referenceProvince();
     SurfacePetrologicSample placer =
         query.surface(province.frame().toWorld(province.geometry().placerCenter()));
-    SurfacePetrologicSample colluvium =
-        findSurfaceMaterial(province, SurfaceMaterialKind.COLLUVIAL_MANTLE);
+    List<SurfacePetrologicSample> colluvialFixtures =
+        findSurfaceMaterials(province, SurfaceMaterialKind.COLLUVIAL_MANTLE, 2);
+    SurfacePetrologicSample colluvium = colluvialFixtures.getFirst();
+    ColluvialSourceClaimLedger sourceClaimLedger =
+        query.colluvialSourceClaimLedger(
+            colluvialFixtures.stream().map(sample -> sample.surface().fields().point()).toList());
+    Map<StableId, Long> reviewSourceCapacities = new TreeMap<>();
+    for (ColluvialSourceClaimLedger.SourceAggregate aggregate :
+        sourceClaimLedger.sourceAggregates()) {
+      reviewSourceCapacities.put(aggregate.sourceBodyId(), aggregate.mobilizedFixedUnits() / 2L);
+    }
+    ColluvialSourceCapacityLedger sourceCapacityLedger =
+        sourceClaimLedger.reconcileSourceCapacity(reviewSourceCapacities);
 
     List<Map<String, Object>> samples = new ArrayList<>();
     List<RiftArcGeometry.PlutonPulse> pulses = province.geometry().plutonPulses();
@@ -503,8 +515,9 @@ final class MaterialReviewPacketGenerator {
             "elementReservoirLedgers",
             query.elementReservoirLedgers(province).stream().map(this::reservoirJson).toList(),
             "colluvialSourceClaimLedger",
-            colluvialSourceClaimLedgerJson(
-                query.colluvialSourceClaimLedger(List.of(colluvium.surface().fields().point()))),
+            colluvialSourceClaimLedgerJson(sourceClaimLedger),
+            "colluvialSourceCapacityLedger",
+            colluvialSourceCapacityLedgerJson(sourceCapacityLedger),
             "surfacePlacerContext",
             surfaceContextJson(placer),
             "surfaceColluviumContext",
@@ -513,6 +526,15 @@ final class MaterialReviewPacketGenerator {
   }
 
   private SurfacePetrologicSample findSurfaceMaterial(Province province, SurfaceMaterialKind kind) {
+    return findSurfaceMaterials(province, kind, 1).getFirst();
+  }
+
+  private List<SurfacePetrologicSample> findSurfaceMaterials(
+      Province province, SurfaceMaterialKind kind, int count) {
+    if (count <= 0) {
+      throw new IllegalArgumentException("surface-material fixture count must be positive");
+    }
+    List<SurfacePetrologicSample> fixtures = new ArrayList<>();
     double extent = province.cellSize() * 0.45;
     double step = province.cellSize() / 40.0;
     for (double z = -extent; z <= extent; z += step) {
@@ -523,11 +545,24 @@ final class MaterialReviewPacketGenerator {
             && (kind != SurfaceMaterialKind.COLLUVIAL_MANTLE
                 || candidate.context().sourceBodyIds().size() > 1)
             && candidate.surface().bedrock().provinceId().equals(province.id())) {
-          return candidate;
+          if (fixtures.stream()
+              .noneMatch(
+                  fixture ->
+                      fixture
+                          .surface()
+                          .fields()
+                          .point()
+                          .equals(candidate.surface().fields().point()))) {
+            fixtures.add(candidate);
+          }
+          if (fixtures.size() >= count) {
+            return List.copyOf(fixtures);
+          }
         }
       }
     }
-    throw new IllegalStateException("reference province contains no " + kind + " fixture");
+    throw new IllegalStateException(
+        "reference province contains fewer than " + count + " " + kind + " fixtures");
   }
 
   private static Map<String, Object> surfaceContextJson(SurfacePetrologicSample surface) {
@@ -721,6 +756,97 @@ final class MaterialReviewPacketGenerator {
         ledger.sourceAggregates().stream()
             .map(MaterialReviewPacketGenerator::colluvialSourceAggregateJson)
             .toList());
+  }
+
+  private static Map<String, Object> colluvialSourceCapacityLedgerJson(
+      ColluvialSourceCapacityLedger ledger) {
+    return JsonWriter.object(
+        "sourceCapacityFixedUnits",
+        ledger.sourceCapacityFixedUnits(),
+        "claimedCapacityFixedUnits",
+        ledger.claimedCapacityFixedUnits(),
+        "requestedMobilizedFixedUnits",
+        ledger.requestedMobilizedFixedUnits(),
+        "allocatedMobilizedFixedUnits",
+        ledger.allocatedMobilizedFixedUnits(),
+        "unallocatedMobilizedFixedUnits",
+        ledger.unallocatedMobilizedFixedUnits(),
+        "retainedFixedUnits",
+        ledger.retainedFixedUnits(),
+        "transportLossFixedUnits",
+        ledger.transportLossFixedUnits(),
+        "bypassedFixedUnits",
+        ledger.bypassedFixedUnits(),
+        "depositedFixedUnits",
+        ledger.depositedFixedUnits(),
+        "remainingSourceCapacityFixedUnits",
+        ledger.remainingSourceCapacityFixedUnits(),
+        "hasDepletion",
+        ledger.hasDepletion(),
+        "claims",
+        ledger.claims().stream()
+            .map(MaterialReviewPacketGenerator::colluvialReconciledClaimJson)
+            .toList(),
+        "sourceAggregates",
+        ledger.sourceAggregates().stream()
+            .map(MaterialReviewPacketGenerator::colluvialSourceCapacityAggregateJson)
+            .toList());
+  }
+
+  private static Map<String, Object> colluvialReconciledClaimJson(
+      ColluvialSourceCapacityLedger.ReconciledClaim claim) {
+    return JsonWriter.object(
+        "parcelPoint",
+        pointJson(claim.parcelPoint()),
+        "parcelBodyId",
+        claim.parcelBodyId().toString(),
+        "sourceBodyId",
+        claim.sourceBodyId().toString(),
+        "upslopeDistanceBlocks",
+        claim.upslopeDistanceBlocks(),
+        "claimedCapacityFixedUnits",
+        claim.claimedCapacityFixedUnits(),
+        "requestedMobilizedFixedUnits",
+        claim.requestedMobilizedFixedUnits(),
+        "allocatedMobilizedFixedUnits",
+        claim.allocatedMobilizedFixedUnits(),
+        "unallocatedMobilizedFixedUnits",
+        claim.unallocatedMobilizedFixedUnits(),
+        "retainedFixedUnits",
+        claim.retainedFixedUnits(),
+        "transportLossFixedUnits",
+        claim.transportLossFixedUnits(),
+        "bypassedFixedUnits",
+        claim.bypassedFixedUnits(),
+        "depositedFixedUnits",
+        claim.depositedFixedUnits());
+  }
+
+  private static Map<String, Object> colluvialSourceCapacityAggregateJson(
+      ColluvialSourceCapacityLedger.SourceCapacityAggregate aggregate) {
+    return JsonWriter.object(
+        "sourceBodyId",
+        aggregate.sourceBodyId().toString(),
+        "sourceCapacityFixedUnits",
+        aggregate.sourceCapacityFixedUnits(),
+        "claimCount",
+        aggregate.claimCount(),
+        "claimedCapacityFixedUnits",
+        aggregate.claimedCapacityFixedUnits(),
+        "requestedMobilizedFixedUnits",
+        aggregate.requestedMobilizedFixedUnits(),
+        "allocatedMobilizedFixedUnits",
+        aggregate.allocatedMobilizedFixedUnits(),
+        "unallocatedMobilizedFixedUnits",
+        aggregate.unallocatedMobilizedFixedUnits(),
+        "retainedFixedUnits",
+        aggregate.retainedFixedUnits(),
+        "transportLossFixedUnits",
+        aggregate.transportLossFixedUnits(),
+        "bypassedFixedUnits",
+        aggregate.bypassedFixedUnits(),
+        "depositedFixedUnits",
+        aggregate.depositedFixedUnits());
   }
 
   private static Map<String, Object> colluvialSourceClaimJson(ColluvialSourceClaim claim) {

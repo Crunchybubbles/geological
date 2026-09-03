@@ -89,6 +89,12 @@ public record ColluvialSourceClaimLedger(
     return sourceAggregates.stream().anyMatch(aggregate -> aggregate.parcelCount() > 1);
   }
 
+  /** Reconciles mobilized source inventory against a finite, caller-supplied capacity map. */
+  public ColluvialSourceCapacityLedger reconcileSourceCapacity(
+      Map<StableId, Long> sourceCapacityFixedUnits) {
+    return ColluvialSourceCapacityLedger.from(this, sourceCapacityFixedUnits);
+  }
+
   private static List<ColluvialSourceClaim> canonicalClaims(List<ColluvialSourceClaim> claims) {
     return List.copyOf(claims).stream()
         .sorted(

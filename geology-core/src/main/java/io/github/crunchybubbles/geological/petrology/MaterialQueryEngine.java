@@ -165,6 +165,18 @@ public final class MaterialQueryEngine {
     return ColluvialSourceClaimLedger.from(claims);
   }
 
+  /**
+   * Builds a deterministic finite-query source-capacity reconciliation for colluvial parcels.
+   *
+   * <p>The capacity map is explicit audit input; this method never mutates random-access world
+   * state or applies depletion to subsequent {@link #surface(Point2)} queries.
+   */
+  public ColluvialSourceCapacityLedger colluvialSourceCapacityLedger(
+      List<Point2> parcelPoints, Map<StableId, Long> sourceCapacityFixedUnits) {
+    return colluvialSourceClaimLedger(parcelPoints)
+        .reconcileSourceCapacity(sourceCapacityFixedUnits);
+  }
+
   public void clearCaches() {
     geology.clearCaches();
     bodyRecipeCache.clear();
