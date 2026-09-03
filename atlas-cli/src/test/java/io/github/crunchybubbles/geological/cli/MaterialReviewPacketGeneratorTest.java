@@ -20,7 +20,7 @@ class MaterialReviewPacketGeneratorTest {
 
     String firstJson = Files.readString(first);
     assertEquals(firstJson, Files.readString(second));
-    assertTrue(firstJson.contains("\"modelVersion\": \"phase2.0-alpha.58\""));
+    assertTrue(firstJson.contains("\"modelVersion\": \"phase2.0-alpha.59\""));
     assertTrue(firstJson.contains("\"phase1Geology\""));
     assertTrue(firstJson.contains("\"phase2Material\""));
     assertTrue(firstJson.contains("\"modelVersion\": \"phase1.0-alpha.2\""));
@@ -29,6 +29,8 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"elementReservoirLedgers\""));
     assertTrue(firstJson.contains("\"surfacePlacerContext\""));
     assertTrue(firstJson.contains("\"surfaceColluviumContext\""));
+    assertTrue(firstJson.contains("\"colluvialSourceClaimLedger\""));
+    assertTrue(firstJson.contains("\"sourceAggregates\""));
     assertTrue(firstJson.contains("\"surface-colluvial-mantle\""));
     assertTrue(firstJson.contains("\"COLLUVIAL_MANTLE\""));
     assertTrue(firstJson.contains("\"underlyingBedrockBodyId\""));

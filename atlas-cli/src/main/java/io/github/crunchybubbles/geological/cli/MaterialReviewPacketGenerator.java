@@ -23,6 +23,8 @@ import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkAllocation;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkDestination;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
+import io.github.crunchybubbles.geological.petrology.ColluvialSourceClaim;
+import io.github.crunchybubbles.geological.petrology.ColluvialSourceClaimLedger;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceGrainShare;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceMix;
@@ -499,6 +501,9 @@ final class MaterialReviewPacketGenerator {
             samples,
             "elementReservoirLedgers",
             query.elementReservoirLedgers(province).stream().map(this::reservoirJson).toList(),
+            "colluvialSourceClaimLedger",
+            colluvialSourceClaimLedgerJson(
+                query.colluvialSourceClaimLedger(List.of(colluvium.surface().fields().point()))),
             "surfacePlacerContext",
             surfaceContextJson(placer),
             "surfaceColluviumContext",
@@ -686,6 +691,82 @@ final class MaterialReviewPacketGenerator {
         destination.receivingBedrockLithology().name(),
         "receivingBedrockOverprint",
         destination.receivingBedrockOverprint().name());
+  }
+
+  private static Map<String, Object> colluvialSourceClaimLedgerJson(
+      ColluvialSourceClaimLedger ledger) {
+    return JsonWriter.object(
+        "parcelCount",
+        ledger.parcelCount(),
+        "hasCrossParcelReuse",
+        ledger.hasCrossParcelReuse(),
+        "claimedCapacityFixedUnits",
+        ledger.claimedCapacityFixedUnits(),
+        "mobilizedFixedUnits",
+        ledger.mobilizedFixedUnits(),
+        "retainedFixedUnits",
+        ledger.retainedFixedUnits(),
+        "transportLossFixedUnits",
+        ledger.transportLossFixedUnits(),
+        "bypassedFixedUnits",
+        ledger.bypassedFixedUnits(),
+        "depositedFixedUnits",
+        ledger.depositedFixedUnits(),
+        "claims",
+        ledger.claims().stream()
+            .map(MaterialReviewPacketGenerator::colluvialSourceClaimJson)
+            .toList(),
+        "sourceAggregates",
+        ledger.sourceAggregates().stream()
+            .map(MaterialReviewPacketGenerator::colluvialSourceAggregateJson)
+            .toList());
+  }
+
+  private static Map<String, Object> colluvialSourceClaimJson(ColluvialSourceClaim claim) {
+    return JsonWriter.object(
+        "parcelPoint",
+        pointJson(claim.parcelPoint()),
+        "parcelBodyId",
+        claim.parcelBodyId().toString(),
+        "sourceBodyId",
+        claim.sourceBodyId().toString(),
+        "upslopeDistanceBlocks",
+        claim.upslopeDistanceBlocks(),
+        "claimedCapacityFixedUnits",
+        claim.claimedCapacityFixedUnits(),
+        "mobilizedFixedUnits",
+        claim.mobilizedFixedUnits(),
+        "retainedFixedUnits",
+        claim.retainedFixedUnits(),
+        "transportLossFixedUnits",
+        claim.transportLossFixedUnits(),
+        "bypassedFixedUnits",
+        claim.bypassedFixedUnits(),
+        "depositedFixedUnits",
+        claim.depositedFixedUnits());
+  }
+
+  private static Map<String, Object> colluvialSourceAggregateJson(
+      ColluvialSourceClaimLedger.SourceAggregate aggregate) {
+    return JsonWriter.object(
+        "sourceBodyId",
+        aggregate.sourceBodyId().toString(),
+        "parcelCount",
+        aggregate.parcelCount(),
+        "trancheCount",
+        aggregate.trancheCount(),
+        "claimedCapacityFixedUnits",
+        aggregate.claimedCapacityFixedUnits(),
+        "mobilizedFixedUnits",
+        aggregate.mobilizedFixedUnits(),
+        "retainedFixedUnits",
+        aggregate.retainedFixedUnits(),
+        "transportLossFixedUnits",
+        aggregate.transportLossFixedUnits(),
+        "bypassedFixedUnits",
+        aggregate.bypassedFixedUnits(),
+        "depositedFixedUnits",
+        aggregate.depositedFixedUnits());
   }
 
   private static Map<String, Object> colluvialPhysicalStateJson(

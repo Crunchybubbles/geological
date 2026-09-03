@@ -110,6 +110,41 @@ public final class MaterialQueryEngine {
     return reservoirLedgerCache.get(province.id(), ignored -> compileReservoirLedgers(province));
   }
 
+  /** Builds a deterministic finite-query audit of source claims across colluvial parcels. */
+  public ColluvialSourceClaimLedger colluvialSourceClaimLedger(List<Point2> parcelPoints) {
+    if (parcelPoints == null) {
+      throw new IllegalArgumentException("colluvial parcel points are required");
+    }
+    List<ColluvialSourceClaim> claims = new ArrayList<>();
+    for (Point2 parcelPoint : List.copyOf(parcelPoints)) {
+      if (parcelPoint == null) {
+        throw new IllegalArgumentException("colluvial parcel points cannot be null");
+      }
+      SurfacePetrologicSample parcel = surface(parcelPoint);
+      if (parcel.context().kind() != SurfaceMaterialKind.COLLUVIAL_MANTLE) {
+        throw new IllegalArgumentException("every source-claim parcel must be colluvial mantle");
+      }
+      ColluvialSourceMix sourceMix = parcel.context().colluvialSourceMix().orElseThrow();
+      ColluvialSedimentBudget budget = sourceMix.sedimentBudget();
+      for (ColluvialSedimentBudget.SourceBalance source : budget.sourceBalances()) {
+        ColluvialSedimentBudget.InputBalance balance = source.balance();
+        claims.add(
+            new ColluvialSourceClaim(
+                parcelPoint,
+                parcel.context().materialBodyId(),
+                source.sourceBodyId(),
+                source.upslopeDistanceBlocks(),
+                balance.input().capacityFixedUnits(),
+                balance.mobilizedFixedUnits(),
+                balance.retainedFixedUnits(),
+                balance.transportLossFixedUnits(),
+                balance.bypassedFixedUnits(),
+                balance.depositedFixedUnits()));
+      }
+    }
+    return ColluvialSourceClaimLedger.from(claims);
+  }
+
   public void clearCaches() {
     geology.clearCaches();
     bodyRecipeCache.clear();

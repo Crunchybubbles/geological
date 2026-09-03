@@ -27,6 +27,8 @@ import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkAllocation;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkDestination;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
+import io.github.crunchybubbles.geological.petrology.ColluvialSourceClaim;
+import io.github.crunchybubbles.geological.petrology.ColluvialSourceClaimLedger;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceGrainShare;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceUsage;
 import io.github.crunchybubbles.geological.petrology.ColluvialTextureState;
@@ -172,6 +174,67 @@ class MaterialSchemaTest {
                 Overprint.NONE,
                 Lithology.BASALTIC,
                 Overprint.NONE));
+  }
+
+  @Test
+  void colluvialSourceClaimLedgerAggregatesAcrossParcelsAndIgnoresInputOrder() {
+    StableId parcelA = StableId.parse("00000000000000000000000000000011");
+    StableId parcelB = StableId.parse("00000000000000000000000000000012");
+    StableId sourceOne = StableId.parse("00000000000000000000000000000021");
+    StableId sourceTwo = StableId.parse("00000000000000000000000000000022");
+    ColluvialSourceClaim first =
+        new ColluvialSourceClaim(
+            new Point2(1.0, 2.0),
+            parcelA,
+            sourceOne,
+            0,
+            350_000L,
+            100_000L,
+            250_000L,
+            10_000L,
+            20_000L,
+            70_000L);
+    ColluvialSourceClaim second =
+        new ColluvialSourceClaim(
+            new Point2(3.0, 4.0),
+            parcelB,
+            sourceOne,
+            0,
+            350_000L,
+            120_000L,
+            230_000L,
+            12_000L,
+            18_000L,
+            90_000L);
+    ColluvialSourceClaim third =
+        new ColluvialSourceClaim(
+            new Point2(1.0, 2.0),
+            parcelA,
+            sourceTwo,
+            96,
+            200_000L,
+            80_000L,
+            120_000L,
+            8_000L,
+            12_000L,
+            60_000L);
+
+    ColluvialSourceClaimLedger ledger =
+        ColluvialSourceClaimLedger.from(List.of(third, first, second));
+    assertEquals(3, ledger.claims().size());
+    assertEquals(2, ledger.sourceAggregates().size());
+    assertEquals(2, ledger.parcelCount());
+    assertTrue(ledger.hasCrossParcelReuse());
+    assertEquals(900_000L, ledger.claimedCapacityFixedUnits());
+    assertEquals(300_000L, ledger.mobilizedFixedUnits());
+    assertEquals(600_000L, ledger.retainedFixedUnits());
+    assertEquals(30_000L, ledger.transportLossFixedUnits());
+    assertEquals(50_000L, ledger.bypassedFixedUnits());
+    assertEquals(220_000L, ledger.depositedFixedUnits());
+    assertEquals(ledger, ColluvialSourceClaimLedger.from(List.of(second, third, first)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> ColluvialSourceClaimLedger.from(List.of(first, first)));
   }
 
   @Test

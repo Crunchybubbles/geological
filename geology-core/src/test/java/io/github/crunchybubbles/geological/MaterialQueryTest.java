@@ -29,6 +29,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkAllocation;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkDestination;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
+import io.github.crunchybubbles.geological.petrology.ColluvialSourceClaimLedger;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceGrainShare;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceMix;
@@ -72,7 +73,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.58", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.59", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -132,6 +133,40 @@ class MaterialQueryTest {
     assertNotEquals(
         Objects.requireNonNull(defaultSample).context().materialBodyId(),
         customSample.context().materialBodyId());
+  }
+
+  @Test
+  void finiteColluvialSourceClaimsReconcileAcrossQueriedParcels() {
+    MaterialQueryEngine query = Phase2World.create(2_025L);
+    List<Point2> fixtures = new ArrayList<>();
+    search:
+    for (int z = -1_500; z <= 1_500; z += 50) {
+      for (int x = -1_500; x <= 1_500; x += 50) {
+        Point2 point = new Point2(x + 0.25, z - 0.25);
+        SurfacePetrologicSample candidate = query.surface(point);
+        if (candidate.context().kind() == SurfaceMaterialKind.COLLUVIAL_MANTLE
+            && candidate.context().sourceBodyIds().size() > 1) {
+          fixtures.add(point);
+          if (fixtures.size() == 2) {
+            break search;
+          }
+        }
+      }
+    }
+    assertEquals(2, fixtures.size());
+    ColluvialSourceClaimLedger ledger = query.colluvialSourceClaimLedger(fixtures);
+    assertEquals(6, ledger.claims().size());
+    assertEquals(2, ledger.parcelCount());
+    assertEquals(
+        ledger.claimedCapacityFixedUnits(),
+        ledger.retainedFixedUnits() + ledger.mobilizedFixedUnits());
+    assertEquals(
+        ledger.mobilizedFixedUnits(),
+        ledger.transportLossFixedUnits()
+            + ledger.bypassedFixedUnits()
+            + ledger.depositedFixedUnits());
+    assertEquals(
+        ledger, query.colluvialSourceClaimLedger(List.of(fixtures.get(1), fixtures.getFirst())));
   }
 
   @Test
