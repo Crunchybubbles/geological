@@ -1872,7 +1872,31 @@ final class MaterialReviewPacketGenerator {
         "oxidationClass",
         state.oxidationClass(),
         "residualFluidPotential",
-        state.residualFluidPotential());
+        state.residualFluidPotential(),
+        "differentiationState",
+        JsonWriter.object(
+            "tectonicSetting",
+            state.differentiationState().tectonicSetting().name(),
+            "sourceReservoirIds",
+            state.differentiationState().sourceReservoirIds().stream()
+                .map(Object::toString)
+                .toList(),
+            "meltingMechanism",
+            state.differentiationState().meltingMechanism().name(),
+            "sourceLithologyClass",
+            state.differentiationState().sourceLithologyClass().name(),
+            "meltFractionClass",
+            state.differentiationState().meltFractionClass().name(),
+            "sulfurSaturationHistory",
+            state.differentiationState().sulfurSaturationHistory().name(),
+            "crustalAssimilationClass",
+            state.differentiationState().crustalAssimilationClass().name(),
+            "differentiationPath",
+            state.differentiationState().differentiationPath().name(),
+            "cumulativeCrystalFractionPpm",
+            state.differentiationState().cumulativeCrystalFractionPpm(),
+            "residualMeltFractionPpm",
+            state.differentiationState().residualMeltFractionPpm()));
   }
 
   private Map<String, Object> mantleCargoJson(MantleCargoState state) {

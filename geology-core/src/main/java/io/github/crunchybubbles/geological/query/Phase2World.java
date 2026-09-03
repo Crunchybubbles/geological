@@ -10,7 +10,7 @@ import io.github.crunchybubbles.geological.registry.RegistrySnapshot;
 
 /** Frozen identity and factory for the current Phase 2 petrologic material increment. */
 public final class Phase2World {
-  public static final String MODEL_VERSION = "phase2.0-alpha.67";
+  public static final String MODEL_VERSION = "phase2.0-alpha.68";
   public static final String SCIENTIFIC_DIGEST = Phase2ScientificManifest.digest();
 
   private Phase2World() {}

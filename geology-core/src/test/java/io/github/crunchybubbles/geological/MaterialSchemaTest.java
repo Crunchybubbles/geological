@@ -43,6 +43,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessUs
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
 import io.github.crunchybubbles.geological.petrology.LigandCapacities;
+import io.github.crunchybubbles.geological.petrology.MagmaDifferentiationState;
 import io.github.crunchybubbles.geological.petrology.MaterialAssemblage;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
 import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
@@ -66,6 +67,39 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class MaterialSchemaTest {
+  @Test
+  void magmaDifferentiationStateClosesAndCanonicalizesSourceReservoirs() {
+    StableId basement = StableId.parse("00000000000000000000000000000001");
+    StableId system = StableId.parse("00000000000000000000000000000002");
+    MagmaDifferentiationState state =
+        MagmaDifferentiationState.arcProofFor(2, List.of(system, basement));
+
+    assertEquals(List.of(basement, system), state.sourceReservoirIds());
+    assertEquals(
+        MaterialAssemblage.SCALE,
+        state.cumulativeCrystalFractionPpm() + state.residualMeltFractionPpm());
+    assertEquals(
+        MagmaDifferentiationState.SulfurSaturationHistory.SATURATED,
+        state.sulfurSaturationHistory());
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new MagmaDifferentiationState(
+                state.tectonicSetting(),
+                state.sourceReservoirIds(),
+                state.meltingMechanism(),
+                state.sourceLithologyClass(),
+                state.meltFractionClass(),
+                state.sulfurSaturationHistory(),
+                state.crustalAssimilationClass(),
+                state.differentiationPath(),
+                900_000L,
+                90_000L));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> MagmaDifferentiationState.arcProofFor(-1, List.of(basement)));
+  }
+
   @Test
   void sedimentGrainSizeBlendsCloseExactlyAndIgnoreShareOrder() {
     SedimentGrainSize coarse = new SedimentGrainSize(600_000L, 300_000L, 100_000L);

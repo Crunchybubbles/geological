@@ -44,6 +44,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessUs
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
+import io.github.crunchybubbles.geological.petrology.MagmaDifferentiationState;
 import io.github.crunchybubbles.geological.petrology.MantleCargoState;
 import io.github.crunchybubbles.geological.petrology.MantleCargoStatus;
 import io.github.crunchybubbles.geological.petrology.MaterialAssemblage;
@@ -78,7 +79,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.67", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.68", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -281,6 +282,23 @@ class MaterialQueryTest {
       assertEquals(index, material.magmaLineage().orElseThrow().pulseOrder());
       assertTrue(
           material.magmaLineage().orElseThrow().differentiationProgress() > previousProgress);
+      MagmaDifferentiationState differentiation =
+          material.magmaLineage().orElseThrow().differentiationState();
+      assertEquals(
+          province.geometry().basementId(), differentiation.sourceReservoirIds().getFirst());
+      assertEquals(
+          MaterialAssemblage.SCALE,
+          differentiation.cumulativeCrystalFractionPpm()
+              + differentiation.residualMeltFractionPpm());
+      assertEquals(
+          material.magmaLineage().orElseThrow().differentiationProgress(),
+          differentiation.cumulativeCrystalFractionPpm() / (double) MaterialAssemblage.SCALE,
+          1.0e-15);
+      assertEquals(
+          index == 2
+              ? MagmaDifferentiationState.DifferentiationPath.RESIDUAL_FELSIC_FRACTIONATION
+              : MagmaDifferentiationState.DifferentiationPath.FRACTIONAL_CRYSTALLIZATION,
+          differentiation.differentiationPath());
       previousProgress = material.magmaLineage().orElseThrow().differentiationProgress();
     }
   }

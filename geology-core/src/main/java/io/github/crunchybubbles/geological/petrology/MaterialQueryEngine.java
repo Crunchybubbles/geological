@@ -1276,12 +1276,10 @@ public final class MaterialQueryEngine {
     for (int index = 0; index < pulses.size(); index++) {
       RiftArcGeometry.PlutonPulse pulse = pulses.get(index);
       if (pulse.id().equals(sample.rockBodyId())) {
+        MagmaDifferentiationState differentiationState =
+            MagmaDifferentiationState.arcProofFor(index, List.of(province.geometry().basementId()));
         double progress =
-            switch (index) {
-              case 0 -> 0.25;
-              case 1 -> 0.55;
-              default -> 0.85;
-            };
+            differentiationState.cumulativeCrystalFractionPpm() / (double) MaterialAssemblage.SCALE;
         String fluidPotential =
             switch (index) {
               case 0 -> "moderate";
@@ -1297,7 +1295,8 @@ public final class MaterialQueryEngine {
                 "hydrated_mantle_wedge_plus_lower_crust",
                 "water_rich",
                 "oxidized",
-                fluidPotential));
+                fluidPotential,
+                differentiationState));
       }
     }
     return Optional.empty();
