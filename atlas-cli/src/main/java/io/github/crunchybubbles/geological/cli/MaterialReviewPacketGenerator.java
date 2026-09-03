@@ -1890,6 +1890,8 @@ final class MaterialReviewPacketGenerator {
                 sample.metamorphism().processState().burialCurveClass().name(),
                 "strainClass",
                 sample.metamorphism().processState().strainClass().name(),
+                "strainIntensityPpm",
+                sample.metamorphism().processState().strainIntensityPpm(),
                 "fluidAvailabilityClass",
                 sample.metamorphism().processState().fluidAvailabilityClass().name(),
                 "reactionProgressPpm",

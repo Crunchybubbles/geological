@@ -8,6 +8,7 @@ public record MetamorphicProcessState(
     BurialCurveClass burialCurveClass,
     StrainClass strainClass,
     FluidAvailabilityClass fluidAvailabilityClass,
+    long strainIntensityPpm,
     long reactionProgressPpm,
     long massTransferPpm,
     long retrogressionPotentialPpm,
@@ -24,6 +25,7 @@ public record MetamorphicProcessState(
         burialCurveClass,
         strainClass,
         fluidAvailabilityClass,
+        0L,
         reactionProgressPpm,
         massTransferPpm,
         retrogressionPotentialPpm,
@@ -35,6 +37,8 @@ public record MetamorphicProcessState(
         || strainClass == null
         || fluidAvailabilityClass == null
         || reactionState == null
+        || strainIntensityPpm < 0
+        || strainIntensityPpm > MaterialAssemblage.SCALE
         || reactionProgressPpm < 0
         || reactionProgressPpm > MaterialAssemblage.SCALE
         || massTransferPpm < 0
@@ -96,6 +100,7 @@ public record MetamorphicProcessState(
           BurialCurveClass.CONTACT_HEATING,
           StrainClass.THERMAL_RECRYSTALLIZATION,
           FluidAvailabilityClass.LIMITED_AQUEOUS,
+          300_000L,
           Math.max(700_000L, gradeProgress),
           0L,
           150_000L,
@@ -108,6 +113,7 @@ public record MetamorphicProcessState(
           strainFor(facies),
           FluidAvailabilityClass.BUFFERED_AQUEOUS,
           gradeProgress,
+          gradeProgress,
           0L,
           250_000L,
           MetamorphicReactionState.proofFor(
@@ -118,6 +124,7 @@ public record MetamorphicProcessState(
           BurialCurveClass.HYDROTHERMAL_HEATING,
           StrainClass.FRACTURE_CONTROLLED,
           FluidAvailabilityClass.HYDROTHERMAL_FLOW,
+          700_000L,
           Math.max(500_000L, gradeProgress),
           0L,
           700_000L,
@@ -129,6 +136,7 @@ public record MetamorphicProcessState(
           BurialCurveClass.HYDROTHERMAL_HEATING,
           StrainClass.FRACTURE_CONTROLLED,
           FluidAvailabilityClass.HYDROTHERMAL_FLOW,
+          650_000L,
           replacementPpm,
           replacementPpm,
           700_000L,
@@ -140,6 +148,7 @@ public record MetamorphicProcessState(
           BurialCurveClass.SURFACE_WEATHERING,
           StrainClass.REGOLITH_DISAGGREGATION,
           FluidAvailabilityClass.SURFACE_METEORIC,
+          250_000L,
           replacementPpm,
           replacementPpm,
           850_000L,
@@ -150,6 +159,7 @@ public record MetamorphicProcessState(
         BurialCurveClass.NONE,
         StrainClass.NONE,
         FluidAvailabilityClass.NONE,
+        0L,
         0L,
         0L,
         0L,

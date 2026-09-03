@@ -246,6 +246,7 @@ class MaterialSchemaTest {
     assertEquals(
         MetamorphicProcessState.StrainClass.THERMAL_RECRYSTALLIZATION, contact.strainClass());
     assertEquals(0L, contact.massTransferPpm());
+    assertEquals(300_000L, contact.strainIntensityPpm());
     assertEquals(
         MetamorphicReactionState.ReactionMechanism.THERMAL_RECRYSTALLIZATION,
         contact.reactionState().reactionMechanism());
