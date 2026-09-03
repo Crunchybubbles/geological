@@ -1902,7 +1902,29 @@ final class MaterialReviewPacketGenerator {
         "diagenesisClass",
         state.diagenesisClass(),
         "sourceBodyIds",
-        state.sourceBodyIds().stream().map(Object::toString).toList());
+        state.sourceBodyIds().stream().map(Object::toString).toList(),
+        "basinState",
+        JsonWriter.object(
+            "basinType",
+            state.basinState().basinType(),
+            "depositionalEnvironment",
+            state.basinState().depositionalEnvironment(),
+            "waterBodyConnectivity",
+            state.basinState().waterBodyConnectivity(),
+            "waterDepthClass",
+            state.basinState().waterDepthClass(),
+            "accommodationTrend",
+            state.basinState().accommodationTrend(),
+            "salinityClass",
+            state.basinState().salinityClass().name(),
+            "redoxClass",
+            state.basinState().redoxClass().name(),
+            "clasticDilutionPpm",
+            state.basinState().clasticDilutionPpm(),
+            "carbonateProductivityPpm",
+            state.basinState().carbonateProductivityPpm(),
+            "sourceCatchmentIds",
+            state.basinState().sourceCatchmentIds().stream().map(Object::toString).toList()));
   }
 
   private Map<String, Object> solidSolutionStateJson(SolidSolutionState state) {

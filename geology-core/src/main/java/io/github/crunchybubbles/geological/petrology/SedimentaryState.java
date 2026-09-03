@@ -9,7 +9,23 @@ public record SedimentaryState(
     String grainSizeClass,
     String maturityClass,
     String diagenesisClass,
-    List<StableId> sourceBodyIds) {
+    List<StableId> sourceBodyIds,
+    SedimentaryBasinState basinState) {
+  public SedimentaryState(
+      String faciesClass,
+      String grainSizeClass,
+      String maturityClass,
+      String diagenesisClass,
+      List<StableId> sourceBodyIds) {
+    this(
+        faciesClass,
+        grainSizeClass,
+        maturityClass,
+        diagenesisClass,
+        sourceBodyIds,
+        SedimentaryBasinState.proofFor(faciesClass, sourceBodyIds));
+  }
+
   public SedimentaryState {
     if (faciesClass == null
         || faciesClass.isBlank()
@@ -18,12 +34,16 @@ public record SedimentaryState(
         || maturityClass == null
         || maturityClass.isBlank()
         || diagenesisClass == null
-        || diagenesisClass.isBlank()) {
+        || diagenesisClass.isBlank()
+        || basinState == null) {
       throw new IllegalArgumentException("sedimentary state must be complete");
     }
     sourceBodyIds = List.copyOf(sourceBodyIds).stream().sorted().toList();
     if (sourceBodyIds.isEmpty()) {
       throw new IllegalArgumentException("sedimentary state must name a source body");
+    }
+    if (!sourceBodyIds.equals(basinState.sourceCatchmentIds())) {
+      throw new IllegalArgumentException("sedimentary basin sources must match sedimentary state");
     }
   }
 }

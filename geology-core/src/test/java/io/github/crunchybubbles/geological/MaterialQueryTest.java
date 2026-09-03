@@ -55,6 +55,7 @@ import io.github.crunchybubbles.geological.petrology.MetamorphicPath;
 import io.github.crunchybubbles.geological.petrology.PetrologicColumnResult;
 import io.github.crunchybubbles.geological.petrology.PetrologicSample;
 import io.github.crunchybubbles.geological.petrology.PetrologicState;
+import io.github.crunchybubbles.geological.petrology.RedoxClass;
 import io.github.crunchybubbles.geological.petrology.RockTexture;
 import io.github.crunchybubbles.geological.petrology.SalinityClass;
 import io.github.crunchybubbles.geological.petrology.SedimentGrainSize;
@@ -77,7 +78,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.66", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.67", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -813,6 +814,10 @@ class MaterialQueryTest {
       assertEquals(expectedFacies, sedimentary.faciesClass());
       assertFalse(sedimentary.diagenesisClass().isBlank());
       assertTrue(sedimentary.sourceBodyIds().contains(province.geometry().basementId()));
+      assertEquals(sedimentary.sourceBodyIds(), sedimentary.basinState().sourceCatchmentIds());
+      assertFalse(sedimentary.basinState().basinType().isBlank());
+      assertTrue(sedimentary.basinState().clasticDilutionPpm() >= 0);
+      assertTrue(sedimentary.basinState().carbonateProductivityPpm() >= 0);
     }
   }
 
@@ -837,6 +842,8 @@ class MaterialQueryTest {
     assertEquals("chemical_precipitate_redox_controlled", sedimentary.maturityClass());
     assertEquals("iron_oxide_carbonate_silica_recrystallization", sedimentary.diagenesisClass());
     assertTrue(sedimentary.sourceBodyIds().contains(province.geometry().basementId()));
+    assertEquals(RedoxClass.REDUCING, sedimentary.basinState().redoxClass());
+    assertEquals(SalinityClass.SEAWATER, sedimentary.basinState().salinityClass());
     assertTrue(bif.resolvedComposition().elementMassPpm().get(ChemicalElement.FE) > 300_000L);
   }
 
@@ -860,6 +867,8 @@ class MaterialQueryTest {
     assertEquals("organic_bedded_with_clastic_partings", sedimentary.grainSizeClass());
     assertEquals("peat_derived_rank_unresolved", sedimentary.maturityClass());
     assertEquals("compaction_dewatering_and_burial_maturation", sedimentary.diagenesisClass());
+    assertEquals(RedoxClass.STRONGLY_REDUCING, sedimentary.basinState().redoxClass());
+    assertEquals(SalinityClass.FRESH, sedimentary.basinState().salinityClass());
     assertTrue(
         coal.primaryAssemblage().modesPpm().get("geological:constituent/coal_organic_matter")
             > 750_000L);
@@ -906,6 +915,12 @@ class MaterialQueryTest {
     assertEquals(
         "salt_recrystallization_dissolution_and_halokinesis",
         chloride.sedimentaryState().orElseThrow().diagenesisClass());
+    assertEquals(
+        SalinityClass.HYPERSALINE,
+        chloride.sedimentaryState().orElseThrow().basinState().salinityClass());
+    assertEquals(
+        "restricted",
+        chloride.sedimentaryState().orElseThrow().basinState().waterBodyConnectivity());
     assertTrue(
         chloride.resolvedComposition().elementMassPpm().get(ChemicalElement.CL)
             > sulfate.resolvedComposition().elementMassPpm().get(ChemicalElement.CL));
