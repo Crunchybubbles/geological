@@ -43,6 +43,7 @@ import io.github.crunchybubbles.geological.petrology.MagmaLineageState;
 import io.github.crunchybubbles.geological.petrology.MantleCargoState;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessLedger;
 import io.github.crunchybubbles.geological.petrology.MaterialQueryEngine;
+import io.github.crunchybubbles.geological.petrology.MetamorphicEventTiming;
 import io.github.crunchybubbles.geological.petrology.ModalVariationAxis;
 import io.github.crunchybubbles.geological.petrology.NonCrystallineConstituentDefinition;
 import io.github.crunchybubbles.geological.petrology.PetrologicSample;
@@ -1853,6 +1854,10 @@ final class MaterialReviewPacketGenerator {
             sample.metamorphism().eventAges().stream()
                 .map(age -> JsonWriter.object("ageMa", age.ageMa(), "ordinal", age.ordinal()))
                 .toList(),
+            "eventTimeline",
+            sample.metamorphism().eventTimeline().stream()
+                .map(this::metamorphicEventTimingJson)
+                .toList(),
             "regionalState",
             sample
                 .metamorphism()
@@ -1957,6 +1962,16 @@ final class MaterialReviewPacketGenerator {
         state.strainClass().name(),
         "intensityPpm",
         state.intensityPpm());
+  }
+
+  private Map<String, Object> metamorphicEventTimingJson(MetamorphicEventTiming timing) {
+    return JsonWriter.object(
+        "eventId",
+        timing.eventId().toString(),
+        "ageMa",
+        timing.age().ageMa(),
+        "ordinal",
+        timing.age().ordinal());
   }
 
   private Map<String, Object> magmaLineageJson(MagmaLineageState state) {

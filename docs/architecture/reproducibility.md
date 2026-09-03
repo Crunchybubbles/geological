@@ -50,7 +50,7 @@ The matching `SedimentaryDiagenesisState` is also canonical proof evidence: comp
 
 Generated element-reservoir transfers carry optional compatibility metadata as canonical process ID, formation age, and confidence parts-per-million. Formed-system compilation populates all three for every exact sink allocation, while the transfer amount remains the quantity used by the closure check; missing metadata is allowed only for legacy callers using the four-argument constructor.
 
-Metamorphic event IDs are paired with canonical sorted `AgeKey` values from the same chronicle query. Generated histories therefore retain explicit event timing for contact, regional, hydrothermal, and weathering paths; legacy construction may leave the age list empty when only IDs are available.
+Metamorphic event IDs are paired with `AgeKey` values from one canonical chronicle ordering. `MetamorphicHistory.eventTimeline()` is the authoritative complete pair view; the compatibility `eventIds()` and `eventAges()` projections are derived from the same ordering whenever both lists are present. Generated histories therefore retain explicit event timing for contact, regional, hydrothermal, and weathering paths; legacy construction may leave the age list empty when only IDs are available.
 
 Each material result also exposes one `AlterationContribution` assembled from the same immutable inputs as the process ledger, metamorphic process state, and resolved assemblages. Its signed mineral-mode delta closes to zero, its positive/negative element maps match the process ledger, and its response/fluid fields obey the authored process class; it is a joined explanation view, not an additional source of random draws or mass.
 

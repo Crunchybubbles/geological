@@ -23,6 +23,7 @@ import io.github.crunchybubbles.geological.query.MaterialRun;
 import io.github.crunchybubbles.geological.query.MaterialState;
 import io.github.crunchybubbles.geological.surface.SurfaceSample;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1483,18 +1484,17 @@ public final class MaterialQueryEngine {
   }
 
   private static List<StableId> events(Province province, EventType type) {
-    return province.chronicle().events().stream()
-        .filter(event -> event.type() == type)
-        .map(GeologicalEvent::id)
-        .sorted()
-        .toList();
+    return eventRecords(province, type).stream().map(GeologicalEvent::id).toList();
   }
 
   private static List<AgeKey> eventAges(Province province, EventType type) {
+    return eventRecords(province, type).stream().map(GeologicalEvent::age).toList();
+  }
+
+  private static List<GeologicalEvent> eventRecords(Province province, EventType type) {
     return province.chronicle().events().stream()
         .filter(event -> event.type() == type)
-        .map(GeologicalEvent::age)
-        .sorted()
+        .sorted(Comparator.comparing(GeologicalEvent::age).thenComparing(GeologicalEvent::id))
         .toList();
   }
 

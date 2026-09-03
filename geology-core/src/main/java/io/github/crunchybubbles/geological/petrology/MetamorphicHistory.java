@@ -2,6 +2,8 @@ package io.github.crunchybubbles.geological.petrology;
 
 import io.github.crunchybubbles.geological.determinism.StableId;
 import io.github.crunchybubbles.geological.model.AgeKey;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -102,7 +104,35 @@ public record MetamorphicHistory(
         || minimumPeakPressureMpa > maximumPeakPressureMpa) {
       throw new IllegalArgumentException("metamorphic P-T interval must be finite and ordered");
     }
-    eventIds = List.copyOf(eventIds).stream().sorted().toList();
-    eventAges = List.copyOf(eventAges).stream().sorted().toList();
+    List<StableId> suppliedEventIds = List.copyOf(eventIds);
+    List<AgeKey> suppliedEventAges = List.copyOf(eventAges);
+    if (suppliedEventIds.size() == suppliedEventAges.size()) {
+      List<MetamorphicEventTiming> timing = new ArrayList<>(suppliedEventIds.size());
+      for (int index = 0; index < suppliedEventIds.size(); index++) {
+        timing.add(
+            new MetamorphicEventTiming(suppliedEventIds.get(index), suppliedEventAges.get(index)));
+      }
+      timing.sort(
+          Comparator.comparing(MetamorphicEventTiming::age)
+              .thenComparing(MetamorphicEventTiming::eventId));
+      eventIds = timing.stream().map(MetamorphicEventTiming::eventId).toList();
+      eventAges = timing.stream().map(MetamorphicEventTiming::age).toList();
+    } else {
+      // Legacy construction may provide IDs without timing; retain its canonical independent lists.
+      eventIds = suppliedEventIds.stream().sorted().toList();
+      eventAges = suppliedEventAges.stream().sorted().toList();
+    }
+  }
+
+  /** Returns canonical event/age pairs when this history carries complete timing evidence. */
+  public List<MetamorphicEventTiming> eventTimeline() {
+    if (eventIds.size() != eventAges.size()) {
+      return List.of();
+    }
+    List<MetamorphicEventTiming> result = new ArrayList<>(eventIds.size());
+    for (int index = 0; index < eventIds.size(); index++) {
+      result.add(new MetamorphicEventTiming(eventIds.get(index), eventAges.get(index)));
+    }
+    return List.copyOf(result);
   }
 }

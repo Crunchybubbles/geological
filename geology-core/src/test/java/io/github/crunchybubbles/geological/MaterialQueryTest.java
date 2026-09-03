@@ -83,7 +83,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.79", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.80", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1024,6 +1024,14 @@ class MaterialQueryTest {
     assertEquals(MetamorphicFacies.AMPHIBOLITE, schist.metamorphism().facies());
     assertFalse(slate.metamorphism().eventAges().isEmpty());
     assertFalse(schist.metamorphism().eventAges().isEmpty());
+    assertEquals(
+        slate.metamorphism().eventIds().size(), slate.metamorphism().eventTimeline().size());
+    assertEquals(
+        slate.metamorphism().eventIds().getFirst(),
+        slate.metamorphism().eventTimeline().getFirst().eventId());
+    assertEquals(
+        slate.metamorphism().eventAges().getFirst(),
+        slate.metamorphism().eventTimeline().getFirst().age());
     assertEquals(
         MetamorphicProcessState.BurialCurveClass.COLLISIONAL_THICKENING,
         slate.metamorphism().processState().burialCurveClass());
