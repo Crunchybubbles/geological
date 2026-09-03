@@ -339,6 +339,16 @@ final class MaterialReviewPacketGenerator {
                 Overprint.NONE)));
     samples.add(
         sampleJson(
+            "granitic-gneiss-partial-melting",
+            resolve(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                StableId.parse("00000000000000000000000000000705"),
+                Lithology.GRANITIC_GNEISS,
+                new AgeKey(430.0, 0),
+                Overprint.NONE)));
+    samples.add(
+        sampleJson(
             "quartzite-catalog",
             resolve(
                 province,

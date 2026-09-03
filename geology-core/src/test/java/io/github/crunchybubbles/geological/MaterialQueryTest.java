@@ -84,7 +84,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.82", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.83", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1094,6 +1094,13 @@ class MaterialQueryTest {
                 new AgeKey(1850.0, 0),
                 Overprint.NONE));
     assertEquals(Optional.of(centerState), resolved.metamorphism().regionalState());
+    assertEquals(
+        MetamorphicReactionState.ReactionMechanism.PARTIAL_MELTING,
+        resolved.metamorphism().processState().reactionState().reactionMechanism());
+    assertEquals(
+        150_000L, resolved.metamorphism().processState().reactionState().partialMeltingPpm());
+    assertTrue(
+        resolved.metamorphism().processState().reactionState().fluidContributions().isEmpty());
   }
 
   @Test

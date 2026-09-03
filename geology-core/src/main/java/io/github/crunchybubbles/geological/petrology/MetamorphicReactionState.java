@@ -131,6 +131,19 @@ public record MetamorphicReactionState(
           proofFluidContributions(
               ReactionMechanism.DECARBONATION, 0L, 250_000L, SerpentinizationBalance.none()));
     }
+    if (grade == MetamorphicGrade.HIGH
+        && facies == MetamorphicFacies.AMPHIBOLITE
+        && path == MetamorphicPath.COLLISION_CLOCKWISE
+        && hostLithology.filter(MetamorphicReactionState::isFelsicAnatecticHost).isPresent()) {
+      return new MetamorphicReactionState(
+          ReactionMechanism.PARTIAL_MELTING,
+          RetrogressionClass.LOW,
+          0L,
+          0L,
+          150_000L,
+          SerpentinizationBalance.none(),
+          List.of());
+    }
     if (path == MetamorphicPath.HYDROTHERMAL_HYDRATION) {
       return new MetamorphicReactionState(
           ReactionMechanism.SERPENTINIZATION,
@@ -204,12 +217,17 @@ public record MetamorphicReactionState(
     };
   }
 
+  private static boolean isFelsicAnatecticHost(Lithology lithology) {
+    return lithology == Lithology.GRANITIC_GNEISS;
+  }
+
   public enum ReactionMechanism {
     NONE,
     REGIONAL_RECRYSTALLIZATION,
     THERMAL_RECRYSTALLIZATION,
     DEHYDRATION,
     DECARBONATION,
+    PARTIAL_MELTING,
     SERPENTINIZATION,
     METASOMATIC_REPLACEMENT,
     SURFACE_ALTERATION

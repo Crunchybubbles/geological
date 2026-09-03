@@ -207,6 +207,15 @@ class MaterialSchemaTest {
             0L,
             Optional.empty(),
             Optional.of(Lithology.LIMESTONE));
+    MetamorphicProcessState felsicAnatexis =
+        MetamorphicProcessState.proofFor(
+            MetamorphicGrade.HIGH,
+            MetamorphicFacies.AMPHIBOLITE,
+            MetamorphicPath.COLLISION_CLOCKWISE,
+            MaterialProcessClass.NONE,
+            0L,
+            Optional.empty(),
+            Optional.of(Lithology.GRANITIC_GNEISS));
     MetamorphicProcessState altered =
         MetamorphicProcessState.proofFor(
             MetamorphicGrade.NONE,
@@ -247,6 +256,11 @@ class MaterialSchemaTest {
     assertEquals(
         MetamorphicFluidContribution.FluidSpecies.CARBON_DIOXIDE,
         carbonateContact.reactionState().fluidContributions().getFirst().fluidSpecies());
+    assertEquals(
+        MetamorphicReactionState.ReactionMechanism.PARTIAL_MELTING,
+        felsicAnatexis.reactionState().reactionMechanism());
+    assertEquals(150_000L, felsicAnatexis.reactionState().partialMeltingPpm());
+    assertTrue(felsicAnatexis.reactionState().fluidContributions().isEmpty());
     assertEquals(280_000L, altered.reactionProgressPpm());
     assertEquals(280_000L, altered.massTransferPpm());
     assertEquals(
