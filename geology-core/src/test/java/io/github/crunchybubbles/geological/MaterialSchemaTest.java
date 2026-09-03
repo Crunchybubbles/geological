@@ -22,6 +22,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialHorizonState;
 import io.github.crunchybubbles.geological.petrology.ColluvialHydraulicState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialProductionState;
+import io.github.crunchybubbles.geological.petrology.ColluvialRoutePolicy;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkAllocation;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
@@ -131,6 +132,27 @@ class MaterialSchemaTest {
         () ->
             new ColluvialTransportProcess(
                 ColluvialTransportProcess.ProcessClass.DRY_RAVEL, 1.0, 0.0, 0.0));
+  }
+
+  @Test
+  void colluvialRoutePolicyClosesNormalizedCapacitiesAndDistanceSampling() {
+    ColluvialRoutePolicy policy = ColluvialRoutePolicy.DEFAULT;
+    assertEquals(6, policy.routeReachCount());
+    assertEquals(96, policy.nearSourceDistanceBlocks());
+    assertEquals(192, policy.farSourceDistanceBlocks());
+    assertEquals(
+        MaterialAssemblage.SCALE,
+        policy.weatheredMatrixCapacityFixedUnits()
+            + policy.localSourceCapacityFixedUnits()
+            + policy.nearSourceCapacityFixedUnits()
+            + policy.farSourceCapacityFixedUnits());
+    assertEquals(policy, ColluvialRoutePolicy.DEFAULT);
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialRoutePolicy(
+                0.1, 4.0, 32.0, 4.0, 8.0, 32, 64, 192, 60.0, 350_000L, 350_000L, 200_000L,
+                100_001L));
   }
 
   @Test

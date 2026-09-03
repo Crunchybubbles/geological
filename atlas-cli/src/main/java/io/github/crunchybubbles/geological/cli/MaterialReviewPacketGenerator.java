@@ -18,6 +18,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialHorizonState;
 import io.github.crunchybubbles.geological.petrology.ColluvialHydraulicState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialProductionState;
+import io.github.crunchybubbles.geological.petrology.ColluvialRoutePolicy;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkAllocation;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
@@ -551,7 +552,9 @@ final class MaterialReviewPacketGenerator {
         "initialUpslopeDirection",
         pointJson(mix.initialUpslopeDirection()),
         "maximumRouteDeflectionDegrees",
-        ColluvialSourceMix.MAXIMUM_ROUTE_DEFLECTION_DEGREES,
+        mix.routePolicy().maximumDeflectionDegrees(),
+        "routePolicy",
+        colluvialRoutePolicyJson(mix.routePolicy()),
         "sourceAssemblageFractionPpm",
         mix.sourceAssemblageFractionPpm(),
         "weatheredMatrixFractionPpm",
@@ -603,6 +606,36 @@ final class MaterialReviewPacketGenerator {
         contribution.sourceOverprint().name(),
         "assemblageFractionPpm",
         contribution.assemblageFractionPpm());
+  }
+
+  private static Map<String, Object> colluvialRoutePolicyJson(ColluvialRoutePolicy policy) {
+    return JsonWriter.object(
+        "minimumSlope",
+        policy.minimumSlope(),
+        "minimumWeatheringDepth",
+        policy.minimumWeatheringDepth(),
+        "minimumChannelDistance",
+        policy.minimumChannelDistance(),
+        "gradientStepBlocks",
+        policy.gradientStepBlocks(),
+        "roughnessStencilRadiusBlocks",
+        policy.roughnessStencilRadiusBlocks(),
+        "pathReachLengthBlocks",
+        policy.pathReachLengthBlocks(),
+        "nearSourceDistanceBlocks",
+        policy.nearSourceDistanceBlocks(),
+        "farSourceDistanceBlocks",
+        policy.farSourceDistanceBlocks(),
+        "maximumDeflectionDegrees",
+        policy.maximumDeflectionDegrees(),
+        "weatheredMatrixCapacityFixedUnits",
+        policy.weatheredMatrixCapacityFixedUnits(),
+        "localSourceCapacityFixedUnits",
+        policy.localSourceCapacityFixedUnits(),
+        "nearSourceCapacityFixedUnits",
+        policy.nearSourceCapacityFixedUnits(),
+        "farSourceCapacityFixedUnits",
+        policy.farSourceCapacityFixedUnits());
   }
 
   private static Map<String, Object> colluvialPhysicalStateJson(

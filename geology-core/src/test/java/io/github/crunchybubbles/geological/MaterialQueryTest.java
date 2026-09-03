@@ -24,6 +24,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialGrainSourceShare;
 import io.github.crunchybubbles.geological.petrology.ColluvialHydraulicState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialProductionState;
+import io.github.crunchybubbles.geological.petrology.ColluvialRoutePolicy;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkAllocation;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
@@ -70,7 +71,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.54", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.55", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -81,6 +82,12 @@ class MaterialQueryTest {
         Phase2World.SCIENTIFIC_DIGEST);
     assertTrue(
         Phase2World.scientificManifestJson().contains(Phase2World.materialCatalog().digest()));
+    MaterialQueryEngine query = Phase2World.create(8_675_309L);
+    assertEquals(Phase1World.MODEL_VERSION, query.geology().atlas().identity().modelVersion());
+    assertEquals(Phase2World.MODEL_VERSION, query.materialIdentity().modelVersion());
+    assertEquals(
+        Phase1World.SCIENTIFIC_DIGEST, query.geology().atlas().identity().scientificDigest());
+    assertEquals(Phase2World.SCIENTIFIC_DIGEST, query.materialIdentity().scientificDigest());
   }
 
   @Test
@@ -1261,6 +1268,8 @@ class MaterialQueryTest {
     assertNotEquals(
         transported.surface().bedrock().rockBodyId(), transported.context().materialBodyId());
     ColluvialSourceMix sourceMix = transported.context().colluvialSourceMix().orElseThrow();
+    assertEquals(ColluvialRoutePolicy.DEFAULT, sourceMix.routePolicy());
+    assertEquals(6, sourceMix.routePolicy().routeReachCount());
     ColluvialHydraulicState hydraulicState = sourceMix.physicalState().hydraulicState();
     assertTrue(hydraulicState.infiltrationIndex() >= 0.0);
     assertTrue(hydraulicState.infiltrationIndex() <= 1.0);
@@ -1459,7 +1468,7 @@ class MaterialQueryTest {
             .map(ColluvialSourceContribution::assemblageFractionPpm)
             .toList());
     MaterialAssemblage genericMatrix =
-        new BodyCompositionSampler(query.geology().atlas().identity())
+        new BodyCompositionSampler(query.materialIdentity())
             .sample(
                 query.catalog().requireRock(Lithology.SOIL_COLLUVIUM),
                 transported.context().materialBodyId());

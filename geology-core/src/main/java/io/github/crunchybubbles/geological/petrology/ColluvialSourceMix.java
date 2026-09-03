@@ -13,8 +13,10 @@ public record ColluvialSourceMix(
     ColluvialTextureState textureState,
     ColluvialPhysicalState physicalState,
     ColluvialSedimentBudget sedimentBudget,
-    ColluvialHorizonState horizonState) {
-  public static final double MAXIMUM_ROUTE_DEFLECTION_DEGREES = 60.0;
+    ColluvialHorizonState horizonState,
+    ColluvialRoutePolicy routePolicy) {
+  public static final double MAXIMUM_ROUTE_DEFLECTION_DEGREES =
+      ColluvialRoutePolicy.DEFAULT.maximumDeflectionDegrees();
 
   public ColluvialSourceMix(
       Point2 initialUpslopeDirection,
@@ -30,7 +32,8 @@ public record ColluvialSourceMix(
         textureState,
         physicalState,
         sedimentBudget,
-        ColluvialHorizonState.from(sedimentBudget));
+        ColluvialHorizonState.from(sedimentBudget),
+        ColluvialRoutePolicy.DEFAULT);
   }
 
   public ColluvialSourceMix {
@@ -39,7 +42,8 @@ public record ColluvialSourceMix(
         || textureState == null
         || physicalState == null
         || sedimentBudget == null
-        || horizonState == null) {
+        || horizonState == null
+        || routePolicy == null) {
       throw new IllegalArgumentException(
           "colluvial initial direction, sources, texture, physical state, budget, and horizon state are required");
     }
@@ -99,7 +103,7 @@ public record ColluvialSourceMix(
     ColluvialSedimentBudget.TerrainPath longestPath =
         sourceBalances.getLast().balance().input().terrainPath();
     if (longestPath.maximumDeflectionFromInitialDegrees()
-        > MAXIMUM_ROUTE_DEFLECTION_DEGREES + 1.0e-8) {
+        > routePolicy.maximumDeflectionDegrees() + 1.0e-8) {
       throw new IllegalArgumentException(
           "colluvial route exceeds its maximum deflection from the initial direction");
     }

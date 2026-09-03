@@ -5,6 +5,7 @@ import io.github.crunchybubbles.geological.atlas.DescriptorCache;
 import io.github.crunchybubbles.geological.atlas.Province;
 import io.github.crunchybubbles.geological.atlas.RiftArcGeometry;
 import io.github.crunchybubbles.geological.determinism.StableId;
+import io.github.crunchybubbles.geological.determinism.WorldIdentity;
 import io.github.crunchybubbles.geological.mineral.DepositType;
 import io.github.crunchybubbles.geological.mineral.MineralSystemDecision;
 import io.github.crunchybubbles.geological.model.AgeKey;
@@ -32,38 +33,37 @@ import java.util.Set;
  * Phase 2 facade deriving material composition and process state from immutable Phase 1 geology.
  */
 public final class MaterialQueryEngine {
-  private static final double TERRAIN_GRADIENT_STEP_BLOCKS = 4.0;
-  private static final double TERRAIN_ROUGHNESS_STENCIL_RADIUS_BLOCKS = 8.0;
+  private static final ColluvialRoutePolicy COLLUVIUM_ROUTE_POLICY = ColluvialRoutePolicy.DEFAULT;
   private static final double TERRAIN_ROUGHNESS_REFERENCE_RESIDUAL_SLOPE = 0.05;
-  private static final double COLLUVIUM_MINIMUM_SLOPE = 0.10;
-  private static final double COLLUVIUM_MINIMUM_WEATHERING_DEPTH = 4.0;
-  private static final double COLLUVIUM_MINIMUM_CHANNEL_DISTANCE = 32.0;
-  private static final int COLLUVIUM_NEAR_SOURCE_DISTANCE_BLOCKS = 96;
-  private static final int COLLUVIUM_FAR_SOURCE_DISTANCE_BLOCKS = 192;
-  private static final int COLLUVIUM_PATH_REACH_LENGTH_BLOCKS = 32;
   private static final double COLLUVIUM_PATH_MAXIMUM_DEFLECTION_RADIANS =
-      StrictMath.toRadians(ColluvialSourceMix.MAXIMUM_ROUTE_DEFLECTION_DEGREES);
-  private static final long COLLUVIUM_LOCAL_SOURCE_CAPACITY_FIXED_UNITS = 350_000L;
-  private static final long COLLUVIUM_NEAR_SOURCE_CAPACITY_FIXED_UNITS = 200_000L;
-  private static final long COLLUVIUM_FAR_SOURCE_CAPACITY_FIXED_UNITS = 100_000L;
-  private static final long COLLUVIUM_WEATHERED_MATRIX_CAPACITY_FIXED_UNITS = 350_000L;
+      StrictMath.toRadians(COLLUVIUM_ROUTE_POLICY.maximumDeflectionDegrees());
   private static final AgeKey COLLUVIUM_FORMATION_AGE = new AgeKey(0.02, 0);
 
   private final GeologyQueryEngine geology;
   private final MaterialCatalogSnapshot catalog;
+  private final WorldIdentity materialIdentity;
   private final Map<RecipeKey, RecipeTemplate> recipeTemplates;
   private final BodyCompositionSampler compositionSampler;
   private final DescriptorCache<BodyRecipeKey, ResolvedRecipe> bodyRecipeCache;
   private final DescriptorCache<StableId, List<ElementReservoirLedger>> reservoirLedgerCache;
 
   public MaterialQueryEngine(GeologyQueryEngine geology, MaterialCatalogSnapshot catalog) {
+    this(geology, catalog, geology == null ? null : geology.atlas().identity());
+  }
+
+  public MaterialQueryEngine(
+      GeologyQueryEngine geology, MaterialCatalogSnapshot catalog, WorldIdentity materialIdentity) {
     if (geology == null || catalog == null) {
       throw new IllegalArgumentException("geology query and material catalog are required");
     }
+    if (materialIdentity == null) {
+      throw new IllegalArgumentException("material identity is required");
+    }
     this.geology = geology;
     this.catalog = catalog;
+    this.materialIdentity = materialIdentity;
     this.recipeTemplates = compileRecipeTemplates(catalog);
-    this.compositionSampler = new BodyCompositionSampler(geology.atlas().identity());
+    this.compositionSampler = new BodyCompositionSampler(materialIdentity);
     this.bodyRecipeCache = new BoundedDescriptorCache<>(512);
     this.reservoirLedgerCache = new BoundedDescriptorCache<>(256);
   }
@@ -74,6 +74,10 @@ public final class MaterialQueryEngine {
 
   public MaterialCatalogSnapshot catalog() {
     return catalog;
+  }
+
+  public WorldIdentity materialIdentity() {
+    return materialIdentity;
   }
 
   public int resolvedRecipeCount() {
@@ -187,7 +191,9 @@ public final class MaterialQueryEngine {
               sedimentBudget.weatheredMatrixFractionPpm(),
               textureState,
               physicalState,
-              sedimentBudget);
+              sedimentBudget,
+              ColluvialHorizonState.from(sedimentBudget),
+              COLLUVIUM_ROUTE_POLICY);
       StableId colluvialBodyId = colluvialBodyId(sourceMix);
       surface =
           new SurfaceSample(surface.fields(), bedrock, Lithology.SOIL_COLLUVIUM, Overprint.NONE);
@@ -249,9 +255,10 @@ public final class MaterialQueryEngine {
   private static boolean formsColluvialMantle(SurfaceSample surface) {
     return !surface.fields().outcrop()
         && !surface.fields().drainage().channel()
-        && surface.fields().slope() >= COLLUVIUM_MINIMUM_SLOPE
-        && surface.fields().weatheringDepth() >= COLLUVIUM_MINIMUM_WEATHERING_DEPTH
-        && surface.fields().drainage().channelDistance() >= COLLUVIUM_MINIMUM_CHANNEL_DISTANCE;
+        && surface.fields().slope() >= COLLUVIUM_ROUTE_POLICY.minimumSlope()
+        && surface.fields().weatheringDepth() >= COLLUVIUM_ROUTE_POLICY.minimumWeatheringDepth()
+        && surface.fields().drainage().channelDistance()
+            >= COLLUVIUM_ROUTE_POLICY.minimumChannelDistance();
   }
 
   private List<ColluvialSourceCandidate> resolveColluvialSourceCandidates(
@@ -261,8 +268,8 @@ public final class MaterialQueryEngine {
     SurfaceSample currentSurface = surface;
     Point2 reachDirection = initialUpslopeDirection;
     for (int distance = 0;
-        distance < COLLUVIUM_FAR_SOURCE_DISTANCE_BLOCKS;
-        distance += COLLUVIUM_PATH_REACH_LENGTH_BLOCKS) {
+        distance < COLLUVIUM_ROUTE_POLICY.farSourceDistanceBlocks();
+        distance += COLLUVIUM_ROUTE_POLICY.pathReachLengthBlocks()) {
       pathSurfaces.add(currentSurface);
       TerrainDirection terrainDirection =
           distance == 0
@@ -274,7 +281,7 @@ public final class MaterialQueryEngine {
           upslopePoint(
               currentSurface.fields().point(),
               routeDecision.direction(),
-              COLLUVIUM_PATH_REACH_LENGTH_BLOCKS);
+              COLLUVIUM_ROUTE_POLICY.pathReachLengthBlocks());
       pathReaches.add(
           new ColluvialSedimentBudget.TerrainPathReach(
               distance,
@@ -293,18 +300,21 @@ public final class MaterialQueryEngine {
         resolveColluvialSourceCandidate(
             pathSurfaces.getFirst(),
             terrainPath(pathSurfaces, pathReaches, 0),
-            COLLUVIUM_LOCAL_SOURCE_CAPACITY_FIXED_UNITS));
+            COLLUVIUM_ROUTE_POLICY.localSourceCapacityFixedUnits()));
     sources.add(
         resolveColluvialSourceCandidate(
             pathSurfaces.get(
-                COLLUVIUM_NEAR_SOURCE_DISTANCE_BLOCKS / COLLUVIUM_PATH_REACH_LENGTH_BLOCKS),
-            terrainPath(pathSurfaces, pathReaches, COLLUVIUM_NEAR_SOURCE_DISTANCE_BLOCKS),
-            COLLUVIUM_NEAR_SOURCE_CAPACITY_FIXED_UNITS));
+                COLLUVIUM_ROUTE_POLICY.nearSourceDistanceBlocks()
+                    / COLLUVIUM_ROUTE_POLICY.pathReachLengthBlocks()),
+            terrainPath(
+                pathSurfaces, pathReaches, COLLUVIUM_ROUTE_POLICY.nearSourceDistanceBlocks()),
+            COLLUVIUM_ROUTE_POLICY.nearSourceCapacityFixedUnits()));
     sources.add(
         resolveColluvialSourceCandidate(
             pathSurfaces.getLast(),
-            terrainPath(pathSurfaces, pathReaches, COLLUVIUM_FAR_SOURCE_DISTANCE_BLOCKS),
-            COLLUVIUM_FAR_SOURCE_CAPACITY_FIXED_UNITS));
+            terrainPath(
+                pathSurfaces, pathReaches, COLLUVIUM_ROUTE_POLICY.farSourceDistanceBlocks()),
+            COLLUVIUM_ROUTE_POLICY.farSourceCapacityFixedUnits()));
     return List.copyOf(sources);
   }
 
@@ -312,23 +322,25 @@ public final class MaterialQueryEngine {
       List<SurfaceSample> pathSurfaces,
       List<ColluvialSedimentBudget.TerrainPathReach> pathReaches,
       int sourceDistanceBlocks) {
-    int sourceIndex = sourceDistanceBlocks / COLLUVIUM_PATH_REACH_LENGTH_BLOCKS;
+    int sourceIndex = sourceDistanceBlocks / COLLUVIUM_ROUTE_POLICY.pathReachLengthBlocks();
     List<ColluvialSedimentBudget.TerrainPathSample> samples = new ArrayList<>();
     for (int index = 0; index <= sourceIndex; index++) {
       samples.add(
           new ColluvialSedimentBudget.TerrainPathSample(
-              index * COLLUVIUM_PATH_REACH_LENGTH_BLOCKS,
+              index * COLLUVIUM_ROUTE_POLICY.pathReachLengthBlocks(),
               pathSurfaces.get(index).fields().point(),
               pathSurfaces.get(index).fields().elevation()));
     }
     return new ColluvialSedimentBudget.TerrainPath(
-        COLLUVIUM_PATH_REACH_LENGTH_BLOCKS, samples, pathReaches.subList(0, sourceIndex));
+        COLLUVIUM_ROUTE_POLICY.pathReachLengthBlocks(),
+        samples,
+        pathReaches.subList(0, sourceIndex));
   }
 
   private TerrainDirection terrainUpslopeDirection(
       SurfaceSample surface, Point2 flatTerrainFallback) {
     Point2 point = surface.fields().point();
-    double step = TERRAIN_GRADIENT_STEP_BLOCKS;
+    double step = COLLUVIUM_ROUTE_POLICY.gradientStepBlocks();
     double gradientX =
         (surfaceElevation(point.add(step, 0.0)) - surfaceElevation(point.add(-step, 0.0)))
             / (2.0 * step);
@@ -371,7 +383,7 @@ public final class MaterialQueryEngine {
   private double terrainRoughnessIndex(SurfaceSample centerSurface) {
     Point2 center = centerSurface.fields().point();
     double centerElevation = centerSurface.fields().elevation();
-    double radius = TERRAIN_ROUGHNESS_STENCIL_RADIUS_BLOCKS;
+    double radius = COLLUVIUM_ROUTE_POLICY.roughnessStencilRadiusBlocks();
     double east = surfaceElevation(center.add(radius, 0.0));
     double west = surfaceElevation(center.add(-radius, 0.0));
     double south = surfaceElevation(center.add(0.0, radius));
@@ -457,7 +469,7 @@ public final class MaterialQueryEngine {
       List<ColluvialSourceCandidate> sources) {
     ColluvialSedimentBudget.ProductionInput weatheredMatrixInput =
         new ColluvialSedimentBudget.ProductionInput(
-            COLLUVIUM_WEATHERED_MATRIX_CAPACITY_FIXED_UNITS,
+            COLLUVIUM_ROUTE_POLICY.weatheredMatrixCapacityFixedUnits(),
             depositionSurface.fields().weatheringDepth(),
             depositionSurface.fields().slope(),
             colluviumRock.erodibilityIndex(),
@@ -680,6 +692,7 @@ public final class MaterialQueryEngine {
           .append(':')
           .append(grainShare.finesFractionPpm());
     }
+    appendRoutePolicy(purpose, sourceMix.routePolicy());
     ColluvialTransportProcessMix processMix = sedimentBudget.transportProcessMix();
     purpose
         .append(":process-mix:")
@@ -721,9 +734,7 @@ public final class MaterialQueryEngine {
     appendProcessMix(purpose, ":process-stage-arrived:", processStages.arrived());
     appendProcessMix(purpose, ":process-stage-deposited:", processStages.deposited());
     return StableId.first128(
-        geology
-            .atlas()
-            .identity()
+        materialIdentity
             .objectStream(
                 "surface-material", "colluvial-mantle", sourceMix.localSource().sourceBodyId())
             .bytes(purpose.toString(), 0));
@@ -870,6 +881,36 @@ public final class MaterialQueryEngine {
         .append(processMix.sheetwashFractionPpm())
         .append(':')
         .append(processMix.dryRavelFractionPpm());
+  }
+
+  private static void appendRoutePolicy(StringBuilder purpose, ColluvialRoutePolicy policy) {
+    purpose
+        .append(":route-policy:")
+        .append(policy.minimumSlope())
+        .append(':')
+        .append(policy.minimumWeatheringDepth())
+        .append(':')
+        .append(policy.minimumChannelDistance())
+        .append(':')
+        .append(policy.gradientStepBlocks())
+        .append(':')
+        .append(policy.roughnessStencilRadiusBlocks())
+        .append(':')
+        .append(policy.pathReachLengthBlocks())
+        .append(':')
+        .append(policy.nearSourceDistanceBlocks())
+        .append(':')
+        .append(policy.farSourceDistanceBlocks())
+        .append(':')
+        .append(policy.maximumDeflectionDegrees())
+        .append(':')
+        .append(policy.weatheredMatrixCapacityFixedUnits())
+        .append(':')
+        .append(policy.localSourceCapacityFixedUnits())
+        .append(':')
+        .append(policy.nearSourceCapacityFixedUnits())
+        .append(':')
+        .append(policy.farSourceCapacityFixedUnits());
   }
 
   private static void appendColluvialGrainMass(

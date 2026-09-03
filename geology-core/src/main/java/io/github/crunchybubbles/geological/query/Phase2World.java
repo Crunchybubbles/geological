@@ -10,7 +10,7 @@ import io.github.crunchybubbles.geological.registry.RegistrySnapshot;
 
 /** Frozen identity and factory for the current Phase 2 petrologic material increment. */
 public final class Phase2World {
-  public static final String MODEL_VERSION = "phase2.0-alpha.54";
+  public static final String MODEL_VERSION = "phase2.0-alpha.55";
   public static final String SCIENTIFIC_DIGEST = Phase2ScientificManifest.digest();
 
   private Phase2World() {}
@@ -29,9 +29,12 @@ public final class Phase2World {
 
   public static MaterialQueryEngine create(long worldSeed) {
     DimensionProfile profile = DimensionProfile.overworldPhase2();
-    WorldIdentity identity =
+    WorldIdentity geologyIdentity =
+        new WorldIdentity(
+            worldSeed, Phase1World.MODEL_VERSION, Phase1World.SCIENTIFIC_DIGEST, profile.id());
+    GeologyQueryEngine geology = new GeologyQueryEngine(new GeologyAtlas(geologyIdentity, profile));
+    WorldIdentity materialIdentity =
         new WorldIdentity(worldSeed, MODEL_VERSION, SCIENTIFIC_DIGEST, profile.id());
-    GeologyQueryEngine geology = new GeologyQueryEngine(new GeologyAtlas(identity, profile));
-    return new MaterialQueryEngine(geology, materialCatalog());
+    return new MaterialQueryEngine(geology, materialCatalog(), materialIdentity);
   }
 }
