@@ -25,6 +25,7 @@ public record ColluvialSedimentBudget(
   private static final double MINIMUM_TRANSPORT_SLOPE_RESPONSE = 0.50;
   private static final double MINIMUM_TRANSPORT_ROUGHNESS_RESPONSE = 0.40;
   private static final double MINIMUM_TRANSPORT_PATH_RESPONSE = 0.50;
+  private static final double MINIMUM_TRANSPORT_ROUTE_GRADE_RESPONSE = 0.75;
   private static final double PATH_REACH_TOLERANCE_BLOCKS = 1.0e-6;
   private static final double PATH_DIRECTION_TOLERANCE = 1.0e-9;
   private static final double GRAVEL_AND_COARSER_REFERENCE_E_FOLDING_DISTANCE_BLOCKS = 512.0;
@@ -306,10 +307,15 @@ public record ColluvialSedimentBudget(
   }
 
   private static double transportPathResponse(ProductionInput input) {
+    TerrainPath path = input.terrainPath();
+    double routeGradeResponse =
+        MINIMUM_TRANSPORT_ROUTE_GRADE_RESPONSE
+            + (1.0 - MINIMUM_TRANSPORT_ROUTE_GRADE_RESPONSE) * path.routeGradeIndex();
     return MINIMUM_TRANSPORT_PATH_RESPONSE
         + (1.0 - MINIMUM_TRANSPORT_PATH_RESPONSE)
-            * input.terrainPath().downslopeContinuityIndex()
-            * input.terrainPath().routeDirectnessIndex();
+            * path.downslopeContinuityIndex()
+            * path.routeDirectnessIndex()
+            * routeGradeResponse;
   }
 
   private static GrainTransportLengths grainTransportLengths(ProductionInput input) {
@@ -571,6 +577,20 @@ public record ColluvialSedimentBudget(
           0.0, StrictMath.min(1.0, straightLineDistanceBlocks() / routedDistanceBlocks()));
     }
 
+    /** Bounded net source-to-target elevation-grade index for this routed path. */
+    public double routeGradeIndex() {
+      if (reachCount() == 0) {
+        return 1.0;
+      }
+      double netUpslopeRelief = sourceElevation() - originElevation();
+      double routeGrade = netUpslopeRelief / routedDistanceBlocks();
+      return clamp(routeGrade / SLOPE_MOBILITY_REFERENCE);
+    }
+
+    public double netUpslopeReliefBlocks() {
+      return sourceElevation() - originElevation();
+    }
+
     public double maximumDeflectionFromInitialDegrees() {
       if (reachCount() <= 1) {
         return 0.0;
@@ -634,6 +654,14 @@ public record ColluvialSedimentBudget(
     private double elevationDifference(int upslopeSampleIndex) {
       return samples.get(upslopeSampleIndex).elevation()
           - samples.get(upslopeSampleIndex - 1).elevation();
+    }
+
+    private double originElevation() {
+      return samples.getFirst().elevation();
+    }
+
+    private double sourceElevation() {
+      return samples.getLast().elevation();
     }
   }
 

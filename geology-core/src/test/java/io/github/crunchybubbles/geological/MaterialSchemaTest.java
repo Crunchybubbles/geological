@@ -175,12 +175,12 @@ class MaterialSchemaTest {
     assertTrue(budget.depositedInventoryFixedUnits() > 0);
     assertEquals(375_000L, budget.mobilizedInventoryFixedUnits());
     assertEquals(625_000L, budget.retainedInventoryFixedUnits());
-    assertEquals(65_378L, budget.transportLossFixedUnits());
-    assertEquals(77_404L, budget.bypassedInventoryFixedUnits());
-    assertEquals(232_218L, budget.depositedInventoryFixedUnits());
-    assertEquals(423_904L, budget.weatheredMatrixFractionPpm());
-    assertEquals(423_903L, budget.sourceFractionPpm(local, 0));
-    assertEquals(152_193L, budget.sourceFractionPpm(far, 192));
+    assertEquals(68_335L, budget.transportLossFixedUnits());
+    assertEquals(76_665L, budget.bypassedInventoryFixedUnits());
+    assertEquals(230_000L, budget.depositedInventoryFixedUnits());
+    assertEquals(427_991L, budget.weatheredMatrixFractionPpm());
+    assertEquals(427_991L, budget.sourceFractionPpm(local, 0));
+    assertEquals(144_018L, budget.sourceFractionPpm(far, 192));
     assertEquals(budget.sourceCapacityFixedUnits(), budget.capacityGrainMass().totalFixedUnits());
     assertEquals(
         budget.mobilizedInventoryFixedUnits(), budget.mobilizedGrainMass().totalFixedUnits());
@@ -193,12 +193,12 @@ class MaterialSchemaTest {
     assertEquals(
         budget.depositedInventoryFixedUnits(), budget.depositedGrainMass().totalFixedUnits());
     assertEquals(
-        new ColluvialSedimentBudget.GrainMass(21_735L, 23_036L, 20_607L),
+        new ColluvialSedimentBudget.GrainMass(22_890L, 24_109L, 21_336L),
         budget.sourceBalances().getLast().balance().transportLossGrainMass());
     assertEquals(
-        new ColluvialSedimentBudget.GrainMass(17_449L, 12_254L, 5_639L),
+        new ColluvialSedimentBudget.GrainMass(16_583L, 11_449L, 5_092L),
         budget.sourceBalances().getLast().balance().depositedGrainMass());
-    assertEquals(new SedimentGrainSize(414_261L, 349_508L, 236_231L), budget.depositedGrainSize());
+    assertEquals(new SedimentGrainSize(414_491L, 349_378L, 236_131L), budget.depositedGrainSize());
     ColluvialSedimentBudget.InputBalance farBalance = budget.sourceBalances().getLast().balance();
     assertEquals(6, farPath.reachCount());
     assertEquals(18.0, farPath.cumulativeDownslopeReliefBlocks());
@@ -208,11 +208,17 @@ class MaterialSchemaTest {
     assertEquals(192.0, farPath.straightLineDistanceBlocks());
     assertEquals(192.0, farPath.routedDistanceBlocks());
     assertEquals(1.0, farPath.routeDirectnessIndex(), 1.0e-15);
-    assertEquals(107.0 / 120.0, farBalance.transportPathResponse(), 1.0e-15);
-    assertEquals(0.5684375, farBalance.transportDistanceScale(), 1.0e-15);
-    assertEquals(291.04, farBalance.grainTransportLengths().gravelAndCoarserBlocks(), 1.0e-12);
-    assertEquals(218.28, farBalance.grainTransportLengths().sandBlocks(), 1.0e-12);
-    assertEquals(145.52, farBalance.grainTransportLengths().finesBlocks(), 1.0e-12);
+    assertEquals(16.0, farPath.netUpslopeReliefBlocks(), 1.0e-15);
+    assertEquals(25.0 / 72.0, farPath.routeGradeIndex(), 1.0e-15);
+    assertEquals(
+        0.5 + 0.5 * (47.0 / 60.0) * (0.75 + 0.25 * (25.0 / 72.0)),
+        farBalance.transportPathResponse(),
+        1.0e-15);
+    assertEquals(0.5276898871527778, farBalance.transportDistanceScale(), 1.0e-15);
+    assertEquals(
+        270.1772222222222, farBalance.grainTransportLengths().gravelAndCoarserBlocks(), 1.0e-12);
+    assertEquals(202.63291666666666, farBalance.grainTransportLengths().sandBlocks(), 1.0e-12);
+    assertEquals(135.0886111111111, farBalance.grainTransportLengths().finesBlocks(), 1.0e-12);
     assertTrue(
         budget.depositedGrainSize().gravelAndCoarserPpm() > grainYield.gravelAndCoarserPpm());
     assertTrue(budget.depositedGrainSize().finesPpm() < grainYield.finesPpm());
@@ -329,6 +335,8 @@ class MaterialSchemaTest {
     assertEquals(StrictMath.sqrt(2.0) * 32.0, curvedPath.straightLineDistanceBlocks(), 1.0e-12);
     assertEquals(64.0, curvedPath.routedDistanceBlocks());
     assertEquals(StrictMath.sqrt(0.5), curvedPath.routeDirectnessIndex(), 1.0e-12);
+    assertEquals(8.0, curvedPath.netUpslopeReliefBlocks(), 1.0e-12);
+    assertEquals(25.0 / 48.0, curvedPath.routeGradeIndex(), 1.0e-12);
     assertEquals(90.0, curvedPath.maximumDeflectionFromInitialDegrees(), 1.0e-12);
     assertEquals(2, curvedPath.reaches().size());
     assertEquals(new Point2(1.0, 0.0), curvedPath.reaches().getFirst().routedUpslopeDirection());
@@ -336,9 +344,25 @@ class MaterialSchemaTest {
     ColluvialSedimentBudget curvedBudget =
         singleSourceBudget(local, matrix, 64, 0.12, 8.0, 0.12, 0.8, 0.25, curvedPath);
     assertEquals(
-        0.5 + 0.5 * StrictMath.sqrt(0.5),
+        0.5 + 0.5 * StrictMath.sqrt(0.5) * (0.75 + 0.25 * (25.0 / 48.0)),
         curvedBudget.sourceBalances().getFirst().balance().transportPathResponse(),
         1.0e-15);
+
+    ColluvialSedimentBudget.TerrainPath gentleGradePath = terrainPath(100.0, 104.0, 108.0, 112.0);
+    ColluvialSedimentBudget.TerrainPath steepGradePath = terrainPath(100.0, 112.0, 124.0, 136.0);
+    ColluvialSedimentBudget.InputBalance gentleGrade =
+        singleSourceBudget(local, matrix, 96, 0.12, 8.0, 0.12, 0.8, 0.25, gentleGradePath)
+            .sourceBalances()
+            .getFirst()
+            .balance();
+    ColluvialSedimentBudget.InputBalance steepGrade =
+        singleSourceBudget(local, matrix, 96, 0.12, 8.0, 0.12, 0.8, 0.25, steepGradePath)
+            .sourceBalances()
+            .getFirst()
+            .balance();
+    assertTrue(steepGradePath.routeGradeIndex() > gentleGradePath.routeGradeIndex());
+    assertTrue(steepGrade.transportPathResponse() > gentleGrade.transportPathResponse());
+    assertTrue(steepGrade.transportDistanceScale() > gentleGrade.transportDistanceScale());
 
     assertThrows(
         IllegalArgumentException.class,

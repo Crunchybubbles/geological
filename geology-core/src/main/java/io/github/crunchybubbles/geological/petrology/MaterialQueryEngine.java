@@ -614,7 +614,11 @@ public final class MaterialQueryEngine {
         .append(':')
         .append(input.terrainPath().routedDistanceBlocks())
         .append(':')
-        .append(input.terrainPath().routeDirectnessIndex());
+        .append(input.terrainPath().routeDirectnessIndex())
+        .append(':')
+        .append(input.terrainPath().netUpslopeReliefBlocks())
+        .append(':')
+        .append(input.terrainPath().routeGradeIndex());
     for (ColluvialSedimentBudget.TerrainPathSample sample : input.terrainPath().samples()) {
       purpose
           .append(':')
