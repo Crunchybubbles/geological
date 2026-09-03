@@ -12,7 +12,8 @@ public record SedimentaryState(
     List<StableId> sourceBodyIds,
     SedimentaryBasinState basinState,
     SedimentaryInputBudget inputBudget,
-    List<SedimentaryReservoirContribution> reservoirContributions) {
+    List<SedimentaryReservoirContribution> reservoirContributions,
+    SedimentaryDiagenesisState diagenesisState) {
   /** Compatibility constructor for the pre-reservoir typed basin state. */
   public SedimentaryState(
       String faciesClass,
@@ -30,7 +31,8 @@ public record SedimentaryState(
         sourceBodyIds,
         basinState,
         inputBudget,
-        SedimentaryReservoirContribution.proofFor(inputBudget, sourceBodyIds));
+        SedimentaryReservoirContribution.proofFor(inputBudget, sourceBodyIds),
+        SedimentaryDiagenesisState.proofFor(faciesClass, basinState));
   }
 
   public SedimentaryState(
@@ -48,7 +50,9 @@ public record SedimentaryState(
         SedimentaryBasinState.proofFor(faciesClass, sourceBodyIds),
         SedimentaryInputBudget.proofFor(faciesClass),
         SedimentaryReservoirContribution.proofFor(
-            SedimentaryInputBudget.proofFor(faciesClass), sourceBodyIds));
+            SedimentaryInputBudget.proofFor(faciesClass), sourceBodyIds),
+        SedimentaryDiagenesisState.proofFor(
+            faciesClass, SedimentaryBasinState.proofFor(faciesClass, sourceBodyIds)));
   }
 
   public SedimentaryState(
@@ -67,7 +71,30 @@ public record SedimentaryState(
         basinState,
         SedimentaryInputBudget.proofFor(faciesClass),
         SedimentaryReservoirContribution.proofFor(
-            SedimentaryInputBudget.proofFor(faciesClass), sourceBodyIds));
+            SedimentaryInputBudget.proofFor(faciesClass), sourceBodyIds),
+        SedimentaryDiagenesisState.proofFor(faciesClass, basinState));
+  }
+
+  /** Compatibility constructor for callers that provide all alpha.75 state explicitly. */
+  public SedimentaryState(
+      String faciesClass,
+      String grainSizeClass,
+      String maturityClass,
+      String diagenesisClass,
+      List<StableId> sourceBodyIds,
+      SedimentaryBasinState basinState,
+      SedimentaryInputBudget inputBudget,
+      List<SedimentaryReservoirContribution> reservoirContributions) {
+    this(
+        faciesClass,
+        grainSizeClass,
+        maturityClass,
+        diagenesisClass,
+        sourceBodyIds,
+        basinState,
+        inputBudget,
+        reservoirContributions,
+        SedimentaryDiagenesisState.proofFor(faciesClass, basinState));
   }
 
   public SedimentaryState {
@@ -81,7 +108,8 @@ public record SedimentaryState(
         || diagenesisClass.isBlank()
         || basinState == null
         || inputBudget == null
-        || reservoirContributions == null) {
+        || reservoirContributions == null
+        || diagenesisState == null) {
       throw new IllegalArgumentException("sedimentary state must be complete");
     }
     sourceBodyIds = List.copyOf(sourceBodyIds).stream().sorted().toList();
@@ -134,6 +162,9 @@ public record SedimentaryState(
         throw new IllegalArgumentException(
             "sedimentary reservoir source is not a declared source body");
       }
+    }
+    if (diagenesisState.fluidSalinity() != basinState.salinityClass()) {
+      throw new IllegalArgumentException("sedimentary diagenesis fluid salinity must match basin");
     }
   }
 }

@@ -63,6 +63,8 @@ import io.github.crunchybubbles.geological.petrology.SalinityClass;
 import io.github.crunchybubbles.geological.petrology.SedimentGrainSize;
 import io.github.crunchybubbles.geological.petrology.SedimentSorting;
 import io.github.crunchybubbles.geological.petrology.SedimentSupport;
+import io.github.crunchybubbles.geological.petrology.SedimentaryBasinState;
+import io.github.crunchybubbles.geological.petrology.SedimentaryDiagenesisState;
 import io.github.crunchybubbles.geological.petrology.SedimentaryInputBudget;
 import io.github.crunchybubbles.geological.petrology.SedimentaryReservoirContribution;
 import io.github.crunchybubbles.geological.petrology.SedimentaryReservoirKind;
@@ -137,6 +139,32 @@ class MaterialSchemaTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> new SedimentaryInputBudget(1_000_000L, 1L, 0L, 0L, 0L, 0L));
+  }
+
+  @Test
+  void sedimentaryDiagenesisStateCarriesBoundedFaciesAndFluidEvidence() {
+    StableId source = StableId.parse("00000000000000000000000000000001");
+    SedimentaryBasinState basin =
+        SedimentaryBasinState.proofFor("dolomitized_carbonate_platform", List.of(source));
+    SedimentaryDiagenesisState state =
+        SedimentaryDiagenesisState.proofFor("dolomitized_carbonate_platform", basin);
+
+    assertEquals(
+        SedimentaryDiagenesisState.DolomitizationClass.ACTIVE_REPLACEMENT,
+        state.dolomitizationClass());
+    assertEquals(SalinityClass.MODERATE_BRINE, state.fluidSalinity());
+    assertTrue(state.retainedPorosityPpm() > 0);
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new SedimentaryDiagenesisState(
+                state.compactionClass(),
+                state.cementationClass(),
+                state.dissolutionClass(),
+                state.dolomitizationClass(),
+                state.organicMaturityClass(),
+                state.fluidSalinity(),
+                MaterialAssemblage.SCALE + 1L));
   }
 
   private static long total(SedimentaryInputBudget budget) {

@@ -1999,7 +1999,23 @@ final class MaterialReviewPacketGenerator {
                         contribution.fractionPpm(),
                         "sourceBodyIds",
                         contribution.sourceBodyIds().stream().map(Object::toString).toList()))
-            .toList());
+            .toList(),
+        "diagenesisState",
+        JsonWriter.object(
+            "compactionClass",
+            state.diagenesisState().compactionClass().name(),
+            "cementationClass",
+            state.diagenesisState().cementationClass().name(),
+            "dissolutionClass",
+            state.diagenesisState().dissolutionClass().name(),
+            "dolomitizationClass",
+            state.diagenesisState().dolomitizationClass().name(),
+            "organicMaturityClass",
+            state.diagenesisState().organicMaturityClass().name(),
+            "fluidSalinity",
+            state.diagenesisState().fluidSalinity().name(),
+            "retainedPorosityPpm",
+            state.diagenesisState().retainedPorosityPpm()));
   }
 
   private Map<String, Object> solidSolutionStateJson(SolidSolutionState state) {

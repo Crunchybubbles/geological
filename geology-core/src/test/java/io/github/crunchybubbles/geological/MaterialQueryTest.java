@@ -80,7 +80,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.75", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.76", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -842,6 +842,8 @@ class MaterialQueryTest {
       assertFalse(sedimentary.diagenesisClass().isBlank());
       assertTrue(sedimentary.sourceBodyIds().contains(province.geometry().basementId()));
       assertEquals(sedimentary.sourceBodyIds(), sedimentary.basinState().sourceCatchmentIds());
+      assertEquals(
+          sedimentary.basinState().salinityClass(), sedimentary.diagenesisState().fluidSalinity());
       assertFalse(sedimentary.basinState().basinType().isBlank());
       assertTrue(sedimentary.basinState().clasticDilutionPpm() >= 0);
       assertTrue(sedimentary.basinState().carbonateProductivityPpm() >= 0);
@@ -973,6 +975,9 @@ class MaterialQueryTest {
         "restricted",
         chloride.sedimentaryState().orElseThrow().basinState().waterBodyConnectivity());
     assertTrue(chloride.sedimentaryState().orElseThrow().inputBudget().evaporiticBrinePpm() > 0);
+    assertEquals(
+        "EVAPORITIC",
+        chloride.sedimentaryState().orElseThrow().diagenesisState().cementationClass().name());
     assertTrue(
         chloride.resolvedComposition().elementMassPpm().get(ChemicalElement.CL)
             > sulfate.resolvedComposition().elementMassPpm().get(ChemicalElement.CL));
