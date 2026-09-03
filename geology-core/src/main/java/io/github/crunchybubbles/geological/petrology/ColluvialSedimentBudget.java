@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
@@ -231,6 +232,60 @@ public record ColluvialSedimentBudget(
                     source.balance().depositedFixedUnits(),
                     source.balance().depositedGrainMass()))
         .toList();
+  }
+
+  /** Returns exact source fractions within each deposited grain class. */
+  public List<ColluvialGrainSourceShare> grainSourceShares() {
+    List<ColluvialGrainSourceShare> unnormalized = new ArrayList<>(sourceBalances.size() + 1);
+    unnormalized.add(
+        new ColluvialGrainSourceShare(
+            ColluvialGrainSourceShare.SourceRole.WEATHERED_MATRIX,
+            Optional.empty(),
+            0,
+            weatheredMatrixBalance.depositedGrainMass(),
+            0,
+            0,
+            0));
+    for (SourceBalance source : sourceBalances) {
+      unnormalized.add(
+          new ColluvialGrainSourceShare(
+              ColluvialGrainSourceShare.SourceRole.TRANSPORTED_SOURCE,
+              Optional.of(source.sourceBodyId()),
+              source.upslopeDistanceBlocks(),
+              source.balance().depositedGrainMass(),
+              0,
+              0,
+              0));
+    }
+    long[] gravelWeights =
+        unnormalized.stream()
+            .mapToLong(share -> share.depositedGrainMass().gravelAndCoarserFixedUnits())
+            .toArray();
+    long[] sandWeights =
+        unnormalized.stream()
+            .mapToLong(share -> share.depositedGrainMass().sandFixedUnits())
+            .toArray();
+    long[] finesWeights =
+        unnormalized.stream()
+            .mapToLong(share -> share.depositedGrainMass().finesFixedUnits())
+            .toArray();
+    long[] gravelFractions = apportion(MaterialAssemblage.SCALE, gravelWeights);
+    long[] sandFractions = apportion(MaterialAssemblage.SCALE, sandWeights);
+    long[] finesFractions = apportion(MaterialAssemblage.SCALE, finesWeights);
+    List<ColluvialGrainSourceShare> shares = new ArrayList<>(unnormalized.size());
+    for (int index = 0; index < unnormalized.size(); index++) {
+      ColluvialGrainSourceShare share = unnormalized.get(index);
+      shares.add(
+          new ColluvialGrainSourceShare(
+              share.sourceRole(),
+              share.sourceBodyId(),
+              share.upslopeDistanceBlocks(),
+              share.depositedGrainMass(),
+              gravelFractions[index],
+              sandFractions[index],
+              finesFractions[index]));
+    }
+    return List.copyOf(shares);
   }
 
   /** Aggregates every matrix/source tranche into exact process-specific ledgers. */

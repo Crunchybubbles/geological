@@ -17,6 +17,7 @@ import io.github.crunchybubbles.geological.petrology.BodyCompositionSampler;
 import io.github.crunchybubbles.geological.petrology.ClastShape;
 import io.github.crunchybubbles.geological.petrology.ColluvialCohesionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialGrainDispersionState;
+import io.github.crunchybubbles.geological.petrology.ColluvialGrainSourceShare;
 import io.github.crunchybubbles.geological.petrology.ColluvialHorizonState;
 import io.github.crunchybubbles.geological.petrology.ColluvialHydraulicState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
@@ -464,6 +465,33 @@ class MaterialSchemaTest {
           reconstructedDepositedGrainMass.add(grainShare.depositedGrainMass());
     }
     assertEquals(budget.depositedGrainMass(), reconstructedDepositedGrainMass);
+    assertEquals(3, budget.grainSourceShares().size());
+    assertEquals(
+        ColluvialGrainSourceShare.SourceRole.WEATHERED_MATRIX,
+        budget.grainSourceShares().getFirst().sourceRole());
+    assertTrue(budget.grainSourceShares().getFirst().sourceBodyId().isEmpty());
+    for (int grainClass = 0; grainClass < 3; grainClass++) {
+      int grainClassIndex = grainClass;
+      long classTotal =
+          switch (grainClass) {
+            case 0 -> budget.depositedGrainMass().gravelAndCoarserFixedUnits();
+            case 1 -> budget.depositedGrainMass().sandFixedUnits();
+            case 2 -> budget.depositedGrainMass().finesFixedUnits();
+            default -> throw new IllegalStateException("unmapped test grain class");
+          };
+      long sourceFractionTotal =
+          budget.grainSourceShares().stream()
+              .mapToLong(
+                  share ->
+                      switch (grainClassIndex) {
+                        case 0 -> share.gravelAndCoarserFractionPpm();
+                        case 1 -> share.sandFractionPpm();
+                        case 2 -> share.finesFractionPpm();
+                        default -> throw new IllegalStateException("unmapped test grain class");
+                      })
+              .sum();
+      assertEquals(classTotal > 0 ? MaterialAssemblage.SCALE : 0, sourceFractionTotal);
+    }
     ColluvialSedimentBudget repeatedSourceBudget =
         ColluvialSedimentBudget.derive(
             0.12,

@@ -665,6 +665,21 @@ public final class MaterialQueryEngine {
           .append(':')
           .append(grainShare.depositedGrainMass().finesFixedUnits());
     }
+    for (ColluvialGrainSourceShare grainShare : sedimentBudget.grainSourceShares()) {
+      purpose
+          .append(":grain-source:")
+          .append(grainShare.sourceRole())
+          .append(':')
+          .append(grainShare.sourceBodyId().map(StableId::toString).orElse("weathered-matrix"))
+          .append(':')
+          .append(grainShare.upslopeDistanceBlocks())
+          .append(':')
+          .append(grainShare.gravelAndCoarserFractionPpm())
+          .append(':')
+          .append(grainShare.sandFractionPpm())
+          .append(':')
+          .append(grainShare.finesFractionPpm());
+    }
     ColluvialTransportProcessMix processMix = sedimentBudget.transportProcessMix();
     purpose
         .append(":process-mix:")

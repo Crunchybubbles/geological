@@ -13,6 +13,7 @@ import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
 import io.github.crunchybubbles.geological.petrology.ChemicalElement;
 import io.github.crunchybubbles.geological.petrology.ColluvialCohesionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialGrainDispersionState;
+import io.github.crunchybubbles.geological.petrology.ColluvialGrainSourceShare;
 import io.github.crunchybubbles.geological.petrology.ColluvialHorizonState;
 import io.github.crunchybubbles.geological.petrology.ColluvialHydraulicState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
@@ -725,6 +726,10 @@ final class MaterialReviewPacketGenerator {
         budget.sourceGrainShares().stream()
             .map(MaterialReviewPacketGenerator::colluvialSourceGrainShareJson)
             .toList(),
+        "grainSourceShares",
+        budget.grainSourceShares().stream()
+            .map(MaterialReviewPacketGenerator::colluvialGrainSourceShareJson)
+            .toList(),
         "transportProcessMix",
         colluvialTransportProcessMixJson(budget.transportProcessMix()),
         "transportProcessUsages",
@@ -781,6 +786,27 @@ final class MaterialReviewPacketGenerator {
         colluvialGrainMassJson(grainShare.depositedGrainMass()),
         "depositedGrainSizePpm",
         sedimentGrainSizeJson(grainShare.depositedGrainSize()));
+  }
+
+  private static Map<String, Object> colluvialGrainSourceShareJson(
+      ColluvialGrainSourceShare grainShare) {
+    return JsonWriter.object(
+        "sourceRole",
+        grainShare.sourceRole().name(),
+        "sourceBodyId",
+        grainShare.sourceBodyId().map(StableId::toString).orElse(null),
+        "upslopeDistanceBlocks",
+        grainShare.upslopeDistanceBlocks(),
+        "depositedFixedUnits",
+        grainShare.depositedFixedUnits(),
+        "depositedGrainMassFixedUnits",
+        colluvialGrainMassJson(grainShare.depositedGrainMass()),
+        "gravelAndCoarserFractionPpm",
+        grainShare.gravelAndCoarserFractionPpm(),
+        "sandFractionPpm",
+        grainShare.sandFractionPpm(),
+        "finesFractionPpm",
+        grainShare.finesFractionPpm());
   }
 
   private static Map<String, Object> colluvialTransportProcessMixJson(

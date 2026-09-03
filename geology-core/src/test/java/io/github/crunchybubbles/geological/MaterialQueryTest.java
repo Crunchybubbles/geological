@@ -20,6 +20,7 @@ import io.github.crunchybubbles.geological.petrology.ChemicalElement;
 import io.github.crunchybubbles.geological.petrology.ClastShape;
 import io.github.crunchybubbles.geological.petrology.ColluvialCohesionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialGrainDispersionState;
+import io.github.crunchybubbles.geological.petrology.ColluvialGrainSourceShare;
 import io.github.crunchybubbles.geological.petrology.ColluvialHydraulicState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialProductionState;
@@ -69,7 +70,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.53", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.54", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1366,6 +1367,26 @@ class MaterialQueryTest {
           grainShare.depositedFixedUnits(), grainShare.depositedGrainMass().totalFixedUnits());
       assertTrue(grainShare.depositedFixedUnits() > 0);
     }
+    assertEquals(4, sedimentBudget.grainSourceShares().size());
+    assertEquals(
+        ColluvialGrainSourceShare.SourceRole.WEATHERED_MATRIX,
+        sedimentBudget.grainSourceShares().getFirst().sourceRole());
+    assertTrue(sedimentBudget.grainSourceShares().getFirst().sourceBodyId().isEmpty());
+    assertEquals(
+        MaterialAssemblage.SCALE,
+        sedimentBudget.grainSourceShares().stream()
+            .mapToLong(ColluvialGrainSourceShare::gravelAndCoarserFractionPpm)
+            .sum());
+    assertEquals(
+        MaterialAssemblage.SCALE,
+        sedimentBudget.grainSourceShares().stream()
+            .mapToLong(ColluvialGrainSourceShare::sandFractionPpm)
+            .sum());
+    assertEquals(
+        MaterialAssemblage.SCALE,
+        sedimentBudget.grainSourceShares().stream()
+            .mapToLong(ColluvialGrainSourceShare::finesFractionPpm)
+            .sum());
     for (ColluvialSedimentBudget.InputBalance balance :
         sedimentBudget.sourceBalances().stream()
             .map(ColluvialSedimentBudget.SourceBalance::balance)
