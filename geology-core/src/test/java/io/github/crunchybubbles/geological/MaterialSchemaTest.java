@@ -32,6 +32,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialSourceClaimLedger;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceGrainShare;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceUsage;
 import io.github.crunchybubbles.geological.petrology.ColluvialTextureState;
+import io.github.crunchybubbles.geological.petrology.ColluvialTransportPolicy;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcess;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessMix;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessStageMix;
@@ -156,6 +157,24 @@ class MaterialSchemaTest {
             new ColluvialRoutePolicy(
                 0.1, 4.0, 32.0, 4.0, 8.0, 32, 64, 192, 60.0, 350_000L, 350_000L, 200_000L,
                 100_001L));
+  }
+
+  @Test
+  void colluvialTransportPolicyValidatesBoundedResponseParameters() {
+    ColluvialTransportPolicy policy = ColluvialTransportPolicy.DEFAULT;
+    assertEquals(policy, ColluvialTransportPolicy.DEFAULT);
+    assertEquals(512.0, policy.gravelAndCoarserReferenceEFoldingDistanceBlocks());
+    assertEquals(0.50, policy.maximumBypassFraction());
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialTransportPolicy(
+                0.0, 0.24, 0.25, 0.65, 0.50, 0.40, 0.50, 0.75, 0.70, 512.0, 384.0, 256.0, 0.50));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialTransportPolicy(
+                12.0, 0.24, 0.25, 0.65, 0.50, 0.40, 0.50, 0.75, 0.70, 512.0, 384.0, 256.0, 1.01));
   }
 
   @Test

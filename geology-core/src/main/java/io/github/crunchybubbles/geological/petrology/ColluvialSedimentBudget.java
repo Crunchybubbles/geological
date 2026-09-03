@@ -19,24 +19,27 @@ public record ColluvialSedimentBudget(
     GrainTransportModel grainTransportModel,
     double depositionSlope,
     InputBalance weatheredMatrixBalance,
-    List<SourceBalance> sourceBalances) {
+    List<SourceBalance> sourceBalances,
+    ColluvialTransportPolicy transportPolicy) {
   public static final String NORMALIZED_MASS_UNIT = "phase2_normalized_sediment_mass";
 
-  private static final double WEATHERING_DEPTH_REFERENCE = 12.0;
-  private static final double SLOPE_MOBILITY_REFERENCE = 0.24;
-  private static final double MINIMUM_SLOPE_MOBILITY = 0.25;
-  private static final double MINIMUM_RUNOFF_MOBILITY_RESPONSE = 0.65;
-  private static final double MINIMUM_TRANSPORT_SLOPE_RESPONSE = 0.50;
-  private static final double MINIMUM_TRANSPORT_ROUGHNESS_RESPONSE = 0.40;
-  private static final double MINIMUM_TRANSPORT_PATH_RESPONSE = 0.50;
-  private static final double MINIMUM_TRANSPORT_ROUTE_GRADE_RESPONSE = 0.75;
-  private static final double MINIMUM_TRANSPORT_RUNOFF_RESPONSE = 0.70;
   private static final double PATH_REACH_TOLERANCE_BLOCKS = 1.0e-6;
   private static final double PATH_DIRECTION_TOLERANCE = 1.0e-9;
-  private static final double GRAVEL_AND_COARSER_REFERENCE_E_FOLDING_DISTANCE_BLOCKS = 512.0;
-  private static final double SAND_REFERENCE_E_FOLDING_DISTANCE_BLOCKS = 384.0;
-  private static final double FINES_REFERENCE_E_FOLDING_DISTANCE_BLOCKS = 256.0;
-  private static final double MAXIMUM_BYPASS_FRACTION = 0.50;
+
+  public ColluvialSedimentBudget(
+      String unit,
+      GrainTransportModel grainTransportModel,
+      double depositionSlope,
+      InputBalance weatheredMatrixBalance,
+      List<SourceBalance> sourceBalances) {
+    this(
+        unit,
+        grainTransportModel,
+        depositionSlope,
+        weatheredMatrixBalance,
+        sourceBalances,
+        ColluvialTransportPolicy.DEFAULT);
+  }
 
   public ColluvialSedimentBudget {
     if (!NORMALIZED_MASS_UNIT.equals(unit)
@@ -45,8 +48,12 @@ public record ColluvialSedimentBudget(
         || !Double.isFinite(depositionSlope)
         || depositionSlope < 0.0
         || weatheredMatrixBalance == null
-        || sourceBalances == null) {
+        || sourceBalances == null
+        || transportPolicy == null) {
       throw new IllegalArgumentException("colluvial sediment budget identity must be complete");
+    }
+    if (!transportPolicy.equals(weatheredMatrixBalance.transportPolicy())) {
+      throw new IllegalArgumentException("weathered-matrix balance must use the budget policy");
     }
     sourceBalances =
         List.copyOf(sourceBalances).stream()
@@ -58,7 +65,7 @@ public record ColluvialSedimentBudget(
       throw new IllegalArgumentException("colluvial sediment budget requires source balances");
     }
     if (!weatheredMatrixBalance.equals(
-        deriveInputBalance(weatheredMatrixBalance.input(), 0, depositionSlope))) {
+        deriveInputBalance(weatheredMatrixBalance.input(), 0, depositionSlope, transportPolicy))) {
       throw new IllegalArgumentException("weathered-matrix balance does not match its inputs");
     }
     if (weatheredMatrixBalance.depositedFixedUnits() <= 0) {
@@ -76,8 +83,14 @@ public record ColluvialSedimentBudget(
           .balance()
           .equals(
               deriveInputBalance(
-                  source.balance().input(), source.upslopeDistanceBlocks(), depositionSlope))) {
+                  source.balance().input(),
+                  source.upslopeDistanceBlocks(),
+                  depositionSlope,
+                  transportPolicy))) {
         throw new IllegalArgumentException("colluvial source balance does not match its inputs");
+      }
+      if (!transportPolicy.equals(source.balance().transportPolicy())) {
+        throw new IllegalArgumentException("colluvial source balance must use the budget policy");
       }
       if (source.balance().depositedFixedUnits() <= 0) {
         throw new IllegalArgumentException("each colluvial source must contribute deposited mass");
@@ -100,10 +113,23 @@ public record ColluvialSedimentBudget(
       double depositionSlope,
       ProductionInput weatheredMatrixInput,
       List<SourceProductionInput> sourceInputs) {
+    return derive(
+        depositionSlope, weatheredMatrixInput, sourceInputs, ColluvialTransportPolicy.DEFAULT);
+  }
+
+  public static ColluvialSedimentBudget derive(
+      double depositionSlope,
+      ProductionInput weatheredMatrixInput,
+      List<SourceProductionInput> sourceInputs,
+      ColluvialTransportPolicy transportPolicy) {
     if (weatheredMatrixInput == null || sourceInputs == null || sourceInputs.isEmpty()) {
       throw new IllegalArgumentException("colluvial sediment production inputs are required");
     }
-    InputBalance matrixBalance = deriveInputBalance(weatheredMatrixInput, 0, depositionSlope);
+    if (transportPolicy == null) {
+      throw new IllegalArgumentException("colluvial transport policy is required");
+    }
+    InputBalance matrixBalance =
+        deriveInputBalance(weatheredMatrixInput, 0, depositionSlope, transportPolicy);
     List<SourceBalance> balances =
         List.copyOf(sourceInputs).stream()
             .map(
@@ -112,14 +138,18 @@ public record ColluvialSedimentBudget(
                         source.sourceBodyId(),
                         source.upslopeDistanceBlocks(),
                         deriveInputBalance(
-                            source.input(), source.upslopeDistanceBlocks(), depositionSlope)))
+                            source.input(),
+                            source.upslopeDistanceBlocks(),
+                            depositionSlope,
+                            transportPolicy)))
             .toList();
     return new ColluvialSedimentBudget(
         NORMALIZED_MASS_UNIT,
         GrainTransportModel.SLOPE_ROUGHNESS_PATH_GRADE_RUNOFF_CONDITIONED_DRY_RAVEL_PROOF,
         depositionSlope,
         matrixBalance,
-        balances);
+        balances,
+        transportPolicy);
   }
 
   public long sourceCapacityFixedUnits() {
@@ -408,22 +438,28 @@ public record ColluvialSedimentBudget(
   }
 
   private static InputBalance deriveInputBalance(
-      ProductionInput input, int upslopeDistanceBlocks, double depositionSlope) {
+      ProductionInput input,
+      int upslopeDistanceBlocks,
+      double depositionSlope,
+      ColluvialTransportPolicy transportPolicy) {
     if (input == null
         || upslopeDistanceBlocks < 0
         || input.terrainPath().distanceBlocks() != upslopeDistanceBlocks
         || !Double.isFinite(depositionSlope)
-        || depositionSlope < 0.0) {
+        || depositionSlope < 0.0
+        || transportPolicy == null) {
       throw new IllegalArgumentException("valid colluvial transport inputs are required");
     }
-    double weatheringAvailability = clamp(input.weatheringDepth() / WEATHERING_DEPTH_REFERENCE);
+    double weatheringAvailability =
+        clamp(input.weatheringDepth() / transportPolicy.weatheringDepthReference());
     double erodibilityResponse = 0.5 + 0.5 * input.erodibilityIndex();
     double slopeMobility =
-        MINIMUM_SLOPE_MOBILITY
-            + (1.0 - MINIMUM_SLOPE_MOBILITY) * clamp(input.slope() / SLOPE_MOBILITY_REFERENCE);
+        transportPolicy.minimumSlopeMobility()
+            + (1.0 - transportPolicy.minimumSlopeMobility())
+                * clamp(input.slope() / transportPolicy.slopeMobilityReference());
     double runoffMobility =
-        MINIMUM_RUNOFF_MOBILITY_RESPONSE
-            + (1.0 - MINIMUM_RUNOFF_MOBILITY_RESPONSE) * input.runoffIndex();
+        transportPolicy.minimumRunoffMobilityResponse()
+            + (1.0 - transportPolicy.minimumRunoffMobilityResponse()) * input.runoffIndex();
     long mobilizedTotal =
         roundedPortion(
             input.capacityFixedUnits(),
@@ -431,7 +467,7 @@ public record ColluvialSedimentBudget(
     GrainMass capacity = GrainMass.from(input.capacityFixedUnits(), input.sedimentYield());
     GrainMass mobilized = GrainMass.apportion(mobilizedTotal, capacity);
     GrainMass retained = capacity.subtract(mobilized);
-    GrainTransportLengths transportLengths = grainTransportLengths(input);
+    GrainTransportLengths transportLengths = grainTransportLengths(input, transportPolicy);
     GrainMass arrived =
         new GrainMass(
             roundedPortion(
@@ -446,12 +482,14 @@ public record ColluvialSedimentBudget(
                 transportSurvival(upslopeDistanceBlocks, transportLengths.finesBlocks())));
     GrainMass transportLoss = mobilized.subtract(arrived);
     double depositionFraction =
-        1.0 - MAXIMUM_BYPASS_FRACTION * clamp(depositionSlope / SLOPE_MOBILITY_REFERENCE);
+        1.0
+            - transportPolicy.maximumBypassFraction()
+                * clamp(depositionSlope / transportPolicy.slopeMobilityReference());
     long depositedTotal = roundedPortion(arrived.totalFixedUnits(), depositionFraction);
     GrainMass deposited = GrainMass.apportion(depositedTotal, arrived);
     GrainMass bypassed = arrived.subtract(deposited);
     return new InputBalance(
-        input, capacity, mobilized, retained, transportLoss, bypassed, deposited);
+        input, capacity, mobilized, retained, transportLoss, bypassed, deposited, transportPolicy);
   }
 
   private static double transportSurvival(int distanceBlocks, double eFoldingDistanceBlocks) {
@@ -459,36 +497,61 @@ public record ColluvialSedimentBudget(
   }
 
   private static double transportDistanceScale(ProductionInput input) {
+    return transportDistanceScale(input, ColluvialTransportPolicy.DEFAULT);
+  }
+
+  public ColluvialTransportPolicy transportPolicy() {
+    return transportPolicy;
+  }
+
+  private static double transportDistanceScale(
+      ProductionInput input, ColluvialTransportPolicy transportPolicy) {
     double slopeResponse =
-        MINIMUM_TRANSPORT_SLOPE_RESPONSE
-            + (1.0 - MINIMUM_TRANSPORT_SLOPE_RESPONSE)
-                * clamp(input.slope() / SLOPE_MOBILITY_REFERENCE);
+        transportPolicy.minimumTransportSlopeResponse()
+            + (1.0 - transportPolicy.minimumTransportSlopeResponse())
+                * clamp(input.slope() / transportPolicy.slopeMobilityReference());
     double roughnessResponse =
-        1.0 - (1.0 - MINIMUM_TRANSPORT_ROUGHNESS_RESPONSE) * input.terrainRoughnessIndex();
+        1.0
+            - (1.0 - transportPolicy.minimumTransportRoughnessResponse())
+                * input.terrainRoughnessIndex();
     double runoffResponse =
-        MINIMUM_TRANSPORT_RUNOFF_RESPONSE
-            + (1.0 - MINIMUM_TRANSPORT_RUNOFF_RESPONSE) * input.runoffIndex();
-    return slopeResponse * roughnessResponse * runoffResponse * transportPathResponse(input);
+        transportPolicy.minimumTransportRunoffResponse()
+            + (1.0 - transportPolicy.minimumTransportRunoffResponse()) * input.runoffIndex();
+    return slopeResponse
+        * roughnessResponse
+        * runoffResponse
+        * transportPathResponse(input, transportPolicy);
   }
 
   private static double transportPathResponse(ProductionInput input) {
+    return transportPathResponse(input, ColluvialTransportPolicy.DEFAULT);
+  }
+
+  private static double transportPathResponse(
+      ProductionInput input, ColluvialTransportPolicy transportPolicy) {
     TerrainPath path = input.terrainPath();
     double routeGradeResponse =
-        MINIMUM_TRANSPORT_ROUTE_GRADE_RESPONSE
-            + (1.0 - MINIMUM_TRANSPORT_ROUTE_GRADE_RESPONSE) * path.routeGradeIndex();
-    return MINIMUM_TRANSPORT_PATH_RESPONSE
-        + (1.0 - MINIMUM_TRANSPORT_PATH_RESPONSE)
+        transportPolicy.minimumTransportRouteGradeResponse()
+            + (1.0 - transportPolicy.minimumTransportRouteGradeResponse())
+                * path.routeGradeIndex(transportPolicy.slopeMobilityReference());
+    return transportPolicy.minimumTransportPathResponse()
+        + (1.0 - transportPolicy.minimumTransportPathResponse())
             * path.downslopeContinuityIndex()
             * path.routeDirectnessIndex()
             * routeGradeResponse;
   }
 
   private static GrainTransportLengths grainTransportLengths(ProductionInput input) {
-    double scale = transportDistanceScale(input);
+    return grainTransportLengths(input, ColluvialTransportPolicy.DEFAULT);
+  }
+
+  private static GrainTransportLengths grainTransportLengths(
+      ProductionInput input, ColluvialTransportPolicy transportPolicy) {
+    double scale = transportDistanceScale(input, transportPolicy);
     return new GrainTransportLengths(
-        GRAVEL_AND_COARSER_REFERENCE_E_FOLDING_DISTANCE_BLOCKS * scale,
-        SAND_REFERENCE_E_FOLDING_DISTANCE_BLOCKS * scale,
-        FINES_REFERENCE_E_FOLDING_DISTANCE_BLOCKS * scale);
+        transportPolicy.gravelAndCoarserReferenceEFoldingDistanceBlocks() * scale,
+        transportPolicy.sandReferenceEFoldingDistanceBlocks() * scale,
+        transportPolicy.finesReferenceEFoldingDistanceBlocks() * scale);
   }
 
   private static long roundedPortion(long inventory, double fraction) {
@@ -790,12 +853,19 @@ public record ColluvialSedimentBudget(
 
     /** Bounded net source-to-target elevation-grade index for this routed path. */
     public double routeGradeIndex() {
+      return routeGradeIndex(ColluvialTransportPolicy.DEFAULT.slopeMobilityReference());
+    }
+
+    public double routeGradeIndex(double slopeReference) {
+      if (!Double.isFinite(slopeReference) || slopeReference <= 0.0) {
+        throw new IllegalArgumentException("route-grade slope reference must be positive");
+      }
       if (reachCount() == 0) {
         return 1.0;
       }
       double netUpslopeRelief = sourceElevation() - originElevation();
       double routeGrade = netUpslopeRelief / routedDistanceBlocks();
-      return clamp(routeGrade / SLOPE_MOBILITY_REFERENCE);
+      return clamp(routeGrade / slopeReference);
     }
 
     public double netUpslopeReliefBlocks() {
@@ -984,7 +1054,27 @@ public record ColluvialSedimentBudget(
       GrainMass retainedGrainMass,
       GrainMass transportLossGrainMass,
       GrainMass bypassedGrainMass,
-      GrainMass depositedGrainMass) {
+      GrainMass depositedGrainMass,
+      ColluvialTransportPolicy transportPolicy) {
+    public InputBalance(
+        ProductionInput input,
+        GrainMass capacityGrainMass,
+        GrainMass mobilizedGrainMass,
+        GrainMass retainedGrainMass,
+        GrainMass transportLossGrainMass,
+        GrainMass bypassedGrainMass,
+        GrainMass depositedGrainMass) {
+      this(
+          input,
+          capacityGrainMass,
+          mobilizedGrainMass,
+          retainedGrainMass,
+          transportLossGrainMass,
+          bypassedGrainMass,
+          depositedGrainMass,
+          ColluvialTransportPolicy.DEFAULT);
+    }
+
     public InputBalance {
       if (input == null
           || capacityGrainMass == null
@@ -992,7 +1082,8 @@ public record ColluvialSedimentBudget(
           || retainedGrainMass == null
           || transportLossGrainMass == null
           || bypassedGrainMass == null
-          || depositedGrainMass == null) {
+          || depositedGrainMass == null
+          || transportPolicy == null) {
         throw new IllegalArgumentException("colluvial sediment input balance is incomplete");
       }
       if (capacityGrainMass.totalFixedUnits() != input.capacityFixedUnits()
@@ -1029,19 +1120,19 @@ public record ColluvialSedimentBudget(
     }
 
     public double transportDistanceScale() {
-      return ColluvialSedimentBudget.transportDistanceScale(input);
+      return ColluvialSedimentBudget.transportDistanceScale(input, transportPolicy);
     }
 
     public double transportPathResponse() {
-      return ColluvialSedimentBudget.transportPathResponse(input);
+      return ColluvialSedimentBudget.transportPathResponse(input, transportPolicy);
     }
 
     public ColluvialTransportProcess transportProcess() {
-      return ColluvialTransportProcess.from(input);
+      return ColluvialTransportProcess.from(input, transportPolicy);
     }
 
     public ColluvialProductionState productionState() {
-      return ColluvialProductionState.from(this);
+      return ColluvialProductionState.from(this, transportPolicy);
     }
 
     public ColluvialSinkState sinkState() {
@@ -1053,7 +1144,7 @@ public record ColluvialSedimentBudget(
     }
 
     public GrainTransportLengths grainTransportLengths() {
-      return ColluvialSedimentBudget.grainTransportLengths(input);
+      return ColluvialSedimentBudget.grainTransportLengths(input, transportPolicy);
     }
   }
 

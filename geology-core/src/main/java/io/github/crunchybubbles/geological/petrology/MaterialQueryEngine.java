@@ -40,6 +40,7 @@ public final class MaterialQueryEngine {
   private final MaterialCatalogSnapshot catalog;
   private final WorldIdentity materialIdentity;
   private final ColluvialRoutePolicy colluvialRoutePolicy;
+  private final ColluvialTransportPolicy colluvialTransportPolicy;
   private final Map<RecipeKey, RecipeTemplate> recipeTemplates;
   private final BodyCompositionSampler compositionSampler;
   private final DescriptorCache<BodyRecipeKey, ResolvedRecipe> bodyRecipeCache;
@@ -50,7 +51,8 @@ public final class MaterialQueryEngine {
         geology,
         catalog,
         geology == null ? null : geology.atlas().identity(),
-        ColluvialRoutePolicy.DEFAULT);
+        ColluvialRoutePolicy.DEFAULT,
+        ColluvialTransportPolicy.DEFAULT);
   }
 
   public MaterialQueryEngine(
@@ -63,6 +65,16 @@ public final class MaterialQueryEngine {
       MaterialCatalogSnapshot catalog,
       WorldIdentity materialIdentity,
       ColluvialRoutePolicy colluvialRoutePolicy) {
+    this(
+        geology, catalog, materialIdentity, colluvialRoutePolicy, ColluvialTransportPolicy.DEFAULT);
+  }
+
+  public MaterialQueryEngine(
+      GeologyQueryEngine geology,
+      MaterialCatalogSnapshot catalog,
+      WorldIdentity materialIdentity,
+      ColluvialRoutePolicy colluvialRoutePolicy,
+      ColluvialTransportPolicy colluvialTransportPolicy) {
     if (geology == null || catalog == null) {
       throw new IllegalArgumentException("geology query and material catalog are required");
     }
@@ -72,10 +84,14 @@ public final class MaterialQueryEngine {
     if (colluvialRoutePolicy == null) {
       throw new IllegalArgumentException("colluvial route policy is required");
     }
+    if (colluvialTransportPolicy == null) {
+      throw new IllegalArgumentException("colluvial transport policy is required");
+    }
     this.geology = geology;
     this.catalog = catalog;
     this.materialIdentity = materialIdentity;
     this.colluvialRoutePolicy = colluvialRoutePolicy;
+    this.colluvialTransportPolicy = colluvialTransportPolicy;
     this.recipeTemplates = compileRecipeTemplates(catalog);
     this.compositionSampler = new BodyCompositionSampler(materialIdentity);
     this.bodyRecipeCache = new BoundedDescriptorCache<>(512);
@@ -96,6 +112,10 @@ public final class MaterialQueryEngine {
 
   public ColluvialRoutePolicy colluvialRoutePolicy() {
     return colluvialRoutePolicy;
+  }
+
+  public ColluvialTransportPolicy colluvialTransportPolicy() {
+    return colluvialTransportPolicy;
   }
 
   public int resolvedRecipeCount() {
@@ -545,7 +565,10 @@ public final class MaterialQueryEngine {
                             source.material().rock().sedimentYield())))
             .toList();
     return ColluvialSedimentBudget.derive(
-        depositionSurface.fields().slope(), weatheredMatrixInput, sourceInputs);
+        depositionSurface.fields().slope(),
+        weatheredMatrixInput,
+        sourceInputs,
+        colluvialTransportPolicy);
   }
 
   private static List<ResolvedColluvialSource> resolveColluvialSourceContributions(
@@ -747,6 +770,7 @@ public final class MaterialQueryEngine {
         .append(':')
         .append(sedimentBudget.depositedInventoryFixedUnits())
         .append(":matrix:");
+    appendTransportPolicy(purpose, sedimentBudget.transportPolicy());
     appendColluvialInputBalance(purpose, sedimentBudget.weatheredMatrixBalance());
     for (ColluvialSedimentBudget.SourceBalance source : sedimentBudget.sourceBalances()) {
       purpose
@@ -934,7 +958,10 @@ public final class MaterialQueryEngine {
         .append(':')
         .append(input.terrainPath().netUpslopeReliefBlocks())
         .append(':')
-        .append(input.terrainPath().routeGradeIndex());
+        .append(
+            input
+                .terrainPath()
+                .routeGradeIndex(balance.transportPolicy().slopeMobilityReference()));
     for (ColluvialSedimentBudget.TerrainPathSample sample : input.terrainPath().samples()) {
       purpose
           .append(':')
@@ -1025,6 +1052,37 @@ public final class MaterialQueryEngine {
         .append(policy.nearSourceCapacityFixedUnits())
         .append(':')
         .append(policy.farSourceCapacityFixedUnits());
+  }
+
+  private static void appendTransportPolicy(
+      StringBuilder purpose, ColluvialTransportPolicy policy) {
+    purpose
+        .append(":transport-policy:")
+        .append(policy.weatheringDepthReference())
+        .append(':')
+        .append(policy.slopeMobilityReference())
+        .append(':')
+        .append(policy.minimumSlopeMobility())
+        .append(':')
+        .append(policy.minimumRunoffMobilityResponse())
+        .append(':')
+        .append(policy.minimumTransportSlopeResponse())
+        .append(':')
+        .append(policy.minimumTransportRoughnessResponse())
+        .append(':')
+        .append(policy.minimumTransportPathResponse())
+        .append(':')
+        .append(policy.minimumTransportRouteGradeResponse())
+        .append(':')
+        .append(policy.minimumTransportRunoffResponse())
+        .append(':')
+        .append(policy.gravelAndCoarserReferenceEFoldingDistanceBlocks())
+        .append(':')
+        .append(policy.sandReferenceEFoldingDistanceBlocks())
+        .append(':')
+        .append(policy.finesReferenceEFoldingDistanceBlocks())
+        .append(':')
+        .append(policy.maximumBypassFraction());
   }
 
   private static void appendColluvialGrainMass(

@@ -12,7 +12,6 @@ public record ColluvialTransportProcess(
     double hillslopeCreepScore,
     double sheetwashScore,
     double dryRavelScore) {
-  private static final double SLOPE_REFERENCE = 0.24;
   private static final double SCORE_TOLERANCE = 1.0e-12;
 
   public ColluvialTransportProcess {
@@ -38,13 +37,22 @@ public record ColluvialTransportProcess(
 
   /** Derives the dominant process proxy from one immutable production input. */
   public static ColluvialTransportProcess from(ColluvialSedimentBudget.ProductionInput input) {
+    return from(input, ColluvialTransportPolicy.DEFAULT);
+  }
+
+  /** Derives the dominant process proxy with an explicit response policy. */
+  public static ColluvialTransportProcess from(
+      ColluvialSedimentBudget.ProductionInput input, ColluvialTransportPolicy policy) {
     if (input == null) {
       throw new IllegalArgumentException("colluvial production input is required");
     }
-    double slopeIndex = clamp(input.slope() / SLOPE_REFERENCE);
+    if (policy == null) {
+      throw new IllegalArgumentException("colluvial transport policy is required");
+    }
+    double slopeIndex = clamp(input.slope() / policy.slopeMobilityReference());
     double runoff = input.runoffIndex();
     double routeContinuity = 0.5 + 0.5 * input.terrainPath().downslopeContinuityIndex();
-    double routeGrade = input.terrainPath().routeGradeIndex();
+    double routeGrade = input.terrainPath().routeGradeIndex(policy.slopeMobilityReference());
     double gradeSupport = 0.5 + 0.5 * routeGrade;
 
     double hillslopeCreepScore = clamp((1.0 - slopeIndex) * (1.0 - 0.5 * runoff) * gradeSupport);

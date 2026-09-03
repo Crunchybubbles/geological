@@ -12,11 +12,6 @@ public record ColluvialProductionState(
     double transportArrivalFraction,
     double depositionFraction,
     double netDepositionFraction) {
-  private static final double WEATHERING_DEPTH_REFERENCE = 12.0;
-  private static final double SLOPE_REFERENCE = 0.24;
-  private static final double MINIMUM_SLOPE_RESPONSE = 0.25;
-  private static final double MINIMUM_RUNOFF_RESPONSE = 0.65;
-
   public ColluvialProductionState {
     requireUnit(weatheringAvailability, "weathering availability");
     requireUnit(erodibilityResponse, "erodibility response");
@@ -32,17 +27,29 @@ public record ColluvialProductionState(
 
   /** Derives the bounded stages from one exact input balance. */
   public static ColluvialProductionState from(ColluvialSedimentBudget.InputBalance balance) {
+    return from(balance, ColluvialTransportPolicy.DEFAULT);
+  }
+
+  /** Derives the bounded stages with an explicit response policy. */
+  public static ColluvialProductionState from(
+      ColluvialSedimentBudget.InputBalance balance, ColluvialTransportPolicy policy) {
     if (balance == null) {
       throw new IllegalArgumentException("colluvial input balance is required");
     }
+    if (policy == null) {
+      throw new IllegalArgumentException("colluvial transport policy is required");
+    }
     ColluvialSedimentBudget.ProductionInput input = balance.input();
-    double weatheringAvailability = clamp(input.weatheringDepth() / WEATHERING_DEPTH_REFERENCE);
+    double weatheringAvailability =
+        clamp(input.weatheringDepth() / policy.weatheringDepthReference());
     double erodibilityResponse = 0.5 + 0.5 * input.erodibilityIndex();
     double slopeMobilityResponse =
-        MINIMUM_SLOPE_RESPONSE
-            + (1.0 - MINIMUM_SLOPE_RESPONSE) * clamp(input.slope() / SLOPE_REFERENCE);
+        policy.minimumSlopeMobility()
+            + (1.0 - policy.minimumSlopeMobility())
+                * clamp(input.slope() / policy.slopeMobilityReference());
     double runoffMobilityResponse =
-        MINIMUM_RUNOFF_RESPONSE + (1.0 - MINIMUM_RUNOFF_RESPONSE) * input.runoffIndex();
+        policy.minimumRunoffMobilityResponse()
+            + (1.0 - policy.minimumRunoffMobilityResponse()) * input.runoffIndex();
     double mobilizationPotential =
         weatheringAvailability
             * erodibilityResponse

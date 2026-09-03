@@ -35,6 +35,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialSourceGrainShare;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceMix;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceUsage;
 import io.github.crunchybubbles.geological.petrology.ColluvialTextureState;
+import io.github.crunchybubbles.geological.petrology.ColluvialTransportPolicy;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcess;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessMix;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessStageMix;
@@ -73,7 +74,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.59", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.60", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -167,6 +168,50 @@ class MaterialQueryTest {
             + ledger.depositedFixedUnits());
     assertEquals(
         ledger, query.colluvialSourceClaimLedger(List.of(fixtures.get(1), fixtures.getFirst())));
+  }
+
+  @Test
+  void customColluvialTransportPolicyChangesResponseAndIdentity() {
+    MaterialQueryEngine defaultQuery = Phase2World.create(2_025L);
+    ColluvialTransportPolicy customPolicy =
+        new ColluvialTransportPolicy(
+            12.0, 0.24, 0.25, 0.65, 0.50, 0.40, 0.50, 0.75, 0.70, 1_024.0, 768.0, 512.0, 0.20);
+    MaterialQueryEngine customQuery =
+        new MaterialQueryEngine(
+            defaultQuery.geology(),
+            defaultQuery.catalog(),
+            defaultQuery.materialIdentity(),
+            defaultQuery.colluvialRoutePolicy(),
+            customPolicy);
+    Point2 fixture = null;
+    SurfacePetrologicSample defaultSample = null;
+    for (int z = -1_500; z <= 1_500 && fixture == null; z += 50) {
+      for (int x = -1_500; x <= 1_500 && fixture == null; x += 50) {
+        Point2 point = new Point2(x + 0.25, z - 0.25);
+        SurfacePetrologicSample candidate = defaultQuery.surface(point);
+        if (candidate.context().kind() == SurfaceMaterialKind.COLLUVIAL_MANTLE
+            && candidate.context().sourceBodyIds().size() > 1) {
+          fixture = point;
+          defaultSample = candidate;
+        }
+      }
+    }
+    Point2 point = Objects.requireNonNull(fixture, "no colluvial fixture point found");
+    SurfacePetrologicSample customSample = customQuery.surface(point);
+    ColluvialSourceMix customMix = customSample.context().colluvialSourceMix().orElseThrow();
+    assertEquals(customPolicy, customQuery.colluvialTransportPolicy());
+    assertEquals(customPolicy, customMix.sedimentBudget().transportPolicy());
+    assertNotEquals(
+        Objects.requireNonNull(defaultSample).context().materialBodyId(),
+        customSample.context().materialBodyId());
+    assertNotEquals(
+        defaultSample
+            .context()
+            .colluvialSourceMix()
+            .orElseThrow()
+            .sedimentBudget()
+            .depositedInventoryFixedUnits(),
+        customMix.sedimentBudget().depositedInventoryFixedUnits());
   }
 
   @Test

@@ -29,6 +29,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceGrainShare;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceMix;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceUsage;
+import io.github.crunchybubbles.geological.petrology.ColluvialTransportPolicy;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcess;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessMix;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessStageMix;
@@ -847,6 +848,8 @@ final class MaterialReviewPacketGenerator {
         budget.unit(),
         "grainTransportModel",
         budget.grainTransportModel().name(),
+        "transportPolicy",
+        colluvialTransportPolicyJson(budget.transportPolicy()),
         "depositionSlope",
         budget.depositionSlope(),
         "sourceCapacityFixedUnits",
@@ -902,6 +905,36 @@ final class MaterialReviewPacketGenerator {
             .toList(),
         "transportProcessStageMix",
         colluvialTransportProcessStageMixJson(budget.transportProcessStageMix()));
+  }
+
+  private static Map<String, Object> colluvialTransportPolicyJson(ColluvialTransportPolicy policy) {
+    return JsonWriter.object(
+        "weatheringDepthReference",
+        policy.weatheringDepthReference(),
+        "slopeMobilityReference",
+        policy.slopeMobilityReference(),
+        "minimumSlopeMobility",
+        policy.minimumSlopeMobility(),
+        "minimumRunoffMobilityResponse",
+        policy.minimumRunoffMobilityResponse(),
+        "minimumTransportSlopeResponse",
+        policy.minimumTransportSlopeResponse(),
+        "minimumTransportRoughnessResponse",
+        policy.minimumTransportRoughnessResponse(),
+        "minimumTransportPathResponse",
+        policy.minimumTransportPathResponse(),
+        "minimumTransportRouteGradeResponse",
+        policy.minimumTransportRouteGradeResponse(),
+        "minimumTransportRunoffResponse",
+        policy.minimumTransportRunoffResponse(),
+        "gravelAndCoarserReferenceEFoldingDistanceBlocks",
+        policy.gravelAndCoarserReferenceEFoldingDistanceBlocks(),
+        "sandReferenceEFoldingDistanceBlocks",
+        policy.sandReferenceEFoldingDistanceBlocks(),
+        "finesReferenceEFoldingDistanceBlocks",
+        policy.finesReferenceEFoldingDistanceBlocks(),
+        "maximumBypassFraction",
+        policy.maximumBypassFraction());
   }
 
   private static Map<String, Object> colluvialSedimentSourceBalanceJson(
