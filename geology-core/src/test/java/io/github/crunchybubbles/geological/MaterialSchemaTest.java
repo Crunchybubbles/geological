@@ -47,8 +47,10 @@ import io.github.crunchybubbles.geological.petrology.LigandCapacities;
 import io.github.crunchybubbles.geological.petrology.MagmaDifferentiationState;
 import io.github.crunchybubbles.geological.petrology.MaterialAssemblage;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
+import io.github.crunchybubbles.geological.petrology.MetamorphicEventTiming;
 import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
 import io.github.crunchybubbles.geological.petrology.MetamorphicGrade;
+import io.github.crunchybubbles.geological.petrology.MetamorphicHistory;
 import io.github.crunchybubbles.geological.petrology.MetamorphicPath;
 import io.github.crunchybubbles.geological.petrology.MetamorphicProcessState;
 import io.github.crunchybubbles.geological.petrology.MetamorphicReactionState;
@@ -249,6 +251,44 @@ class MaterialSchemaTest {
                 MaterialProcessClass.WEATHERING,
                 100_000L,
                 Optional.empty()));
+  }
+
+  @Test
+  void metamorphicEventTimelineSortsIdsAndAgesAsPairs() {
+    StableId olderId = StableId.parse("00000000000000000000000000000031");
+    StableId youngerId = StableId.parse("00000000000000000000000000000032");
+    AgeKey older = new AgeKey(120.0, 0);
+    AgeKey younger = new AgeKey(80.0, 1);
+    MetamorphicProcessState process =
+        MetamorphicProcessState.proofFor(
+            MetamorphicGrade.MEDIUM,
+            MetamorphicFacies.GREENSCHIST,
+            MetamorphicPath.COLLISION_CLOCKWISE,
+            MaterialProcessClass.NONE,
+            0L,
+            Optional.empty());
+
+    MetamorphicHistory history =
+        new MetamorphicHistory(
+            "geological:rock/protolith",
+            MetamorphicGrade.MEDIUM,
+            MetamorphicFacies.GREENSCHIST,
+            MetamorphicPath.COLLISION_CLOCKWISE,
+            500.0,
+            650.0,
+            500.0,
+            900.0,
+            List.of(youngerId, olderId),
+            List.of(younger, older),
+            process);
+
+    assertEquals(List.of(olderId, youngerId), history.eventIds());
+    assertEquals(List.of(older, younger), history.eventAges());
+    assertEquals(
+        List.of(
+            new MetamorphicEventTiming(olderId, older),
+            new MetamorphicEventTiming(youngerId, younger)),
+        history.eventTimeline());
   }
 
   @Test
