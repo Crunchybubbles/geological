@@ -11,6 +11,7 @@ import io.github.crunchybubbles.geological.model.Point2;
 import io.github.crunchybubbles.geological.model.Point3;
 import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
 import io.github.crunchybubbles.geological.petrology.ChemicalElement;
+import io.github.crunchybubbles.geological.petrology.ColluvialCohesionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialHorizonState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
@@ -559,6 +560,8 @@ final class MaterialReviewPacketGenerator {
             mix.textureState().clastShape().name()),
         "physicalState",
         colluvialPhysicalStateJson(mix.physicalState()),
+        "cohesionState",
+        colluvialCohesionStateJson(mix.physicalState().cohesionState()),
         "horizonState",
         colluvialHorizonStateJson(mix.horizonState()),
         "sedimentBudget",
@@ -603,6 +606,19 @@ final class MaterialReviewPacketGenerator {
         physicalState.permeabilityIndex(),
         "erodibilityIndex",
         physicalState.erodibilityIndex());
+  }
+
+  private static Map<String, Object> colluvialCohesionStateJson(
+      ColluvialCohesionState cohesionState) {
+    return JsonWriter.object(
+        "cohesionClass",
+        cohesionState.cohesionClass().name(),
+        "finesFraction",
+        cohesionState.finesFraction(),
+        "cohesionIndex",
+        cohesionState.cohesionIndex(),
+        "cohesionAdjustedErodibilityIndex",
+        cohesionState.cohesionAdjustedErodibilityIndex());
   }
 
   private static Map<String, Object> colluvialHorizonStateJson(ColluvialHorizonState horizonState) {

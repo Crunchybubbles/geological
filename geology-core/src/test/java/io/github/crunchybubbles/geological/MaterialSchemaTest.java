@@ -15,6 +15,7 @@ import io.github.crunchybubbles.geological.petrology.AlterationAssemblageRecipe;
 import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
 import io.github.crunchybubbles.geological.petrology.BodyCompositionSampler;
 import io.github.crunchybubbles.geological.petrology.ClastShape;
+import io.github.crunchybubbles.geological.petrology.ColluvialCohesionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialHorizonState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
@@ -166,6 +167,23 @@ class MaterialSchemaTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> new ColluvialPhysicalState(fineMatrix, -0.1, 0.2, 0.3, 0.4, 0.5, 0.6));
+
+    ColluvialCohesionState fineCohesion = fine.cohesionState();
+    ColluvialCohesionState coarseCohesion = coarse.cohesionState();
+    ColluvialCohesionState sandyCohesion = sandy.cohesionState();
+    assertEquals(
+        ColluvialCohesionState.CohesionClass.COHESIVE_FINE_MATRIX, fineCohesion.cohesionClass());
+    assertEquals(ColluvialCohesionState.CohesionClass.NON_COHESIVE, coarseCohesion.cohesionClass());
+    assertEquals(
+        ColluvialCohesionState.CohesionClass.MIXED_COHESION, sandyCohesion.cohesionClass());
+    assertTrue(fineCohesion.cohesionAdjustedErodibilityIndex() < fine.erodibilityIndex());
+    assertTrue(coarseCohesion.cohesionIndex() < fineCohesion.cohesionIndex());
+    assertEquals(fineCohesion, fine.cohesionState());
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialCohesionState(
+                ColluvialCohesionState.CohesionClass.MIXED_COHESION, -0.1, 0.2, 0.3));
   }
 
   @Test
