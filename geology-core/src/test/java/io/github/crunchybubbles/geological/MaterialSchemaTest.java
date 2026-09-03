@@ -15,6 +15,8 @@ import io.github.crunchybubbles.geological.petrology.AcidityClass;
 import io.github.crunchybubbles.geological.petrology.AlterationAssemblageRecipe;
 import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
 import io.github.crunchybubbles.geological.petrology.BodyCompositionSampler;
+import io.github.crunchybubbles.geological.petrology.BulkComposition;
+import io.github.crunchybubbles.geological.petrology.ChemicalElement;
 import io.github.crunchybubbles.geological.petrology.ClastShape;
 import io.github.crunchybubbles.geological.petrology.ColluvialAbsoluteMassBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialCohesionState;
@@ -46,6 +48,7 @@ import io.github.crunchybubbles.geological.petrology.GeneticFamily;
 import io.github.crunchybubbles.geological.petrology.LigandCapacities;
 import io.github.crunchybubbles.geological.petrology.MagmaDifferentiationState;
 import io.github.crunchybubbles.geological.petrology.MaterialAssemblage;
+import io.github.crunchybubbles.geological.petrology.MaterialBufferState;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
 import io.github.crunchybubbles.geological.petrology.MetamorphicEventTiming;
 import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
@@ -402,6 +405,73 @@ class MaterialSchemaTest {
                 0L,
                 250_000L,
                 MetamorphicReactionState.none()));
+  }
+
+  @Test
+  void materialBufferStateDerivesBoundedHostAndFluidCapacities() {
+    MaterialAssemblage coalAssemblage =
+        new MaterialAssemblage(
+            Map.of(
+                "geological:constituent/coal_organic_matter", 800_000L,
+                "geological:mineral/kaolinite", 100_000L,
+                "geological:mineral/pyrite", 100_000L));
+    BulkComposition coalComposition =
+        new BulkComposition(
+            Map.of(
+                ChemicalElement.C, 450_000L,
+                ChemicalElement.H, 150_000L,
+                ChemicalElement.O, 250_000L,
+                ChemicalElement.S, 50_000L,
+                ChemicalElement.N, 100_000L),
+            1.5);
+    MaterialBufferState coal =
+        MaterialBufferState.proofFor(
+            Lithology.COAL,
+            coalAssemblage,
+            coalComposition,
+            MaterialProcessClass.NONE,
+            Optional.empty());
+
+    MaterialAssemblage quartzAssemblage =
+        new MaterialAssemblage(Map.of("geological:mineral/quartz", MaterialAssemblage.SCALE));
+    BulkComposition quartzComposition =
+        new BulkComposition(
+            Map.of(ChemicalElement.SI, 467_000L, ChemicalElement.O, 533_000L), 2.65);
+    MaterialBufferState quartz =
+        MaterialBufferState.proofFor(
+            Lithology.QUARTZITE,
+            quartzAssemblage,
+            quartzComposition,
+            MaterialProcessClass.NONE,
+            Optional.empty());
+
+    assertTrue(coal.organicCarbonCapacityPpm() > quartz.organicCarbonCapacityPpm());
+    assertTrue(coal.reducedSulfurCapacityPpm() > quartz.reducedSulfurCapacityPpm());
+    assertTrue(coal.clayCapacityPpm() > quartz.clayCapacityPpm());
+    assertTrue(coal.adsorptionCapacityPpm() >= coal.clayCapacityPpm());
+    assertTrue(coal.volatileInventoryPpm() >= coal.waterInventoryPpm());
+
+    MaterialBufferState fluidized =
+        MaterialBufferState.proofFor(
+            Lithology.COAL,
+            coalAssemblage,
+            coalComposition,
+            MaterialProcessClass.HYDROTHERMAL_METASOMATISM,
+            Optional.of(fluidState()));
+    assertTrue(fluidized.waterInventoryPpm() > coal.waterInventoryPpm());
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new MaterialBufferState(0L, 0L, 0L, 0L, 0L, 0L, MaterialAssemblage.SCALE + 1L, 0L));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            MaterialBufferState.proofFor(
+                Lithology.COAL,
+                coalAssemblage,
+                coalComposition,
+                MaterialProcessClass.WEATHERING,
+                Optional.empty()));
   }
 
   @Test

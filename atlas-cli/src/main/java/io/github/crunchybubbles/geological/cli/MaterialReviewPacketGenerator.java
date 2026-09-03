@@ -41,6 +41,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessUs
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.MagmaLineageState;
 import io.github.crunchybubbles.geological.petrology.MantleCargoState;
+import io.github.crunchybubbles.geological.petrology.MaterialBufferState;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessLedger;
 import io.github.crunchybubbles.geological.petrology.MaterialQueryEngine;
 import io.github.crunchybubbles.geological.petrology.MetamorphicEventTiming;
@@ -1977,12 +1978,34 @@ final class MaterialReviewPacketGenerator {
                             .residualFluidPpm())))),
         "materialProcess",
         processJson(sample.materialProcessLedger()),
+        "materialBufferState",
+        materialBufferStateJson(sample.materialBufferState()),
         "alterationContribution",
         alterationContributionJson(sample.alterationContribution()),
         "fluidState",
         sample.fluidState().map(this::fluidStateJson).orElse(null),
         "reservoirSystemIds",
         sample.reservoirLedgers().stream().map(ledger -> ledger.systemId().toString()).toList());
+  }
+
+  private Map<String, Object> materialBufferStateJson(MaterialBufferState state) {
+    return JsonWriter.object(
+        "organicCarbonCapacityPpm",
+        state.organicCarbonCapacityPpm(),
+        "reducedSulfurCapacityPpm",
+        state.reducedSulfurCapacityPpm(),
+        "ferrousIronCapacityPpm",
+        state.ferrousIronCapacityPpm(),
+        "adsorptionCapacityPpm",
+        state.adsorptionCapacityPpm(),
+        "clayCapacityPpm",
+        state.clayCapacityPpm(),
+        "ironManganeseOxideCapacityPpm",
+        state.ironManganeseOxideCapacityPpm(),
+        "waterInventoryPpm",
+        state.waterInventoryPpm(),
+        "volatileInventoryPpm",
+        state.volatileInventoryPpm());
   }
 
   private Map<String, Object> regionalMetamorphicStateJson(RegionalMetamorphicState state) {

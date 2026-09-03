@@ -83,6 +83,12 @@ public record PetrologicSample(
     requireUnit(erodibilityIndex, "erodibility");
   }
 
+  /** Returns the deterministic normalized host-buffer state for this resolved sample. */
+  public MaterialBufferState materialBufferState() {
+    return MaterialBufferState.proofFor(
+        rock.lithology(), resolvedAssemblage, resolvedComposition, processClass, fluidState);
+  }
+
   private static void requireUnit(double value, String name) {
     if (!Double.isFinite(value) || value < 0.0 || value > 1.0) {
       throw new IllegalArgumentException(name + " must lie in [0, 1]");
