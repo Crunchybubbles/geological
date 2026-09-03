@@ -206,6 +206,8 @@ class MaterialSchemaTest {
     assertEquals(2.0 / 3.0, farPath.descendingReachFraction());
     assertEquals(47.0 / 60.0, farPath.downslopeContinuityIndex(), 1.0e-15);
     assertEquals(192.0, farPath.straightLineDistanceBlocks());
+    assertEquals(192.0, farPath.routedDistanceBlocks());
+    assertEquals(1.0, farPath.routeDirectnessIndex(), 1.0e-15);
     assertEquals(107.0 / 120.0, farBalance.transportPathResponse(), 1.0e-15);
     assertEquals(0.5684375, farBalance.transportDistanceScale(), 1.0e-15);
     assertEquals(291.04, farBalance.grainTransportLengths().gravelAndCoarserBlocks(), 1.0e-12);
@@ -325,10 +327,18 @@ class MaterialSchemaTest {
                 new ColluvialSedimentBudget.TerrainPathSample(64, new Point2(32.0, 32.0), 108.0)));
     assertEquals(64, curvedPath.distanceBlocks());
     assertEquals(StrictMath.sqrt(2.0) * 32.0, curvedPath.straightLineDistanceBlocks(), 1.0e-12);
+    assertEquals(64.0, curvedPath.routedDistanceBlocks());
+    assertEquals(StrictMath.sqrt(0.5), curvedPath.routeDirectnessIndex(), 1.0e-12);
     assertEquals(90.0, curvedPath.maximumDeflectionFromInitialDegrees(), 1.0e-12);
     assertEquals(2, curvedPath.reaches().size());
     assertEquals(new Point2(1.0, 0.0), curvedPath.reaches().getFirst().routedUpslopeDirection());
     assertEquals(new Point2(0.0, 1.0), curvedPath.reaches().getLast().routedUpslopeDirection());
+    ColluvialSedimentBudget curvedBudget =
+        singleSourceBudget(local, matrix, 64, 0.12, 8.0, 0.12, 0.8, 0.25, curvedPath);
+    assertEquals(
+        0.5 + 0.5 * StrictMath.sqrt(0.5),
+        curvedBudget.sourceBalances().getFirst().balance().transportPathResponse(),
+        1.0e-15);
 
     assertThrows(
         IllegalArgumentException.class,

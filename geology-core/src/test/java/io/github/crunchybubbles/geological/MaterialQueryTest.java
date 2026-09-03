@@ -58,7 +58,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.36", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.37", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1428,6 +1428,9 @@ class MaterialQueryTest {
       assertTrue(
           actualPath.straightLineDistanceBlocks()
               >= contribution.upslopeDistanceBlocks() * 0.5 - 1.0e-6);
+      assertEquals(contribution.upslopeDistanceBlocks(), actualPath.routedDistanceBlocks(), 1.0e-9);
+      assertTrue(actualPath.routeDirectnessIndex() > 0.0);
+      assertTrue(actualPath.routeDirectnessIndex() <= 1.0);
       assertTrue(actualPath.maximumDeflectionFromInitialDegrees() <= 60.0 + 1.0e-8);
       observedCurvedRoute |=
           actualPath.straightLineDistanceBlocks() < contribution.upslopeDistanceBlocks() - 1.0e-6;

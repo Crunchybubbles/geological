@@ -307,7 +307,9 @@ public record ColluvialSedimentBudget(
 
   private static double transportPathResponse(ProductionInput input) {
     return MINIMUM_TRANSPORT_PATH_RESPONSE
-        + (1.0 - MINIMUM_TRANSPORT_PATH_RESPONSE) * input.terrainPath().downslopeContinuityIndex();
+        + (1.0 - MINIMUM_TRANSPORT_PATH_RESPONSE)
+            * input.terrainPath().downslopeContinuityIndex()
+            * input.terrainPath().routeDirectnessIndex();
   }
 
   private static GrainTransportLengths grainTransportLengths(ProductionInput input) {
@@ -555,6 +557,18 @@ public record ColluvialSedimentBudget(
     public double straightLineDistanceBlocks() {
       return StrictMath.hypot(
           sourcePoint().x() - originPoint().x(), sourcePoint().z() - originPoint().z());
+    }
+
+    public double routedDistanceBlocks() {
+      return (double) reachLengthBlocks * reachCount();
+    }
+
+    public double routeDirectnessIndex() {
+      if (reachCount() == 0) {
+        return 1.0;
+      }
+      return StrictMath.max(
+          0.0, StrictMath.min(1.0, straightLineDistanceBlocks() / routedDistanceBlocks()));
     }
 
     public double maximumDeflectionFromInitialDegrees() {

@@ -608,7 +608,13 @@ public final class MaterialQueryEngine {
         .append(':')
         .append(input.terrainPath().reachLengthBlocks())
         .append(':')
-        .append(input.terrainPath().downslopeContinuityIndex());
+        .append(input.terrainPath().downslopeContinuityIndex())
+        .append(':')
+        .append(input.terrainPath().straightLineDistanceBlocks())
+        .append(':')
+        .append(input.terrainPath().routedDistanceBlocks())
+        .append(':')
+        .append(input.terrainPath().routeDirectnessIndex());
     for (ColluvialSedimentBudget.TerrainPathSample sample : input.terrainPath().samples()) {
       purpose
           .append(':')

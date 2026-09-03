@@ -1,8 +1,8 @@
 # Phase 2 petrologic material-state increment
 
-Status: thirty-sixth implementation increment; Phase 2 body generation and geological calibration remain open
+Status: thirty-seventh implementation increment; Phase 2 body generation and geological calibration remain open
 
-Identity: model `phase2.0-alpha.36`, profile `geological:overworld_phase2`
+Identity: model `phase2.0-alpha.37`, profile `geological:overworld_phase2`
 
 Base registry digest: `sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4`
 
@@ -112,7 +112,7 @@ The review artifact also exposes all three causal response quantiles beside the 
 
 Alpha.28 additionally tests mandatory and exact sediment-yield authoring, deterministic order-independent grain-size blending, source-weight agreement between mineral and grain mixtures, typed colluvial fabric state, and review-artifact exposure. Alpha.29 tests physical-state completeness, envelope bounds, expected sorting/support response ordering, equality between the causal colluvial state and public material properties, and reproducibility. Alpha.30 tests positive finite inputs, exact source-to-deposit closure, unique tranche debits, agreement between the mass ledger and mixture fractions, canonical exposure, and reproducibility. Alpha.31 tests capacity and mobilized-mass closure, all three explicit non-deposit sinks, distance-sensitive bulk delivery, order-independent largest-remainder deposit shares, exact agreement between those shares and public material composition, causal source-field provenance, and review exposure. Alpha.32 tests exact componentwise grain closure at every stage, deterministic grain apportionment, coarse-enriched delivery with distance, exact agreement between deposited grain mass and public texture, source sediment-yield provenance, grain-state mixture invariants, and review exposure. Alpha.33 tests the exact eight-neighbor plane-detrended roughness derivation, bounded terrain and transport responses, effective-length ordering, increased travel with source slope, decreased travel with roughness, preservation of mobilized mass under roughness-only changes, stronger coarse enrichment on rough terrain, and review exposure. Alpha.34 tests contiguous path-schema validation, exact centerline elevation provenance, downhill/barrier relief derivation, bounded continuity and path responses, unchanged mobilization under path-only changes, reduced delivery and stronger coarse filtering across interrupted paths, and review exposure. Alpha.35 tests positioned route-schema validation, shared path prefixes, exact reach-wise gradient reconstruction, source/path endpoint agreement, bounded deflection and forward progress, genuinely curved source routes, cross-province owner resolution, and review exposure.
 
-Alpha.36 adds explicit per-reach colluvial routing provenance: each published reach carries the raw local gradient, routed bearing, endpoints, and fallback/clipping decisions, with canonical geometry validation and review-artifact exposure. These decision records are part of the causal audit trail while the frozen scientific catalog and digests remain unchanged.
+Alpha.36 adds explicit per-reach colluvial routing provenance: each published reach carries the raw local gradient, routed bearing, endpoints, and fallback/clipping decisions, with canonical geometry validation and review-artifact exposure. These decision records are part of the causal audit trail while the frozen scientific catalog and digests remain unchanged. Alpha.37 adds a route-directness index (`straightLineDistance / routedDistance`) and folds it into the bounded path response, so geometric detours reduce delivery even when elevation continuity is unchanged; straight routes retain the prior response.
 
 ## Deliberate limits
 
