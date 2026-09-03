@@ -479,6 +479,83 @@ class MaterialSchemaTest {
   }
 
   @Test
+  void finiteSourceCapacityPreservesExactGrainClosureAcrossClaims() {
+    StableId parcelOne = StableId.parse("00000000000000000000000000000031");
+    StableId parcelTwo = StableId.parse("00000000000000000000000000000032");
+    StableId source = StableId.parse("00000000000000000000000000000033");
+    ColluvialSourceClaim first =
+        new ColluvialSourceClaim(
+            new Point2(1.0, 2.0),
+            parcelOne,
+            source,
+            0,
+            1_000L,
+            600L,
+            400L,
+            100L,
+            200L,
+            300L,
+            new ColluvialSedimentBudget.GrainMass(500L, 300L, 200L),
+            new ColluvialSedimentBudget.GrainMass(300L, 180L, 120L),
+            new ColluvialSedimentBudget.GrainMass(200L, 120L, 80L),
+            new ColluvialSedimentBudget.GrainMass(50L, 30L, 20L),
+            new ColluvialSedimentBudget.GrainMass(100L, 60L, 40L),
+            new ColluvialSedimentBudget.GrainMass(150L, 90L, 60L));
+    ColluvialSourceClaim second =
+        new ColluvialSourceClaim(
+            new Point2(3.0, 4.0),
+            parcelTwo,
+            source,
+            96,
+            1_000L,
+            500L,
+            500L,
+            150L,
+            130L,
+            220L,
+            new ColluvialSedimentBudget.GrainMass(200L, 500L, 300L),
+            new ColluvialSedimentBudget.GrainMass(100L, 250L, 150L),
+            new ColluvialSedimentBudget.GrainMass(100L, 250L, 150L),
+            new ColluvialSedimentBudget.GrainMass(30L, 70L, 50L),
+            new ColluvialSedimentBudget.GrainMass(20L, 80L, 30L),
+            new ColluvialSedimentBudget.GrainMass(50L, 100L, 70L));
+
+    ColluvialSourceCapacityLedger ledger =
+        ColluvialSourceCapacityLedger.from(List.of(second, first), Map.of(source, 550L));
+    ColluvialSourceCapacityLedger reordered =
+        ColluvialSourceCapacityLedger.from(List.of(first, second), Map.of(source, 550L));
+
+    assertEquals(ledger, reordered);
+    assertEquals(
+        ledger.claimedCapacityGrainMass(),
+        ledger.retainedGrainMass().add(ledger.allocatedMobilizedGrainMass()));
+    assertEquals(
+        ledger.requestedMobilizedGrainMass(),
+        ledger.allocatedMobilizedGrainMass().add(ledger.unallocatedMobilizedGrainMass()));
+    assertEquals(
+        ledger.allocatedMobilizedGrainMass(),
+        ledger
+            .transportLossGrainMass()
+            .add(ledger.bypassedGrainMass())
+            .add(ledger.depositedGrainMass()));
+    assertEquals(550L, ledger.allocatedMobilizedGrainMass().totalFixedUnits());
+    for (ColluvialSourceCapacityLedger.ReconciledClaim claim : ledger.claims()) {
+      assertEquals(
+          claim.claimedCapacityGrainMass(),
+          claim.retainedGrainMass().add(claim.allocatedMobilizedGrainMass()));
+      assertEquals(
+          claim.requestedMobilizedGrainMass(),
+          claim.allocatedMobilizedGrainMass().add(claim.unallocatedMobilizedGrainMass()));
+      assertEquals(
+          claim.allocatedMobilizedGrainMass(),
+          claim
+              .transportLossGrainMass()
+              .add(claim.bypassedGrainMass())
+              .add(claim.depositedGrainMass()));
+    }
+  }
+
+  @Test
   void colluvialTransportProcessMixAggregatesDepositedTranchesExactly() {
     StableId sheetwashSource = StableId.parse("00000000000000000000000000000c11");
     StableId dryRavelSource = StableId.parse("00000000000000000000000000000c12");

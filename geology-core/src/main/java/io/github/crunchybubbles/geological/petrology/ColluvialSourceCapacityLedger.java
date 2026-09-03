@@ -69,6 +69,12 @@ public record ColluvialSourceCapacityLedger(
         long unallocatedMobilized =
             Math.subtractExact(claim.mobilizedFixedUnits(), allocatedMobilized);
         long retained = Math.addExact(claim.retainedFixedUnits(), unallocatedMobilized);
+        ColluvialSedimentBudget.GrainMass allocatedMobilizedGrainMass =
+            apportionGrain(allocatedMobilized, claim.mobilizedGrainMass());
+        ColluvialSedimentBudget.GrainMass unallocatedMobilizedGrainMass =
+            claim.mobilizedGrainMass().subtract(allocatedMobilizedGrainMass);
+        ColluvialSedimentBudget.GrainMass retainedGrainMass =
+            claim.retainedGrainMass().add(unallocatedMobilizedGrainMass);
         long[] stageAllocation =
             apportion(
                 allocatedMobilized,
@@ -77,6 +83,13 @@ public record ColluvialSourceCapacityLedger(
                   claim.bypassedFixedUnits(),
                   claim.depositedFixedUnits()
                 });
+        ColluvialSedimentBudget.GrainMass[] stageGrainMasses =
+            apportionStageGrainMasses(
+                stageAllocation,
+                allocatedMobilizedGrainMass,
+                claim.transportLossGrainMass(),
+                claim.bypassedGrainMass(),
+                claim.depositedGrainMass());
         reconciled.add(
             new ReconciledClaim(
                 claim.parcelPoint(),
@@ -88,9 +101,17 @@ public record ColluvialSourceCapacityLedger(
                 allocatedMobilized,
                 unallocatedMobilized,
                 retained,
-                stageAllocation[0],
-                stageAllocation[1],
-                stageAllocation[2]));
+                stageGrainMasses[0].totalFixedUnits(),
+                stageGrainMasses[1].totalFixedUnits(),
+                stageGrainMasses[2].totalFixedUnits(),
+                claim.capacityGrainMass(),
+                claim.mobilizedGrainMass(),
+                allocatedMobilizedGrainMass,
+                unallocatedMobilizedGrainMass,
+                retainedGrainMass,
+                stageGrainMasses[0],
+                stageGrainMasses[1],
+                stageGrainMasses[2]));
       }
       SourceTotals totals = new SourceTotals(sourceBodyId, available);
       for (int sourceIndex = 0; sourceIndex < sourceClaims.size(); sourceIndex++) {
@@ -161,12 +182,53 @@ public record ColluvialSourceCapacityLedger(
         .reduce(0L, Math::addExact);
   }
 
+  public ColluvialSedimentBudget.GrainMass claimedCapacityGrainMass() {
+    return totalGrainMass(ReconciledClaim::claimedCapacityGrainMass);
+  }
+
+  public ColluvialSedimentBudget.GrainMass requestedMobilizedGrainMass() {
+    return totalGrainMass(ReconciledClaim::requestedMobilizedGrainMass);
+  }
+
+  public ColluvialSedimentBudget.GrainMass allocatedMobilizedGrainMass() {
+    return totalGrainMass(ReconciledClaim::allocatedMobilizedGrainMass);
+  }
+
+  public ColluvialSedimentBudget.GrainMass unallocatedMobilizedGrainMass() {
+    return totalGrainMass(ReconciledClaim::unallocatedMobilizedGrainMass);
+  }
+
+  public ColluvialSedimentBudget.GrainMass retainedGrainMass() {
+    return totalGrainMass(ReconciledClaim::retainedGrainMass);
+  }
+
+  public ColluvialSedimentBudget.GrainMass transportLossGrainMass() {
+    return totalGrainMass(ReconciledClaim::transportLossGrainMass);
+  }
+
+  public ColluvialSedimentBudget.GrainMass bypassedGrainMass() {
+    return totalGrainMass(ReconciledClaim::bypassedGrainMass);
+  }
+
+  public ColluvialSedimentBudget.GrainMass depositedGrainMass() {
+    return totalGrainMass(ReconciledClaim::depositedGrainMass);
+  }
+
   public long remainingSourceCapacityFixedUnits() {
     return Math.subtractExact(sourceCapacityFixedUnits(), allocatedMobilizedFixedUnits());
   }
 
   public boolean hasDepletion() {
     return unallocatedMobilizedFixedUnits() > 0;
+  }
+
+  private ColluvialSedimentBudget.GrainMass totalGrainMass(
+      java.util.function.Function<ReconciledClaim, ColluvialSedimentBudget.GrainMass> selector) {
+    ColluvialSedimentBudget.GrainMass total = new ColluvialSedimentBudget.GrainMass(0, 0, 0);
+    for (ReconciledClaim claim : claims) {
+      total = total.add(selector.apply(claim));
+    }
+    return total;
   }
 
   private static TreeMap<StableId, Long> canonicalCapacities(
@@ -269,6 +331,144 @@ public record ColluvialSourceCapacityLedger(
     return apportioned;
   }
 
+  private static ColluvialSedimentBudget.GrainMass apportionGrain(
+      long allocation, ColluvialSedimentBudget.GrainMass weights) {
+    if (weights == null) {
+      throw new IllegalArgumentException("colluvial grain weights are required");
+    }
+    long[] apportioned =
+        apportion(
+            allocation,
+            new long[] {
+              weights.gravelAndCoarserFixedUnits(),
+              weights.sandFixedUnits(),
+              weights.finesFixedUnits()
+            });
+    return new ColluvialSedimentBudget.GrainMass(apportioned[0], apportioned[1], apportioned[2]);
+  }
+
+  private static ColluvialSedimentBudget.GrainMass[] apportionStageGrainMasses(
+      long[] stageAllocation,
+      ColluvialSedimentBudget.GrainMass allocatedMobilized,
+      ColluvialSedimentBudget.GrainMass transportLoss,
+      ColluvialSedimentBudget.GrainMass bypassed,
+      ColluvialSedimentBudget.GrainMass deposited) {
+    if (stageAllocation == null
+        || stageAllocation.length != 3
+        || allocatedMobilized == null
+        || transportLoss == null
+        || bypassed == null
+        || deposited == null) {
+      throw new IllegalArgumentException("colluvial grain stage inputs are incomplete");
+    }
+    long[] capacities =
+        new long[] {
+          allocatedMobilized.gravelAndCoarserFixedUnits(),
+          allocatedMobilized.sandFixedUnits(),
+          allocatedMobilized.finesFixedUnits()
+        };
+    long[] loss =
+        apportionBounded(
+            stageAllocation[0],
+            new long[] {
+              transportLoss.gravelAndCoarserFixedUnits(),
+              transportLoss.sandFixedUnits(),
+              transportLoss.finesFixedUnits()
+            },
+            capacities);
+    subtractInPlace(capacities, loss);
+    long[] bypass =
+        apportionBounded(
+            stageAllocation[1],
+            new long[] {
+              bypassed.gravelAndCoarserFixedUnits(),
+              bypassed.sandFixedUnits(),
+              bypassed.finesFixedUnits()
+            },
+            capacities);
+    subtractInPlace(capacities, bypass);
+    if (sum(capacities) != stageAllocation[2]) {
+      throw new IllegalArgumentException("colluvial grain stage allocation does not close");
+    }
+    return new ColluvialSedimentBudget.GrainMass[] {
+      new ColluvialSedimentBudget.GrainMass(loss[0], loss[1], loss[2]),
+      new ColluvialSedimentBudget.GrainMass(bypass[0], bypass[1], bypass[2]),
+      new ColluvialSedimentBudget.GrainMass(capacities[0], capacities[1], capacities[2])
+    };
+  }
+
+  private static long[] apportionBounded(long allocation, long[] weights, long[] capacities) {
+    if (allocation < 0
+        || weights == null
+        || capacities == null
+        || weights.length != capacities.length
+        || weights.length == 0) {
+      throw new IllegalArgumentException("valid bounded grain apportionment is required");
+    }
+    long capacityTotal = sum(capacities);
+    if (allocation > capacityTotal) {
+      throw new IllegalArgumentException("grain allocation exceeds remaining inventory");
+    }
+    long[] result = new long[capacities.length];
+    long remaining = allocation;
+    while (remaining > 0) {
+      long[] activeWeights = new long[weights.length];
+      long activeWeightTotal = 0;
+      for (int index = 0; index < capacities.length; index++) {
+        long capacity = capacities[index] - result[index];
+        if (capacity < 0 || weights[index] < 0) {
+          throw new IllegalArgumentException("bounded grain inputs must be non-negative");
+        }
+        activeWeights[index] = capacity == 0 ? 0 : weights[index];
+        activeWeightTotal = Math.addExact(activeWeightTotal, activeWeights[index]);
+      }
+      if (activeWeightTotal == 0) {
+        for (int index = 0; index < capacities.length; index++) {
+          activeWeights[index] = capacities[index] - result[index];
+        }
+      }
+      long[] candidate = apportion(remaining, activeWeights);
+      long assigned = 0;
+      for (int index = 0; index < result.length; index++) {
+        long available = capacities[index] - result[index];
+        long amount = Math.min(available, candidate[index]);
+        result[index] = Math.addExact(result[index], amount);
+        assigned = Math.addExact(assigned, amount);
+      }
+      if (assigned == 0) {
+        for (int index = 0; index < result.length; index++) {
+          if (capacities[index] > result[index]) {
+            result[index]++;
+            assigned = 1;
+            break;
+          }
+        }
+      }
+      if (assigned <= 0) {
+        throw new IllegalArgumentException("bounded grain apportionment stalled");
+      }
+      remaining = Math.subtractExact(remaining, assigned);
+    }
+    return result;
+  }
+
+  private static void subtractInPlace(long[] values, long[] amounts) {
+    for (int index = 0; index < values.length; index++) {
+      values[index] = Math.subtractExact(values[index], amounts[index]);
+    }
+  }
+
+  private static long sum(long[] values) {
+    long total = 0;
+    for (long value : values) {
+      if (value < 0) {
+        throw new IllegalArgumentException("grain values must be non-negative");
+      }
+      total = Math.addExact(total, value);
+    }
+    return total;
+  }
+
   private record Remainder(int index, long remainder) {}
 
   /** One claim after finite source capacity has been apportioned. */
@@ -284,7 +484,51 @@ public record ColluvialSourceCapacityLedger(
       long retainedFixedUnits,
       long transportLossFixedUnits,
       long bypassedFixedUnits,
-      long depositedFixedUnits) {
+      long depositedFixedUnits,
+      ColluvialSedimentBudget.GrainMass claimedCapacityGrainMass,
+      ColluvialSedimentBudget.GrainMass requestedMobilizedGrainMass,
+      ColluvialSedimentBudget.GrainMass allocatedMobilizedGrainMass,
+      ColluvialSedimentBudget.GrainMass unallocatedMobilizedGrainMass,
+      ColluvialSedimentBudget.GrainMass retainedGrainMass,
+      ColluvialSedimentBudget.GrainMass transportLossGrainMass,
+      ColluvialSedimentBudget.GrainMass bypassedGrainMass,
+      ColluvialSedimentBudget.GrainMass depositedGrainMass) {
+    public ReconciledClaim(
+        Point2 parcelPoint,
+        StableId parcelBodyId,
+        StableId sourceBodyId,
+        int upslopeDistanceBlocks,
+        long claimedCapacityFixedUnits,
+        long requestedMobilizedFixedUnits,
+        long allocatedMobilizedFixedUnits,
+        long unallocatedMobilizedFixedUnits,
+        long retainedFixedUnits,
+        long transportLossFixedUnits,
+        long bypassedFixedUnits,
+        long depositedFixedUnits) {
+      this(
+          parcelPoint,
+          parcelBodyId,
+          sourceBodyId,
+          upslopeDistanceBlocks,
+          claimedCapacityFixedUnits,
+          requestedMobilizedFixedUnits,
+          allocatedMobilizedFixedUnits,
+          unallocatedMobilizedFixedUnits,
+          retainedFixedUnits,
+          transportLossFixedUnits,
+          bypassedFixedUnits,
+          depositedFixedUnits,
+          new ColluvialSedimentBudget.GrainMass(claimedCapacityFixedUnits, 0, 0),
+          new ColluvialSedimentBudget.GrainMass(requestedMobilizedFixedUnits, 0, 0),
+          new ColluvialSedimentBudget.GrainMass(allocatedMobilizedFixedUnits, 0, 0),
+          new ColluvialSedimentBudget.GrainMass(unallocatedMobilizedFixedUnits, 0, 0),
+          new ColluvialSedimentBudget.GrainMass(retainedFixedUnits, 0, 0),
+          new ColluvialSedimentBudget.GrainMass(transportLossFixedUnits, 0, 0),
+          new ColluvialSedimentBudget.GrainMass(bypassedFixedUnits, 0, 0),
+          new ColluvialSedimentBudget.GrainMass(depositedFixedUnits, 0, 0));
+    }
+
     public ReconciledClaim {
       if (parcelPoint == null
           || parcelBodyId == null
@@ -298,11 +542,32 @@ public record ColluvialSourceCapacityLedger(
           || transportLossFixedUnits < 0
           || bypassedFixedUnits < 0
           || depositedFixedUnits < 0
+          || claimedCapacityGrainMass == null
+          || requestedMobilizedGrainMass == null
+          || allocatedMobilizedGrainMass == null
+          || unallocatedMobilizedGrainMass == null
+          || retainedGrainMass == null
+          || transportLossGrainMass == null
+          || bypassedGrainMass == null
+          || depositedGrainMass == null
           || requestedMobilizedFixedUnits
               != allocatedMobilizedFixedUnits + unallocatedMobilizedFixedUnits
           || allocatedMobilizedFixedUnits
               != transportLossFixedUnits + bypassedFixedUnits + depositedFixedUnits
-          || claimedCapacityFixedUnits != retainedFixedUnits + allocatedMobilizedFixedUnits) {
+          || claimedCapacityFixedUnits != retainedFixedUnits + allocatedMobilizedFixedUnits
+          || claimedCapacityGrainMass.totalFixedUnits() != claimedCapacityFixedUnits
+          || requestedMobilizedGrainMass.totalFixedUnits() != requestedMobilizedFixedUnits
+          || allocatedMobilizedGrainMass.totalFixedUnits() != allocatedMobilizedFixedUnits
+          || unallocatedMobilizedGrainMass.totalFixedUnits() != unallocatedMobilizedFixedUnits
+          || retainedGrainMass.totalFixedUnits() != retainedFixedUnits
+          || transportLossGrainMass.totalFixedUnits() != transportLossFixedUnits
+          || bypassedGrainMass.totalFixedUnits() != bypassedFixedUnits
+          || depositedGrainMass.totalFixedUnits() != depositedFixedUnits
+          || !claimedCapacityGrainMass.equals(retainedGrainMass.add(allocatedMobilizedGrainMass))
+          || !requestedMobilizedGrainMass.equals(
+              allocatedMobilizedGrainMass.add(unallocatedMobilizedGrainMass))
+          || !allocatedMobilizedGrainMass.equals(
+              transportLossGrainMass.add(bypassedGrainMass).add(depositedGrainMass))) {
         throw new IllegalArgumentException("reconciled source claim does not close");
       }
     }
@@ -320,7 +585,49 @@ public record ColluvialSourceCapacityLedger(
       long retainedFixedUnits,
       long transportLossFixedUnits,
       long bypassedFixedUnits,
-      long depositedFixedUnits) {
+      long depositedFixedUnits,
+      ColluvialSedimentBudget.GrainMass claimedCapacityGrainMass,
+      ColluvialSedimentBudget.GrainMass requestedMobilizedGrainMass,
+      ColluvialSedimentBudget.GrainMass allocatedMobilizedGrainMass,
+      ColluvialSedimentBudget.GrainMass unallocatedMobilizedGrainMass,
+      ColluvialSedimentBudget.GrainMass retainedGrainMass,
+      ColluvialSedimentBudget.GrainMass transportLossGrainMass,
+      ColluvialSedimentBudget.GrainMass bypassedGrainMass,
+      ColluvialSedimentBudget.GrainMass depositedGrainMass) {
+    public SourceCapacityAggregate(
+        StableId sourceBodyId,
+        long sourceCapacityFixedUnits,
+        int claimCount,
+        long claimedCapacityFixedUnits,
+        long requestedMobilizedFixedUnits,
+        long allocatedMobilizedFixedUnits,
+        long unallocatedMobilizedFixedUnits,
+        long retainedFixedUnits,
+        long transportLossFixedUnits,
+        long bypassedFixedUnits,
+        long depositedFixedUnits) {
+      this(
+          sourceBodyId,
+          sourceCapacityFixedUnits,
+          claimCount,
+          claimedCapacityFixedUnits,
+          requestedMobilizedFixedUnits,
+          allocatedMobilizedFixedUnits,
+          unallocatedMobilizedFixedUnits,
+          retainedFixedUnits,
+          transportLossFixedUnits,
+          bypassedFixedUnits,
+          depositedFixedUnits,
+          new ColluvialSedimentBudget.GrainMass(claimedCapacityFixedUnits, 0, 0),
+          new ColluvialSedimentBudget.GrainMass(requestedMobilizedFixedUnits, 0, 0),
+          new ColluvialSedimentBudget.GrainMass(allocatedMobilizedFixedUnits, 0, 0),
+          new ColluvialSedimentBudget.GrainMass(unallocatedMobilizedFixedUnits, 0, 0),
+          new ColluvialSedimentBudget.GrainMass(retainedFixedUnits, 0, 0),
+          new ColluvialSedimentBudget.GrainMass(transportLossFixedUnits, 0, 0),
+          new ColluvialSedimentBudget.GrainMass(bypassedFixedUnits, 0, 0),
+          new ColluvialSedimentBudget.GrainMass(depositedFixedUnits, 0, 0));
+    }
+
     public SourceCapacityAggregate {
       if (sourceBodyId == null
           || sourceCapacityFixedUnits < 0
@@ -333,12 +640,33 @@ public record ColluvialSourceCapacityLedger(
           || transportLossFixedUnits < 0
           || bypassedFixedUnits < 0
           || depositedFixedUnits < 0
+          || claimedCapacityGrainMass == null
+          || requestedMobilizedGrainMass == null
+          || allocatedMobilizedGrainMass == null
+          || unallocatedMobilizedGrainMass == null
+          || retainedGrainMass == null
+          || transportLossGrainMass == null
+          || bypassedGrainMass == null
+          || depositedGrainMass == null
           || allocatedMobilizedFixedUnits > sourceCapacityFixedUnits
           || requestedMobilizedFixedUnits
               != allocatedMobilizedFixedUnits + unallocatedMobilizedFixedUnits
           || allocatedMobilizedFixedUnits
               != transportLossFixedUnits + bypassedFixedUnits + depositedFixedUnits
-          || claimedCapacityFixedUnits != retainedFixedUnits + allocatedMobilizedFixedUnits) {
+          || claimedCapacityFixedUnits != retainedFixedUnits + allocatedMobilizedFixedUnits
+          || claimedCapacityGrainMass.totalFixedUnits() != claimedCapacityFixedUnits
+          || requestedMobilizedGrainMass.totalFixedUnits() != requestedMobilizedFixedUnits
+          || allocatedMobilizedGrainMass.totalFixedUnits() != allocatedMobilizedFixedUnits
+          || unallocatedMobilizedGrainMass.totalFixedUnits() != unallocatedMobilizedFixedUnits
+          || retainedGrainMass.totalFixedUnits() != retainedFixedUnits
+          || transportLossGrainMass.totalFixedUnits() != transportLossFixedUnits
+          || bypassedGrainMass.totalFixedUnits() != bypassedFixedUnits
+          || depositedGrainMass.totalFixedUnits() != depositedFixedUnits
+          || !claimedCapacityGrainMass.equals(retainedGrainMass.add(allocatedMobilizedGrainMass))
+          || !requestedMobilizedGrainMass.equals(
+              allocatedMobilizedGrainMass.add(unallocatedMobilizedGrainMass))
+          || !allocatedMobilizedGrainMass.equals(
+              transportLossGrainMass.add(bypassedGrainMass).add(depositedGrainMass))) {
         throw new IllegalArgumentException("reconciled source aggregate does not close");
       }
     }
@@ -356,6 +684,14 @@ public record ColluvialSourceCapacityLedger(
     private long transportLossFixedUnits;
     private long bypassedFixedUnits;
     private long depositedFixedUnits;
+    private ColluvialSedimentBudget.GrainMass claimedCapacityGrainMass = zeroGrainMass();
+    private ColluvialSedimentBudget.GrainMass requestedMobilizedGrainMass = zeroGrainMass();
+    private ColluvialSedimentBudget.GrainMass allocatedMobilizedGrainMass = zeroGrainMass();
+    private ColluvialSedimentBudget.GrainMass unallocatedMobilizedGrainMass = zeroGrainMass();
+    private ColluvialSedimentBudget.GrainMass retainedGrainMass = zeroGrainMass();
+    private ColluvialSedimentBudget.GrainMass transportLossGrainMass = zeroGrainMass();
+    private ColluvialSedimentBudget.GrainMass bypassedGrainMass = zeroGrainMass();
+    private ColluvialSedimentBudget.GrainMass depositedGrainMass = zeroGrainMass();
 
     private SourceTotals(StableId sourceBodyId, long sourceCapacityFixedUnits) {
       this.sourceBodyId = sourceBodyId;
@@ -377,6 +713,17 @@ public record ColluvialSourceCapacityLedger(
           Math.addExact(transportLossFixedUnits, claim.transportLossFixedUnits());
       bypassedFixedUnits = Math.addExact(bypassedFixedUnits, claim.bypassedFixedUnits());
       depositedFixedUnits = Math.addExact(depositedFixedUnits, claim.depositedFixedUnits());
+      claimedCapacityGrainMass = claimedCapacityGrainMass.add(claim.claimedCapacityGrainMass());
+      requestedMobilizedGrainMass =
+          requestedMobilizedGrainMass.add(claim.requestedMobilizedGrainMass());
+      allocatedMobilizedGrainMass =
+          allocatedMobilizedGrainMass.add(claim.allocatedMobilizedGrainMass());
+      unallocatedMobilizedGrainMass =
+          unallocatedMobilizedGrainMass.add(claim.unallocatedMobilizedGrainMass());
+      retainedGrainMass = retainedGrainMass.add(claim.retainedGrainMass());
+      transportLossGrainMass = transportLossGrainMass.add(claim.transportLossGrainMass());
+      bypassedGrainMass = bypassedGrainMass.add(claim.bypassedGrainMass());
+      depositedGrainMass = depositedGrainMass.add(claim.depositedGrainMass());
     }
 
     private SourceCapacityAggregate toAggregate() {
@@ -391,7 +738,15 @@ public record ColluvialSourceCapacityLedger(
           retainedFixedUnits,
           transportLossFixedUnits,
           bypassedFixedUnits,
-          depositedFixedUnits);
+          depositedFixedUnits,
+          claimedCapacityGrainMass,
+          requestedMobilizedGrainMass,
+          allocatedMobilizedGrainMass,
+          unallocatedMobilizedGrainMass,
+          retainedGrainMass,
+          transportLossGrainMass,
+          bypassedGrainMass,
+          depositedGrainMass);
     }
 
     private boolean matches(SourceCapacityAggregate aggregate) {
@@ -406,7 +761,19 @@ public record ColluvialSourceCapacityLedger(
           && retainedFixedUnits == aggregate.retainedFixedUnits()
           && transportLossFixedUnits == aggregate.transportLossFixedUnits()
           && bypassedFixedUnits == aggregate.bypassedFixedUnits()
-          && depositedFixedUnits == aggregate.depositedFixedUnits();
+          && depositedFixedUnits == aggregate.depositedFixedUnits()
+          && claimedCapacityGrainMass.equals(aggregate.claimedCapacityGrainMass())
+          && requestedMobilizedGrainMass.equals(aggregate.requestedMobilizedGrainMass())
+          && allocatedMobilizedGrainMass.equals(aggregate.allocatedMobilizedGrainMass())
+          && unallocatedMobilizedGrainMass.equals(aggregate.unallocatedMobilizedGrainMass())
+          && retainedGrainMass.equals(aggregate.retainedGrainMass())
+          && transportLossGrainMass.equals(aggregate.transportLossGrainMass())
+          && bypassedGrainMass.equals(aggregate.bypassedGrainMass())
+          && depositedGrainMass.equals(aggregate.depositedGrainMass());
+    }
+
+    private static ColluvialSedimentBudget.GrainMass zeroGrainMass() {
+      return new ColluvialSedimentBudget.GrainMass(0, 0, 0);
     }
   }
 }

@@ -77,7 +77,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.65", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.66", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -170,6 +170,15 @@ class MaterialQueryTest {
             + ledger.bypassedFixedUnits()
             + ledger.depositedFixedUnits());
     assertEquals(
+        ledger.claimedCapacityGrainMass(),
+        ledger.retainedGrainMass().add(ledger.mobilizedGrainMass()));
+    assertEquals(
+        ledger.mobilizedGrainMass(),
+        ledger
+            .transportLossGrainMass()
+            .add(ledger.bypassedGrainMass())
+            .add(ledger.depositedGrainMass()));
+    assertEquals(
         ledger, query.colluvialSourceClaimLedger(List.of(fixtures.get(1), fixtures.getFirst())));
 
     Map<StableId, Long> finiteCapacities = new TreeMap<>();
@@ -184,6 +193,19 @@ class MaterialQueryTest {
     assertEquals(
         reconciled.claimedCapacityFixedUnits(),
         reconciled.retainedFixedUnits() + reconciled.allocatedMobilizedFixedUnits());
+    assertEquals(ledger.mobilizedGrainMass(), reconciled.requestedMobilizedGrainMass());
+    assertEquals(
+        reconciled.claimedCapacityGrainMass(),
+        reconciled.retainedGrainMass().add(reconciled.allocatedMobilizedGrainMass()));
+    assertEquals(
+        reconciled.requestedMobilizedGrainMass(),
+        reconciled.allocatedMobilizedGrainMass().add(reconciled.unallocatedMobilizedGrainMass()));
+    assertEquals(
+        reconciled.allocatedMobilizedGrainMass(),
+        reconciled
+            .transportLossGrainMass()
+            .add(reconciled.bypassedGrainMass())
+            .add(reconciled.depositedGrainMass()));
     assertEquals(
         ledger, query.colluvialSourceClaimLedger(List.of(fixtures.getFirst(), fixtures.get(1))));
   }

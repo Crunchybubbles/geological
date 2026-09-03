@@ -159,7 +159,13 @@ public final class MaterialQueryEngine {
                 balance.retainedFixedUnits(),
                 balance.transportLossFixedUnits(),
                 balance.bypassedFixedUnits(),
-                balance.depositedFixedUnits()));
+                balance.depositedFixedUnits(),
+                balance.capacityGrainMass(),
+                balance.mobilizedGrainMass(),
+                balance.retainedGrainMass(),
+                balance.transportLossGrainMass(),
+                balance.bypassedGrainMass(),
+                balance.depositedGrainMass()));
       }
     }
     return ColluvialSourceClaimLedger.from(claims);

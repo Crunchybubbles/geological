@@ -756,6 +756,18 @@ final class MaterialReviewPacketGenerator {
         ledger.bypassedFixedUnits(),
         "depositedFixedUnits",
         ledger.depositedFixedUnits(),
+        "claimedCapacityGrainMass",
+        colluvialGrainMassFixedJson(ledger.claimedCapacityGrainMass()),
+        "mobilizedGrainMass",
+        colluvialGrainMassFixedJson(ledger.mobilizedGrainMass()),
+        "retainedGrainMass",
+        colluvialGrainMassFixedJson(ledger.retainedGrainMass()),
+        "transportLossGrainMass",
+        colluvialGrainMassFixedJson(ledger.transportLossGrainMass()),
+        "bypassedGrainMass",
+        colluvialGrainMassFixedJson(ledger.bypassedGrainMass()),
+        "depositedGrainMass",
+        colluvialGrainMassFixedJson(ledger.depositedGrainMass()),
         "claims",
         ledger.claims().stream()
             .map(MaterialReviewPacketGenerator::colluvialSourceClaimJson)
@@ -787,6 +799,22 @@ final class MaterialReviewPacketGenerator {
         ledger.bypassedFixedUnits(),
         "depositedFixedUnits",
         ledger.depositedFixedUnits(),
+        "claimedCapacityGrainMass",
+        colluvialGrainMassFixedJson(ledger.claimedCapacityGrainMass()),
+        "requestedMobilizedGrainMass",
+        colluvialGrainMassFixedJson(ledger.requestedMobilizedGrainMass()),
+        "allocatedMobilizedGrainMass",
+        colluvialGrainMassFixedJson(ledger.allocatedMobilizedGrainMass()),
+        "unallocatedMobilizedGrainMass",
+        colluvialGrainMassFixedJson(ledger.unallocatedMobilizedGrainMass()),
+        "retainedGrainMass",
+        colluvialGrainMassFixedJson(ledger.retainedGrainMass()),
+        "transportLossGrainMass",
+        colluvialGrainMassFixedJson(ledger.transportLossGrainMass()),
+        "bypassedGrainMass",
+        colluvialGrainMassFixedJson(ledger.bypassedGrainMass()),
+        "depositedGrainMass",
+        colluvialGrainMassFixedJson(ledger.depositedGrainMass()),
         "remainingSourceCapacityFixedUnits",
         ledger.remainingSourceCapacityFixedUnits(),
         "hasDepletion",
@@ -827,7 +855,23 @@ final class MaterialReviewPacketGenerator {
         "bypassedFixedUnits",
         claim.bypassedFixedUnits(),
         "depositedFixedUnits",
-        claim.depositedFixedUnits());
+        claim.depositedFixedUnits(),
+        "claimedCapacityGrainMass",
+        colluvialGrainMassFixedJson(claim.claimedCapacityGrainMass()),
+        "requestedMobilizedGrainMass",
+        colluvialGrainMassFixedJson(claim.requestedMobilizedGrainMass()),
+        "allocatedMobilizedGrainMass",
+        colluvialGrainMassFixedJson(claim.allocatedMobilizedGrainMass()),
+        "unallocatedMobilizedGrainMass",
+        colluvialGrainMassFixedJson(claim.unallocatedMobilizedGrainMass()),
+        "retainedGrainMass",
+        colluvialGrainMassFixedJson(claim.retainedGrainMass()),
+        "transportLossGrainMass",
+        colluvialGrainMassFixedJson(claim.transportLossGrainMass()),
+        "bypassedGrainMass",
+        colluvialGrainMassFixedJson(claim.bypassedGrainMass()),
+        "depositedGrainMass",
+        colluvialGrainMassFixedJson(claim.depositedGrainMass()));
   }
 
   private static Map<String, Object> colluvialSourceCapacityAggregateJson(
@@ -854,7 +898,23 @@ final class MaterialReviewPacketGenerator {
         "bypassedFixedUnits",
         aggregate.bypassedFixedUnits(),
         "depositedFixedUnits",
-        aggregate.depositedFixedUnits());
+        aggregate.depositedFixedUnits(),
+        "claimedCapacityGrainMass",
+        colluvialGrainMassFixedJson(aggregate.claimedCapacityGrainMass()),
+        "requestedMobilizedGrainMass",
+        colluvialGrainMassFixedJson(aggregate.requestedMobilizedGrainMass()),
+        "allocatedMobilizedGrainMass",
+        colluvialGrainMassFixedJson(aggregate.allocatedMobilizedGrainMass()),
+        "unallocatedMobilizedGrainMass",
+        colluvialGrainMassFixedJson(aggregate.unallocatedMobilizedGrainMass()),
+        "retainedGrainMass",
+        colluvialGrainMassFixedJson(aggregate.retainedGrainMass()),
+        "transportLossGrainMass",
+        colluvialGrainMassFixedJson(aggregate.transportLossGrainMass()),
+        "bypassedGrainMass",
+        colluvialGrainMassFixedJson(aggregate.bypassedGrainMass()),
+        "depositedGrainMass",
+        colluvialGrainMassFixedJson(aggregate.depositedGrainMass()));
   }
 
   private static Map<String, Object> colluvialSourceClaimJson(ColluvialSourceClaim claim) {
@@ -878,7 +938,19 @@ final class MaterialReviewPacketGenerator {
         "bypassedFixedUnits",
         claim.bypassedFixedUnits(),
         "depositedFixedUnits",
-        claim.depositedFixedUnits());
+        claim.depositedFixedUnits(),
+        "capacityGrainMass",
+        colluvialGrainMassFixedJson(claim.capacityGrainMass()),
+        "mobilizedGrainMass",
+        colluvialGrainMassFixedJson(claim.mobilizedGrainMass()),
+        "retainedGrainMass",
+        colluvialGrainMassFixedJson(claim.retainedGrainMass()),
+        "transportLossGrainMass",
+        colluvialGrainMassFixedJson(claim.transportLossGrainMass()),
+        "bypassedGrainMass",
+        colluvialGrainMassFixedJson(claim.bypassedGrainMass()),
+        "depositedGrainMass",
+        colluvialGrainMassFixedJson(claim.depositedGrainMass()));
   }
 
   private static Map<String, Object> colluvialSourceAggregateJson(
@@ -901,7 +973,32 @@ final class MaterialReviewPacketGenerator {
         "bypassedFixedUnits",
         aggregate.bypassedFixedUnits(),
         "depositedFixedUnits",
-        aggregate.depositedFixedUnits());
+        aggregate.depositedFixedUnits(),
+        "claimedCapacityGrainMass",
+        colluvialGrainMassFixedJson(aggregate.claimedCapacityGrainMass()),
+        "mobilizedGrainMass",
+        colluvialGrainMassFixedJson(aggregate.mobilizedGrainMass()),
+        "retainedGrainMass",
+        colluvialGrainMassFixedJson(aggregate.retainedGrainMass()),
+        "transportLossGrainMass",
+        colluvialGrainMassFixedJson(aggregate.transportLossGrainMass()),
+        "bypassedGrainMass",
+        colluvialGrainMassFixedJson(aggregate.bypassedGrainMass()),
+        "depositedGrainMass",
+        colluvialGrainMassFixedJson(aggregate.depositedGrainMass()));
+  }
+
+  private static Map<String, Object> colluvialGrainMassFixedJson(
+      ColluvialSedimentBudget.GrainMass grainMass) {
+    return JsonWriter.object(
+        "gravelAndCoarserFixedUnits",
+        grainMass.gravelAndCoarserFixedUnits(),
+        "sandFixedUnits",
+        grainMass.sandFixedUnits(),
+        "finesFixedUnits",
+        grainMass.finesFixedUnits(),
+        "totalFixedUnits",
+        grainMass.totalFixedUnits());
   }
 
   private static Map<String, Object> colluvialPhysicalStateJson(
