@@ -1187,7 +1187,8 @@ public final class MaterialQueryEngine {
     AlterationDefinition alteration = catalog.requireAlteration(geological.overprint());
     MaterialProcessLedger processLedger =
         materialProcessLedger(province, geological, alteration, recipe.elementLedger());
-    MetamorphicHistory metamorphism = metamorphicHistory(province, rock, alteration);
+    MetamorphicHistory metamorphism =
+        metamorphicHistory(province, geological.point(), rock, alteration);
     AlterationContribution alterationContribution =
         AlterationContribution.from(
             processLedger,
@@ -1245,7 +1246,7 @@ public final class MaterialQueryEngine {
   }
 
   private static MetamorphicHistory metamorphicHistory(
-      Province province, RockDefinition rock, AlterationDefinition alteration) {
+      Province province, Point3 worldPoint, RockDefinition rock, AlterationDefinition alteration) {
     if (alteration.facies() != MetamorphicFacies.NONE) {
       return new MetamorphicHistory(
           rock.id(),
@@ -1264,7 +1265,8 @@ public final class MaterialQueryEngine {
               alteration.path(),
               alteration.processClass(),
               alteration.replacementPpm(),
-              alteration.fluidState()));
+              alteration.fluidState()),
+          RegionalMetamorphicState.proofFor(province, worldPoint));
     }
     if (rock.primaryMetamorphism().isPresent()) {
       PrimaryMetamorphicDefinition primary = rock.primaryMetamorphism().orElseThrow();
@@ -1285,7 +1287,8 @@ public final class MaterialQueryEngine {
               primary.path(),
               MaterialProcessClass.NONE,
               0L,
-              Optional.empty()));
+              Optional.empty()),
+          RegionalMetamorphicState.proofFor(province, worldPoint));
     }
     return new MetamorphicHistory(
         rock.id(),
@@ -1304,7 +1307,8 @@ public final class MaterialQueryEngine {
             MetamorphicPath.NONE,
             alteration.processClass(),
             alteration.replacementPpm(),
-            alteration.fluidState()));
+            alteration.fluidState()),
+        RegionalMetamorphicState.proofFor(province, worldPoint));
   }
 
   private static Optional<MagmaLineageState> magmaLineage(

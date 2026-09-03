@@ -11,6 +11,7 @@ import io.github.crunchybubbles.geological.atlas.ProvinceGrammar;
 import io.github.crunchybubbles.geological.atlas.RiftArcGeometry;
 import io.github.crunchybubbles.geological.determinism.StableId;
 import io.github.crunchybubbles.geological.model.AgeKey;
+import io.github.crunchybubbles.geological.model.EventType;
 import io.github.crunchybubbles.geological.model.Lithology;
 import io.github.crunchybubbles.geological.model.Overprint;
 import io.github.crunchybubbles.geological.model.Point2;
@@ -59,6 +60,7 @@ import io.github.crunchybubbles.geological.petrology.PetrologicColumnResult;
 import io.github.crunchybubbles.geological.petrology.PetrologicSample;
 import io.github.crunchybubbles.geological.petrology.PetrologicState;
 import io.github.crunchybubbles.geological.petrology.RedoxClass;
+import io.github.crunchybubbles.geological.petrology.RegionalMetamorphicState;
 import io.github.crunchybubbles.geological.petrology.RockTexture;
 import io.github.crunchybubbles.geological.petrology.SalinityClass;
 import io.github.crunchybubbles.geological.petrology.SedimentGrainSize;
@@ -81,7 +83,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.77", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.78", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1040,6 +1042,41 @@ class MaterialQueryTest {
             > schist.primaryAssemblage().modesPpm().get("geological:mineral/muscovite"));
     assertTrue(slate.primaryAssemblage().modesPpm().containsKey("geological:mineral/graphite"));
     assertTrue(schist.primaryAssemblage().modesPpm().containsKey("geological:mineral/almandine"));
+  }
+
+  @Test
+  void regionalMetamorphicFieldUsesFoldIdentityAndContinuousTaper() {
+    MaterialQueryEngine query = Phase2World.create(7_071L);
+    Province province =
+        Phase1TestSupport.provinceWithGrammar(
+            query.geology(), ProvinceGrammar.EXHUMED_FERTILE_RIFT_TO_ARC);
+    Point3 center = province.frame().toWorld(new Point3(0.0, 0.0, 0.0));
+    RegionalMetamorphicState centerState =
+        RegionalMetamorphicState.proofFor(province, center).orElseThrow();
+
+    assertEquals(province.chronicle().event(EventType.FOLD).id(), centerState.driverEventId());
+    assertEquals(80.0, centerState.eventAge().ageMa(), 1.0e-15);
+    assertEquals(MetamorphicGrade.MEDIUM, centerState.grade());
+    assertEquals(MetamorphicFacies.GREENSCHIST, centerState.facies());
+    assertEquals(MetamorphicPath.COLLISION_CLOCKWISE, centerState.path());
+    assertEquals(MetamorphicProcessState.StrainClass.DIRECTED_FOLIATION, centerState.strainClass());
+    assertEquals(MaterialAssemblage.SCALE, centerState.intensityPpm());
+
+    Point3 outside =
+        province.frame().toWorld(new Point3(province.geometry().fold().radius() * 1.1, 0.0, 0.0));
+    assertTrue(RegionalMetamorphicState.proofFor(province, outside).isEmpty());
+
+    PetrologicSample resolved =
+        query.resolve(
+            province,
+            sample(
+                province,
+                new Point3(0.0, 0.0, 0.0),
+                province.geometry().basementId(),
+                Lithology.GRANITIC_GNEISS,
+                new AgeKey(1850.0, 0),
+                Overprint.NONE));
+    assertEquals(Optional.of(centerState), resolved.metamorphism().regionalState());
   }
 
   @Test

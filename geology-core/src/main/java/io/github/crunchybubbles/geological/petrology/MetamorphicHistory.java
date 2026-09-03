@@ -17,7 +17,8 @@ public record MetamorphicHistory(
     double maximumPeakPressureMpa,
     List<StableId> eventIds,
     List<AgeKey> eventAges,
-    MetamorphicProcessState processState) {
+    MetamorphicProcessState processState,
+    Optional<RegionalMetamorphicState> regionalState) {
   public MetamorphicHistory(
       String protolithRockId,
       MetamorphicGrade grade,
@@ -40,7 +41,36 @@ public record MetamorphicHistory(
         eventIds,
         List.of(),
         MetamorphicProcessState.proofFor(
-            grade, facies, path, MaterialProcessClass.NONE, 0L, Optional.empty()));
+            grade, facies, path, MaterialProcessClass.NONE, 0L, Optional.empty()),
+        Optional.empty());
+  }
+
+  /** Compatibility constructor for callers that provide process state but no regional field. */
+  public MetamorphicHistory(
+      String protolithRockId,
+      MetamorphicGrade grade,
+      MetamorphicFacies facies,
+      MetamorphicPath path,
+      double minimumPeakTemperatureCelsius,
+      double maximumPeakTemperatureCelsius,
+      double minimumPeakPressureMpa,
+      double maximumPeakPressureMpa,
+      List<StableId> eventIds,
+      List<AgeKey> eventAges,
+      MetamorphicProcessState processState) {
+    this(
+        protolithRockId,
+        grade,
+        facies,
+        path,
+        minimumPeakTemperatureCelsius,
+        maximumPeakTemperatureCelsius,
+        minimumPeakPressureMpa,
+        maximumPeakPressureMpa,
+        eventIds,
+        eventAges,
+        processState,
+        Optional.empty());
   }
 
   public MetamorphicHistory {
@@ -49,7 +79,8 @@ public record MetamorphicHistory(
         || grade == null
         || facies == null
         || path == null
-        || processState == null) {
+        || processState == null
+        || regionalState == null) {
       throw new IllegalArgumentException("metamorphic history identity must be complete");
     }
     boolean inactive =

@@ -48,6 +48,7 @@ import io.github.crunchybubbles.geological.petrology.NonCrystallineConstituentDe
 import io.github.crunchybubbles.geological.petrology.PetrologicSample;
 import io.github.crunchybubbles.geological.petrology.PrimaryMetamorphicDefinition;
 import io.github.crunchybubbles.geological.petrology.ProcessFluidState;
+import io.github.crunchybubbles.geological.petrology.RegionalMetamorphicState;
 import io.github.crunchybubbles.geological.petrology.ReservoirTransfer;
 import io.github.crunchybubbles.geological.petrology.RockDefinition;
 import io.github.crunchybubbles.geological.petrology.SedimentGrainSize;
@@ -1852,6 +1853,12 @@ final class MaterialReviewPacketGenerator {
             sample.metamorphism().eventAges().stream()
                 .map(age -> JsonWriter.object("ageMa", age.ageMa(), "ordinal", age.ordinal()))
                 .toList(),
+            "regionalState",
+            sample
+                .metamorphism()
+                .regionalState()
+                .map(this::regionalMetamorphicStateJson)
+                .orElse(null),
             "processState",
             JsonWriter.object(
                 "burialCurveClass",
@@ -1928,6 +1935,28 @@ final class MaterialReviewPacketGenerator {
         sample.fluidState().map(this::fluidStateJson).orElse(null),
         "reservoirSystemIds",
         sample.reservoirLedgers().stream().map(ledger -> ledger.systemId().toString()).toList());
+  }
+
+  private Map<String, Object> regionalMetamorphicStateJson(RegionalMetamorphicState state) {
+    return JsonWriter.object(
+        "driverEventId",
+        state.driverEventId().toString(),
+        "eventAge",
+        JsonWriter.object("ageMa", state.eventAge().ageMa(), "ordinal", state.eventAge().ordinal()),
+        "grade",
+        state.grade().name(),
+        "facies",
+        state.facies().name(),
+        "path",
+        state.path().name(),
+        "peakTemperatureCelsius",
+        state.peakTemperatureCelsius(),
+        "peakPressureMpa",
+        state.peakPressureMpa(),
+        "strainClass",
+        state.strainClass().name(),
+        "intensityPpm",
+        state.intensityPpm());
   }
 
   private Map<String, Object> magmaLineageJson(MagmaLineageState state) {
