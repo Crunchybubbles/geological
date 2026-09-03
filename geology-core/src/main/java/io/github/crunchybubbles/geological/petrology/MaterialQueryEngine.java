@@ -610,6 +610,7 @@ public final class MaterialQueryEngine {
       StringBuilder purpose, ColluvialSedimentBudget.InputBalance balance) {
     ColluvialSedimentBudget.ProductionInput input = balance.input();
     ColluvialTransportProcess transportProcess = balance.transportProcess();
+    ColluvialSinkState sinkState = balance.sinkState();
     purpose
         .append(input.capacityFixedUnits())
         .append(':')
@@ -630,6 +631,14 @@ public final class MaterialQueryEngine {
         .append(transportProcess.sheetwashScore())
         .append(':')
         .append(transportProcess.dryRavelScore())
+        .append(":sink-state:")
+        .append(sinkState.transportLossSink().name())
+        .append(':')
+        .append(sinkState.bypassSink().name())
+        .append(':')
+        .append(sinkState.transportLossFraction())
+        .append(':')
+        .append(sinkState.bypassFraction())
         .append(':')
         .append(input.terrainPath().reachLengthBlocks())
         .append(':')

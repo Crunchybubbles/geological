@@ -18,6 +18,7 @@ import io.github.crunchybubbles.geological.petrology.ClastShape;
 import io.github.crunchybubbles.geological.petrology.ColluvialHorizonState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
+import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
 import io.github.crunchybubbles.geological.petrology.ColluvialTextureState;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcess;
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
@@ -251,6 +252,16 @@ class MaterialSchemaTest {
         budget.sourceBalances().getLast().balance().depositedGrainMass());
     assertEquals(new SedimentGrainSize(414_491L, 349_378L, 236_131L), budget.depositedGrainSize());
     ColluvialSedimentBudget.InputBalance farBalance = budget.sourceBalances().getLast().balance();
+    assertEquals(
+        ColluvialSinkState.SinkRole.INTERMEDIATE_ROUTE_STORAGE,
+        farBalance.sinkState().transportLossSink());
+    assertEquals(
+        ColluvialSinkState.SinkRole.DOWNSTREAM_CONTINUATION, farBalance.sinkState().bypassSink());
+    assertTrue(farBalance.sinkState().transportLossFraction() > 0.0);
+    assertTrue(farBalance.sinkState().bypassFraction() > 0.0);
+    assertEquals(
+        ColluvialSinkState.SinkRole.NONE,
+        budget.weatheredMatrixBalance().sinkState().transportLossSink());
     assertEquals(6, farPath.reachCount());
     assertEquals(18.0, farPath.cumulativeDownslopeReliefBlocks());
     assertEquals(2.0, farPath.cumulativeBarrierReliefBlocks());

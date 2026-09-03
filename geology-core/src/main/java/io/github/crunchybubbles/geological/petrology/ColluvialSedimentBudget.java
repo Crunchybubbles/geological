@@ -860,6 +860,10 @@ public record ColluvialSedimentBudget(
       return ColluvialTransportProcess.from(input);
     }
 
+    public ColluvialSinkState sinkState() {
+      return ColluvialSinkState.from(this);
+    }
+
     public GrainTransportLengths grainTransportLengths() {
       return ColluvialSedimentBudget.grainTransportLengths(input);
     }
