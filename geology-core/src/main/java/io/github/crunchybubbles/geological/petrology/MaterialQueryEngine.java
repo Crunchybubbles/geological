@@ -161,12 +161,20 @@ public final class MaterialQueryEngine {
       Point2 upslopeDirection = terrainUpslopeDirection(surface);
       List<ResolvedColluvialSource> sources = resolveColluvialSources(surface, upslopeDirection);
       ColluvialTextureState textureState = resolveColluvialTexture(sources);
+      RockDefinition colluviumRock = catalog.requireRock(Lithology.SOIL_COLLUVIUM);
+      ColluvialPhysicalState physicalState =
+          ColluvialPhysicalState.derive(
+              textureState,
+              colluviumRock.porosityDistribution(),
+              colluviumRock.permeabilityDistribution(),
+              colluviumRock.erodibilityDistribution());
       ColluvialSourceMix sourceMix =
           new ColluvialSourceMix(
               upslopeDirection,
               sources.stream().map(ResolvedColluvialSource::contribution).toList(),
               COLLUVIUM_WEATHERED_MATRIX_FRACTION_PPM,
-              textureState);
+              textureState,
+              physicalState);
       StableId colluvialBodyId = colluvialBodyId(sourceMix);
       surface =
           new SurfaceSample(surface.fields(), bedrock, Lithology.SOIL_COLLUVIUM, Overprint.NONE);
@@ -333,6 +341,20 @@ public final class MaterialQueryEngine {
         .append(sourceMix.textureState().support().name())
         .append(':')
         .append(sourceMix.textureState().clastShape().name());
+    ColluvialPhysicalState physicalState = sourceMix.physicalState();
+    purpose
+        .append(":physical:")
+        .append(physicalState.porosityQuantile())
+        .append(':')
+        .append(physicalState.permeabilityQuantile())
+        .append(':')
+        .append(physicalState.erodibilityQuantile())
+        .append(':')
+        .append(physicalState.porosityFraction())
+        .append(':')
+        .append(physicalState.permeabilityIndex())
+        .append(':')
+        .append(physicalState.erodibilityIndex());
     return StableId.first128(
         geology
             .atlas()
@@ -392,9 +414,9 @@ public final class MaterialQueryEngine {
         generic.metamorphism(),
         generic.processClass(),
         generic.fluidState(),
-        generic.porosityFraction(),
-        generic.permeabilityIndex(),
-        generic.erodibilityIndex(),
+        sourceMix.physicalState().porosityFraction(),
+        sourceMix.physicalState().permeabilityIndex(),
+        sourceMix.physicalState().erodibilityIndex(),
         generic.magmaLineage(),
         generic.mantleCargo(),
         generic.sedimentaryState(),

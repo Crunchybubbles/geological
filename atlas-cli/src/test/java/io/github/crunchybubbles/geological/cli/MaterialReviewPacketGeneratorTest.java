@@ -38,6 +38,10 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"gravelAndCoarser\""));
     assertTrue(firstJson.contains("\"sorting\": \"UNSORTED_TO_POORLY_SORTED\""));
     assertTrue(firstJson.contains("\"clastShape\": \"ANGULAR_TO_SUBROUNDED\""));
+    assertTrue(firstJson.contains("\"physicalState\""));
+    assertTrue(firstJson.contains("\"porosityQuantile\""));
+    assertTrue(firstJson.contains("\"permeabilityQuantile\""));
+    assertTrue(firstJson.contains("\"erodibilityQuantile\""));
     assertTrue(firstJson.contains("\"sourceContributions\""));
     assertTrue(firstJson.contains("\"upslopeDirection\""));
     assertTrue(firstJson.contains("\"sourcePoint\""));

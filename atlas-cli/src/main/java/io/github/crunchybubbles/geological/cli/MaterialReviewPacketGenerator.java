@@ -11,6 +11,7 @@ import io.github.crunchybubbles.geological.model.Point2;
 import io.github.crunchybubbles.geological.model.Point3;
 import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
 import io.github.crunchybubbles.geological.petrology.ChemicalElement;
+import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceMix;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
@@ -548,6 +549,8 @@ final class MaterialReviewPacketGenerator {
             mix.textureState().support().name(),
             "clastShape",
             mix.textureState().clastShape().name()),
+        "physicalState",
+        colluvialPhysicalStateJson(mix.physicalState()),
         "sourceContributions",
         mix.sourceContributions().stream()
             .map(MaterialReviewPacketGenerator::colluvialSourceContributionJson)
@@ -571,6 +574,23 @@ final class MaterialReviewPacketGenerator {
         contribution.sourceOverprint().name(),
         "assemblageFractionPpm",
         contribution.assemblageFractionPpm());
+  }
+
+  private static Map<String, Object> colluvialPhysicalStateJson(
+      ColluvialPhysicalState physicalState) {
+    return JsonWriter.object(
+        "porosityQuantile",
+        physicalState.porosityQuantile(),
+        "permeabilityQuantile",
+        physicalState.permeabilityQuantile(),
+        "erodibilityQuantile",
+        physicalState.erodibilityQuantile(),
+        "porosityFraction",
+        physicalState.porosityFraction(),
+        "permeabilityIndex",
+        physicalState.permeabilityIndex(),
+        "erodibilityIndex",
+        physicalState.erodibilityIndex());
   }
 
   private Province referenceProvince() {

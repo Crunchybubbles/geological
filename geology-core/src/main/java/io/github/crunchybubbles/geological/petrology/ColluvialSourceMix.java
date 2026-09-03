@@ -10,11 +10,18 @@ public record ColluvialSourceMix(
     Point2 upslopeDirection,
     List<ColluvialSourceContribution> sourceContributions,
     long weatheredMatrixFractionPpm,
-    ColluvialTextureState textureState) {
+    ColluvialTextureState textureState,
+    ColluvialPhysicalState physicalState) {
   public ColluvialSourceMix {
-    if (upslopeDirection == null || sourceContributions == null || textureState == null) {
+    if (upslopeDirection == null
+        || sourceContributions == null
+        || textureState == null
+        || physicalState == null) {
       throw new IllegalArgumentException(
-          "colluvial direction, source contributions, and texture state are required");
+          "colluvial direction, source contributions, texture, and physical state are required");
+    }
+    if (!textureState.equals(physicalState.textureState())) {
+      throw new IllegalArgumentException("colluvial texture and physical state must agree");
     }
     double directionLength = StrictMath.hypot(upslopeDirection.x(), upslopeDirection.z());
     if (StrictMath.abs(directionLength - 1.0) > 1.0e-12) {

@@ -28,6 +28,8 @@ Identity and ledgers use integers/bytes only. Continuous fields use `StrictMath`
 
 The tests include fixed HMAC/CBOR/ID golden vectors. Changing a vector is a world-identity change and requires an explicit model-version decision.
 
+Generated colluvium blends registry-authored grain yields by the same exact source fractions used for constituent modes. Its sorting, support, and clast-shape state is a pure function of that spectrum. Physical-property quantiles are pure functions of the texture state and are evaluated through the frozen catalog envelopes; the resulting porosity, permeability, and erodibility join the canonical colluvial body-ID purpose. No mutable draw or query-order state enters this derivation.
+
 Phase 1 compiles its effective definitions, schemas, units, citations, and parameter provenance into compact canonical JSON. Inputs are sorted by stable ID, strings are UTF-8 NFC, and the full SHA-256 digest of those bytes is frozen into `WorldIdentity`. Input list/map order and authoring whitespace therefore cannot change identity, while any effective scientific parameter change must change it. The snapshot golden is published by the tests and as `registry-snapshot.json` in the review packet.
 
 The authored source is a packaged public JSON resource with a versioned authoring schema. Duplicate keys, trailing content, unknown fields, and unit-vocabulary changes fail before canonical compilation. JSON parser objects never enter domain APIs, and the resource is loaded once when the Phase 1 registry initializes rather than during random-access queries.

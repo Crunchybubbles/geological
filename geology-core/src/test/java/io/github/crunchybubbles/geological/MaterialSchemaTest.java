@@ -14,6 +14,7 @@ import io.github.crunchybubbles.geological.petrology.AlterationAssemblageRecipe;
 import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
 import io.github.crunchybubbles.geological.petrology.BodyCompositionSampler;
 import io.github.crunchybubbles.geological.petrology.ClastShape;
+import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialTextureState;
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
@@ -76,6 +77,48 @@ class MaterialSchemaTest {
     assertEquals(SedimentSupport.CLAST_SUPPORTED, clast.support());
     assertEquals(SedimentSorting.UNSORTED_TO_POORLY_SORTED, mixed.sorting());
     assertEquals(ClastShape.ANGULAR_TO_SUBROUNDED, mixed.clastShape());
+  }
+
+  @Test
+  void colluvialPhysicalStateUsesTextureToSelectValuesInsideAuthoredEnvelopes() {
+    UnitIntervalDistribution porosity = new UnitIntervalDistribution(0.22, 0.38, 0.58);
+    UnitIntervalDistribution permeability = new UnitIntervalDistribution(0.16, 0.38, 0.68);
+    UnitIntervalDistribution erodibility = new UnitIntervalDistribution(0.68, 0.82, 0.95);
+    ColluvialTextureState fineMatrix =
+        ColluvialTextureState.from(new SedimentGrainSize(200_000L, 200_000L, 600_000L));
+    ColluvialTextureState coarseClast =
+        ColluvialTextureState.from(new SedimentGrainSize(600_000L, 350_000L, 50_000L));
+    ColluvialTextureState sortedMatrix =
+        new ColluvialTextureState(
+            fineMatrix.grainSize(),
+            SedimentSorting.WELL_SORTED,
+            fineMatrix.support(),
+            fineMatrix.clastShape());
+    ColluvialTextureState sandyMatrix =
+        ColluvialTextureState.from(new SedimentGrainSize(100_000L, 800_000L, 100_000L));
+
+    ColluvialPhysicalState fine =
+        ColluvialPhysicalState.derive(fineMatrix, porosity, permeability, erodibility);
+    ColluvialPhysicalState coarse =
+        ColluvialPhysicalState.derive(coarseClast, porosity, permeability, erodibility);
+    ColluvialPhysicalState sorted =
+        ColluvialPhysicalState.derive(sortedMatrix, porosity, permeability, erodibility);
+    ColluvialPhysicalState sandy =
+        ColluvialPhysicalState.derive(sandyMatrix, porosity, permeability, erodibility);
+
+    assertTrue(porosity.contains(fine.porosityFraction()));
+    assertTrue(permeability.contains(fine.permeabilityIndex()));
+    assertTrue(erodibility.contains(fine.erodibilityIndex()));
+    assertTrue(coarse.permeabilityIndex() > fine.permeabilityIndex());
+    assertTrue(coarse.porosityFraction() > fine.porosityFraction());
+    assertTrue(sorted.permeabilityIndex() > fine.permeabilityIndex());
+    assertTrue(sorted.porosityFraction() > fine.porosityFraction());
+    assertTrue(sandy.erodibilityIndex() > coarse.erodibilityIndex());
+    assertEquals(
+        fine, ColluvialPhysicalState.derive(fineMatrix, porosity, permeability, erodibility));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new ColluvialPhysicalState(fineMatrix, -0.1, 0.2, 0.3, 0.4, 0.5, 0.6));
   }
 
   @Test
