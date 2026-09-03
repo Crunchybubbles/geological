@@ -60,6 +60,7 @@ import io.github.crunchybubbles.geological.petrology.SalinityClass;
 import io.github.crunchybubbles.geological.petrology.SedimentGrainSize;
 import io.github.crunchybubbles.geological.petrology.SedimentSorting;
 import io.github.crunchybubbles.geological.petrology.SedimentSupport;
+import io.github.crunchybubbles.geological.petrology.SedimentaryInputBudget;
 import io.github.crunchybubbles.geological.petrology.SulfurState;
 import io.github.crunchybubbles.geological.petrology.UnitIntervalDistribution;
 import java.util.List;
@@ -68,6 +69,30 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class MaterialSchemaTest {
+  @Test
+  void sedimentaryInputBudgetClosesAcrossExplicitSourceReservoirClasses() {
+    SedimentaryInputBudget evaporite =
+        SedimentaryInputBudget.proofFor("restricted_evaporite_basin_center");
+    SedimentaryInputBudget coal = SedimentaryInputBudget.proofFor("buried_peat_mire");
+
+    assertEquals(MaterialAssemblage.SCALE, total(evaporite));
+    assertEquals(MaterialAssemblage.SCALE, total(coal));
+    assertTrue(evaporite.evaporiticBrinePpm() > 0);
+    assertTrue(coal.organicPpm() > 0);
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new SedimentaryInputBudget(1_000_000L, 1L, 0L, 0L, 0L, 0L));
+  }
+
+  private static long total(SedimentaryInputBudget budget) {
+    return budget.clasticPpm()
+        + budget.volcanicPpm()
+        + budget.carbonatePpm()
+        + budget.organicPpm()
+        + budget.chemicalPrecipitatePpm()
+        + budget.evaporiticBrinePpm();
+  }
+
   @Test
   void metamorphicProcessStateSeparatesRegionalContactAndMassTransferPaths() {
     MetamorphicProcessState regional =

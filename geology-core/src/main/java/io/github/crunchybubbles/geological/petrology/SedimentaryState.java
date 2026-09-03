@@ -10,7 +10,8 @@ public record SedimentaryState(
     String maturityClass,
     String diagenesisClass,
     List<StableId> sourceBodyIds,
-    SedimentaryBasinState basinState) {
+    SedimentaryBasinState basinState,
+    SedimentaryInputBudget inputBudget) {
   public SedimentaryState(
       String faciesClass,
       String grainSizeClass,
@@ -23,7 +24,25 @@ public record SedimentaryState(
         maturityClass,
         diagenesisClass,
         sourceBodyIds,
-        SedimentaryBasinState.proofFor(faciesClass, sourceBodyIds));
+        SedimentaryBasinState.proofFor(faciesClass, sourceBodyIds),
+        SedimentaryInputBudget.proofFor(faciesClass));
+  }
+
+  public SedimentaryState(
+      String faciesClass,
+      String grainSizeClass,
+      String maturityClass,
+      String diagenesisClass,
+      List<StableId> sourceBodyIds,
+      SedimentaryBasinState basinState) {
+    this(
+        faciesClass,
+        grainSizeClass,
+        maturityClass,
+        diagenesisClass,
+        sourceBodyIds,
+        basinState,
+        SedimentaryInputBudget.proofFor(faciesClass));
   }
 
   public SedimentaryState {
@@ -35,7 +54,8 @@ public record SedimentaryState(
         || maturityClass.isBlank()
         || diagenesisClass == null
         || diagenesisClass.isBlank()
-        || basinState == null) {
+        || basinState == null
+        || inputBudget == null) {
       throw new IllegalArgumentException("sedimentary state must be complete");
     }
     sourceBodyIds = List.copyOf(sourceBodyIds).stream().sorted().toList();

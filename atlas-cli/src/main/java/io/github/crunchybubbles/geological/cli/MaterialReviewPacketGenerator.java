@@ -1962,7 +1962,21 @@ final class MaterialReviewPacketGenerator {
             "carbonateProductivityPpm",
             state.basinState().carbonateProductivityPpm(),
             "sourceCatchmentIds",
-            state.basinState().sourceCatchmentIds().stream().map(Object::toString).toList()));
+            state.basinState().sourceCatchmentIds().stream().map(Object::toString).toList()),
+        "inputBudget",
+        JsonWriter.object(
+            "clasticPpm",
+            state.inputBudget().clasticPpm(),
+            "volcanicPpm",
+            state.inputBudget().volcanicPpm(),
+            "carbonatePpm",
+            state.inputBudget().carbonatePpm(),
+            "organicPpm",
+            state.inputBudget().organicPpm(),
+            "chemicalPrecipitatePpm",
+            state.inputBudget().chemicalPrecipitatePpm(),
+            "evaporiticBrinePpm",
+            state.inputBudget().evaporiticBrinePpm()));
   }
 
   private Map<String, Object> solidSolutionStateJson(SolidSolutionState state) {
