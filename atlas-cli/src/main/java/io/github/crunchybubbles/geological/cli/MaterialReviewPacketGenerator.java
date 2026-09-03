@@ -1064,7 +1064,13 @@ final class MaterialReviewPacketGenerator {
         "finesReferenceEFoldingDistanceBlocks",
         policy.finesReferenceEFoldingDistanceBlocks(),
         "maximumBypassFraction",
-        policy.maximumBypassFraction());
+        policy.maximumBypassFraction(),
+        "hillslopeCreepResponse",
+        policy.hillslopeCreepResponse(),
+        "sheetwashResponse",
+        policy.sheetwashResponse(),
+        "dryRavelResponse",
+        policy.dryRavelResponse());
   }
 
   private static Map<String, Object> colluvialSedimentSourceBalanceJson(
@@ -1284,6 +1290,8 @@ final class MaterialReviewPacketGenerator {
         productionState.runoffMobilityResponse(),
         "mobilizationPotential",
         productionState.mobilizationPotential(),
+        "processResponse",
+        productionState.processResponse(),
         "mobilizedFraction",
         productionState.mobilizedFraction(),
         "retainedFraction",

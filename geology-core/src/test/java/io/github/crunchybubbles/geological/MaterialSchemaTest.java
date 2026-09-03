@@ -140,6 +140,65 @@ class MaterialSchemaTest {
   }
 
   @Test
+  void processResponsePolicyConditionsMobilizedMassWithoutChangingSelection() {
+    SedimentGrainSize grainYield = new SedimentGrainSize(400_000L, 350_000L, 250_000L);
+    ColluvialSedimentBudget.TerrainPath localPath = terrainPath(100.0);
+    ColluvialSedimentBudget.TerrainPath farPath =
+        terrainPath(100.0, 104.0, 103.0, 109.0, 108.0, 112.0, 116.0);
+    ColluvialSedimentBudget.ProductionInput matrixInput =
+        new ColluvialSedimentBudget.ProductionInput(
+            350_000L, 8.0, 0.02, 0.8, 0.25, 0.0, localPath, grainYield);
+    ColluvialSedimentBudget.ProductionInput sheetwashInput =
+        new ColluvialSedimentBudget.ProductionInput(
+            350_000L, 8.0, 0.12, 0.8, 0.25, 1.0, localPath, grainYield);
+    ColluvialSedimentBudget.ProductionInput dryRavelInput =
+        new ColluvialSedimentBudget.ProductionInput(
+            300_000L, 8.0, 0.24, 0.8, 0.25, 0.0, farPath, grainYield);
+    ColluvialTransportPolicy tunedPolicy =
+        new ColluvialTransportPolicy(
+            12.0, 0.24, 0.25, 0.65, 0.50, 0.40, 0.50, 0.75, 0.70, 512.0, 384.0, 256.0, 0.50, 1.0,
+            1.0, 0.25);
+    ColluvialSedimentBudget baseline =
+        ColluvialSedimentBudget.derive(
+            0.12,
+            matrixInput,
+            List.of(
+                new ColluvialSedimentBudget.SourceProductionInput(
+                    StableId.parse("00000000000000000000000000000c11"), 0, sheetwashInput),
+                new ColluvialSedimentBudget.SourceProductionInput(
+                    StableId.parse("00000000000000000000000000000c12"), 192, dryRavelInput)));
+    ColluvialSedimentBudget tuned =
+        ColluvialSedimentBudget.derive(
+            0.12,
+            matrixInput,
+            List.of(
+                new ColluvialSedimentBudget.SourceProductionInput(
+                    StableId.parse("00000000000000000000000000000c11"), 0, sheetwashInput),
+                new ColluvialSedimentBudget.SourceProductionInput(
+                    StableId.parse("00000000000000000000000000000c12"), 192, dryRavelInput)),
+            tunedPolicy);
+
+    ColluvialSedimentBudget.InputBalance baselineDry = baseline.sourceBalances().get(1).balance();
+    ColluvialSedimentBudget.InputBalance tunedDry = tuned.sourceBalances().get(1).balance();
+    assertEquals(
+        ColluvialTransportProcess.ProcessClass.DRY_RAVEL,
+        baselineDry.transportProcess().processClass());
+    assertEquals(
+        baselineDry.transportProcess().processClass(), tunedDry.transportProcess().processClass());
+    assertEquals(1.0, baselineDry.productionState().processResponse(), 1.0e-15);
+    assertEquals(0.25, tunedDry.productionState().processResponse(), 1.0e-15);
+    assertTrue(tunedDry.mobilizedFixedUnits() < baselineDry.mobilizedFixedUnits());
+    assertEquals(
+        tunedDry.input().capacityFixedUnits(),
+        tunedDry.retainedFixedUnits() + tunedDry.mobilizedFixedUnits());
+    assertEquals(
+        tunedDry.mobilizedFixedUnits(),
+        tunedDry.transportLossFixedUnits()
+            + tunedDry.bypassedFixedUnits()
+            + tunedDry.depositedFixedUnits());
+  }
+
+  @Test
   void colluvialRoutePolicyClosesNormalizedCapacitiesAndDistanceSampling() {
     ColluvialRoutePolicy policy = ColluvialRoutePolicy.DEFAULT;
     assertEquals(6, policy.routeReachCount());
@@ -166,6 +225,19 @@ class MaterialSchemaTest {
     assertEquals(policy, ColluvialTransportPolicy.DEFAULT);
     assertEquals(512.0, policy.gravelAndCoarserReferenceEFoldingDistanceBlocks());
     assertEquals(0.50, policy.maximumBypassFraction());
+    assertEquals(
+        1.0, policy.processResponse(ColluvialTransportProcess.ProcessClass.HILLSLOPE_CREEP));
+    ColluvialTransportPolicy processPolicy =
+        new ColluvialTransportPolicy(
+            12.0, 0.24, 0.25, 0.65, 0.50, 0.40, 0.50, 0.75, 0.70, 512.0, 384.0, 256.0, 0.50, 0.80,
+            0.90, 0.60);
+    assertEquals(
+        0.80,
+        processPolicy.processResponse(ColluvialTransportProcess.ProcessClass.HILLSLOPE_CREEP));
+    assertEquals(
+        0.90, processPolicy.processResponse(ColluvialTransportProcess.ProcessClass.SHEETWASH));
+    assertEquals(
+        0.60, processPolicy.processResponse(ColluvialTransportProcess.ProcessClass.DRY_RAVEL));
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -176,6 +248,12 @@ class MaterialSchemaTest {
         () ->
             new ColluvialTransportPolicy(
                 12.0, 0.24, 0.25, 0.65, 0.50, 0.40, 0.50, 0.75, 0.70, 512.0, 384.0, 256.0, 1.01));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialTransportPolicy(
+                12.0, 0.24, 0.25, 0.65, 0.50, 0.40, 0.50, 0.75, 0.70, 512.0, 384.0, 256.0, 0.50,
+                1.01, 0.90, 0.60));
   }
 
   @Test

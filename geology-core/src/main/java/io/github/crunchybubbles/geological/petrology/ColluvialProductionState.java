@@ -11,7 +11,8 @@ public record ColluvialProductionState(
     double retainedFraction,
     double transportArrivalFraction,
     double depositionFraction,
-    double netDepositionFraction) {
+    double netDepositionFraction,
+    double processResponse) {
   public ColluvialProductionState {
     requireUnit(weatheringAvailability, "weathering availability");
     requireUnit(erodibilityResponse, "erodibility response");
@@ -23,6 +24,7 @@ public record ColluvialProductionState(
     requireUnit(transportArrivalFraction, "transport-arrival fraction");
     requireUnit(depositionFraction, "deposition fraction");
     requireUnit(netDepositionFraction, "net-deposition fraction");
+    requireUnit(processResponse, "process response");
   }
 
   /** Derives the bounded stages from one exact input balance. */
@@ -39,6 +41,9 @@ public record ColluvialProductionState(
     if (policy == null) {
       throw new IllegalArgumentException("colluvial transport policy is required");
     }
+    if (!policy.equals(balance.transportPolicy())) {
+      throw new IllegalArgumentException("colluvial production state must use the balance policy");
+    }
     ColluvialSedimentBudget.ProductionInput input = balance.input();
     double weatheringAvailability =
         clamp(input.weatheringDepth() / policy.weatheringDepthReference());
@@ -50,11 +55,13 @@ public record ColluvialProductionState(
     double runoffMobilityResponse =
         policy.minimumRunoffMobilityResponse()
             + (1.0 - policy.minimumRunoffMobilityResponse()) * input.runoffIndex();
+    double processResponse = policy.processResponse(balance.transportProcess().processClass());
     double mobilizationPotential =
         weatheringAvailability
             * erodibilityResponse
             * slopeMobilityResponse
-            * runoffMobilityResponse;
+            * runoffMobilityResponse
+            * processResponse;
     long capacity = input.capacityFixedUnits();
     long mobilized = balance.mobilizedFixedUnits();
     long arrived = mobilized - balance.transportLossFixedUnits();
@@ -69,7 +76,8 @@ public record ColluvialProductionState(
         fraction(balance.retainedFixedUnits(), capacity),
         fraction(arrived, mobilized),
         fraction(deposited, arrived),
-        fraction(deposited, capacity));
+        fraction(deposited, capacity),
+        processResponse);
   }
 
   private static double fraction(long numerator, long denominator) {

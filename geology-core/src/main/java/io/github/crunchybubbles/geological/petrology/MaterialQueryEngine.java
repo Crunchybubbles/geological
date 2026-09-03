@@ -932,6 +932,8 @@ public final class MaterialQueryEngine {
         .append(':')
         .append(productionState.mobilizationPotential())
         .append(':')
+        .append(productionState.processResponse())
+        .append(':')
         .append(productionState.mobilizedFraction())
         .append(':')
         .append(productionState.retainedFraction())
@@ -1098,7 +1100,13 @@ public final class MaterialQueryEngine {
         .append(':')
         .append(policy.finesReferenceEFoldingDistanceBlocks())
         .append(':')
-        .append(policy.maximumBypassFraction());
+        .append(policy.maximumBypassFraction())
+        .append(':')
+        .append(policy.hillslopeCreepResponse())
+        .append(':')
+        .append(policy.sheetwashResponse())
+        .append(':')
+        .append(policy.dryRavelResponse());
   }
 
   private static void appendColluvialGrainMass(

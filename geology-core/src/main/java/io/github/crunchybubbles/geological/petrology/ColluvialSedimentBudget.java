@@ -460,10 +460,17 @@ public record ColluvialSedimentBudget(
     double runoffMobility =
         transportPolicy.minimumRunoffMobilityResponse()
             + (1.0 - transportPolicy.minimumRunoffMobilityResponse()) * input.runoffIndex();
+    ColluvialTransportProcess transportProcess =
+        ColluvialTransportProcess.from(input, transportPolicy);
+    double processResponse = transportPolicy.processResponse(transportProcess.processClass());
     long mobilizedTotal =
         roundedPortion(
             input.capacityFixedUnits(),
-            weatheringAvailability * erodibilityResponse * slopeMobility * runoffMobility);
+            weatheringAvailability
+                * erodibilityResponse
+                * slopeMobility
+                * runoffMobility
+                * processResponse);
     GrainMass capacity = GrainMass.from(input.capacityFixedUnits(), input.sedimentYield());
     GrainMass mobilized = GrainMass.apportion(mobilizedTotal, capacity);
     GrainMass retained = capacity.subtract(mobilized);

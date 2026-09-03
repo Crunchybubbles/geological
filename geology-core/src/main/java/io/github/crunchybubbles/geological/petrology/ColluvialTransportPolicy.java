@@ -14,7 +14,43 @@ public record ColluvialTransportPolicy(
     double gravelAndCoarserReferenceEFoldingDistanceBlocks,
     double sandReferenceEFoldingDistanceBlocks,
     double finesReferenceEFoldingDistanceBlocks,
-    double maximumBypassFraction) {
+    double maximumBypassFraction,
+    double hillslopeCreepResponse,
+    double sheetwashResponse,
+    double dryRavelResponse) {
+  public ColluvialTransportPolicy(
+      double weatheringDepthReference,
+      double slopeMobilityReference,
+      double minimumSlopeMobility,
+      double minimumRunoffMobilityResponse,
+      double minimumTransportSlopeResponse,
+      double minimumTransportRoughnessResponse,
+      double minimumTransportPathResponse,
+      double minimumTransportRouteGradeResponse,
+      double minimumTransportRunoffResponse,
+      double gravelAndCoarserReferenceEFoldingDistanceBlocks,
+      double sandReferenceEFoldingDistanceBlocks,
+      double finesReferenceEFoldingDistanceBlocks,
+      double maximumBypassFraction) {
+    this(
+        weatheringDepthReference,
+        slopeMobilityReference,
+        minimumSlopeMobility,
+        minimumRunoffMobilityResponse,
+        minimumTransportSlopeResponse,
+        minimumTransportRoughnessResponse,
+        minimumTransportPathResponse,
+        minimumTransportRouteGradeResponse,
+        minimumTransportRunoffResponse,
+        gravelAndCoarserReferenceEFoldingDistanceBlocks,
+        sandReferenceEFoldingDistanceBlocks,
+        finesReferenceEFoldingDistanceBlocks,
+        maximumBypassFraction,
+        1.0,
+        1.0,
+        1.0);
+  }
+
   public static final ColluvialTransportPolicy DEFAULT =
       new ColluvialTransportPolicy(
           12.0, 0.24, 0.25, 0.65, 0.50, 0.40, 0.50, 0.75, 0.70, 512.0, 384.0, 256.0, 0.50);
@@ -35,6 +71,21 @@ public record ColluvialTransportPolicy(
     requirePositive(sandReferenceEFoldingDistanceBlocks, "sand reference e-folding distance");
     requirePositive(finesReferenceEFoldingDistanceBlocks, "fines reference e-folding distance");
     requireUnit(maximumBypassFraction, "maximum bypass fraction");
+    requireUnit(hillslopeCreepResponse, "hillslope-creep response");
+    requireUnit(sheetwashResponse, "sheetwash response");
+    requireUnit(dryRavelResponse, "dry-ravel response");
+  }
+
+  /** Returns the bounded process response factor applied to mobilized inventory. */
+  public double processResponse(ColluvialTransportProcess.ProcessClass processClass) {
+    if (processClass == null) {
+      throw new IllegalArgumentException("colluvial transport process class is required");
+    }
+    return switch (processClass) {
+      case HILLSLOPE_CREEP -> hillslopeCreepResponse;
+      case SHEETWASH -> sheetwashResponse;
+      case DRY_RAVEL -> dryRavelResponse;
+    };
   }
 
   private static void requirePositive(double value, String name) {
