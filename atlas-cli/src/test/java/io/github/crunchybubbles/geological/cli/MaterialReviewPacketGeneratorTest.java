@@ -44,7 +44,9 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"erodibilityQuantile\""));
     assertTrue(firstJson.contains("\"sedimentBudget\""));
     assertTrue(firstJson.contains("\"unit\": \"phase2_normalized_sediment_mass\""));
-    assertTrue(firstJson.contains("\"grainTransportModel\": \"DRY_RAVEL_COARSE_SURVIVAL_PROOF\""));
+    assertTrue(
+        firstJson.contains(
+            "\"grainTransportModel\": \"SLOPE_ROUGHNESS_CONDITIONED_DRY_RAVEL_PROOF\""));
     assertTrue(firstJson.contains("\"sourceCapacityFixedUnits\": 1000000"));
     assertTrue(firstJson.contains("\"mobilizedInventoryFixedUnits\""));
     assertTrue(firstJson.contains("\"retainedInventoryFixedUnits\""));
@@ -59,6 +61,9 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"depositedGrainMassFixedUnits\""));
     assertTrue(firstJson.contains("\"depositedGrainSizePpm\""));
     assertTrue(firstJson.contains("\"sedimentYieldPpm\""));
+    assertTrue(firstJson.contains("\"terrainRoughnessIndex\""));
+    assertTrue(firstJson.contains("\"transportDistanceScale\""));
+    assertTrue(firstJson.contains("\"transportEFoldingDistanceBlocks\""));
     assertTrue(firstJson.contains("\"weatheredMatrixBalance\""));
     assertTrue(firstJson.contains("\"sourceBalances\""));
     assertTrue(firstJson.contains("\"normalizedDepositFractionPpm\""));

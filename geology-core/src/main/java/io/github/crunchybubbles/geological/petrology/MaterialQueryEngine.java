@@ -33,6 +33,8 @@ import java.util.Set;
  */
 public final class MaterialQueryEngine {
   private static final double TERRAIN_GRADIENT_STEP_BLOCKS = 4.0;
+  private static final double TERRAIN_ROUGHNESS_STENCIL_RADIUS_BLOCKS = 8.0;
+  private static final double TERRAIN_ROUGHNESS_REFERENCE_RESIDUAL_SLOPE = 0.05;
   private static final double COLLUVIUM_MINIMUM_SLOPE = 0.10;
   private static final double COLLUVIUM_MINIMUM_WEATHERING_DEPTH = 4.0;
   private static final double COLLUVIUM_MINIMUM_CHANNEL_DISTANCE = 32.0;
@@ -292,6 +294,65 @@ public final class MaterialQueryEngine {
     return geology.surface(point).fields().elevation();
   }
 
+  private double terrainRoughnessIndex(SurfaceSample centerSurface) {
+    Point2 center = centerSurface.fields().point();
+    double centerElevation = centerSurface.fields().elevation();
+    double radius = TERRAIN_ROUGHNESS_STENCIL_RADIUS_BLOCKS;
+    double east = surfaceElevation(center.add(radius, 0.0));
+    double west = surfaceElevation(center.add(-radius, 0.0));
+    double south = surfaceElevation(center.add(0.0, radius));
+    double north = surfaceElevation(center.add(0.0, -radius));
+    double gradientX = (east - west) / (2.0 * radius);
+    double gradientZ = (south - north) / (2.0 * radius);
+    double squaredResiduals =
+        squaredTerrainResidual(east, centerElevation, gradientX, gradientZ, radius, 0.0)
+            + squaredTerrainResidual(west, centerElevation, gradientX, gradientZ, -radius, 0.0)
+            + squaredTerrainResidual(south, centerElevation, gradientX, gradientZ, 0.0, radius)
+            + squaredTerrainResidual(north, centerElevation, gradientX, gradientZ, 0.0, -radius)
+            + squaredTerrainResidual(
+                surfaceElevation(center.add(radius, radius)),
+                centerElevation,
+                gradientX,
+                gradientZ,
+                radius,
+                radius)
+            + squaredTerrainResidual(
+                surfaceElevation(center.add(radius, -radius)),
+                centerElevation,
+                gradientX,
+                gradientZ,
+                radius,
+                -radius)
+            + squaredTerrainResidual(
+                surfaceElevation(center.add(-radius, radius)),
+                centerElevation,
+                gradientX,
+                gradientZ,
+                -radius,
+                radius)
+            + squaredTerrainResidual(
+                surfaceElevation(center.add(-radius, -radius)),
+                centerElevation,
+                gradientX,
+                gradientZ,
+                -radius,
+                -radius);
+    double rmsRelief = StrictMath.sqrt(squaredResiduals / 8.0);
+    double rmsResidualSlope = rmsRelief / radius;
+    return clamp(rmsResidualSlope / TERRAIN_ROUGHNESS_REFERENCE_RESIDUAL_SLOPE);
+  }
+
+  private static double squaredTerrainResidual(
+      double elevation,
+      double centerElevation,
+      double gradientX,
+      double gradientZ,
+      double offsetX,
+      double offsetZ) {
+    double residual = elevation - (centerElevation + gradientX * offsetX + gradientZ * offsetZ);
+    return residual * residual;
+  }
+
   private static Point2 upslopePoint(Point2 point, Point2 direction, int distanceBlocks) {
     return point.add(direction.x() * distanceBlocks, direction.z() * distanceBlocks);
   }
@@ -309,7 +370,8 @@ public final class MaterialQueryEngine {
         sourceProvince.id(),
         resolve(sourceProvince, source),
         upslopeDistanceBlocks,
-        capacityFixedUnits);
+        capacityFixedUnits,
+        terrainRoughnessIndex(sourceSurface));
   }
 
   private ColluvialSedimentBudget resolveColluvialSedimentBudget(
@@ -322,6 +384,7 @@ public final class MaterialQueryEngine {
             depositionSurface.fields().weatheringDepth(),
             depositionSurface.fields().slope(),
             colluviumRock.erodibilityIndex(),
+            sources.getFirst().terrainRoughnessIndex(),
             colluviumRock.sedimentYield());
     List<ColluvialSedimentBudget.SourceProductionInput> sourceInputs =
         sources.stream()
@@ -335,6 +398,7 @@ public final class MaterialQueryEngine {
                             source.surface().fields().weatheringDepth(),
                             source.surface().fields().slope(),
                             source.material().erodibilityIndex(),
+                            source.terrainRoughnessIndex(),
                             source.material().rock().sedimentYield())))
             .toList();
     return ColluvialSedimentBudget.derive(
@@ -460,6 +524,8 @@ public final class MaterialQueryEngine {
         .append(input.slope())
         .append(':')
         .append(input.erodibilityIndex())
+        .append(':')
+        .append(input.terrainRoughnessIndex())
         .append(':')
         .append(input.sedimentYield().gravelAndCoarserPpm())
         .append(':')
@@ -975,7 +1041,8 @@ public final class MaterialQueryEngine {
       StableId sourceProvinceId,
       PetrologicSample material,
       int upslopeDistanceBlocks,
-      long capacityFixedUnits) {}
+      long capacityFixedUnits,
+      double terrainRoughnessIndex) {}
 
   private record ResolvedColluvialSource(
       ColluvialSourceContribution contribution, PetrologicSample material) {}

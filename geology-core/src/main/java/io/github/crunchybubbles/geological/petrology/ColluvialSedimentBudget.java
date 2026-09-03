@@ -21,14 +21,16 @@ public record ColluvialSedimentBudget(
   private static final double WEATHERING_DEPTH_REFERENCE = 12.0;
   private static final double SLOPE_MOBILITY_REFERENCE = 0.24;
   private static final double MINIMUM_SLOPE_MOBILITY = 0.25;
-  private static final double GRAVEL_AND_COARSER_TRANSPORT_E_FOLDING_DISTANCE_BLOCKS = 512.0;
-  private static final double SAND_TRANSPORT_E_FOLDING_DISTANCE_BLOCKS = 384.0;
-  private static final double FINES_TRANSPORT_E_FOLDING_DISTANCE_BLOCKS = 256.0;
+  private static final double MINIMUM_TRANSPORT_SLOPE_RESPONSE = 0.50;
+  private static final double MINIMUM_TRANSPORT_ROUGHNESS_RESPONSE = 0.40;
+  private static final double GRAVEL_AND_COARSER_REFERENCE_E_FOLDING_DISTANCE_BLOCKS = 512.0;
+  private static final double SAND_REFERENCE_E_FOLDING_DISTANCE_BLOCKS = 384.0;
+  private static final double FINES_REFERENCE_E_FOLDING_DISTANCE_BLOCKS = 256.0;
   private static final double MAXIMUM_BYPASS_FRACTION = 0.50;
 
   public ColluvialSedimentBudget {
     if (!NORMALIZED_MASS_UNIT.equals(unit)
-        || grainTransportModel != GrainTransportModel.DRY_RAVEL_COARSE_SURVIVAL_PROOF
+        || grainTransportModel != GrainTransportModel.SLOPE_ROUGHNESS_CONDITIONED_DRY_RAVEL_PROOF
         || !Double.isFinite(depositionSlope)
         || depositionSlope < 0.0
         || weatheredMatrixBalance == null
@@ -97,7 +99,7 @@ public record ColluvialSedimentBudget(
             .toList();
     return new ColluvialSedimentBudget(
         NORMALIZED_MASS_UNIT,
-        GrainTransportModel.DRY_RAVEL_COARSE_SURVIVAL_PROOF,
+        GrainTransportModel.SLOPE_ROUGHNESS_CONDITIONED_DRY_RAVEL_PROOF,
         depositionSlope,
         matrixBalance,
         balances);
@@ -254,19 +256,19 @@ public record ColluvialSedimentBudget(
     GrainMass capacity = GrainMass.from(input.capacityFixedUnits(), input.sedimentYield());
     GrainMass mobilized = GrainMass.apportion(mobilizedTotal, capacity);
     GrainMass retained = capacity.subtract(mobilized);
+    GrainTransportLengths transportLengths = grainTransportLengths(input);
     GrainMass arrived =
         new GrainMass(
             roundedPortion(
                 mobilized.gravelAndCoarserFixedUnits(),
                 transportSurvival(
-                    upslopeDistanceBlocks, GRAVEL_AND_COARSER_TRANSPORT_E_FOLDING_DISTANCE_BLOCKS)),
+                    upslopeDistanceBlocks, transportLengths.gravelAndCoarserBlocks())),
             roundedPortion(
                 mobilized.sandFixedUnits(),
-                transportSurvival(upslopeDistanceBlocks, SAND_TRANSPORT_E_FOLDING_DISTANCE_BLOCKS)),
+                transportSurvival(upslopeDistanceBlocks, transportLengths.sandBlocks())),
             roundedPortion(
                 mobilized.finesFixedUnits(),
-                transportSurvival(
-                    upslopeDistanceBlocks, FINES_TRANSPORT_E_FOLDING_DISTANCE_BLOCKS)));
+                transportSurvival(upslopeDistanceBlocks, transportLengths.finesBlocks())));
     GrainMass transportLoss = mobilized.subtract(arrived);
     double depositionFraction =
         1.0 - MAXIMUM_BYPASS_FRACTION * clamp(depositionSlope / SLOPE_MOBILITY_REFERENCE);
@@ -279,6 +281,24 @@ public record ColluvialSedimentBudget(
 
   private static double transportSurvival(int distanceBlocks, double eFoldingDistanceBlocks) {
     return StrictMath.exp(-distanceBlocks / eFoldingDistanceBlocks);
+  }
+
+  private static double transportDistanceScale(ProductionInput input) {
+    double slopeResponse =
+        MINIMUM_TRANSPORT_SLOPE_RESPONSE
+            + (1.0 - MINIMUM_TRANSPORT_SLOPE_RESPONSE)
+                * clamp(input.slope() / SLOPE_MOBILITY_REFERENCE);
+    double roughnessResponse =
+        1.0 - (1.0 - MINIMUM_TRANSPORT_ROUGHNESS_RESPONSE) * input.terrainRoughnessIndex();
+    return slopeResponse * roughnessResponse;
+  }
+
+  private static GrainTransportLengths grainTransportLengths(ProductionInput input) {
+    double scale = transportDistanceScale(input);
+    return new GrainTransportLengths(
+        GRAVEL_AND_COARSER_REFERENCE_E_FOLDING_DISTANCE_BLOCKS * scale,
+        SAND_REFERENCE_E_FOLDING_DISTANCE_BLOCKS * scale,
+        FINES_REFERENCE_E_FOLDING_DISTANCE_BLOCKS * scale);
   }
 
   private static long roundedPortion(long inventory, double fraction) {
@@ -334,6 +354,7 @@ public record ColluvialSedimentBudget(
       double weatheringDepth,
       double slope,
       double erodibilityIndex,
+      double terrainRoughnessIndex,
       SedimentGrainSize sedimentYield) {
     public ProductionInput {
       if (capacityFixedUnits <= 0
@@ -344,6 +365,9 @@ public record ColluvialSedimentBudget(
           || !Double.isFinite(erodibilityIndex)
           || erodibilityIndex < 0.0
           || erodibilityIndex > 1.0
+          || !Double.isFinite(terrainRoughnessIndex)
+          || terrainRoughnessIndex < 0.0
+          || terrainRoughnessIndex > 1.0
           || sedimentYield == null) {
         throw new IllegalArgumentException("colluvial sediment production input is invalid");
       }
@@ -352,7 +376,24 @@ public record ColluvialSedimentBudget(
 
   /** Explicit proof regime controlling the current grain-class survival ordering. */
   public enum GrainTransportModel {
-    DRY_RAVEL_COARSE_SURVIVAL_PROOF
+    SLOPE_ROUGHNESS_CONDITIONED_DRY_RAVEL_PROOF
+  }
+
+  /** Effective grain-class transport lengths after bounded slope and roughness conditioning. */
+  public record GrainTransportLengths(
+      double gravelAndCoarserBlocks, double sandBlocks, double finesBlocks) {
+    public GrainTransportLengths {
+      if (!Double.isFinite(gravelAndCoarserBlocks)
+          || !Double.isFinite(sandBlocks)
+          || !Double.isFinite(finesBlocks)
+          || gravelAndCoarserBlocks <= 0.0
+          || sandBlocks <= 0.0
+          || finesBlocks <= 0.0
+          || gravelAndCoarserBlocks <= sandBlocks
+          || sandBlocks <= finesBlocks) {
+        throw new IllegalArgumentException("colluvial grain transport lengths are invalid");
+      }
+    }
   }
 
   /** Production inputs tied to one bounded bedrock-source tranche. */
@@ -485,6 +526,14 @@ public record ColluvialSedimentBudget(
 
     public long depositedFixedUnits() {
       return depositedGrainMass.totalFixedUnits();
+    }
+
+    public double transportDistanceScale() {
+      return ColluvialSedimentBudget.transportDistanceScale(input);
+    }
+
+    public GrainTransportLengths grainTransportLengths() {
+      return ColluvialSedimentBudget.grainTransportLengths(input);
     }
   }
 

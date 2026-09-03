@@ -128,23 +128,25 @@ class MaterialSchemaTest {
     StableId far = StableId.parse("00000000000000000000000000000c02");
     SedimentGrainSize grainYield = new SedimentGrainSize(400_000L, 350_000L, 250_000L);
     ColluvialSedimentBudget.ProductionInput matrix =
-        new ColluvialSedimentBudget.ProductionInput(350_000L, 8.0, 0.12, 0.8, grainYield);
+        new ColluvialSedimentBudget.ProductionInput(350_000L, 8.0, 0.12, 0.8, 0.25, grainYield);
     ColluvialSedimentBudget.SourceProductionInput localInput =
         new ColluvialSedimentBudget.SourceProductionInput(
             local,
             0,
-            new ColluvialSedimentBudget.ProductionInput(350_000L, 8.0, 0.12, 0.8, grainYield));
+            new ColluvialSedimentBudget.ProductionInput(
+                350_000L, 8.0, 0.12, 0.8, 0.25, grainYield));
     ColluvialSedimentBudget.SourceProductionInput farInput =
         new ColluvialSedimentBudget.SourceProductionInput(
             far,
             192,
-            new ColluvialSedimentBudget.ProductionInput(300_000L, 8.0, 0.12, 0.8, grainYield));
+            new ColluvialSedimentBudget.ProductionInput(
+                300_000L, 8.0, 0.12, 0.8, 0.25, grainYield));
 
     ColluvialSedimentBudget budget =
         ColluvialSedimentBudget.derive(0.12, matrix, List.of(farInput, localInput));
 
     assertEquals(
-        ColluvialSedimentBudget.GrainTransportModel.DRY_RAVEL_COARSE_SURVIVAL_PROOF,
+        ColluvialSedimentBudget.GrainTransportModel.SLOPE_ROUGHNESS_CONDITIONED_DRY_RAVEL_PROOF,
         budget.grainTransportModel());
     assertEquals(MaterialAssemblage.SCALE, budget.sourceCapacityFixedUnits());
     assertEquals(
@@ -167,12 +169,12 @@ class MaterialSchemaTest {
     assertTrue(budget.depositedInventoryFixedUnits() > 0);
     assertEquals(375_000L, budget.mobilizedInventoryFixedUnits());
     assertEquals(625_000L, budget.retainedInventoryFixedUnits());
-    assertEquals(44_405L, budget.transportLossFixedUnits());
-    assertEquals(82_648L, budget.bypassedInventoryFixedUnits());
-    assertEquals(247_947L, budget.depositedInventoryFixedUnits());
-    assertEquals(397_012L, budget.weatheredMatrixFractionPpm());
-    assertEquals(397_012L, budget.sourceFractionPpm(local, 0));
-    assertEquals(205_976L, budget.sourceFractionPpm(far, 192));
+    assertEquals(60_866L, budget.transportLossFixedUnits());
+    assertEquals(78_532L, budget.bypassedInventoryFixedUnits());
+    assertEquals(235_602L, budget.depositedInventoryFixedUnits());
+    assertEquals(417_815L, budget.weatheredMatrixFractionPpm());
+    assertEquals(417_815L, budget.sourceFractionPpm(local, 0));
+    assertEquals(164_370L, budget.sourceFractionPpm(far, 192));
     assertEquals(budget.sourceCapacityFixedUnits(), budget.capacityGrainMass().totalFixedUnits());
     assertEquals(
         budget.mobilizedInventoryFixedUnits(), budget.mobilizedGrainMass().totalFixedUnits());
@@ -185,12 +187,17 @@ class MaterialSchemaTest {
     assertEquals(
         budget.depositedInventoryFixedUnits(), budget.depositedGrainMass().totalFixedUnits());
     assertEquals(
-        new ColluvialSedimentBudget.GrainMass(14_072L, 15_493L, 14_840L),
+        new ColluvialSedimentBudget.GrainMass(20_011L, 21_403L, 19_452L),
         budget.sourceBalances().getLast().balance().transportLossGrainMass());
     assertEquals(
-        new ColluvialSedimentBudget.GrainMass(23_196L, 17_911L, 9_964L),
+        new ColluvialSedimentBudget.GrainMass(18_742L, 13_479L, 6_505L),
         budget.sourceBalances().getLast().balance().depositedGrainMass());
-    assertEquals(new SedimentGrainSize(411_161L, 350_151L, 238_688L), budget.depositedGrainSize());
+    assertEquals(new SedimentGrainSize(413_800L, 349_687L, 236_513L), budget.depositedGrainSize());
+    ColluvialSedimentBudget.InputBalance farBalance = budget.sourceBalances().getLast().balance();
+    assertEquals(0.6375, farBalance.transportDistanceScale(), 1.0e-15);
+    assertEquals(326.4, farBalance.grainTransportLengths().gravelAndCoarserBlocks(), 1.0e-12);
+    assertEquals(244.8, farBalance.grainTransportLengths().sandBlocks(), 1.0e-12);
+    assertEquals(163.2, farBalance.grainTransportLengths().finesBlocks(), 1.0e-12);
     assertTrue(
         budget.depositedGrainSize().gravelAndCoarserPpm() > grainYield.gravelAndCoarserPpm());
     assertTrue(budget.depositedGrainSize().finesPpm() < grainYield.finesPpm());
@@ -222,13 +229,14 @@ class MaterialSchemaTest {
                 .balance()
                 .mobilizedFixedUnits()
             > lowMobilized);
+    ColluvialSedimentBudget steepSourceResponse =
+        singleSourceBudget(local, matrix, 96, 0.12, 4.0, 0.20, 0.2);
     assertTrue(
-        singleSourceBudget(local, matrix, 96, 0.12, 4.0, 0.20, 0.2)
-                .sourceBalances()
-                .getFirst()
-                .balance()
-                .mobilizedFixedUnits()
+        steepSourceResponse.sourceBalances().getFirst().balance().mobilizedFixedUnits()
             > lowMobilized);
+    assertTrue(
+        steepSourceResponse.sourceBalances().getFirst().balance().transportDistanceScale()
+            > lowResponse.sourceBalances().getFirst().balance().transportDistanceScale());
     assertTrue(
         singleSourceBudget(local, matrix, 96, 0.12, 4.0, 0.06, 0.8)
                 .sourceBalances()
@@ -245,9 +253,35 @@ class MaterialSchemaTest {
     assertTrue(
         steepTarget.depositedInventoryFixedUnits() < gentleTarget.depositedInventoryFixedUnits());
 
+    ColluvialSedimentBudget.InputBalance smoothSource =
+        singleSourceBudget(local, matrix, 192, 0.12, 8.0, 0.12, 0.8, 0.0)
+            .sourceBalances()
+            .getFirst()
+            .balance();
+    ColluvialSedimentBudget.InputBalance roughSource =
+        singleSourceBudget(local, matrix, 192, 0.12, 8.0, 0.12, 0.8, 1.0)
+            .sourceBalances()
+            .getFirst()
+            .balance();
+    assertEquals(smoothSource.mobilizedFixedUnits(), roughSource.mobilizedFixedUnits());
+    assertTrue(smoothSource.transportDistanceScale() > roughSource.transportDistanceScale());
+    assertTrue(smoothSource.transportLossFixedUnits() < roughSource.transportLossFixedUnits());
+    assertTrue(
+        Math.multiplyExact(
+                roughSource.depositedGrainMass().gravelAndCoarserFixedUnits(),
+                smoothSource.depositedFixedUnits())
+            > Math.multiplyExact(
+                smoothSource.depositedGrainMass().gravelAndCoarserFixedUnits(),
+                roughSource.depositedFixedUnits()));
+
     assertThrows(
         IllegalArgumentException.class,
-        () -> new ColluvialSedimentBudget.ProductionInput(-1L, 8.0, 0.12, 0.8, grainYield));
+        () -> new ColluvialSedimentBudget.ProductionInput(-1L, 8.0, 0.12, 0.8, 0.25, grainYield));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialSedimentBudget.ProductionInput(
+                350_000L, 8.0, 0.12, 0.8, 1.01, grainYield));
     assertThrows(
         IllegalArgumentException.class, () -> new ColluvialSedimentBudget.GrainMass(-1L, 1L, 0L));
     assertThrows(
@@ -255,7 +289,8 @@ class MaterialSchemaTest {
         () ->
             ColluvialSedimentBudget.derive(
                 0.12,
-                new ColluvialSedimentBudget.ProductionInput(349_999L, 8.0, 0.12, 0.8, grainYield),
+                new ColluvialSedimentBudget.ProductionInput(
+                    349_999L, 8.0, 0.12, 0.8, 0.25, grainYield),
                 List.of(localInput, farInput)));
     assertThrows(
         IllegalArgumentException.class,
@@ -276,6 +311,26 @@ class MaterialSchemaTest {
       double weatheringDepth,
       double sourceSlope,
       double erodibility) {
+    return singleSourceBudget(
+        source,
+        matrix,
+        distance,
+        depositionSlope,
+        weatheringDepth,
+        sourceSlope,
+        erodibility,
+        matrix.terrainRoughnessIndex());
+  }
+
+  private static ColluvialSedimentBudget singleSourceBudget(
+      StableId source,
+      ColluvialSedimentBudget.ProductionInput matrix,
+      int distance,
+      double depositionSlope,
+      double weatheringDepth,
+      double sourceSlope,
+      double erodibility,
+      double terrainRoughnessIndex) {
     return ColluvialSedimentBudget.derive(
         depositionSlope,
         matrix,
@@ -284,7 +339,12 @@ class MaterialSchemaTest {
                 source,
                 distance,
                 new ColluvialSedimentBudget.ProductionInput(
-                    650_000L, weatheringDepth, sourceSlope, erodibility, matrix.sedimentYield()))));
+                    650_000L,
+                    weatheringDepth,
+                    sourceSlope,
+                    erodibility,
+                    terrainRoughnessIndex,
+                    matrix.sedimentYield()))));
   }
 
   @Test

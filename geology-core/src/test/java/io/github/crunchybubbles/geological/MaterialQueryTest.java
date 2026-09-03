@@ -58,7 +58,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.32", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.33", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1284,7 +1284,7 @@ class MaterialQueryTest {
     ColluvialSedimentBudget sedimentBudget = sourceMix.sedimentBudget();
     assertEquals(ColluvialSedimentBudget.NORMALIZED_MASS_UNIT, sedimentBudget.unit());
     assertEquals(
-        ColluvialSedimentBudget.GrainTransportModel.DRY_RAVEL_COARSE_SURVIVAL_PROOF,
+        ColluvialSedimentBudget.GrainTransportModel.SLOPE_ROUGHNESS_CONDITIONED_DRY_RAVEL_PROOF,
         sedimentBudget.grainTransportModel());
     assertEquals(transported.surface().fields().slope(), sedimentBudget.depositionSlope());
     assertEquals(MaterialAssemblage.SCALE, sedimentBudget.sourceCapacityFixedUnits());
@@ -1298,6 +1298,10 @@ class MaterialQueryTest {
             .map(source -> source.balance().input().capacityFixedUnits())
             .toList());
     assertEquals(350_000L, sedimentBudget.weatheredMatrixBalance().input().capacityFixedUnits());
+    assertEquals(
+        expectedTerrainRoughnessIndex(query, point),
+        sedimentBudget.weatheredMatrixBalance().input().terrainRoughnessIndex(),
+        1.0e-15);
     assertEquals(
         sedimentBudget.mobilizedInventoryFixedUnits(),
         sedimentBudget.transportLossFixedUnits()
@@ -1378,6 +1382,20 @@ class MaterialQueryTest {
           sourceSurface.fields().weatheringDepth(),
           sourceBalance.balance().input().weatheringDepth());
       assertEquals(sourceSurface.fields().slope(), sourceBalance.balance().input().slope());
+      assertEquals(
+          expectedTerrainRoughnessIndex(query, sourcePoint),
+          sourceBalance.balance().input().terrainRoughnessIndex(),
+          1.0e-15);
+      assertTrue(sourceBalance.balance().input().terrainRoughnessIndex() >= 0.0);
+      assertTrue(sourceBalance.balance().input().terrainRoughnessIndex() <= 1.0);
+      assertTrue(sourceBalance.balance().transportDistanceScale() >= 0.20);
+      assertTrue(sourceBalance.balance().transportDistanceScale() <= 1.0);
+      assertTrue(
+          sourceBalance.balance().grainTransportLengths().gravelAndCoarserBlocks()
+              > sourceBalance.balance().grainTransportLengths().sandBlocks());
+      assertTrue(
+          sourceBalance.balance().grainTransportLengths().sandBlocks()
+              > sourceBalance.balance().grainTransportLengths().finesBlocks());
       assertEquals(
           query.resolve(sourceProvince, sourceGeology).erodibilityIndex(),
           sourceBalance.balance().input().erodibilityIndex());
@@ -1495,13 +1513,14 @@ class MaterialQueryTest {
     ColluvialPhysicalState physical =
         ColluvialPhysicalState.derive(texture, distribution, distribution, distribution);
     ColluvialSedimentBudget.ProductionInput matrixInput =
-        new ColluvialSedimentBudget.ProductionInput(350_000L, 12.0, 0.24, 1.0, texture.grainSize());
+        new ColluvialSedimentBudget.ProductionInput(
+            350_000L, 12.0, 0.24, 1.0, 0.0, texture.grainSize());
     ColluvialSedimentBudget.SourceProductionInput sourceInput =
         new ColluvialSedimentBudget.SourceProductionInput(
             source,
             0,
             new ColluvialSedimentBudget.ProductionInput(
-                650_000L, 12.0, 0.24, 1.0, texture.grainSize()));
+                650_000L, 12.0, 0.24, 1.0, 0.0, texture.grainSize()));
     ColluvialSedimentBudget budget =
         ColluvialSedimentBudget.derive(0.0, matrixInput, List.of(sourceInput));
     ColluvialTextureState otherTexture =
@@ -1524,13 +1543,13 @@ class MaterialQueryTest {
         ColluvialSedimentBudget.derive(
             0.0,
             new ColluvialSedimentBudget.ProductionInput(
-                350_001L, 12.0, 0.24, 1.0, texture.grainSize()),
+                350_001L, 12.0, 0.24, 1.0, 0.0, texture.grainSize()),
             List.of(
                 new ColluvialSedimentBudget.SourceProductionInput(
                     source,
                     0,
                     new ColluvialSedimentBudget.ProductionInput(
-                        649_999L, 12.0, 0.24, 1.0, texture.grainSize()))));
+                        649_999L, 12.0, 0.24, 1.0, 0.0, texture.grainSize()))));
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1645,6 +1664,63 @@ class MaterialQueryTest {
     assertTrue(
         Math.multiplyExact(deposited.finesFixedUnits(), capacity.totalFixedUnits())
             < Math.multiplyExact(capacity.finesFixedUnits(), deposited.totalFixedUnits()));
+  }
+
+  private static double expectedTerrainRoughnessIndex(MaterialQueryEngine query, Point2 center) {
+    double radius = 8.0;
+    double centerElevation = query.geology().surface(center).fields().elevation();
+    double east = query.geology().surface(center.add(radius, 0.0)).fields().elevation();
+    double west = query.geology().surface(center.add(-radius, 0.0)).fields().elevation();
+    double south = query.geology().surface(center.add(0.0, radius)).fields().elevation();
+    double north = query.geology().surface(center.add(0.0, -radius)).fields().elevation();
+    double gradientX = (east - west) / (2.0 * radius);
+    double gradientZ = (south - north) / (2.0 * radius);
+    double squaredResiduals =
+        squaredTerrainResidual(east, centerElevation, gradientX, gradientZ, radius, 0.0)
+            + squaredTerrainResidual(west, centerElevation, gradientX, gradientZ, -radius, 0.0)
+            + squaredTerrainResidual(south, centerElevation, gradientX, gradientZ, 0.0, radius)
+            + squaredTerrainResidual(north, centerElevation, gradientX, gradientZ, 0.0, -radius)
+            + squaredTerrainResidual(
+                query.geology().surface(center.add(radius, radius)).fields().elevation(),
+                centerElevation,
+                gradientX,
+                gradientZ,
+                radius,
+                radius)
+            + squaredTerrainResidual(
+                query.geology().surface(center.add(radius, -radius)).fields().elevation(),
+                centerElevation,
+                gradientX,
+                gradientZ,
+                radius,
+                -radius)
+            + squaredTerrainResidual(
+                query.geology().surface(center.add(-radius, radius)).fields().elevation(),
+                centerElevation,
+                gradientX,
+                gradientZ,
+                -radius,
+                radius)
+            + squaredTerrainResidual(
+                query.geology().surface(center.add(-radius, -radius)).fields().elevation(),
+                centerElevation,
+                gradientX,
+                gradientZ,
+                -radius,
+                -radius);
+    double rmsResidualSlope = StrictMath.sqrt(squaredResiduals / 8.0) / radius;
+    return StrictMath.max(0.0, StrictMath.min(1.0, rmsResidualSlope / 0.05));
+  }
+
+  private static double squaredTerrainResidual(
+      double elevation,
+      double centerElevation,
+      double gradientX,
+      double gradientZ,
+      double offsetX,
+      double offsetZ) {
+    double residual = elevation - (centerElevation + gradientX * offsetX + gradientZ * offsetZ);
+    return residual * residual;
   }
 
   private static GeologicalSample sample(

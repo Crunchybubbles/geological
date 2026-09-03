@@ -663,6 +663,12 @@ final class MaterialReviewPacketGenerator {
         balance.input().slope(),
         "erodibilityIndex",
         balance.input().erodibilityIndex(),
+        "terrainRoughnessIndex",
+        balance.input().terrainRoughnessIndex(),
+        "transportDistanceScale",
+        balance.transportDistanceScale(),
+        "transportEFoldingDistanceBlocks",
+        colluvialGrainTransportLengthsJson(balance.grainTransportLengths()),
         "sedimentYieldPpm",
         sedimentGrainSizeJson(balance.input().sedimentYield()),
         "mobilizedFixedUnits",
@@ -689,6 +695,17 @@ final class MaterialReviewPacketGenerator {
         colluvialGrainMassJson(balance.bypassedGrainMass()),
         "depositedGrainMassFixedUnits",
         colluvialGrainMassJson(balance.depositedGrainMass()));
+  }
+
+  private static Map<String, Object> colluvialGrainTransportLengthsJson(
+      ColluvialSedimentBudget.GrainTransportLengths lengths) {
+    return JsonWriter.object(
+        "gravelAndCoarser",
+        lengths.gravelAndCoarserBlocks(),
+        "sand",
+        lengths.sandBlocks(),
+        "fines",
+        lengths.finesBlocks());
   }
 
   private static Map<String, Object> colluvialGrainMassJson(
