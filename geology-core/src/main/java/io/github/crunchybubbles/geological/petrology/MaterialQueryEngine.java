@@ -542,6 +542,18 @@ public final class MaterialQueryEngine {
         .append(sourceMix.textureState().support().name())
         .append(':')
         .append(sourceMix.textureState().clastShape().name());
+    ColluvialGrainDispersionState dispersionState = sourceMix.textureState().dispersionState();
+    purpose
+        .append(":dispersion:")
+        .append(dispersionState.dispersionClass().name())
+        .append(':')
+        .append(dispersionState.coarseSpreadIndex())
+        .append(':')
+        .append(dispersionState.sandSpreadIndex())
+        .append(':')
+        .append(dispersionState.finesSpreadIndex())
+        .append(':')
+        .append(dispersionState.weightedSpreadIndex());
     ColluvialPhysicalState physicalState = sourceMix.physicalState();
     purpose
         .append(":physical:")

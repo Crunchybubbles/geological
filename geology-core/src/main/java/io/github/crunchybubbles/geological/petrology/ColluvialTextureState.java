@@ -41,6 +41,10 @@ public record ColluvialTextureState(
     return StrictMath.max(0.0, StrictMath.min(1.0, (dominantFraction - (1.0 / 3.0)) / (2.0 / 3.0)));
   }
 
+  public ColluvialGrainDispersionState dispersionState() {
+    return ColluvialGrainDispersionState.from(this);
+  }
+
   private static SedimentSorting sorting(SedimentGrainSize grainSize) {
     double dominantFraction =
         StrictMath.max(

@@ -16,6 +16,7 @@ import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
 import io.github.crunchybubbles.geological.petrology.BodyCompositionSampler;
 import io.github.crunchybubbles.geological.petrology.ClastShape;
 import io.github.crunchybubbles.geological.petrology.ColluvialCohesionState;
+import io.github.crunchybubbles.geological.petrology.ColluvialGrainDispersionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialHorizonState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
@@ -141,10 +142,27 @@ class MaterialSchemaTest {
             fineMatrix.clastShape());
     ColluvialTextureState sandyMatrix =
         ColluvialTextureState.from(new SedimentGrainSize(100_000L, 800_000L, 100_000L));
+    ColluvialTextureState pureSand =
+        ColluvialTextureState.from(new SedimentGrainSize(0L, 1_000_000L, 0L));
 
     assertEquals(SedimentSorting.MODERATELY_SORTED, fineMatrix.sorting());
     assertEquals(SedimentSorting.MODERATELY_SORTED, coarseClast.sorting());
     assertEquals(SedimentSorting.WELL_SORTED, sandyMatrix.sorting());
+    assertTrue(
+        fineMatrix.dispersionState().weightedSpreadIndex()
+            > pureSand.dispersionState().weightedSpreadIndex());
+    assertEquals(
+        ColluvialGrainDispersionState.DispersionClass.MODERATE_WITHIN_BIN_PROXY,
+        fineMatrix.dispersionState().dispersionClass());
+    assertEquals(
+        ColluvialGrainDispersionState.DispersionClass.BROAD_WITHIN_BIN_PROXY,
+        coarseClast.dispersionState().dispersionClass());
+    assertEquals(
+        ColluvialGrainDispersionState.DispersionClass.MODERATE_WITHIN_BIN_PROXY,
+        sandyMatrix.dispersionState().dispersionClass());
+    assertEquals(
+        ColluvialGrainDispersionState.DispersionClass.NARROW_WITHIN_BIN_PROXY,
+        pureSand.dispersionState().dispersionClass());
 
     ColluvialPhysicalState fine =
         ColluvialPhysicalState.derive(fineMatrix, porosity, permeability, erodibility);
@@ -185,6 +203,15 @@ class MaterialSchemaTest {
         () ->
             new ColluvialCohesionState(
                 ColluvialCohesionState.CohesionClass.MIXED_COHESION, -0.1, 0.2, 0.3));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialGrainDispersionState(
+                ColluvialGrainDispersionState.DispersionClass.BROAD_WITHIN_BIN_PROXY,
+                0.0,
+                0.0,
+                0.0,
+                0.0));
   }
 
   @Test
