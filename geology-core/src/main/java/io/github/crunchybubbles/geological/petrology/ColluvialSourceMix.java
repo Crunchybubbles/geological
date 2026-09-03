@@ -12,17 +12,36 @@ public record ColluvialSourceMix(
     long weatheredMatrixFractionPpm,
     ColluvialTextureState textureState,
     ColluvialPhysicalState physicalState,
-    ColluvialSedimentBudget sedimentBudget) {
+    ColluvialSedimentBudget sedimentBudget,
+    ColluvialHorizonState horizonState) {
   public static final double MAXIMUM_ROUTE_DEFLECTION_DEGREES = 60.0;
+
+  public ColluvialSourceMix(
+      Point2 initialUpslopeDirection,
+      List<ColluvialSourceContribution> sourceContributions,
+      long weatheredMatrixFractionPpm,
+      ColluvialTextureState textureState,
+      ColluvialPhysicalState physicalState,
+      ColluvialSedimentBudget sedimentBudget) {
+    this(
+        initialUpslopeDirection,
+        sourceContributions,
+        weatheredMatrixFractionPpm,
+        textureState,
+        physicalState,
+        sedimentBudget,
+        ColluvialHorizonState.from(sedimentBudget));
+  }
 
   public ColluvialSourceMix {
     if (initialUpslopeDirection == null
         || sourceContributions == null
         || textureState == null
         || physicalState == null
-        || sedimentBudget == null) {
+        || sedimentBudget == null
+        || horizonState == null) {
       throw new IllegalArgumentException(
-          "colluvial initial direction, sources, texture, physical state, and budget are required");
+          "colluvial initial direction, sources, texture, physical state, budget, and horizon state are required");
     }
     if (!textureState.equals(physicalState.textureState())) {
       throw new IllegalArgumentException("colluvial texture and physical state must agree");
@@ -100,6 +119,9 @@ public record ColluvialSourceMix(
     if (!textureState.grainSize().equals(sedimentBudget.depositedGrainSize())) {
       throw new IllegalArgumentException(
           "colluvial texture must match the grain-resolved deposited inventory");
+    }
+    if (!horizonState.matches(sedimentBudget)) {
+      throw new IllegalArgumentException("colluvial horizon state must match its sediment budget");
     }
   }
 

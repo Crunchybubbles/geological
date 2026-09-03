@@ -15,6 +15,7 @@ import io.github.crunchybubbles.geological.petrology.AlterationAssemblageRecipe;
 import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
 import io.github.crunchybubbles.geological.petrology.BodyCompositionSampler;
 import io.github.crunchybubbles.geological.petrology.ClastShape;
+import io.github.crunchybubbles.geological.petrology.ColluvialHorizonState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialTextureState;
@@ -156,6 +157,13 @@ class MaterialSchemaTest {
 
     ColluvialSedimentBudget budget =
         ColluvialSedimentBudget.derive(0.12, matrix, List.of(farInput, localInput));
+
+    ColluvialHorizonState horizon = ColluvialHorizonState.from(budget);
+    assertEquals(ColluvialHorizonState.ProfileClass.BALANCED_MIXED_PROFILE, horizon.profileClass());
+    assertEquals(2.0 / 3.0, horizon.weatheringIndex(), 1.0e-15);
+    assertEquals(427_991L, horizon.weatheredMatrixFractionPpm());
+    assertEquals(572_009L, horizon.transportedSourceFractionPpm());
+    assertTrue(horizon.matches(budget));
 
     assertEquals(
         ColluvialSedimentBudget.GrainTransportModel

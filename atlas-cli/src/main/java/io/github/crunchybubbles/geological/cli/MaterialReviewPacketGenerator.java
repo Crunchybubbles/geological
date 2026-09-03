@@ -11,6 +11,7 @@ import io.github.crunchybubbles.geological.model.Point2;
 import io.github.crunchybubbles.geological.model.Point3;
 import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
 import io.github.crunchybubbles.geological.petrology.ChemicalElement;
+import io.github.crunchybubbles.geological.petrology.ColluvialHorizonState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution;
@@ -556,6 +557,8 @@ final class MaterialReviewPacketGenerator {
             mix.textureState().clastShape().name()),
         "physicalState",
         colluvialPhysicalStateJson(mix.physicalState()),
+        "horizonState",
+        colluvialHorizonStateJson(mix.horizonState()),
         "sedimentBudget",
         colluvialSedimentBudgetJson(mix.sedimentBudget()),
         "sourceContributions",
@@ -598,6 +601,18 @@ final class MaterialReviewPacketGenerator {
         physicalState.permeabilityIndex(),
         "erodibilityIndex",
         physicalState.erodibilityIndex());
+  }
+
+  private static Map<String, Object> colluvialHorizonStateJson(ColluvialHorizonState horizonState) {
+    return JsonWriter.object(
+        "profileClass",
+        horizonState.profileClass().name(),
+        "weatheringIndex",
+        horizonState.weatheringIndex(),
+        "weatheredMatrixFractionPpm",
+        horizonState.weatheredMatrixFractionPpm(),
+        "transportedSourceFractionPpm",
+        horizonState.transportedSourceFractionPpm());
   }
 
   private static Map<String, Object> colluvialSedimentBudgetJson(ColluvialSedimentBudget budget) {

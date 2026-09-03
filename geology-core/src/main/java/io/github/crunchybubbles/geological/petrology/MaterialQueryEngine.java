@@ -554,6 +554,16 @@ public final class MaterialQueryEngine {
         .append(physicalState.permeabilityIndex())
         .append(':')
         .append(physicalState.erodibilityIndex());
+    ColluvialHorizonState horizonState = sourceMix.horizonState();
+    purpose
+        .append(":horizon:")
+        .append(horizonState.profileClass().name())
+        .append(':')
+        .append(horizonState.weatheringIndex())
+        .append(':')
+        .append(horizonState.weatheredMatrixFractionPpm())
+        .append(':')
+        .append(horizonState.transportedSourceFractionPpm());
     ColluvialSedimentBudget sedimentBudget = sourceMix.sedimentBudget();
     purpose
         .append(":sediment-budget:")
