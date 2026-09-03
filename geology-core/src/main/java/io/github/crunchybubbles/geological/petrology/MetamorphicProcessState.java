@@ -9,6 +9,7 @@ public record MetamorphicProcessState(
     StrainClass strainClass,
     FluidAvailabilityClass fluidAvailabilityClass,
     long strainIntensityPpm,
+    MetamorphicStrainState strainState,
     long reactionProgressPpm,
     long massTransferPpm,
     long retrogressionPotentialPpm,
@@ -26,16 +27,40 @@ public record MetamorphicProcessState(
         strainClass,
         fluidAvailabilityClass,
         0L,
+        MetamorphicStrainState.none(),
         reactionProgressPpm,
         massTransferPpm,
         retrogressionPotentialPpm,
         MetamorphicReactionState.none());
   }
 
+  /** Compatibility constructor for the alpha85 process shape without an explicit strain frame. */
+  public MetamorphicProcessState(
+      BurialCurveClass burialCurveClass,
+      StrainClass strainClass,
+      FluidAvailabilityClass fluidAvailabilityClass,
+      long strainIntensityPpm,
+      long reactionProgressPpm,
+      long massTransferPpm,
+      long retrogressionPotentialPpm,
+      MetamorphicReactionState reactionState) {
+    this(
+        burialCurveClass,
+        strainClass,
+        fluidAvailabilityClass,
+        strainIntensityPpm,
+        MetamorphicStrainState.proofFor(MetamorphicPath.NONE, strainClass, strainIntensityPpm),
+        reactionProgressPpm,
+        massTransferPpm,
+        retrogressionPotentialPpm,
+        reactionState);
+  }
+
   public MetamorphicProcessState {
     if (burialCurveClass == null
         || strainClass == null
         || fluidAvailabilityClass == null
+        || strainState == null
         || reactionState == null
         || strainIntensityPpm < 0
         || strainIntensityPpm > MaterialAssemblage.SCALE
@@ -47,6 +72,9 @@ public record MetamorphicProcessState(
         || retrogressionPotentialPpm > MaterialAssemblage.SCALE) {
       throw new IllegalArgumentException(
           "metamorphic process state is incomplete or out of bounds");
+    }
+    if (strainState.intensityPpm() != strainIntensityPpm) {
+      throw new IllegalArgumentException("strain state intensity disagrees with process state");
     }
   }
 
@@ -102,6 +130,7 @@ public record MetamorphicProcessState(
           StrainClass.THERMAL_RECRYSTALLIZATION,
           FluidAvailabilityClass.LIMITED_AQUEOUS,
           300_000L,
+          MetamorphicStrainState.proofFor(path, StrainClass.THERMAL_RECRYSTALLIZATION, 300_000L),
           Math.max(700_000L, gradeProgress),
           0L,
           150_000L,
@@ -119,6 +148,7 @@ public record MetamorphicProcessState(
               ? FluidAvailabilityClass.LIMITED_AQUEOUS
               : FluidAvailabilityClass.BUFFERED_AQUEOUS,
           gradeProgress,
+          MetamorphicStrainState.proofFor(path, strainFor(facies), gradeProgress),
           gradeProgress,
           0L,
           retrogressionFor(path),
@@ -131,6 +161,7 @@ public record MetamorphicProcessState(
           strainFor(facies),
           FluidAvailabilityClass.BUFFERED_AQUEOUS,
           gradeProgress,
+          MetamorphicStrainState.proofFor(path, strainFor(facies), gradeProgress),
           gradeProgress,
           0L,
           250_000L,
@@ -143,6 +174,7 @@ public record MetamorphicProcessState(
           StrainClass.FRACTURE_CONTROLLED,
           FluidAvailabilityClass.HYDROTHERMAL_FLOW,
           700_000L,
+          MetamorphicStrainState.proofFor(path, StrainClass.FRACTURE_CONTROLLED, 700_000L),
           Math.max(500_000L, gradeProgress),
           0L,
           700_000L,
@@ -155,6 +187,7 @@ public record MetamorphicProcessState(
           StrainClass.FRACTURE_CONTROLLED,
           FluidAvailabilityClass.HYDROTHERMAL_FLOW,
           650_000L,
+          MetamorphicStrainState.proofFor(path, StrainClass.FRACTURE_CONTROLLED, 650_000L),
           replacementPpm,
           replacementPpm,
           700_000L,
@@ -167,6 +200,7 @@ public record MetamorphicProcessState(
           StrainClass.REGOLITH_DISAGGREGATION,
           FluidAvailabilityClass.SURFACE_METEORIC,
           250_000L,
+          MetamorphicStrainState.proofFor(path, StrainClass.REGOLITH_DISAGGREGATION, 250_000L),
           replacementPpm,
           replacementPpm,
           850_000L,
@@ -178,6 +212,7 @@ public record MetamorphicProcessState(
         StrainClass.NONE,
         FluidAvailabilityClass.NONE,
         0L,
+        MetamorphicStrainState.none(),
         0L,
         0L,
         0L,

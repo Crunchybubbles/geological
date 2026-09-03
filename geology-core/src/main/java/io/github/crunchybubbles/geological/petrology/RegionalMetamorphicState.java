@@ -49,6 +49,11 @@ public record RegionalMetamorphicState(
     }
   }
 
+  /** Returns the canonical bounded principal-axis/frame evidence for this regional field. */
+  public MetamorphicStrainState strainState() {
+    return MetamorphicStrainState.proofFor(path, strainClass, intensityPpm);
+  }
+
   /**
    * Derives the bounded regional field at a world point when it lies inside the authored fold. The
    * fold taper is reused as the normalized intensity proof, keeping the response spatially

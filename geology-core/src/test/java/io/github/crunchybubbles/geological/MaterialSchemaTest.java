@@ -55,6 +55,7 @@ import io.github.crunchybubbles.geological.petrology.MetamorphicHistory;
 import io.github.crunchybubbles.geological.petrology.MetamorphicPath;
 import io.github.crunchybubbles.geological.petrology.MetamorphicProcessState;
 import io.github.crunchybubbles.geological.petrology.MetamorphicReactionState;
+import io.github.crunchybubbles.geological.petrology.MetamorphicStrainState;
 import io.github.crunchybubbles.geological.petrology.ModalVariationAxis;
 import io.github.crunchybubbles.geological.petrology.PrimaryMetamorphicDefinition;
 import io.github.crunchybubbles.geological.petrology.ProcessFluidState;
@@ -354,6 +355,53 @@ class MaterialSchemaTest {
     assertTrue(subduction.reactionState().fluidContributions().isEmpty());
     assertTrue(exhumation.reactionState().fluidContributions().isEmpty());
     assertTrue(polymetamorphic.reactionState().fluidContributions().isEmpty());
+    assertEquals(MetamorphicStrainState.FrameClass.FOLIATION, burial.strainState().frameClass());
+    assertEquals(45.0, polymetamorphic.strainState().foliationAzimuthDegrees());
+    assertEquals(
+        MaterialAssemblage.SCALE,
+        burial.strainState().shorteningAxisPpm()
+            + burial.strainState().flatteningAxisPpm()
+            + burial.strainState().stretchingAxisPpm());
+  }
+
+  @Test
+  void metamorphicStrainFrameClosesAxesAndRejectsInconsistentEvidence() {
+    MetamorphicStrainState collision =
+        MetamorphicStrainState.proofFor(
+            MetamorphicPath.COLLISION_CLOCKWISE,
+            MetamorphicProcessState.StrainClass.DIRECTED_FOLIATION,
+            650_000L);
+
+    assertEquals(MetamorphicStrainState.FrameClass.FOLIATION, collision.frameClass());
+    assertEquals(650_000L, collision.intensityPpm());
+    assertEquals(45.0, collision.foliationAzimuthDegrees());
+    assertEquals(135.0, collision.lineationTrendDegrees());
+    assertEquals(15.0, collision.lineationPlungeDegrees());
+    assertEquals(
+        MaterialAssemblage.SCALE,
+        collision.shorteningAxisPpm()
+            + collision.flatteningAxisPpm()
+            + collision.stretchingAxisPpm());
+    assertEquals(
+        MetamorphicStrainState.FrameClass.NONE, MetamorphicStrainState.none().frameClass());
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new MetamorphicStrainState(
+                MetamorphicStrainState.FrameClass.FOLIATION, 1L, 1L, 1L, 1L, 0.0, 0.0, 0.0));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new MetamorphicProcessState(
+                MetamorphicProcessState.BurialCurveClass.COLLISIONAL_THICKENING,
+                MetamorphicProcessState.StrainClass.DIRECTED_FOLIATION,
+                MetamorphicProcessState.FluidAvailabilityClass.BUFFERED_AQUEOUS,
+                650_000L,
+                MetamorphicStrainState.none(),
+                650_000L,
+                0L,
+                250_000L,
+                MetamorphicReactionState.none()));
   }
 
   @Test

@@ -45,6 +45,7 @@ import io.github.crunchybubbles.geological.petrology.MaterialProcessLedger;
 import io.github.crunchybubbles.geological.petrology.MaterialQueryEngine;
 import io.github.crunchybubbles.geological.petrology.MetamorphicEventTiming;
 import io.github.crunchybubbles.geological.petrology.MetamorphicPath;
+import io.github.crunchybubbles.geological.petrology.MetamorphicStrainState;
 import io.github.crunchybubbles.geological.petrology.ModalVariationAxis;
 import io.github.crunchybubbles.geological.petrology.NonCrystallineConstituentDefinition;
 import io.github.crunchybubbles.geological.petrology.PetrologicSample;
@@ -1896,6 +1897,8 @@ final class MaterialReviewPacketGenerator {
                 sample.metamorphism().processState().strainClass().name(),
                 "strainIntensityPpm",
                 sample.metamorphism().processState().strainIntensityPpm(),
+                "strainState",
+                strainStateJson(sample.metamorphism().processState().strainState()),
                 "fluidAvailabilityClass",
                 sample.metamorphism().processState().fluidAvailabilityClass().name(),
                 "reactionProgressPpm",
@@ -2001,7 +2004,29 @@ final class MaterialReviewPacketGenerator {
         "strainClass",
         state.strainClass().name(),
         "intensityPpm",
-        state.intensityPpm());
+        state.intensityPpm(),
+        "strainState",
+        strainStateJson(state.strainState()));
+  }
+
+  private Map<String, Object> strainStateJson(MetamorphicStrainState state) {
+    return JsonWriter.object(
+        "frameClass",
+        state.frameClass().name(),
+        "intensityPpm",
+        state.intensityPpm(),
+        "shorteningAxisPpm",
+        state.shorteningAxisPpm(),
+        "flatteningAxisPpm",
+        state.flatteningAxisPpm(),
+        "stretchingAxisPpm",
+        state.stretchingAxisPpm(),
+        "foliationAzimuthDegrees",
+        state.foliationAzimuthDegrees(),
+        "lineationTrendDegrees",
+        state.lineationTrendDegrees(),
+        "lineationPlungeDegrees",
+        state.lineationPlungeDegrees());
   }
 
   private Map<String, Object> metamorphicEventTimingJson(MetamorphicEventTiming timing) {
