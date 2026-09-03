@@ -54,6 +54,7 @@ import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
 import io.github.crunchybubbles.geological.petrology.MetamorphicGrade;
 import io.github.crunchybubbles.geological.petrology.MetamorphicPath;
 import io.github.crunchybubbles.geological.petrology.MetamorphicProcessState;
+import io.github.crunchybubbles.geological.petrology.MetamorphicReactionState;
 import io.github.crunchybubbles.geological.petrology.PetrologicColumnResult;
 import io.github.crunchybubbles.geological.petrology.PetrologicSample;
 import io.github.crunchybubbles.geological.petrology.PetrologicState;
@@ -80,7 +81,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.76", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.77", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1132,6 +1133,9 @@ class MaterialQueryTest {
     assertEquals(
         MetamorphicProcessState.StrainClass.GRANOBLASTIC,
         granulite.metamorphism().processState().strainClass());
+    assertEquals(
+        MetamorphicReactionState.ReactionMechanism.DEHYDRATION,
+        granulite.metamorphism().processState().reactionState().reactionMechanism());
     assertTrue(
         amphibolite.metamorphism().maximumPeakTemperatureCelsius()
             < granulite.metamorphism().maximumPeakTemperatureCelsius());
@@ -1243,6 +1247,16 @@ class MaterialQueryTest {
     assertEquals(
         MetamorphicProcessState.FluidAvailabilityClass.HYDROTHERMAL_FLOW,
         serpentinite.metamorphism().processState().fluidAvailabilityClass());
+    assertEquals(
+        MetamorphicReactionState.ReactionMechanism.SERPENTINIZATION,
+        serpentinite.metamorphism().processState().reactionState().reactionMechanism());
+    var serpentBalance =
+        serpentinite.metamorphism().processState().reactionState().serpentinizationBalance();
+    assertEquals(
+        serpentBalance.rockReactantPpm() + serpentBalance.fluidInputPpm(),
+        serpentBalance.serpentineProductPpm()
+            + serpentBalance.residualRockPpm()
+            + serpentBalance.residualFluidPpm());
     assertEquals(RockTexture.SERPENTINIZED_MESH, serpentinite.resolvedTexture());
     assertEquals(MaterialProcessClass.NONE, serpentinite.processClass());
     assertTrue(

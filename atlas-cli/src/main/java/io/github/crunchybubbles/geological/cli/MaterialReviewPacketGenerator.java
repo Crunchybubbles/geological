@@ -1865,7 +1865,61 @@ final class MaterialReviewPacketGenerator {
                 "massTransferPpm",
                 sample.metamorphism().processState().massTransferPpm(),
                 "retrogressionPotentialPpm",
-                sample.metamorphism().processState().retrogressionPotentialPpm())),
+                sample.metamorphism().processState().retrogressionPotentialPpm(),
+                "reactionState",
+                JsonWriter.object(
+                    "reactionMechanism",
+                    sample.metamorphism().processState().reactionState().reactionMechanism().name(),
+                    "retrogressionClass",
+                    sample
+                        .metamorphism()
+                        .processState()
+                        .reactionState()
+                        .retrogressionClass()
+                        .name(),
+                    "dehydrationPpm",
+                    sample.metamorphism().processState().reactionState().dehydrationPpm(),
+                    "decarbonationPpm",
+                    sample.metamorphism().processState().reactionState().decarbonationPpm(),
+                    "partialMeltingPpm",
+                    sample.metamorphism().processState().reactionState().partialMeltingPpm(),
+                    "serpentinizationBalance",
+                    JsonWriter.object(
+                        "rockReactantPpm",
+                        sample
+                            .metamorphism()
+                            .processState()
+                            .reactionState()
+                            .serpentinizationBalance()
+                            .rockReactantPpm(),
+                        "fluidInputPpm",
+                        sample
+                            .metamorphism()
+                            .processState()
+                            .reactionState()
+                            .serpentinizationBalance()
+                            .fluidInputPpm(),
+                        "serpentineProductPpm",
+                        sample
+                            .metamorphism()
+                            .processState()
+                            .reactionState()
+                            .serpentinizationBalance()
+                            .serpentineProductPpm(),
+                        "residualRockPpm",
+                        sample
+                            .metamorphism()
+                            .processState()
+                            .reactionState()
+                            .serpentinizationBalance()
+                            .residualRockPpm(),
+                        "residualFluidPpm",
+                        sample
+                            .metamorphism()
+                            .processState()
+                            .reactionState()
+                            .serpentinizationBalance()
+                            .residualFluidPpm())))),
         "materialProcess",
         processJson(sample.materialProcessLedger()),
         "alterationContribution",

@@ -51,6 +51,7 @@ import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
 import io.github.crunchybubbles.geological.petrology.MetamorphicGrade;
 import io.github.crunchybubbles.geological.petrology.MetamorphicPath;
 import io.github.crunchybubbles.geological.petrology.MetamorphicProcessState;
+import io.github.crunchybubbles.geological.petrology.MetamorphicReactionState;
 import io.github.crunchybubbles.geological.petrology.ModalVariationAxis;
 import io.github.crunchybubbles.geological.petrology.PrimaryMetamorphicDefinition;
 import io.github.crunchybubbles.geological.petrology.ProcessFluidState;
@@ -217,12 +218,24 @@ class MaterialSchemaTest {
     assertEquals(MetamorphicProcessState.StrainClass.NEMATOBLASTIC, regional.strainClass());
     assertEquals(0L, regional.massTransferPpm());
     assertEquals(
+        MetamorphicReactionState.ReactionMechanism.REGIONAL_RECRYSTALLIZATION,
+        regional.reactionState().reactionMechanism());
+    assertEquals(
         MetamorphicProcessState.BurialCurveClass.CONTACT_HEATING, contact.burialCurveClass());
     assertEquals(
         MetamorphicProcessState.StrainClass.THERMAL_RECRYSTALLIZATION, contact.strainClass());
     assertEquals(0L, contact.massTransferPpm());
+    assertEquals(
+        MetamorphicReactionState.ReactionMechanism.THERMAL_RECRYSTALLIZATION,
+        contact.reactionState().reactionMechanism());
     assertEquals(280_000L, altered.reactionProgressPpm());
     assertEquals(280_000L, altered.massTransferPpm());
+    assertEquals(
+        MetamorphicReactionState.ReactionMechanism.METASOMATIC_REPLACEMENT,
+        altered.reactionState().reactionMechanism());
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new MetamorphicReactionState.SerpentinizationBalance(1L, 1L, 1L, 0L, 0L));
     assertEquals(
         MetamorphicProcessState.FluidAvailabilityClass.HYDROTHERMAL_FLOW,
         altered.fluidAvailabilityClass());

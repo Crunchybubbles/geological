@@ -9,11 +9,31 @@ public record MetamorphicProcessState(
     FluidAvailabilityClass fluidAvailabilityClass,
     long reactionProgressPpm,
     long massTransferPpm,
-    long retrogressionPotentialPpm) {
+    long retrogressionPotentialPpm,
+    MetamorphicReactionState reactionState) {
+  /** Compatibility constructor for callers that only provide the original process proxies. */
+  public MetamorphicProcessState(
+      BurialCurveClass burialCurveClass,
+      StrainClass strainClass,
+      FluidAvailabilityClass fluidAvailabilityClass,
+      long reactionProgressPpm,
+      long massTransferPpm,
+      long retrogressionPotentialPpm) {
+    this(
+        burialCurveClass,
+        strainClass,
+        fluidAvailabilityClass,
+        reactionProgressPpm,
+        massTransferPpm,
+        retrogressionPotentialPpm,
+        MetamorphicReactionState.none());
+  }
+
   public MetamorphicProcessState {
     if (burialCurveClass == null
         || strainClass == null
         || fluidAvailabilityClass == null
+        || reactionState == null
         || reactionProgressPpm < 0
         || reactionProgressPpm > MaterialAssemblage.SCALE
         || massTransferPpm < 0
@@ -63,7 +83,8 @@ public record MetamorphicProcessState(
           FluidAvailabilityClass.LIMITED_AQUEOUS,
           Math.max(700_000L, gradeProgress),
           0L,
-          150_000L);
+          150_000L,
+          MetamorphicReactionState.proofFor(grade, facies, path, processClass, replacementPpm));
     }
     if (path == MetamorphicPath.COLLISION_CLOCKWISE) {
       return new MetamorphicProcessState(
@@ -72,7 +93,8 @@ public record MetamorphicProcessState(
           FluidAvailabilityClass.BUFFERED_AQUEOUS,
           gradeProgress,
           0L,
-          250_000L);
+          250_000L,
+          MetamorphicReactionState.proofFor(grade, facies, path, processClass, replacementPpm));
     }
     if (path == MetamorphicPath.HYDROTHERMAL_HYDRATION) {
       return new MetamorphicProcessState(
@@ -81,7 +103,8 @@ public record MetamorphicProcessState(
           FluidAvailabilityClass.HYDROTHERMAL_FLOW,
           Math.max(500_000L, gradeProgress),
           0L,
-          700_000L);
+          700_000L,
+          MetamorphicReactionState.proofFor(grade, facies, path, processClass, replacementPpm));
     }
     if (processClass == MaterialProcessClass.HYDROTHERMAL_METASOMATISM) {
       return new MetamorphicProcessState(
@@ -90,7 +113,8 @@ public record MetamorphicProcessState(
           FluidAvailabilityClass.HYDROTHERMAL_FLOW,
           replacementPpm,
           replacementPpm,
-          700_000L);
+          700_000L,
+          MetamorphicReactionState.proofFor(grade, facies, path, processClass, replacementPpm));
     }
     if (processClass == MaterialProcessClass.WEATHERING) {
       return new MetamorphicProcessState(
@@ -99,10 +123,17 @@ public record MetamorphicProcessState(
           FluidAvailabilityClass.SURFACE_METEORIC,
           replacementPpm,
           replacementPpm,
-          850_000L);
+          850_000L,
+          MetamorphicReactionState.proofFor(grade, facies, path, processClass, replacementPpm));
     }
     return new MetamorphicProcessState(
-        BurialCurveClass.NONE, StrainClass.NONE, FluidAvailabilityClass.NONE, 0L, 0L, 0L);
+        BurialCurveClass.NONE,
+        StrainClass.NONE,
+        FluidAvailabilityClass.NONE,
+        0L,
+        0L,
+        0L,
+        MetamorphicReactionState.proofFor(grade, facies, path, processClass, replacementPpm));
   }
 
   private static StrainClass strainFor(MetamorphicFacies facies) {
