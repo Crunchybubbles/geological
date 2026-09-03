@@ -80,7 +80,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.72", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.73", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1252,6 +1252,12 @@ class MaterialQueryTest {
         MetamorphicProcessState.StrainClass.THERMAL_RECRYSTALLIZATION,
         hornfels.metamorphism().processState().strainClass());
     assertEquals(0L, hornfels.metamorphism().processState().massTransferPpm());
+    assertEquals(
+        MaterialProcessClass.ISOCHEMICAL_METAMORPHISM,
+        hornfels.alterationContribution().processClass());
+    assertEquals(0L, hornfels.alterationContribution().replacementPpm());
+    assertEquals(
+        Optional.of(RockTexture.HORNFELSIC), hornfels.alterationContribution().responseTexture());
     assertEquals(MaterialProcessClass.ISOCHEMICAL_METAMORPHISM, hornfels.processClass());
     assertEquals(RockTexture.HORNFELSIC, hornfels.resolvedTexture());
     assertNotEquals(hornfels.rock().texture(), hornfels.resolvedTexture());
@@ -1274,6 +1280,10 @@ class MaterialQueryTest {
             Overprint.POTASSIC_ALTERATION);
     PetrologicSample altered = query.resolve(province, potassic);
     assertEquals(MaterialProcessClass.HYDROTHERMAL_METASOMATISM, altered.processClass());
+    assertEquals(300_000L, altered.alterationContribution().replacementPpm());
+    assertFalse(altered.alterationContribution().mineralModeDeltaPpm().isEmpty());
+    assertFalse(altered.alterationContribution().additionsPpm().isEmpty());
+    assertFalse(altered.alterationContribution().eventAges().isEmpty());
     assertFalse(altered.metamorphism().eventAges().isEmpty());
     assertEquals(
         MetamorphicProcessState.FluidAvailabilityClass.HYDROTHERMAL_FLOW,

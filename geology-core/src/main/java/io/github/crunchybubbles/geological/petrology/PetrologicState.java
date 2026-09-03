@@ -19,6 +19,7 @@ public record PetrologicState(
     BulkComposition resolvedComposition,
     ElementTransferLedger elementLedger,
     MaterialProcessLedger materialProcessLedger,
+    AlterationContribution alterationContribution,
     MetamorphicHistory metamorphism,
     MaterialProcessClass processClass,
     Optional<ProcessFluidState> fluidState,
@@ -41,6 +42,7 @@ public record PetrologicState(
         || resolvedComposition == null
         || elementLedger == null
         || materialProcessLedger == null
+        || alterationContribution == null
         || metamorphism == null
         || processClass == null
         || fluidState == null
@@ -56,6 +58,18 @@ public record PetrologicState(
       if (materialProcessLedger.netTransferPpm(element)
           != elementLedger.transferPpm().getOrDefault(element, 0L)) {
         throw new IllegalArgumentException("material process does not match element ledger");
+      }
+    }
+    if (alterationContribution.processClass() != processClass) {
+      throw new IllegalArgumentException("alteration contribution does not match process class");
+    }
+    for (ChemicalElement element : ChemicalElement.values()) {
+      if (alterationContribution.additionsPpm().getOrDefault(element, 0L)
+              != materialProcessLedger.additionsPpm().getOrDefault(element, 0L)
+          || alterationContribution.removalsPpm().getOrDefault(element, 0L)
+              != materialProcessLedger.removalsPpm().getOrDefault(element, 0L)) {
+        throw new IllegalArgumentException(
+            "alteration contribution does not match element process");
       }
     }
     requireFluidState(processClass, fluidState);
@@ -82,6 +96,7 @@ public record PetrologicState(
         sample.resolvedComposition(),
         sample.elementLedger(),
         sample.materialProcessLedger(),
+        sample.alterationContribution(),
         sample.metamorphism(),
         sample.processClass(),
         sample.fluidState(),

@@ -9,6 +9,7 @@ import io.github.crunchybubbles.geological.model.Lithology;
 import io.github.crunchybubbles.geological.model.Overprint;
 import io.github.crunchybubbles.geological.model.Point2;
 import io.github.crunchybubbles.geological.model.Point3;
+import io.github.crunchybubbles.geological.petrology.AlterationContribution;
 import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
 import io.github.crunchybubbles.geological.petrology.ChemicalElement;
 import io.github.crunchybubbles.geological.petrology.ColluvialAbsoluteMassBudget;
@@ -1867,6 +1868,8 @@ final class MaterialReviewPacketGenerator {
                 sample.metamorphism().processState().retrogressionPotentialPpm())),
         "materialProcess",
         processJson(sample.materialProcessLedger()),
+        "alterationContribution",
+        alterationContributionJson(sample.alterationContribution()),
         "fluidState",
         sample.fluidState().map(this::fluidStateJson).orElse(null),
         "reservoirSystemIds",
@@ -2021,6 +2024,38 @@ final class MaterialReviewPacketGenerator {
         elementMap(process.removalsPpm()),
         "normalizedExchangeMagnitudePpm",
         process.exchangeMagnitudePpm());
+  }
+
+  private Map<String, Object> alterationContributionJson(AlterationContribution contribution) {
+    return JsonWriter.object(
+        "processId",
+        contribution.processId().map(Object::toString).orElse(null),
+        "processClass",
+        contribution.processClass().name(),
+        "eventIds",
+        contribution.eventIds().stream().map(Object::toString).toList(),
+        "eventAges",
+        contribution.eventAges().stream()
+            .map(age -> JsonWriter.object("ageMa", age.ageMa(), "ordinal", age.ordinal()))
+            .toList(),
+        "reactionProgressPpm",
+        contribution.reactionProgressPpm(),
+        "replacementPpm",
+        contribution.replacementPpm(),
+        "mineralModeDeltaPpm",
+        contribution.mineralModeDeltaPpm(),
+        "additionsPpm",
+        elementMap(contribution.additionsPpm()),
+        "removalsPpm",
+        elementMap(contribution.removalsPpm()),
+        "responseTexture",
+        contribution.responseTexture().map(Enum::name).orElse(null),
+        "fluidState",
+        contribution.fluidState().map(this::fluidStateJson).orElse(null),
+        "porosityMultiplier",
+        contribution.porosityMultiplier(),
+        "erodibilityDelta",
+        contribution.erodibilityDelta());
   }
 
   private Map<String, Object> fluidStateJson(ProcessFluidState state) {

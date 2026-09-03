@@ -1163,6 +1163,7 @@ public final class MaterialQueryEngine {
         composition,
         elementLedger,
         generic.materialProcessLedger(),
+        generic.alterationContribution(),
         generic.metamorphism(),
         generic.processClass(),
         generic.fluidState(),
@@ -1184,6 +1185,17 @@ public final class MaterialQueryEngine {
     ResolvedRecipe recipe = bodyRecipeCache.get(key, this::compileBodyRecipe);
     RockDefinition rock = recipe.rock();
     AlterationDefinition alteration = catalog.requireAlteration(geological.overprint());
+    MaterialProcessLedger processLedger =
+        materialProcessLedger(province, geological, alteration, recipe.elementLedger());
+    MetamorphicHistory metamorphism = metamorphicHistory(province, rock, alteration);
+    AlterationContribution alterationContribution =
+        AlterationContribution.from(
+            processLedger,
+            metamorphism.processState(),
+            alteration,
+            processEventAges(province, alteration.processClass()),
+            recipe.primaryAssemblage(),
+            recipe.resolvedAssemblage());
 
     return new PetrologicSample(
         geological,
@@ -1196,8 +1208,9 @@ public final class MaterialQueryEngine {
         recipe.primaryComposition(),
         recipe.resolvedComposition(),
         recipe.elementLedger(),
-        materialProcessLedger(province, geological, alteration, recipe.elementLedger()),
-        metamorphicHistory(province, rock, alteration),
+        processLedger,
+        alterationContribution,
+        metamorphism,
         alteration.processClass(),
         alteration.fluidState(),
         recipe.porosityFraction(),
