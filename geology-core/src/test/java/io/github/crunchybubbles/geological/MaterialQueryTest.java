@@ -58,7 +58,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.31", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.32", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1283,6 +1283,9 @@ class MaterialQueryTest {
             .toList());
     ColluvialSedimentBudget sedimentBudget = sourceMix.sedimentBudget();
     assertEquals(ColluvialSedimentBudget.NORMALIZED_MASS_UNIT, sedimentBudget.unit());
+    assertEquals(
+        ColluvialSedimentBudget.GrainTransportModel.DRY_RAVEL_COARSE_SURVIVAL_PROOF,
+        sedimentBudget.grainTransportModel());
     assertEquals(transported.surface().fields().slope(), sedimentBudget.depositionSlope());
     assertEquals(MaterialAssemblage.SCALE, sedimentBudget.sourceCapacityFixedUnits());
     assertEquals(
@@ -1306,6 +1309,28 @@ class MaterialQueryTest {
     assertTrue(sedimentBudget.depositedInventoryFixedUnits() > 0);
     assertTrue(sedimentBudget.depositedInventoryFixedUnits() < MaterialAssemblage.SCALE);
     assertEquals(
+        sedimentBudget.sourceCapacityFixedUnits(),
+        sedimentBudget.capacityGrainMass().totalFixedUnits());
+    assertEquals(
+        sedimentBudget.mobilizedInventoryFixedUnits(),
+        sedimentBudget.mobilizedGrainMass().totalFixedUnits());
+    assertEquals(
+        sedimentBudget.retainedInventoryFixedUnits(),
+        sedimentBudget.retainedGrainMass().totalFixedUnits());
+    assertEquals(
+        sedimentBudget.transportLossFixedUnits(),
+        sedimentBudget.transportLossGrainMass().totalFixedUnits());
+    assertEquals(
+        sedimentBudget.bypassedInventoryFixedUnits(),
+        sedimentBudget.bypassedGrainMass().totalFixedUnits());
+    assertEquals(
+        sedimentBudget.depositedInventoryFixedUnits(),
+        sedimentBudget.depositedGrainMass().totalFixedUnits());
+    assertGrainBalanceCloses(sedimentBudget.weatheredMatrixBalance());
+    assertEquals(
+        query.catalog().requireRock(Lithology.SOIL_COLLUVIUM).sedimentYield(),
+        sedimentBudget.weatheredMatrixBalance().input().sedimentYield());
+    assertEquals(
         sedimentBudget.weatheredMatrixFractionPpm(), sourceMix.weatheredMatrixFractionPpm());
     assertEquals(
         sedimentBudget.sourceDepositShares().stream()
@@ -1321,8 +1346,8 @@ class MaterialQueryTest {
                 transported.context().materialBodyId());
     List<MaterialAssemblage.Share> shares = new ArrayList<>();
     shares.add(new MaterialAssemblage.Share(genericMatrix, sourceMix.weatheredMatrixFractionPpm()));
-    List<SedimentGrainSize.Share> grainShares = new ArrayList<>();
-    grainShares.add(
+    List<SedimentGrainSize.Share> unselectedGrainShares = new ArrayList<>();
+    unselectedGrainShares.add(
         new SedimentGrainSize.Share(
             query.catalog().requireRock(Lithology.SOIL_COLLUVIUM).sedimentYield(),
             sourceMix.weatheredMatrixFractionPpm()));
@@ -1356,11 +1381,18 @@ class MaterialQueryTest {
       assertEquals(
           query.resolve(sourceProvince, sourceGeology).erodibilityIndex(),
           sourceBalance.balance().input().erodibilityIndex());
+      assertEquals(
+          query.resolve(sourceProvince, sourceGeology).rock().sedimentYield(),
+          sourceBalance.balance().input().sedimentYield());
+      assertGrainBalanceCloses(sourceBalance.balance());
+      if (contribution.upslopeDistanceBlocks() > 0) {
+        assertCoarserThanCapacity(sourceBalance.balance());
+      }
       shares.add(
           new MaterialAssemblage.Share(
               query.resolve(sourceProvince, sourceGeology).resolvedAssemblage(),
               contribution.assemblageFractionPpm()));
-      grainShares.add(
+      unselectedGrainShares.add(
           new SedimentGrainSize.Share(
               query.catalog().requireRock(contribution.sourceLithology()).sedimentYield(),
               contribution.assemblageFractionPpm()));
@@ -1369,8 +1401,11 @@ class MaterialQueryTest {
     assertEquals(expected, transported.material().primaryAssemblage());
     assertEquals(expected, transported.material().resolvedAssemblage());
     assertNotEquals(genericMatrix, transported.material().primaryAssemblage());
-    SedimentGrainSize expectedGrains = SedimentGrainSize.weightedBlend(grainShares);
+    SedimentGrainSize expectedGrains = sedimentBudget.depositedGrainSize();
     assertEquals(expectedGrains, sourceMix.textureState().grainSize());
+    assertNotEquals(
+        SedimentGrainSize.weightedBlend(unselectedGrainShares),
+        sourceMix.textureState().grainSize());
     assertEquals(ColluvialTextureState.from(expectedGrains), sourceMix.textureState());
     assertEquals(SedimentSorting.UNSORTED_TO_POORLY_SORTED, sourceMix.textureState().sorting());
     assertEquals(ClastShape.ANGULAR_TO_SUBROUNDED, sourceMix.textureState().clastShape());
@@ -1460,10 +1495,13 @@ class MaterialQueryTest {
     ColluvialPhysicalState physical =
         ColluvialPhysicalState.derive(texture, distribution, distribution, distribution);
     ColluvialSedimentBudget.ProductionInput matrixInput =
-        new ColluvialSedimentBudget.ProductionInput(350_000L, 12.0, 0.24, 1.0);
+        new ColluvialSedimentBudget.ProductionInput(350_000L, 12.0, 0.24, 1.0, texture.grainSize());
     ColluvialSedimentBudget.SourceProductionInput sourceInput =
         new ColluvialSedimentBudget.SourceProductionInput(
-            source, 0, new ColluvialSedimentBudget.ProductionInput(650_000L, 12.0, 0.24, 1.0));
+            source,
+            0,
+            new ColluvialSedimentBudget.ProductionInput(
+                650_000L, 12.0, 0.24, 1.0, texture.grainSize()));
     ColluvialSedimentBudget budget =
         ColluvialSedimentBudget.derive(0.0, matrixInput, List.of(sourceInput));
     ColluvialTextureState otherTexture =
@@ -1476,16 +1514,23 @@ class MaterialQueryTest {
         () ->
             new ColluvialSourceMix(
                 direction, List.of(local), 350_000L, texture, mismatchedPhysical, budget));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialSourceMix(
+                direction, List.of(local), 350_000L, otherTexture, mismatchedPhysical, budget));
 
     ColluvialSedimentBudget mismatchedBudget =
         ColluvialSedimentBudget.derive(
             0.0,
-            new ColluvialSedimentBudget.ProductionInput(350_001L, 12.0, 0.24, 1.0),
+            new ColluvialSedimentBudget.ProductionInput(
+                350_001L, 12.0, 0.24, 1.0, texture.grainSize()),
             List.of(
                 new ColluvialSedimentBudget.SourceProductionInput(
                     source,
                     0,
-                    new ColluvialSedimentBudget.ProductionInput(649_999L, 12.0, 0.24, 1.0))));
+                    new ColluvialSedimentBudget.ProductionInput(
+                        649_999L, 12.0, 0.24, 1.0, texture.grainSize()))));
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1575,6 +1620,31 @@ class MaterialQueryTest {
             lithology + "/" + overprint);
       }
     }
+  }
+
+  private static void assertGrainBalanceCloses(ColluvialSedimentBudget.InputBalance balance) {
+    assertEquals(
+        balance.input().capacityFixedUnits(), balance.capacityGrainMass().totalFixedUnits());
+    assertEquals(
+        balance.capacityGrainMass(), balance.retainedGrainMass().add(balance.mobilizedGrainMass()));
+    assertEquals(
+        balance.mobilizedGrainMass(),
+        balance
+            .transportLossGrainMass()
+            .add(balance.bypassedGrainMass())
+            .add(balance.depositedGrainMass()));
+  }
+
+  private static void assertCoarserThanCapacity(ColluvialSedimentBudget.InputBalance balance) {
+    ColluvialSedimentBudget.GrainMass capacity = balance.capacityGrainMass();
+    ColluvialSedimentBudget.GrainMass deposited = balance.depositedGrainMass();
+    assertTrue(
+        Math.multiplyExact(deposited.gravelAndCoarserFixedUnits(), capacity.totalFixedUnits())
+            > Math.multiplyExact(
+                capacity.gravelAndCoarserFixedUnits(), deposited.totalFixedUnits()));
+    assertTrue(
+        Math.multiplyExact(deposited.finesFixedUnits(), capacity.totalFixedUnits())
+            < Math.multiplyExact(capacity.finesFixedUnits(), deposited.totalFixedUnits()));
   }
 
   private static GeologicalSample sample(

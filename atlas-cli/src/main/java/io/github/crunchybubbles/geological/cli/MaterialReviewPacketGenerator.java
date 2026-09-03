@@ -600,6 +600,8 @@ final class MaterialReviewPacketGenerator {
     return JsonWriter.object(
         "unit",
         budget.unit(),
+        "grainTransportModel",
+        budget.grainTransportModel().name(),
         "depositionSlope",
         budget.depositionSlope(),
         "sourceCapacityFixedUnits",
@@ -614,6 +616,20 @@ final class MaterialReviewPacketGenerator {
         budget.bypassedInventoryFixedUnits(),
         "depositedInventoryFixedUnits",
         budget.depositedInventoryFixedUnits(),
+        "capacityGrainMassFixedUnits",
+        colluvialGrainMassJson(budget.capacityGrainMass()),
+        "mobilizedGrainMassFixedUnits",
+        colluvialGrainMassJson(budget.mobilizedGrainMass()),
+        "retainedGrainMassFixedUnits",
+        colluvialGrainMassJson(budget.retainedGrainMass()),
+        "transportLossGrainMassFixedUnits",
+        colluvialGrainMassJson(budget.transportLossGrainMass()),
+        "bypassedGrainMassFixedUnits",
+        colluvialGrainMassJson(budget.bypassedGrainMass()),
+        "depositedGrainMassFixedUnits",
+        colluvialGrainMassJson(budget.depositedGrainMass()),
+        "depositedGrainSizePpm",
+        sedimentGrainSizeJson(budget.depositedGrainSize()),
         "weatheredMatrixBalance",
         colluvialSedimentInputBalanceJson(
             budget.weatheredMatrixBalance(), budget.weatheredMatrixFractionPpm()),
@@ -647,6 +663,8 @@ final class MaterialReviewPacketGenerator {
         balance.input().slope(),
         "erodibilityIndex",
         balance.input().erodibilityIndex(),
+        "sedimentYieldPpm",
+        sedimentGrainSizeJson(balance.input().sedimentYield()),
         "mobilizedFixedUnits",
         balance.mobilizedFixedUnits(),
         "retainedFixedUnits",
@@ -658,7 +676,32 @@ final class MaterialReviewPacketGenerator {
         "depositedFixedUnits",
         balance.depositedFixedUnits(),
         "normalizedDepositFractionPpm",
-        normalizedDepositFractionPpm);
+        normalizedDepositFractionPpm,
+        "capacityGrainMassFixedUnits",
+        colluvialGrainMassJson(balance.capacityGrainMass()),
+        "mobilizedGrainMassFixedUnits",
+        colluvialGrainMassJson(balance.mobilizedGrainMass()),
+        "retainedGrainMassFixedUnits",
+        colluvialGrainMassJson(balance.retainedGrainMass()),
+        "transportLossGrainMassFixedUnits",
+        colluvialGrainMassJson(balance.transportLossGrainMass()),
+        "bypassedGrainMassFixedUnits",
+        colluvialGrainMassJson(balance.bypassedGrainMass()),
+        "depositedGrainMassFixedUnits",
+        colluvialGrainMassJson(balance.depositedGrainMass()));
+  }
+
+  private static Map<String, Object> colluvialGrainMassJson(
+      ColluvialSedimentBudget.GrainMass grainMass) {
+    return JsonWriter.object(
+        "gravelAndCoarser",
+        grainMass.gravelAndCoarserFixedUnits(),
+        "sand",
+        grainMass.sandFixedUnits(),
+        "fines",
+        grainMass.finesFixedUnits(),
+        "total",
+        grainMass.totalFixedUnits());
   }
 
   private Province referenceProvince() {

@@ -166,8 +166,7 @@ public final class MaterialQueryEngine {
           resolveColluvialSedimentBudget(surface, colluviumRock, sourceCandidates);
       List<ResolvedColluvialSource> sources =
           resolveColluvialSourceContributions(sourceCandidates, sedimentBudget);
-      ColluvialTextureState textureState =
-          resolveColluvialTexture(sources, sedimentBudget.weatheredMatrixFractionPpm());
+      ColluvialTextureState textureState = resolveColluvialTexture(sedimentBudget);
       ColluvialPhysicalState physicalState =
           ColluvialPhysicalState.derive(
               textureState,
@@ -322,7 +321,8 @@ public final class MaterialQueryEngine {
             COLLUVIUM_WEATHERED_MATRIX_CAPACITY_FIXED_UNITS,
             depositionSurface.fields().weatheringDepth(),
             depositionSurface.fields().slope(),
-            colluviumRock.erodibilityIndex());
+            colluviumRock.erodibilityIndex(),
+            colluviumRock.sedimentYield());
     List<ColluvialSedimentBudget.SourceProductionInput> sourceInputs =
         sources.stream()
             .map(
@@ -334,7 +334,8 @@ public final class MaterialQueryEngine {
                             source.capacityFixedUnits(),
                             source.surface().fields().weatheringDepth(),
                             source.surface().fields().slope(),
-                            source.material().erodibilityIndex())))
+                            source.material().erodibilityIndex(),
+                            source.material().rock().sedimentYield())))
             .toList();
     return ColluvialSedimentBudget.derive(
         depositionSurface.fields().slope(), weatheredMatrixInput, sourceInputs);
@@ -413,6 +414,8 @@ public final class MaterialQueryEngine {
         .append(":sediment-budget:")
         .append(sedimentBudget.unit())
         .append(':')
+        .append(sedimentBudget.grainTransportModel().name())
+        .append(':')
         .append(sedimentBudget.depositionSlope())
         .append(':')
         .append(sedimentBudget.sourceCapacityFixedUnits())
@@ -458,6 +461,12 @@ public final class MaterialQueryEngine {
         .append(':')
         .append(input.erodibilityIndex())
         .append(':')
+        .append(input.sedimentYield().gravelAndCoarserPpm())
+        .append(':')
+        .append(input.sedimentYield().sandPpm())
+        .append(':')
+        .append(input.sedimentYield().finesPpm())
+        .append(':')
         .append(balance.mobilizedFixedUnits())
         .append(':')
         .append(balance.retainedFixedUnits())
@@ -467,22 +476,28 @@ public final class MaterialQueryEngine {
         .append(balance.bypassedFixedUnits())
         .append(':')
         .append(balance.depositedFixedUnits());
+    appendColluvialGrainMass(purpose, balance.capacityGrainMass());
+    appendColluvialGrainMass(purpose, balance.mobilizedGrainMass());
+    appendColluvialGrainMass(purpose, balance.retainedGrainMass());
+    appendColluvialGrainMass(purpose, balance.transportLossGrainMass());
+    appendColluvialGrainMass(purpose, balance.bypassedGrainMass());
+    appendColluvialGrainMass(purpose, balance.depositedGrainMass());
   }
 
-  private ColluvialTextureState resolveColluvialTexture(
-      List<ResolvedColluvialSource> sources, long weatheredMatrixFractionPpm) {
-    List<SedimentGrainSize.Share> shares = new ArrayList<>();
-    shares.add(
-        new SedimentGrainSize.Share(
-            catalog.requireRock(Lithology.SOIL_COLLUVIUM).sedimentYield(),
-            weatheredMatrixFractionPpm));
-    sources.forEach(
-        source ->
-            shares.add(
-                new SedimentGrainSize.Share(
-                    source.material().rock().sedimentYield(),
-                    source.contribution().assemblageFractionPpm())));
-    return ColluvialTextureState.from(SedimentGrainSize.weightedBlend(shares));
+  private static void appendColluvialGrainMass(
+      StringBuilder purpose, ColluvialSedimentBudget.GrainMass grainMass) {
+    purpose
+        .append(':')
+        .append(grainMass.gravelAndCoarserFixedUnits())
+        .append(':')
+        .append(grainMass.sandFixedUnits())
+        .append(':')
+        .append(grainMass.finesFixedUnits());
+  }
+
+  private static ColluvialTextureState resolveColluvialTexture(
+      ColluvialSedimentBudget sedimentBudget) {
+    return ColluvialTextureState.from(sedimentBudget.depositedGrainSize());
   }
 
   private PetrologicSample resolveColluvialMaterial(

@@ -6,11 +6,13 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.ToLongFunction;
 
-/** Exact normalized source-capacity, mobilization, transport, and deposition ledger. */
+/** Exact normalized source-capacity, grain transport, and deposition ledger. */
 public record ColluvialSedimentBudget(
     String unit,
+    GrainTransportModel grainTransportModel,
     double depositionSlope,
     InputBalance weatheredMatrixBalance,
     List<SourceBalance> sourceBalances) {
@@ -19,11 +21,14 @@ public record ColluvialSedimentBudget(
   private static final double WEATHERING_DEPTH_REFERENCE = 12.0;
   private static final double SLOPE_MOBILITY_REFERENCE = 0.24;
   private static final double MINIMUM_SLOPE_MOBILITY = 0.25;
-  private static final double TRANSPORT_E_FOLDING_DISTANCE_BLOCKS = 384.0;
+  private static final double GRAVEL_AND_COARSER_TRANSPORT_E_FOLDING_DISTANCE_BLOCKS = 512.0;
+  private static final double SAND_TRANSPORT_E_FOLDING_DISTANCE_BLOCKS = 384.0;
+  private static final double FINES_TRANSPORT_E_FOLDING_DISTANCE_BLOCKS = 256.0;
   private static final double MAXIMUM_BYPASS_FRACTION = 0.50;
 
   public ColluvialSedimentBudget {
     if (!NORMALIZED_MASS_UNIT.equals(unit)
+        || grainTransportModel != GrainTransportModel.DRY_RAVEL_COARSE_SURVIVAL_PROOF
         || !Double.isFinite(depositionSlope)
         || depositionSlope < 0.0
         || weatheredMatrixBalance == null
@@ -91,7 +96,11 @@ public record ColluvialSedimentBudget(
                             source.input(), source.upslopeDistanceBlocks(), depositionSlope)))
             .toList();
     return new ColluvialSedimentBudget(
-        NORMALIZED_MASS_UNIT, depositionSlope, matrixBalance, balances);
+        NORMALIZED_MASS_UNIT,
+        GrainTransportModel.DRY_RAVEL_COARSE_SURVIVAL_PROOF,
+        depositionSlope,
+        matrixBalance,
+        balances);
   }
 
   public long sourceCapacityFixedUnits() {
@@ -116,6 +125,34 @@ public record ColluvialSedimentBudget(
 
   public long depositedInventoryFixedUnits() {
     return total(InputBalance::depositedFixedUnits);
+  }
+
+  public GrainMass capacityGrainMass() {
+    return totalGrainMass(InputBalance::capacityGrainMass);
+  }
+
+  public GrainMass mobilizedGrainMass() {
+    return totalGrainMass(InputBalance::mobilizedGrainMass);
+  }
+
+  public GrainMass retainedGrainMass() {
+    return totalGrainMass(InputBalance::retainedGrainMass);
+  }
+
+  public GrainMass transportLossGrainMass() {
+    return totalGrainMass(InputBalance::transportLossGrainMass);
+  }
+
+  public GrainMass bypassedGrainMass() {
+    return totalGrainMass(InputBalance::bypassedGrainMass);
+  }
+
+  public GrainMass depositedGrainMass() {
+    return totalGrainMass(InputBalance::depositedGrainMass);
+  }
+
+  public SedimentGrainSize depositedGrainSize() {
+    return depositedGrainMass().normalizedPpm();
   }
 
   public long weatheredMatrixFractionPpm() {
@@ -180,32 +217,21 @@ public record ColluvialSedimentBudget(
     return result;
   }
 
+  private GrainMass totalGrainMass(Function<InputBalance, GrainMass> value) {
+    GrainMass result = value.apply(weatheredMatrixBalance);
+    for (SourceBalance source : sourceBalances) {
+      result = result.add(value.apply(source.balance()));
+    }
+    return result;
+  }
+
   private long[] normalizedDepositFractions() {
-    long deposited = depositedInventoryFixedUnits();
     long[] amounts = new long[sourceBalances.size() + 1];
     amounts[0] = weatheredMatrixBalance.depositedFixedUnits();
     for (int index = 0; index < sourceBalances.size(); index++) {
       amounts[index + 1] = sourceBalances.get(index).balance().depositedFixedUnits();
     }
-
-    long[] fractions = new long[amounts.length];
-    List<Remainder> remainders = new ArrayList<>(amounts.length);
-    long allocated = 0;
-    for (int index = 0; index < amounts.length; index++) {
-      long numerator = Math.multiplyExact(amounts[index], MaterialAssemblage.SCALE);
-      fractions[index] = numerator / deposited;
-      allocated = Math.addExact(allocated, fractions[index]);
-      remainders.add(new Remainder(index, numerator % deposited));
-    }
-    long missing = MaterialAssemblage.SCALE - allocated;
-    remainders.stream()
-        .sorted(
-            Comparator.comparingLong(Remainder::remainder)
-                .reversed()
-                .thenComparingInt(Remainder::index))
-        .limit(missing)
-        .forEach(remainder -> fractions[remainder.index()]++);
-    return fractions;
+    return apportion(MaterialAssemblage.SCALE, amounts);
   }
 
   private static InputBalance deriveInputBalance(
@@ -221,20 +247,38 @@ public record ColluvialSedimentBudget(
     double slopeMobility =
         MINIMUM_SLOPE_MOBILITY
             + (1.0 - MINIMUM_SLOPE_MOBILITY) * clamp(input.slope() / SLOPE_MOBILITY_REFERENCE);
-    long mobilized =
+    long mobilizedTotal =
         roundedPortion(
             input.capacityFixedUnits(),
             weatheringAvailability * erodibilityResponse * slopeMobility);
-    long retained = input.capacityFixedUnits() - mobilized;
-    double transportSurvival =
-        StrictMath.exp(-upslopeDistanceBlocks / TRANSPORT_E_FOLDING_DISTANCE_BLOCKS);
-    long arrived = roundedPortion(mobilized, transportSurvival);
-    long transportLoss = mobilized - arrived;
+    GrainMass capacity = GrainMass.from(input.capacityFixedUnits(), input.sedimentYield());
+    GrainMass mobilized = GrainMass.apportion(mobilizedTotal, capacity);
+    GrainMass retained = capacity.subtract(mobilized);
+    GrainMass arrived =
+        new GrainMass(
+            roundedPortion(
+                mobilized.gravelAndCoarserFixedUnits(),
+                transportSurvival(
+                    upslopeDistanceBlocks, GRAVEL_AND_COARSER_TRANSPORT_E_FOLDING_DISTANCE_BLOCKS)),
+            roundedPortion(
+                mobilized.sandFixedUnits(),
+                transportSurvival(upslopeDistanceBlocks, SAND_TRANSPORT_E_FOLDING_DISTANCE_BLOCKS)),
+            roundedPortion(
+                mobilized.finesFixedUnits(),
+                transportSurvival(
+                    upslopeDistanceBlocks, FINES_TRANSPORT_E_FOLDING_DISTANCE_BLOCKS)));
+    GrainMass transportLoss = mobilized.subtract(arrived);
     double depositionFraction =
         1.0 - MAXIMUM_BYPASS_FRACTION * clamp(depositionSlope / SLOPE_MOBILITY_REFERENCE);
-    long deposited = roundedPortion(arrived, depositionFraction);
-    long bypassed = arrived - deposited;
-    return new InputBalance(input, mobilized, retained, transportLoss, bypassed, deposited);
+    long depositedTotal = roundedPortion(arrived.totalFixedUnits(), depositionFraction);
+    GrainMass deposited = GrainMass.apportion(depositedTotal, arrived);
+    GrainMass bypassed = arrived.subtract(deposited);
+    return new InputBalance(
+        input, capacity, mobilized, retained, transportLoss, bypassed, deposited);
+  }
+
+  private static double transportSurvival(int distanceBlocks, double eFoldingDistanceBlocks) {
+    return StrictMath.exp(-distanceBlocks / eFoldingDistanceBlocks);
   }
 
   private static long roundedPortion(long inventory, double fraction) {
@@ -242,13 +286,55 @@ public record ColluvialSedimentBudget(
     return StrictMath.min(inventory, StrictMath.max(0L, StrictMath.round(inventory * bounded)));
   }
 
+  private static long[] apportion(long allocation, long[] weights) {
+    if (allocation < 0 || weights == null || weights.length == 0) {
+      throw new IllegalArgumentException("valid fixed-unit apportionment is required");
+    }
+    long weightTotal = 0;
+    for (long weight : weights) {
+      if (weight < 0) {
+        throw new IllegalArgumentException("fixed-unit weights must be non-negative");
+      }
+      weightTotal = Math.addExact(weightTotal, weight);
+    }
+    if (weightTotal <= 0) {
+      if (allocation == 0) {
+        return new long[weights.length];
+      }
+      throw new IllegalArgumentException("positive fixed-unit weights are required");
+    }
+
+    long[] apportioned = new long[weights.length];
+    List<Remainder> remainders = new ArrayList<>(weights.length);
+    long allocated = 0;
+    for (int index = 0; index < weights.length; index++) {
+      long numerator = Math.multiplyExact(weights[index], allocation);
+      apportioned[index] = numerator / weightTotal;
+      allocated = Math.addExact(allocated, apportioned[index]);
+      remainders.add(new Remainder(index, numerator % weightTotal));
+    }
+    long missing = allocation - allocated;
+    remainders.stream()
+        .sorted(
+            Comparator.comparingLong(Remainder::remainder)
+                .reversed()
+                .thenComparingInt(Remainder::index))
+        .limit(missing)
+        .forEach(remainder -> apportioned[remainder.index()]++);
+    return apportioned;
+  }
+
   private static double clamp(double value) {
     return StrictMath.max(0.0, StrictMath.min(1.0, value));
   }
 
-  /** Inputs controlling the mobile share of one normalized source-capacity tranche. */
+  /** Inputs controlling the mobile share and initial grain spectrum of one capacity tranche. */
   public record ProductionInput(
-      long capacityFixedUnits, double weatheringDepth, double slope, double erodibilityIndex) {
+      long capacityFixedUnits,
+      double weatheringDepth,
+      double slope,
+      double erodibilityIndex,
+      SedimentGrainSize sedimentYield) {
     public ProductionInput {
       if (capacityFixedUnits <= 0
           || !Double.isFinite(weatheringDepth)
@@ -257,10 +343,16 @@ public record ColluvialSedimentBudget(
           || slope < 0.0
           || !Double.isFinite(erodibilityIndex)
           || erodibilityIndex < 0.0
-          || erodibilityIndex > 1.0) {
+          || erodibilityIndex > 1.0
+          || sedimentYield == null) {
         throw new IllegalArgumentException("colluvial sediment production input is invalid");
       }
     }
+  }
+
+  /** Explicit proof regime controlling the current grain-class survival ordering. */
+  public enum GrainTransportModel {
+    DRY_RAVEL_COARSE_SURVIVAL_PROOF
   }
 
   /** Production inputs tied to one bounded bedrock-source tranche. */
@@ -273,30 +365,126 @@ public record ColluvialSedimentBudget(
     }
   }
 
-  /** Exact partition of one capacity tranche into retained, lost, bypassed, and deposited mass. */
+  /** Exact fixed-unit grain inventory for one ledger stage. */
+  public record GrainMass(
+      long gravelAndCoarserFixedUnits, long sandFixedUnits, long finesFixedUnits) {
+    public GrainMass {
+      if (gravelAndCoarserFixedUnits < 0 || sandFixedUnits < 0 || finesFixedUnits < 0) {
+        throw new IllegalArgumentException("colluvial grain mass must be non-negative");
+      }
+      total(gravelAndCoarserFixedUnits, sandFixedUnits, finesFixedUnits);
+    }
+
+    public long totalFixedUnits() {
+      return total(gravelAndCoarserFixedUnits, sandFixedUnits, finesFixedUnits);
+    }
+
+    public GrainMass add(GrainMass other) {
+      if (other == null) {
+        throw new IllegalArgumentException("colluvial grain mass is required");
+      }
+      return new GrainMass(
+          Math.addExact(gravelAndCoarserFixedUnits, other.gravelAndCoarserFixedUnits),
+          Math.addExact(sandFixedUnits, other.sandFixedUnits),
+          Math.addExact(finesFixedUnits, other.finesFixedUnits));
+    }
+
+    public GrainMass subtract(GrainMass other) {
+      if (other == null) {
+        throw new IllegalArgumentException("colluvial grain mass is required");
+      }
+      return new GrainMass(
+          Math.subtractExact(gravelAndCoarserFixedUnits, other.gravelAndCoarserFixedUnits),
+          Math.subtractExact(sandFixedUnits, other.sandFixedUnits),
+          Math.subtractExact(finesFixedUnits, other.finesFixedUnits));
+    }
+
+    public SedimentGrainSize normalizedPpm() {
+      if (totalFixedUnits() <= 0) {
+        throw new IllegalArgumentException("positive colluvial grain mass is required");
+      }
+      long[] normalized =
+          ColluvialSedimentBudget.apportion(
+              MaterialAssemblage.SCALE,
+              new long[] {gravelAndCoarserFixedUnits, sandFixedUnits, finesFixedUnits});
+      return new SedimentGrainSize(normalized[0], normalized[1], normalized[2]);
+    }
+
+    private static GrainMass from(long inventory, SedimentGrainSize grainSize) {
+      long[] apportioned =
+          ColluvialSedimentBudget.apportion(
+              inventory,
+              new long[] {
+                grainSize.gravelAndCoarserPpm(), grainSize.sandPpm(), grainSize.finesPpm()
+              });
+      return new GrainMass(apportioned[0], apportioned[1], apportioned[2]);
+    }
+
+    private static GrainMass apportion(long inventory, GrainMass weights) {
+      long[] apportioned =
+          ColluvialSedimentBudget.apportion(
+              inventory,
+              new long[] {
+                weights.gravelAndCoarserFixedUnits, weights.sandFixedUnits, weights.finesFixedUnits
+              });
+      return new GrainMass(apportioned[0], apportioned[1], apportioned[2]);
+    }
+
+    private static long total(long gravel, long sand, long fines) {
+      return Math.addExact(Math.addExact(gravel, sand), fines);
+    }
+  }
+
+  /** Exact partition of one capacity tranche by both bulk amount and grain class. */
   public record InputBalance(
       ProductionInput input,
-      long mobilizedFixedUnits,
-      long retainedFixedUnits,
-      long transportLossFixedUnits,
-      long bypassedFixedUnits,
-      long depositedFixedUnits) {
+      GrainMass capacityGrainMass,
+      GrainMass mobilizedGrainMass,
+      GrainMass retainedGrainMass,
+      GrainMass transportLossGrainMass,
+      GrainMass bypassedGrainMass,
+      GrainMass depositedGrainMass) {
     public InputBalance {
       if (input == null
-          || mobilizedFixedUnits < 0
-          || retainedFixedUnits < 0
-          || transportLossFixedUnits < 0
-          || bypassedFixedUnits < 0
-          || depositedFixedUnits < 0) {
-        throw new IllegalArgumentException("colluvial sediment input balance is invalid");
+          || capacityGrainMass == null
+          || mobilizedGrainMass == null
+          || retainedGrainMass == null
+          || transportLossGrainMass == null
+          || bypassedGrainMass == null
+          || depositedGrainMass == null) {
+        throw new IllegalArgumentException("colluvial sediment input balance is incomplete");
       }
-      long mobilizedAllocation =
-          Math.addExact(
-              Math.addExact(transportLossFixedUnits, bypassedFixedUnits), depositedFixedUnits);
-      if (Math.addExact(retainedFixedUnits, mobilizedFixedUnits) != input.capacityFixedUnits()
-          || mobilizedAllocation != mobilizedFixedUnits) {
+      if (capacityGrainMass.totalFixedUnits() != input.capacityFixedUnits()
+          || !capacityGrainMass.equals(
+              GrainMass.from(input.capacityFixedUnits(), input.sedimentYield()))) {
+        throw new IllegalArgumentException(
+            "colluvial grain capacity must match its production input");
+      }
+      if (!capacityGrainMass.equals(retainedGrainMass.add(mobilizedGrainMass))
+          || !mobilizedGrainMass.equals(
+              transportLossGrainMass.add(bypassedGrainMass).add(depositedGrainMass))) {
         throw new IllegalArgumentException("colluvial sediment input balance does not close");
       }
+    }
+
+    public long mobilizedFixedUnits() {
+      return mobilizedGrainMass.totalFixedUnits();
+    }
+
+    public long retainedFixedUnits() {
+      return retainedGrainMass.totalFixedUnits();
+    }
+
+    public long transportLossFixedUnits() {
+      return transportLossGrainMass.totalFixedUnits();
+    }
+
+    public long bypassedFixedUnits() {
+      return bypassedGrainMass.totalFixedUnits();
+    }
+
+    public long depositedFixedUnits() {
+      return depositedGrainMass.totalFixedUnits();
     }
   }
 

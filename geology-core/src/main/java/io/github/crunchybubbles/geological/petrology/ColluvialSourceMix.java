@@ -71,6 +71,10 @@ public record ColluvialSourceMix(
     if (!sedimentBudget.matches(sourceContributions, weatheredMatrixFractionPpm)) {
       throw new IllegalArgumentException("colluvial sediment budget must match the source mixture");
     }
+    if (!textureState.grainSize().equals(sedimentBudget.depositedGrainSize())) {
+      throw new IllegalArgumentException(
+          "colluvial texture must match the grain-resolved deposited inventory");
+    }
   }
 
   public long sourceAssemblageFractionPpm() {
