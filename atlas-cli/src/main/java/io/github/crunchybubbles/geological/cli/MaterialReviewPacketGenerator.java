@@ -15,6 +15,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialCohesionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialGrainDispersionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialHorizonState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
+import io.github.crunchybubbles.geological.petrology.ColluvialProductionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution;
@@ -823,6 +824,8 @@ final class MaterialReviewPacketGenerator {
         balance.input().runoffIndex(),
         "transportProcess",
         colluvialTransportProcessJson(balance.transportProcess()),
+        "productionState",
+        colluvialProductionStateJson(balance.productionState()),
         "sinkState",
         colluvialSinkStateJson(balance.sinkState()),
         "terrainPath",
@@ -876,6 +879,31 @@ final class MaterialReviewPacketGenerator {
         process.selectedScore(),
         "selectionMargin",
         process.selectionMargin());
+  }
+
+  private static Map<String, Object> colluvialProductionStateJson(
+      ColluvialProductionState productionState) {
+    return JsonWriter.object(
+        "weatheringAvailability",
+        productionState.weatheringAvailability(),
+        "erodibilityResponse",
+        productionState.erodibilityResponse(),
+        "slopeMobilityResponse",
+        productionState.slopeMobilityResponse(),
+        "runoffMobilityResponse",
+        productionState.runoffMobilityResponse(),
+        "mobilizationPotential",
+        productionState.mobilizationPotential(),
+        "mobilizedFraction",
+        productionState.mobilizedFraction(),
+        "retainedFraction",
+        productionState.retainedFraction(),
+        "transportArrivalFraction",
+        productionState.transportArrivalFraction(),
+        "depositionFraction",
+        productionState.depositionFraction(),
+        "netDepositionFraction",
+        productionState.netDepositionFraction());
   }
 
   private static Map<String, Object> colluvialSinkStateJson(ColluvialSinkState sinkState) {

@@ -19,6 +19,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialCohesionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialGrainDispersionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialHorizonState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
+import io.github.crunchybubbles.geological.petrology.ColluvialProductionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceGrainShare;
@@ -174,6 +175,29 @@ class MaterialSchemaTest {
               + usage.depositedFixedUnits());
       assertEquals(usage.capacityFixedUnits(), usage.capacityGrainMass().totalFixedUnits());
       assertEquals(usage.depositedFixedUnits(), usage.depositedGrainMass().totalFixedUnits());
+    }
+    for (ColluvialSedimentBudget.InputBalance balance :
+        List.of(
+            budget.weatheredMatrixBalance(),
+            budget.sourceBalances().getFirst().balance(),
+            budget.sourceBalances().getLast().balance())) {
+      ColluvialProductionState production = balance.productionState();
+      assertTrue(production.weatheringAvailability() >= 0.0);
+      assertTrue(production.weatheringAvailability() <= 1.0);
+      assertTrue(production.mobilizationPotential() >= 0.0);
+      assertTrue(production.mobilizationPotential() <= 1.0);
+      assertEquals(
+          (double) balance.mobilizedFixedUnits() / balance.input().capacityFixedUnits(),
+          production.mobilizedFraction(),
+          1.0e-15);
+      assertEquals(
+          (double) balance.retainedFixedUnits() / balance.input().capacityFixedUnits(),
+          production.retainedFraction(),
+          1.0e-15);
+      assertEquals(
+          (double) balance.depositedFixedUnits() / balance.input().capacityFixedUnits(),
+          production.netDepositionFraction(),
+          1.0e-15);
     }
     assertEquals(
         MaterialAssemblage.SCALE,

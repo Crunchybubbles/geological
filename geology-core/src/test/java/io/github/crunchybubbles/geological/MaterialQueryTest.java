@@ -21,6 +21,7 @@ import io.github.crunchybubbles.geological.petrology.ClastShape;
 import io.github.crunchybubbles.geological.petrology.ColluvialCohesionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialGrainDispersionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialPhysicalState;
+import io.github.crunchybubbles.geological.petrology.ColluvialProductionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution;
@@ -65,7 +66,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.49", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.50", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1348,6 +1349,19 @@ class MaterialQueryTest {
       assertEquals(
           grainShare.depositedFixedUnits(), grainShare.depositedGrainMass().totalFixedUnits());
       assertTrue(grainShare.depositedFixedUnits() > 0);
+    }
+    for (ColluvialSedimentBudget.InputBalance balance :
+        sedimentBudget.sourceBalances().stream()
+            .map(ColluvialSedimentBudget.SourceBalance::balance)
+            .toList()) {
+      ColluvialProductionState production = balance.productionState();
+      assertTrue(production.mobilizationPotential() >= 0.0);
+      assertTrue(production.mobilizationPotential() <= 1.0);
+      assertTrue(production.transportArrivalFraction() >= 0.0);
+      assertTrue(production.transportArrivalFraction() <= 1.0);
+      assertTrue(production.depositionFraction() >= 0.0);
+      assertTrue(production.depositionFraction() <= 1.0);
+      assertTrue(production.netDepositionFraction() > 0.0);
     }
     assertEquals(
         sedimentBudget.sourceCapacityFixedUnits(),

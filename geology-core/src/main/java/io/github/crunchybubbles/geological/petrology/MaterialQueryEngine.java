@@ -701,6 +701,7 @@ public final class MaterialQueryEngine {
       StringBuilder purpose, ColluvialSedimentBudget.InputBalance balance) {
     ColluvialSedimentBudget.ProductionInput input = balance.input();
     ColluvialTransportProcess transportProcess = balance.transportProcess();
+    ColluvialProductionState productionState = balance.productionState();
     ColluvialSinkState sinkState = balance.sinkState();
     purpose
         .append(input.capacityFixedUnits())
@@ -722,6 +723,26 @@ public final class MaterialQueryEngine {
         .append(transportProcess.sheetwashScore())
         .append(':')
         .append(transportProcess.dryRavelScore())
+        .append(":production-state:")
+        .append(productionState.weatheringAvailability())
+        .append(':')
+        .append(productionState.erodibilityResponse())
+        .append(':')
+        .append(productionState.slopeMobilityResponse())
+        .append(':')
+        .append(productionState.runoffMobilityResponse())
+        .append(':')
+        .append(productionState.mobilizationPotential())
+        .append(':')
+        .append(productionState.mobilizedFraction())
+        .append(':')
+        .append(productionState.retainedFraction())
+        .append(':')
+        .append(productionState.transportArrivalFraction())
+        .append(':')
+        .append(productionState.depositionFraction())
+        .append(':')
+        .append(productionState.netDepositionFraction())
         .append(":sink-state:")
         .append(sinkState.transportLossSink().name())
         .append(':')

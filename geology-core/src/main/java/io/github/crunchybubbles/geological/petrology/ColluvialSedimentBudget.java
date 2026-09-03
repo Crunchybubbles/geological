@@ -958,6 +958,10 @@ public record ColluvialSedimentBudget(
       return ColluvialTransportProcess.from(input);
     }
 
+    public ColluvialProductionState productionState() {
+      return ColluvialProductionState.from(this);
+    }
+
     public ColluvialSinkState sinkState() {
       return ColluvialSinkState.from(this);
     }
