@@ -1317,12 +1317,7 @@ public final class MaterialQueryEngine {
             MagmaDifferentiationState.arcProofFor(index, List.of(province.geometry().basementId()));
         double progress =
             differentiationState.cumulativeCrystalFractionPpm() / (double) MaterialAssemblage.SCALE;
-        String fluidPotential =
-            switch (index) {
-              case 0 -> "moderate";
-              case 1 -> "high";
-              default -> "very_high";
-            };
+        String fluidPotential = differentiationState.residualFluidPotential().wireValue();
         return Optional.of(
             new MagmaLineageState(
                 province.proofIds().magmaLineageId(),

@@ -1917,7 +1917,11 @@ final class MaterialReviewPacketGenerator {
             "cumulativeCrystalFractionPpm",
             state.differentiationState().cumulativeCrystalFractionPpm(),
             "residualMeltFractionPpm",
-            state.differentiationState().residualMeltFractionPpm()));
+            state.differentiationState().residualMeltFractionPpm(),
+            "residualFluidPotential",
+            state.differentiationState().residualFluidPotential().name(),
+            "fertilityTags",
+            state.differentiationState().fertilityTags()));
   }
 
   private Map<String, Object> mantleCargoJson(MantleCargoState state) {
