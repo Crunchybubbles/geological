@@ -1243,7 +1243,14 @@ public final class MaterialQueryEngine {
           alteration.maximumTemperatureCelsius(),
           alteration.minimumPressureMpa(),
           alteration.maximumPressureMpa(),
-          events(province, EventType.CONTACT_METAMORPHISM));
+          events(province, EventType.CONTACT_METAMORPHISM),
+          MetamorphicProcessState.proofFor(
+              MetamorphicGrade.HIGH,
+              alteration.facies(),
+              alteration.path(),
+              alteration.processClass(),
+              alteration.replacementPpm(),
+              alteration.fluidState()));
     }
     if (rock.primaryMetamorphism().isPresent()) {
       PrimaryMetamorphicDefinition primary = rock.primaryMetamorphism().orElseThrow();
@@ -1256,7 +1263,14 @@ public final class MaterialQueryEngine {
           primary.maximumTemperatureCelsius(),
           primary.minimumPressureMpa(),
           primary.maximumPressureMpa(),
-          events(province, EventType.ESTABLISH_BASEMENT));
+          events(province, EventType.ESTABLISH_BASEMENT),
+          MetamorphicProcessState.proofFor(
+              primary.grade(),
+              primary.facies(),
+              primary.path(),
+              MaterialProcessClass.NONE,
+              0L,
+              Optional.empty()));
     }
     return new MetamorphicHistory(
         rock.id(),
@@ -1267,7 +1281,14 @@ public final class MaterialQueryEngine {
         alteration.maximumTemperatureCelsius(),
         alteration.minimumPressureMpa(),
         alteration.maximumPressureMpa(),
-        processEvents(province, alteration.processClass()));
+        processEvents(province, alteration.processClass()),
+        MetamorphicProcessState.proofFor(
+            MetamorphicGrade.NONE,
+            MetamorphicFacies.NONE,
+            MetamorphicPath.NONE,
+            alteration.processClass(),
+            alteration.replacementPpm(),
+            alteration.fluidState()));
   }
 
   private static Optional<MagmaLineageState> magmaLineage(

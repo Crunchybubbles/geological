@@ -49,6 +49,7 @@ import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
 import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
 import io.github.crunchybubbles.geological.petrology.MetamorphicGrade;
 import io.github.crunchybubbles.geological.petrology.MetamorphicPath;
+import io.github.crunchybubbles.geological.petrology.MetamorphicProcessState;
 import io.github.crunchybubbles.geological.petrology.ModalVariationAxis;
 import io.github.crunchybubbles.geological.petrology.PrimaryMetamorphicDefinition;
 import io.github.crunchybubbles.geological.petrology.ProcessFluidState;
@@ -67,6 +68,68 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class MaterialSchemaTest {
+  @Test
+  void metamorphicProcessStateSeparatesRegionalContactAndMassTransferPaths() {
+    MetamorphicProcessState regional =
+        MetamorphicProcessState.proofFor(
+            MetamorphicGrade.MEDIUM,
+            MetamorphicFacies.AMPHIBOLITE,
+            MetamorphicPath.COLLISION_CLOCKWISE,
+            MaterialProcessClass.NONE,
+            0L,
+            Optional.empty());
+    MetamorphicProcessState contact =
+        MetamorphicProcessState.proofFor(
+            MetamorphicGrade.HIGH,
+            MetamorphicFacies.HORNBLENDE_HORNFELS,
+            MetamorphicPath.CONTACT_LOW_P,
+            MaterialProcessClass.ISOCHEMICAL_METAMORPHISM,
+            0L,
+            Optional.empty());
+    MetamorphicProcessState altered =
+        MetamorphicProcessState.proofFor(
+            MetamorphicGrade.NONE,
+            MetamorphicFacies.NONE,
+            MetamorphicPath.NONE,
+            MaterialProcessClass.HYDROTHERMAL_METASOMATISM,
+            280_000L,
+            Optional.of(
+                new ProcessFluidState(
+                    FluidMedium.MAGMATIC_HYDROTHERMAL,
+                    RedoxClass.OXIDIZING,
+                    AcidityClass.NEAR_NEUTRAL,
+                    SalinityClass.MODERATE_BRINE,
+                    SulfurState.MIXED,
+                    new LigandCapacities(1, 1, 1, 0),
+                    2)));
+
+    assertEquals(
+        MetamorphicProcessState.BurialCurveClass.COLLISIONAL_THICKENING,
+        regional.burialCurveClass());
+    assertEquals(MetamorphicProcessState.StrainClass.NEMATOBLASTIC, regional.strainClass());
+    assertEquals(0L, regional.massTransferPpm());
+    assertEquals(
+        MetamorphicProcessState.BurialCurveClass.CONTACT_HEATING, contact.burialCurveClass());
+    assertEquals(
+        MetamorphicProcessState.StrainClass.THERMAL_RECRYSTALLIZATION, contact.strainClass());
+    assertEquals(0L, contact.massTransferPpm());
+    assertEquals(280_000L, altered.reactionProgressPpm());
+    assertEquals(280_000L, altered.massTransferPpm());
+    assertEquals(
+        MetamorphicProcessState.FluidAvailabilityClass.HYDROTHERMAL_FLOW,
+        altered.fluidAvailabilityClass());
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            MetamorphicProcessState.proofFor(
+                MetamorphicGrade.NONE,
+                MetamorphicFacies.NONE,
+                MetamorphicPath.NONE,
+                MaterialProcessClass.WEATHERING,
+                100_000L,
+                Optional.empty()));
+  }
+
   @Test
   void magmaDifferentiationStateClosesAndCanonicalizesSourceReservoirs() {
     StableId basement = StableId.parse("00000000000000000000000000000001");

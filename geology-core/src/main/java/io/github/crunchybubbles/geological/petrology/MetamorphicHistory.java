@@ -2,6 +2,7 @@ package io.github.crunchybubbles.geological.petrology;
 
 import io.github.crunchybubbles.geological.determinism.StableId;
 import java.util.List;
+import java.util.Optional;
 
 /** Compact P-T-t response attached to a resolved bulk-rock parcel. */
 public record MetamorphicHistory(
@@ -13,13 +14,39 @@ public record MetamorphicHistory(
     double maximumPeakTemperatureCelsius,
     double minimumPeakPressureMpa,
     double maximumPeakPressureMpa,
-    List<StableId> eventIds) {
+    List<StableId> eventIds,
+    MetamorphicProcessState processState) {
+  public MetamorphicHistory(
+      String protolithRockId,
+      MetamorphicGrade grade,
+      MetamorphicFacies facies,
+      MetamorphicPath path,
+      double minimumPeakTemperatureCelsius,
+      double maximumPeakTemperatureCelsius,
+      double minimumPeakPressureMpa,
+      double maximumPeakPressureMpa,
+      List<StableId> eventIds) {
+    this(
+        protolithRockId,
+        grade,
+        facies,
+        path,
+        minimumPeakTemperatureCelsius,
+        maximumPeakTemperatureCelsius,
+        minimumPeakPressureMpa,
+        maximumPeakPressureMpa,
+        eventIds,
+        MetamorphicProcessState.proofFor(
+            grade, facies, path, MaterialProcessClass.NONE, 0L, Optional.empty()));
+  }
+
   public MetamorphicHistory {
     if (protolithRockId == null
         || protolithRockId.isBlank()
         || grade == null
         || facies == null
-        || path == null) {
+        || path == null
+        || processState == null) {
       throw new IllegalArgumentException("metamorphic history identity must be complete");
     }
     boolean inactive =

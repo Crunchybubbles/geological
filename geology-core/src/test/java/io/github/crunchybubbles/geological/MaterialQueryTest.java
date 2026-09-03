@@ -53,6 +53,7 @@ import io.github.crunchybubbles.geological.petrology.MaterialQueryEngine;
 import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
 import io.github.crunchybubbles.geological.petrology.MetamorphicGrade;
 import io.github.crunchybubbles.geological.petrology.MetamorphicPath;
+import io.github.crunchybubbles.geological.petrology.MetamorphicProcessState;
 import io.github.crunchybubbles.geological.petrology.PetrologicColumnResult;
 import io.github.crunchybubbles.geological.petrology.PetrologicSample;
 import io.github.crunchybubbles.geological.petrology.PetrologicState;
@@ -79,7 +80,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.68", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.69", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -980,6 +981,16 @@ class MaterialQueryTest {
     assertEquals(MetamorphicGrade.MEDIUM, schist.metamorphism().grade());
     assertEquals(MetamorphicFacies.GREENSCHIST, slate.metamorphism().facies());
     assertEquals(MetamorphicFacies.AMPHIBOLITE, schist.metamorphism().facies());
+    assertEquals(
+        MetamorphicProcessState.BurialCurveClass.COLLISIONAL_THICKENING,
+        slate.metamorphism().processState().burialCurveClass());
+    assertEquals(
+        MetamorphicProcessState.StrainClass.DIRECTED_FOLIATION,
+        slate.metamorphism().processState().strainClass());
+    assertTrue(
+        slate.metamorphism().processState().reactionProgressPpm()
+            < schist.metamorphism().processState().reactionProgressPpm());
+    assertEquals(0L, slate.metamorphism().processState().massTransferPpm());
     assertTrue(
         slate.metamorphism().maximumPeakTemperatureCelsius()
             < schist.metamorphism().maximumPeakTemperatureCelsius());
@@ -1021,6 +1032,9 @@ class MaterialQueryTest {
     assertEquals(MetamorphicGrade.MEDIUM, amphibolite.metamorphism().grade());
     assertEquals(MetamorphicFacies.GREENSCHIST, greenschist.metamorphism().facies());
     assertEquals(MetamorphicFacies.AMPHIBOLITE, amphibolite.metamorphism().facies());
+    assertEquals(
+        MetamorphicProcessState.StrainClass.NEMATOBLASTIC,
+        amphibolite.metamorphism().processState().strainClass());
     assertTrue(
         greenschist.metamorphism().maximumPeakTemperatureCelsius()
             < amphibolite.metamorphism().maximumPeakTemperatureCelsius());
@@ -1075,6 +1089,9 @@ class MaterialQueryTest {
     assertEquals("geological:rock/basaltic", granulite.metamorphism().protolithRockId());
     assertEquals(MetamorphicGrade.HIGH, granulite.metamorphism().grade());
     assertEquals(MetamorphicFacies.GRANULITE, granulite.metamorphism().facies());
+    assertEquals(
+        MetamorphicProcessState.StrainClass.GRANOBLASTIC,
+        granulite.metamorphism().processState().strainClass());
     assertTrue(
         amphibolite.metamorphism().maximumPeakTemperatureCelsius()
             < granulite.metamorphism().maximumPeakTemperatureCelsius());
@@ -1179,6 +1196,12 @@ class MaterialQueryTest {
     assertEquals(MetamorphicGrade.LOW, serpentinite.metamorphism().grade());
     assertEquals(MetamorphicFacies.SUBGREENSCHIST, serpentinite.metamorphism().facies());
     assertEquals(MetamorphicPath.HYDROTHERMAL_HYDRATION, serpentinite.metamorphism().path());
+    assertEquals(
+        MetamorphicProcessState.BurialCurveClass.HYDROTHERMAL_HEATING,
+        serpentinite.metamorphism().processState().burialCurveClass());
+    assertEquals(
+        MetamorphicProcessState.FluidAvailabilityClass.HYDROTHERMAL_FLOW,
+        serpentinite.metamorphism().processState().fluidAvailabilityClass());
     assertEquals(RockTexture.SERPENTINIZED_MESH, serpentinite.resolvedTexture());
     assertEquals(MaterialProcessClass.NONE, serpentinite.processClass());
     assertTrue(
@@ -1207,6 +1230,13 @@ class MaterialQueryTest {
     PetrologicSample hornfels = query.resolve(province, contact);
     assertEquals(MetamorphicGrade.HIGH, hornfels.metamorphism().grade());
     assertEquals(MetamorphicFacies.HORNBLENDE_HORNFELS, hornfels.metamorphism().facies());
+    assertEquals(
+        MetamorphicProcessState.BurialCurveClass.CONTACT_HEATING,
+        hornfels.metamorphism().processState().burialCurveClass());
+    assertEquals(
+        MetamorphicProcessState.StrainClass.THERMAL_RECRYSTALLIZATION,
+        hornfels.metamorphism().processState().strainClass());
+    assertEquals(0L, hornfels.metamorphism().processState().massTransferPpm());
     assertEquals(MaterialProcessClass.ISOCHEMICAL_METAMORPHISM, hornfels.processClass());
     assertEquals(RockTexture.HORNFELSIC, hornfels.resolvedTexture());
     assertNotEquals(hornfels.rock().texture(), hornfels.resolvedTexture());
@@ -1229,6 +1259,10 @@ class MaterialQueryTest {
             Overprint.POTASSIC_ALTERATION);
     PetrologicSample altered = query.resolve(province, potassic);
     assertEquals(MaterialProcessClass.HYDROTHERMAL_METASOMATISM, altered.processClass());
+    assertEquals(
+        MetamorphicProcessState.FluidAvailabilityClass.HYDROTHERMAL_FLOW,
+        altered.metamorphism().processState().fluidAvailabilityClass());
+    assertEquals(300_000L, altered.metamorphism().processState().massTransferPpm());
     assertEquals(FluidMedium.MAGMATIC_HYDROTHERMAL, altered.fluidState().orElseThrow().medium());
     assertEquals(SalinityClass.CONCENTRATED_BRINE, altered.fluidState().orElseThrow().salinity());
     assertEquals(3, altered.fluidState().orElseThrow().ligandCapacities().chloride());
