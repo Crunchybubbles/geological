@@ -41,6 +41,8 @@ public final class MaterialQueryEngine {
   private static final int COLLUVIUM_NEAR_SOURCE_DISTANCE_BLOCKS = 96;
   private static final int COLLUVIUM_FAR_SOURCE_DISTANCE_BLOCKS = 192;
   private static final int COLLUVIUM_PATH_REACH_LENGTH_BLOCKS = 32;
+  private static final double COLLUVIUM_PATH_MAXIMUM_DEFLECTION_RADIANS =
+      StrictMath.toRadians(ColluvialSourceMix.MAXIMUM_ROUTE_DEFLECTION_DEGREES);
   private static final long COLLUVIUM_LOCAL_SOURCE_CAPACITY_FIXED_UNITS = 350_000L;
   private static final long COLLUVIUM_NEAR_SOURCE_CAPACITY_FIXED_UNITS = 200_000L;
   private static final long COLLUVIUM_FAR_SOURCE_CAPACITY_FIXED_UNITS = 100_000L;
@@ -161,10 +163,10 @@ public final class MaterialQueryEngine {
               trapped);
       material = resolve(province, surfaceGeology);
     } else if (formsColluvialMantle(surface)) {
-      Point2 upslopeDirection = terrainUpslopeDirection(surface);
+      Point2 initialUpslopeDirection = terrainUpslopeDirection(surface);
       RockDefinition colluviumRock = catalog.requireRock(Lithology.SOIL_COLLUVIUM);
       List<ColluvialSourceCandidate> sourceCandidates =
-          resolveColluvialSourceCandidates(surface, upslopeDirection);
+          resolveColluvialSourceCandidates(surface, initialUpslopeDirection);
       ColluvialSedimentBudget sedimentBudget =
           resolveColluvialSedimentBudget(surface, colluviumRock, sourceCandidates);
       List<ResolvedColluvialSource> sources =
@@ -180,7 +182,7 @@ public final class MaterialQueryEngine {
           sources.stream().map(ResolvedColluvialSource::contribution).toList();
       ColluvialSourceMix sourceMix =
           new ColluvialSourceMix(
-              upslopeDirection,
+              initialUpslopeDirection,
               sourceContributions,
               sedimentBudget.weatheredMatrixFractionPpm(),
               textureState,
@@ -253,16 +255,27 @@ public final class MaterialQueryEngine {
   }
 
   private List<ColluvialSourceCandidate> resolveColluvialSourceCandidates(
-      SurfaceSample surface, Point2 upslopeDirection) {
+      SurfaceSample surface, Point2 initialUpslopeDirection) {
     List<SurfaceSample> pathSurfaces = new ArrayList<>();
-    Point2 localPoint = surface.fields().point();
+    SurfaceSample currentSurface = surface;
+    Point2 reachDirection = initialUpslopeDirection;
     for (int distance = 0;
         distance <= COLLUVIUM_FAR_SOURCE_DISTANCE_BLOCKS;
         distance += COLLUVIUM_PATH_REACH_LENGTH_BLOCKS) {
-      pathSurfaces.add(
-          distance == 0
-              ? surface
-              : geology.surface(upslopePoint(localPoint, upslopeDirection, distance)));
+      pathSurfaces.add(currentSurface);
+      if (distance < COLLUVIUM_FAR_SOURCE_DISTANCE_BLOCKS) {
+        Point2 nextPoint =
+            upslopePoint(
+                currentSurface.fields().point(),
+                reachDirection,
+                COLLUVIUM_PATH_REACH_LENGTH_BLOCKS);
+        currentSurface = geology.surface(nextPoint);
+        if (distance + COLLUVIUM_PATH_REACH_LENGTH_BLOCKS < COLLUVIUM_FAR_SOURCE_DISTANCE_BLOCKS) {
+          reachDirection =
+              constrainRouteDirection(
+                  initialUpslopeDirection, terrainUpslopeDirection(currentSurface, reachDirection));
+        }
+      }
     }
     List<ColluvialSourceCandidate> sources = new ArrayList<>();
     sources.add(
@@ -292,12 +305,17 @@ public final class MaterialQueryEngine {
       samples.add(
           new ColluvialSedimentBudget.TerrainPathSample(
               index * COLLUVIUM_PATH_REACH_LENGTH_BLOCKS,
+              pathSurfaces.get(index).fields().point(),
               pathSurfaces.get(index).fields().elevation()));
     }
     return new ColluvialSedimentBudget.TerrainPath(COLLUVIUM_PATH_REACH_LENGTH_BLOCKS, samples);
   }
 
   private Point2 terrainUpslopeDirection(SurfaceSample surface) {
+    return terrainUpslopeDirection(surface, null);
+  }
+
+  private Point2 terrainUpslopeDirection(SurfaceSample surface, Point2 flatTerrainFallback) {
     Point2 point = surface.fields().point();
     double step = TERRAIN_GRADIENT_STEP_BLOCKS;
     double gradientX =
@@ -308,13 +326,32 @@ public final class MaterialQueryEngine {
             / (2.0 * step);
     double length = StrictMath.hypot(gradientX, gradientZ);
     if (length <= 1.0e-12) {
-      throw new IllegalStateException("colluvial terrain gradient must be non-zero");
+      if (flatTerrainFallback != null) {
+        return flatTerrainFallback;
+      }
+      throw new IllegalStateException("initial colluvial terrain gradient must be non-zero");
     }
     return new Point2(gradientX / length, gradientZ / length);
   }
 
   private double surfaceElevation(Point2 point) {
     return geology.surface(point).fields().elevation();
+  }
+
+  private static Point2 constrainRouteDirection(Point2 initialDirection, Point2 localDirection) {
+    double signedDeflection =
+        StrictMath.atan2(
+            initialDirection.x() * localDirection.z() - initialDirection.z() * localDirection.x(),
+            initialDirection.x() * localDirection.x() + initialDirection.z() * localDirection.z());
+    double boundedDeflection =
+        StrictMath.max(
+            -COLLUVIUM_PATH_MAXIMUM_DEFLECTION_RADIANS,
+            StrictMath.min(COLLUVIUM_PATH_MAXIMUM_DEFLECTION_RADIANS, signedDeflection));
+    double cosine = StrictMath.cos(boundedDeflection);
+    double sine = StrictMath.sin(boundedDeflection);
+    return new Point2(
+        initialDirection.x() * cosine - initialDirection.z() * sine,
+        initialDirection.x() * sine + initialDirection.z() * cosine);
   }
 
   private double terrainRoughnessIndex(SurfaceSample centerSurface) {

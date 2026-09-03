@@ -64,7 +64,9 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"terrainRoughnessIndex\""));
     assertTrue(firstJson.contains("\"terrainPath\""));
     assertTrue(firstJson.contains("\"reachLengthBlocks\": 32"));
-    assertTrue(firstJson.contains("\"elevationSamples\""));
+    assertTrue(firstJson.contains("\"straightLineDistanceBlocks\""));
+    assertTrue(firstJson.contains("\"maximumDeflectionFromInitialDegrees\""));
+    assertTrue(firstJson.contains("\"routeSamples\""));
     assertTrue(firstJson.contains("\"cumulativeDownslopeReliefBlocks\""));
     assertTrue(firstJson.contains("\"cumulativeBarrierReliefBlocks\""));
     assertTrue(firstJson.contains("\"descendingReachFraction\""));
@@ -76,7 +78,8 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"sourceBalances\""));
     assertTrue(firstJson.contains("\"normalizedDepositFractionPpm\""));
     assertTrue(firstJson.contains("\"sourceContributions\""));
-    assertTrue(firstJson.contains("\"upslopeDirection\""));
+    assertTrue(firstJson.contains("\"initialUpslopeDirection\""));
+    assertTrue(firstJson.contains("\"maximumRouteDeflectionDegrees\": 60.0"));
     assertTrue(firstJson.contains("\"sourcePoint\""));
     assertTrue(firstJson.contains("\"sourceProvinceId\""));
     assertTrue(firstJson.contains("\"upslopeDistanceBlocks\": 96"));

@@ -5,7 +5,7 @@ import io.github.crunchybubbles.geological.model.Lithology;
 import io.github.crunchybubbles.geological.model.Overprint;
 import io.github.crunchybubbles.geological.model.Point2;
 
-/** One bounded upslope sampling tranche contributing to a colluvial parcel. */
+/** One bounded routed source endpoint contributing to a colluvial parcel. */
 public record ColluvialSourceContribution(
     Point2 sourcePoint,
     StableId sourceProvinceId,

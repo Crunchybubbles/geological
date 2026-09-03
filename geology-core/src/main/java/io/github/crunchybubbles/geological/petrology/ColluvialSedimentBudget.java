@@ -1,6 +1,7 @@
 package io.github.crunchybubbles.geological.petrology;
 
 import io.github.crunchybubbles.geological.determinism.StableId;
+import io.github.crunchybubbles.geological.model.Point2;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -24,6 +25,7 @@ public record ColluvialSedimentBudget(
   private static final double MINIMUM_TRANSPORT_SLOPE_RESPONSE = 0.50;
   private static final double MINIMUM_TRANSPORT_ROUGHNESS_RESPONSE = 0.40;
   private static final double MINIMUM_TRANSPORT_PATH_RESPONSE = 0.50;
+  private static final double PATH_REACH_TOLERANCE_BLOCKS = 1.0e-6;
   private static final double GRAVEL_AND_COARSER_REFERENCE_E_FOLDING_DISTANCE_BLOCKS = 512.0;
   private static final double SAND_REFERENCE_E_FOLDING_DISTANCE_BLOCKS = 384.0;
   private static final double FINES_REFERENCE_E_FOLDING_DISTANCE_BLOCKS = 256.0;
@@ -58,6 +60,7 @@ public record ColluvialSedimentBudget(
     Set<Integer> distances = new HashSet<>();
     long capacity = weatheredMatrixBalance.input().capacityFixedUnits();
     long deposited = weatheredMatrixBalance.depositedFixedUnits();
+    TerrainPath previousPath = weatheredMatrixBalance.input().terrainPath();
     for (SourceBalance source : sourceBalances) {
       if (!distances.add(source.upslopeDistanceBlocks())) {
         throw new IllegalArgumentException("colluvial sediment source distances must be unique");
@@ -72,6 +75,11 @@ public record ColluvialSedimentBudget(
       if (source.balance().depositedFixedUnits() <= 0) {
         throw new IllegalArgumentException("each colluvial source must contribute deposited mass");
       }
+      TerrainPath sourcePath = source.balance().input().terrainPath();
+      if (!extendsTerrainPath(sourcePath, previousPath)) {
+        throw new IllegalArgumentException("colluvial source paths must extend one shared route");
+      }
+      previousPath = sourcePath;
       capacity = Math.addExact(capacity, source.balance().input().capacityFixedUnits());
       deposited = Math.addExact(deposited, source.balance().depositedFixedUnits());
     }
@@ -356,6 +364,12 @@ public record ColluvialSedimentBudget(
     return StrictMath.max(0.0, StrictMath.min(1.0, value));
   }
 
+  private static boolean extendsTerrainPath(TerrainPath path, TerrainPath prefix) {
+    return path.reachLengthBlocks() == prefix.reachLengthBlocks()
+        && path.samples().size() >= prefix.samples().size()
+        && path.samples().subList(0, prefix.samples().size()).equals(prefix.samples());
+  }
+
   /** Inputs controlling production, path-conditioned transport, and initial grain spectrum. */
   public record ProductionInput(
       long capacityFixedUnits,
@@ -389,10 +403,10 @@ public record ColluvialSedimentBudget(
     SLOPE_ROUGHNESS_PATH_CONDITIONED_DRY_RAVEL_PROOF
   }
 
-  /** One elevation observation along the straight, bounded source-to-deposition proof path. */
-  public record TerrainPathSample(int upslopeDistanceBlocks, double elevation) {
+  /** One positioned elevation observation along the bounded source route. */
+  public record TerrainPathSample(int upslopeDistanceBlocks, Point2 point, double elevation) {
     public TerrainPathSample {
-      if (upslopeDistanceBlocks < 0 || !Double.isFinite(elevation)) {
+      if (upslopeDistanceBlocks < 0 || point == null || !Double.isFinite(elevation)) {
         throw new IllegalArgumentException("colluvial terrain-path sample is invalid");
       }
     }
@@ -423,6 +437,15 @@ public record ColluvialSedimentBudget(
           if (!Double.isFinite(relief) || !Double.isFinite(cumulativeRelief)) {
             throw new IllegalArgumentException("colluvial terrain-path relief must be finite");
           }
+          Point2 previousPoint = samples.get(index - 1).point();
+          double reachDistance =
+              StrictMath.hypot(
+                  sample.point().x() - previousPoint.x(), sample.point().z() - previousPoint.z());
+          if (!Double.isFinite(reachDistance)
+              || StrictMath.abs(reachDistance - reachLengthBlocks) > PATH_REACH_TOLERANCE_BLOCKS) {
+            throw new IllegalArgumentException(
+                "colluvial terrain-path geometry must match its reach length");
+          }
         }
       }
     }
@@ -433,6 +456,40 @@ public record ColluvialSedimentBudget(
 
     public int reachCount() {
       return samples.size() - 1;
+    }
+
+    public Point2 originPoint() {
+      return samples.getFirst().point();
+    }
+
+    public Point2 sourcePoint() {
+      return samples.getLast().point();
+    }
+
+    public double straightLineDistanceBlocks() {
+      return StrictMath.hypot(
+          sourcePoint().x() - originPoint().x(), sourcePoint().z() - originPoint().z());
+    }
+
+    public double maximumDeflectionFromInitialDegrees() {
+      if (reachCount() <= 1) {
+        return 0.0;
+      }
+      Point2 origin = samples.getFirst().point();
+      Point2 firstReach = samples.get(1).point();
+      double initialX = (firstReach.x() - origin.x()) / reachLengthBlocks;
+      double initialZ = (firstReach.z() - origin.z()) / reachLengthBlocks;
+      double maximumRadians = 0.0;
+      for (int index = 2; index < samples.size(); index++) {
+        Point2 previous = samples.get(index - 1).point();
+        Point2 current = samples.get(index).point();
+        double directionX = (current.x() - previous.x()) / reachLengthBlocks;
+        double directionZ = (current.z() - previous.z()) / reachLengthBlocks;
+        double cosine = initialX * directionX + initialZ * directionZ;
+        double deflection = StrictMath.acos(StrictMath.max(-1.0, StrictMath.min(1.0, cosine)));
+        maximumRadians = StrictMath.max(maximumRadians, deflection);
+      }
+      return StrictMath.toDegrees(maximumRadians);
     }
 
     public double cumulativeDownslopeReliefBlocks() {

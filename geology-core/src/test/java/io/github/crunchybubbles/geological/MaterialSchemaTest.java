@@ -9,6 +9,7 @@ import io.github.crunchybubbles.geological.determinism.StableId;
 import io.github.crunchybubbles.geological.determinism.WorldIdentity;
 import io.github.crunchybubbles.geological.model.Lithology;
 import io.github.crunchybubbles.geological.model.Overprint;
+import io.github.crunchybubbles.geological.model.Point2;
 import io.github.crunchybubbles.geological.petrology.AcidityClass;
 import io.github.crunchybubbles.geological.petrology.AlterationAssemblageRecipe;
 import io.github.crunchybubbles.geological.petrology.AlterationDefinition;
@@ -204,6 +205,7 @@ class MaterialSchemaTest {
     assertEquals(2.0, farPath.cumulativeBarrierReliefBlocks());
     assertEquals(2.0 / 3.0, farPath.descendingReachFraction());
     assertEquals(47.0 / 60.0, farPath.downslopeContinuityIndex(), 1.0e-15);
+    assertEquals(192.0, farPath.straightLineDistanceBlocks());
     assertEquals(107.0 / 120.0, farBalance.transportPathResponse(), 1.0e-15);
     assertEquals(0.5684375, farBalance.transportDistanceScale(), 1.0e-15);
     assertEquals(291.04, farBalance.grainTransportLengths().gravelAndCoarserBlocks(), 1.0e-12);
@@ -314,6 +316,17 @@ class MaterialSchemaTest {
                 connectedSource.depositedGrainMass().gravelAndCoarserFixedUnits(),
                 barrierSource.depositedFixedUnits()));
 
+    ColluvialSedimentBudget.TerrainPath curvedPath =
+        new ColluvialSedimentBudget.TerrainPath(
+            32,
+            List.of(
+                new ColluvialSedimentBudget.TerrainPathSample(0, new Point2(0.0, 0.0), 100.0),
+                new ColluvialSedimentBudget.TerrainPathSample(32, new Point2(32.0, 0.0), 104.0),
+                new ColluvialSedimentBudget.TerrainPathSample(64, new Point2(32.0, 32.0), 108.0)));
+    assertEquals(64, curvedPath.distanceBlocks());
+    assertEquals(StrictMath.sqrt(2.0) * 32.0, curvedPath.straightLineDistanceBlocks(), 1.0e-12);
+    assertEquals(90.0, curvedPath.maximumDeflectionFromInitialDegrees(), 1.0e-12);
+
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -330,16 +343,28 @@ class MaterialSchemaTest {
             new ColluvialSedimentBudget.TerrainPath(
                 32,
                 List.of(
-                    new ColluvialSedimentBudget.TerrainPathSample(0, 100.0),
-                    new ColluvialSedimentBudget.TerrainPathSample(64, 104.0))));
+                    new ColluvialSedimentBudget.TerrainPathSample(0, new Point2(0.0, 0.0), 100.0),
+                    new ColluvialSedimentBudget.TerrainPathSample(
+                        64, new Point2(64.0, 0.0), 104.0))));
     assertThrows(
         IllegalArgumentException.class,
         () ->
             new ColluvialSedimentBudget.TerrainPath(
                 32,
                 List.of(
-                    new ColluvialSedimentBudget.TerrainPathSample(0, -Double.MAX_VALUE),
-                    new ColluvialSedimentBudget.TerrainPathSample(32, Double.MAX_VALUE))));
+                    new ColluvialSedimentBudget.TerrainPathSample(
+                        0, new Point2(0.0, 0.0), -Double.MAX_VALUE),
+                    new ColluvialSedimentBudget.TerrainPathSample(
+                        32, new Point2(32.0, 0.0), Double.MAX_VALUE))));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialSedimentBudget.TerrainPath(
+                32,
+                List.of(
+                    new ColluvialSedimentBudget.TerrainPathSample(0, new Point2(0.0, 0.0), 100.0),
+                    new ColluvialSedimentBudget.TerrainPathSample(
+                        32, new Point2(31.0, 0.0), 104.0))));
     assertThrows(
         IllegalArgumentException.class, () -> new ColluvialSedimentBudget.GrainMass(-1L, 1L, 0L));
     assertThrows(
@@ -359,6 +384,21 @@ class MaterialSchemaTest {
                 List.of(
                     localInput,
                     new ColluvialSedimentBudget.SourceProductionInput(far, 0, farInput.input()))));
+    ColluvialSedimentBudget.TerrainPath shiftedFarPath =
+        terrainPath(new Point2(1.0, 0.0), 100.0, 104.0, 103.0, 109.0, 108.0, 112.0, 116.0);
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            ColluvialSedimentBudget.derive(
+                0.12,
+                matrix,
+                List.of(
+                    localInput,
+                    new ColluvialSedimentBudget.SourceProductionInput(
+                        far,
+                        192,
+                        new ColluvialSedimentBudget.ProductionInput(
+                            300_000L, 8.0, 0.12, 0.8, 0.25, shiftedFarPath, grainYield)))));
   }
 
   private static ColluvialSedimentBudget singleSourceBudget(
@@ -441,9 +481,16 @@ class MaterialSchemaTest {
   }
 
   private static ColluvialSedimentBudget.TerrainPath terrainPath(double... elevations) {
+    return terrainPath(new Point2(0.0, 0.0), elevations);
+  }
+
+  private static ColluvialSedimentBudget.TerrainPath terrainPath(
+      Point2 origin, double... elevations) {
     List<ColluvialSedimentBudget.TerrainPathSample> samples = new java.util.ArrayList<>();
     for (int index = 0; index < elevations.length; index++) {
-      samples.add(new ColluvialSedimentBudget.TerrainPathSample(index * 32, elevations[index]));
+      samples.add(
+          new ColluvialSedimentBudget.TerrainPathSample(
+              index * 32, origin.add(index * 32.0, 0.0), elevations[index]));
     }
     return new ColluvialSedimentBudget.TerrainPath(32, samples);
   }

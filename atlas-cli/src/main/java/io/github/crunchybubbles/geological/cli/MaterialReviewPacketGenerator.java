@@ -534,8 +534,10 @@ final class MaterialReviewPacketGenerator {
 
   private static Map<String, Object> colluvialSourceMixJson(ColluvialSourceMix mix) {
     return JsonWriter.object(
-        "upslopeDirection",
-        pointJson(mix.upslopeDirection()),
+        "initialUpslopeDirection",
+        pointJson(mix.initialUpslopeDirection()),
+        "maximumRouteDeflectionDegrees",
+        ColluvialSourceMix.MAXIMUM_ROUTE_DEFLECTION_DEGREES,
         "sourceAssemblageFractionPpm",
         mix.sourceAssemblageFractionPpm(),
         "weatheredMatrixFractionPpm",
@@ -710,13 +712,19 @@ final class MaterialReviewPacketGenerator {
         path.distanceBlocks(),
         "reachCount",
         path.reachCount(),
-        "elevationSamples",
+        "straightLineDistanceBlocks",
+        path.straightLineDistanceBlocks(),
+        "maximumDeflectionFromInitialDegrees",
+        path.maximumDeflectionFromInitialDegrees(),
+        "routeSamples",
         path.samples().stream()
             .map(
                 sample ->
                     JsonWriter.object(
                         "upslopeDistanceBlocks",
                         sample.upslopeDistanceBlocks(),
+                        "point",
+                        pointJson(sample.point()),
                         "elevation",
                         sample.elevation()))
             .toList(),

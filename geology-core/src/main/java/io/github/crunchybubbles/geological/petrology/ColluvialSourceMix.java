@@ -5,29 +5,33 @@ import io.github.crunchybubbles.geological.model.Point2;
 import java.util.Comparator;
 import java.util.List;
 
-/** Exact proof-level mixture of bounded source samples and generic weathered matrix. */
+/** Exact proof-level mixture along one bounded adaptive terrain route. */
 public record ColluvialSourceMix(
-    Point2 upslopeDirection,
+    Point2 initialUpslopeDirection,
     List<ColluvialSourceContribution> sourceContributions,
     long weatheredMatrixFractionPpm,
     ColluvialTextureState textureState,
     ColluvialPhysicalState physicalState,
     ColluvialSedimentBudget sedimentBudget) {
+  public static final double MAXIMUM_ROUTE_DEFLECTION_DEGREES = 60.0;
+
   public ColluvialSourceMix {
-    if (upslopeDirection == null
+    if (initialUpslopeDirection == null
         || sourceContributions == null
         || textureState == null
         || physicalState == null
         || sedimentBudget == null) {
       throw new IllegalArgumentException(
-          "colluvial direction, sources, texture, physical state, and budget are required");
+          "colluvial initial direction, sources, texture, physical state, and budget are required");
     }
     if (!textureState.equals(physicalState.textureState())) {
       throw new IllegalArgumentException("colluvial texture and physical state must agree");
     }
-    double directionLength = StrictMath.hypot(upslopeDirection.x(), upslopeDirection.z());
+    double directionLength =
+        StrictMath.hypot(initialUpslopeDirection.x(), initialUpslopeDirection.z());
     if (StrictMath.abs(directionLength - 1.0) > 1.0e-12) {
-      throw new IllegalArgumentException("colluvial upslope direction must be a unit vector");
+      throw new IllegalArgumentException(
+          "colluvial initial upslope direction must be a unit vector");
     }
     sourceContributions =
         List.copyOf(sourceContributions).stream()
@@ -40,17 +44,6 @@ public record ColluvialSourceMix(
     if (sourceContributions.isEmpty()
         || sourceContributions.getFirst().upslopeDistanceBlocks() != 0) {
       throw new IllegalArgumentException("colluvial mixture must include its local source");
-    }
-    Point2 localPoint = sourceContributions.getFirst().sourcePoint();
-    for (ColluvialSourceContribution contribution : sourceContributions) {
-      Point2 expected =
-          localPoint.add(
-              upslopeDirection.x() * contribution.upslopeDistanceBlocks(),
-              upslopeDirection.z() * contribution.upslopeDistanceBlocks());
-      if (!expected.equals(contribution.sourcePoint())) {
-        throw new IllegalArgumentException(
-            "colluvial source point must follow its exact upslope distance");
-      }
     }
     if (sourceContributions.stream()
             .map(ColluvialSourceContribution::upslopeDistanceBlocks)
@@ -70,6 +63,39 @@ public record ColluvialSourceMix(
     }
     if (!sedimentBudget.matches(sourceContributions, weatheredMatrixFractionPpm)) {
       throw new IllegalArgumentException("colluvial sediment budget must match the source mixture");
+    }
+    List<ColluvialSedimentBudget.SourceBalance> sourceBalances = sedimentBudget.sourceBalances();
+    for (int index = 0; index < sourceContributions.size(); index++) {
+      if (!sourceBalances
+          .get(index)
+          .balance()
+          .input()
+          .terrainPath()
+          .sourcePoint()
+          .equals(sourceContributions.get(index).sourcePoint())) {
+        throw new IllegalArgumentException(
+            "colluvial source point must terminate its sediment path");
+      }
+    }
+    ColluvialSedimentBudget.TerrainPath longestPath =
+        sourceBalances.getLast().balance().input().terrainPath();
+    if (longestPath.maximumDeflectionFromInitialDegrees()
+        > MAXIMUM_ROUTE_DEFLECTION_DEGREES + 1.0e-8) {
+      throw new IllegalArgumentException(
+          "colluvial route exceeds its maximum deflection from the initial direction");
+    }
+    if (longestPath.reachCount() > 0) {
+      Point2 origin = longestPath.samples().getFirst().point();
+      Point2 next = longestPath.samples().get(1).point();
+      double routedDirectionX = (next.x() - origin.x()) / longestPath.reachLengthBlocks();
+      double routedDirectionZ = (next.z() - origin.z()) / longestPath.reachLengthBlocks();
+      if (StrictMath.hypot(
+              routedDirectionX - initialUpslopeDirection.x(),
+              routedDirectionZ - initialUpslopeDirection.z())
+          > 1.0e-9) {
+        throw new IllegalArgumentException(
+            "colluvial initial direction must match the first routed reach");
+      }
     }
     if (!textureState.grainSize().equals(sedimentBudget.depositedGrainSize())) {
       throw new IllegalArgumentException(

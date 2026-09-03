@@ -58,7 +58,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.34", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.35", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1262,7 +1262,8 @@ class MaterialQueryTest {
         sourceMix.sourceAssemblageFractionPpm() + sourceMix.weatheredMatrixFractionPpm());
     assertEquals(
         1.0,
-        StrictMath.hypot(sourceMix.upslopeDirection().x(), sourceMix.upslopeDirection().z()),
+        StrictMath.hypot(
+            sourceMix.initialUpslopeDirection().x(), sourceMix.initialUpslopeDirection().z()),
         1.0e-12);
     double gradientX =
         (query.geology().surface(point.add(4.0, 0.0)).fields().elevation()
@@ -1275,7 +1276,7 @@ class MaterialQueryTest {
     double gradientLength = StrictMath.hypot(gradientX, gradientZ);
     assertEquals(
         new Point2(gradientX / gradientLength, gradientZ / gradientLength),
-        sourceMix.upslopeDirection());
+        sourceMix.initialUpslopeDirection());
     assertEquals(
         List.of(0, 96, 192),
         sourceMix.sourceContributions().stream()
@@ -1304,7 +1305,7 @@ class MaterialQueryTest {
         sedimentBudget.weatheredMatrixBalance().input().terrainRoughnessIndex(),
         1.0e-15);
     assertEquals(
-        expectedTerrainPath(query, point, sourceMix.upslopeDirection(), 0),
+        expectedTerrainPath(query, point, 0),
         sedimentBudget.weatheredMatrixBalance().input().terrainPath());
     assertEquals(
         sedimentBudget.mobilizedInventoryFixedUnits(),
@@ -1359,11 +1360,11 @@ class MaterialQueryTest {
         new SedimentGrainSize.Share(
             query.catalog().requireRock(Lithology.SOIL_COLLUVIUM).sedimentYield(),
             sourceMix.weatheredMatrixFractionPpm()));
+    boolean observedCurvedRoute = false;
     for (ColluvialSourceContribution contribution : sourceMix.sourceContributions()) {
-      Point2 expectedSourcePoint =
-          point.add(
-              sourceMix.upslopeDirection().x() * contribution.upslopeDistanceBlocks(),
-              sourceMix.upslopeDirection().z() * contribution.upslopeDistanceBlocks());
+      ColluvialSedimentBudget.TerrainPath expectedPath =
+          expectedTerrainPath(query, point, contribution.upslopeDistanceBlocks());
+      Point2 expectedSourcePoint = expectedPath.sourcePoint();
       assertEquals(expectedSourcePoint, contribution.sourcePoint());
       Point2 sourcePoint = contribution.sourcePoint();
       var sourceSurface = query.geology().surface(sourcePoint);
@@ -1392,16 +1393,26 @@ class MaterialQueryTest {
           1.0e-15);
       assertTrue(sourceBalance.balance().input().terrainRoughnessIndex() >= 0.0);
       assertTrue(sourceBalance.balance().input().terrainRoughnessIndex() <= 1.0);
-      ColluvialSedimentBudget.TerrainPath expectedPath =
-          expectedTerrainPath(
-              query, point, sourceMix.upslopeDirection(), contribution.upslopeDistanceBlocks());
       assertEquals(expectedPath, sourceBalance.balance().input().terrainPath());
+      assertEquals(contribution.sourcePoint(), expectedPath.sourcePoint());
       assertEquals(
           contribution.upslopeDistanceBlocks(),
           sourceBalance.balance().input().terrainPath().distanceBlocks());
       assertEquals(
           contribution.upslopeDistanceBlocks() / 32,
           sourceBalance.balance().input().terrainPath().reachCount());
+      assertTrue(
+          sourceBalance.balance().input().terrainPath().straightLineDistanceBlocks()
+              <= contribution.upslopeDistanceBlocks() + 1.0e-6);
+      assertTrue(
+          sourceBalance.balance().input().terrainPath().straightLineDistanceBlocks()
+              >= contribution.upslopeDistanceBlocks() * 0.5 - 1.0e-6);
+      assertTrue(
+          sourceBalance.balance().input().terrainPath().maximumDeflectionFromInitialDegrees()
+              <= 60.0 + 1.0e-8);
+      observedCurvedRoute |=
+          sourceBalance.balance().input().terrainPath().straightLineDistanceBlocks()
+              < contribution.upslopeDistanceBlocks() - 1.0e-6;
       assertTrue(sourceBalance.balance().input().terrainPath().downslopeContinuityIndex() >= 0.0);
       assertTrue(sourceBalance.balance().input().terrainPath().downslopeContinuityIndex() <= 1.0);
       assertTrue(sourceBalance.balance().transportPathResponse() >= 0.50);
@@ -1433,6 +1444,7 @@ class MaterialQueryTest {
               query.catalog().requireRock(contribution.sourceLithology()).sedimentYield(),
               contribution.assemblageFractionPpm()));
     }
+    assertTrue(observedCurvedRoute);
     MaterialAssemblage expected = MaterialAssemblage.weightedBlend(shares);
     assertEquals(expected, transported.material().primaryAssemblage());
     assertEquals(expected, transported.material().resolvedAssemblage());
@@ -1530,7 +1542,7 @@ class MaterialQueryTest {
     UnitIntervalDistribution distribution = new UnitIntervalDistribution(0.1, 0.4, 0.8);
     ColluvialPhysicalState physical =
         ColluvialPhysicalState.derive(texture, distribution, distribution, distribution);
-    ColluvialSedimentBudget.TerrainPath localPath = localTerrainPath(80.0);
+    ColluvialSedimentBudget.TerrainPath localPath = localTerrainPath(sourcePoint, 80.0);
     ColluvialSedimentBudget.ProductionInput matrixInput =
         new ColluvialSedimentBudget.ProductionInput(
             350_000L, 12.0, 0.24, 1.0, 0.0, localPath, texture.grainSize());
@@ -1607,6 +1619,64 @@ class MaterialQueryTest {
         () ->
             new ColluvialSourceMix(
                 new Point2(0.5, 0.0), List.of(local), 350_000L, texture, physical, budget));
+
+    ColluvialSedimentBudget.TerrainPath overDeflectedPath =
+        new ColluvialSedimentBudget.TerrainPath(
+            32,
+            List.of(
+                new ColluvialSedimentBudget.TerrainPathSample(0, sourcePoint, 80.0),
+                new ColluvialSedimentBudget.TerrainPathSample(32, sourcePoint.add(32.0, 0.0), 84.0),
+                new ColluvialSedimentBudget.TerrainPathSample(
+                    64, sourcePoint.add(32.0, 32.0), 88.0)));
+    ColluvialSedimentBudget overDeflectedBudget =
+        ColluvialSedimentBudget.derive(
+            0.0,
+            matrixInput,
+            List.of(
+                new ColluvialSedimentBudget.SourceProductionInput(
+                    source,
+                    0,
+                    new ColluvialSedimentBudget.ProductionInput(
+                        350_000L, 12.0, 0.24, 1.0, 0.0, localPath, texture.grainSize())),
+                new ColluvialSedimentBudget.SourceProductionInput(
+                    source,
+                    64,
+                    new ColluvialSedimentBudget.ProductionInput(
+                        300_000L, 12.0, 0.24, 1.0, 0.0, overDeflectedPath, texture.grainSize()))));
+    ColluvialTextureState overDeflectedTexture =
+        ColluvialTextureState.from(overDeflectedBudget.depositedGrainSize());
+    ColluvialPhysicalState overDeflectedPhysical =
+        ColluvialPhysicalState.derive(
+            overDeflectedTexture, distribution, distribution, distribution);
+    List<ColluvialSourceContribution> overDeflectedContributions =
+        List.of(
+            new ColluvialSourceContribution(
+                sourcePoint,
+                province,
+                source,
+                Lithology.GRANITIC_GNEISS,
+                Overprint.NONE,
+                0,
+                overDeflectedBudget.sourceFractionPpm(source, 0)),
+            new ColluvialSourceContribution(
+                overDeflectedPath.sourcePoint(),
+                province,
+                source,
+                Lithology.GRANITIC_GNEISS,
+                Overprint.NONE,
+                64,
+                overDeflectedBudget.sourceFractionPpm(source, 64)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialSourceMix(
+                direction,
+                overDeflectedContributions,
+                overDeflectedBudget.weatheredMatrixFractionPpm(),
+                overDeflectedTexture,
+                overDeflectedPhysical,
+                overDeflectedBudget));
+
     ColluvialSourceContribution misplaced =
         new ColluvialSourceContribution(
             sourcePoint.add(95.0, 0.0),
@@ -1742,22 +1812,66 @@ class MaterialQueryTest {
     return residual * residual;
   }
 
-  private static ColluvialSedimentBudget.TerrainPath localTerrainPath(double elevation) {
+  private static ColluvialSedimentBudget.TerrainPath localTerrainPath(
+      Point2 point, double elevation) {
     return new ColluvialSedimentBudget.TerrainPath(
-        32, List.of(new ColluvialSedimentBudget.TerrainPathSample(0, elevation)));
+        32, List.of(new ColluvialSedimentBudget.TerrainPathSample(0, point, elevation)));
   }
 
   private static ColluvialSedimentBudget.TerrainPath expectedTerrainPath(
-      MaterialQueryEngine query, Point2 origin, Point2 upslopeDirection, int distanceBlocks) {
+      MaterialQueryEngine query, Point2 origin, int distanceBlocks) {
     List<ColluvialSedimentBudget.TerrainPathSample> samples = new ArrayList<>();
+    Point2 samplePoint = origin;
+    Point2 previousDirection = null;
+    Point2 initialDirection = null;
     for (int distance = 0; distance <= distanceBlocks; distance += 32) {
-      Point2 samplePoint =
-          origin.add(upslopeDirection.x() * distance, upslopeDirection.z() * distance);
       samples.add(
           new ColluvialSedimentBudget.TerrainPathSample(
-              distance, query.geology().surface(samplePoint).fields().elevation()));
+              distance, samplePoint, query.geology().surface(samplePoint).fields().elevation()));
+      if (distance < distanceBlocks) {
+        Point2 direction = expectedTerrainUpslopeDirection(query, samplePoint, previousDirection);
+        if (initialDirection == null) {
+          initialDirection = direction;
+        } else {
+          direction = constrainExpectedRouteDirection(initialDirection, direction);
+        }
+        samplePoint = samplePoint.add(direction.x() * 32.0, direction.z() * 32.0);
+        previousDirection = direction;
+      }
     }
     return new ColluvialSedimentBudget.TerrainPath(32, samples);
+  }
+
+  private static Point2 expectedTerrainUpslopeDirection(
+      MaterialQueryEngine query, Point2 point, Point2 flatTerrainFallback) {
+    double gradientX =
+        (query.geology().surface(point.add(4.0, 0.0)).fields().elevation()
+                - query.geology().surface(point.add(-4.0, 0.0)).fields().elevation())
+            / 8.0;
+    double gradientZ =
+        (query.geology().surface(point.add(0.0, 4.0)).fields().elevation()
+                - query.geology().surface(point.add(0.0, -4.0)).fields().elevation())
+            / 8.0;
+    double gradientLength = StrictMath.hypot(gradientX, gradientZ);
+    if (gradientLength <= 1.0e-12) {
+      return Objects.requireNonNull(flatTerrainFallback, "initial test gradient must be non-zero");
+    }
+    return new Point2(gradientX / gradientLength, gradientZ / gradientLength);
+  }
+
+  private static Point2 constrainExpectedRouteDirection(
+      Point2 initialDirection, Point2 localDirection) {
+    double signedDeflection =
+        StrictMath.atan2(
+            initialDirection.x() * localDirection.z() - initialDirection.z() * localDirection.x(),
+            initialDirection.x() * localDirection.x() + initialDirection.z() * localDirection.z());
+    double boundedDeflection =
+        StrictMath.max(-StrictMath.PI / 3.0, StrictMath.min(StrictMath.PI / 3.0, signedDeflection));
+    double cosine = StrictMath.cos(boundedDeflection);
+    double sine = StrictMath.sin(boundedDeflection);
+    return new Point2(
+        initialDirection.x() * cosine - initialDirection.z() * sine,
+        initialDirection.x() * sine + initialDirection.z() * cosine);
   }
 
   private static GeologicalSample sample(
