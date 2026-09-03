@@ -1,5 +1,8 @@
 package io.github.crunchybubbles.geological.petrology;
 
+import java.util.HashSet;
+import java.util.List;
+
 /** Bounded reaction-family and volatile/melt-response evidence for one metamorphic path. */
 public record MetamorphicReactionState(
     ReactionMechanism reactionMechanism,
@@ -7,11 +10,32 @@ public record MetamorphicReactionState(
     long dehydrationPpm,
     long decarbonationPpm,
     long partialMeltingPpm,
-    SerpentinizationBalance serpentinizationBalance) {
+    SerpentinizationBalance serpentinizationBalance,
+    List<MetamorphicFluidContribution> fluidContributions) {
+  /** Compatibility constructor for callers without typed fluid evidence. */
+  public MetamorphicReactionState(
+      ReactionMechanism reactionMechanism,
+      RetrogressionClass retrogressionClass,
+      long dehydrationPpm,
+      long decarbonationPpm,
+      long partialMeltingPpm,
+      SerpentinizationBalance serpentinizationBalance) {
+    this(
+        reactionMechanism,
+        retrogressionClass,
+        dehydrationPpm,
+        decarbonationPpm,
+        partialMeltingPpm,
+        serpentinizationBalance,
+        proofFluidContributions(
+            reactionMechanism, dehydrationPpm, decarbonationPpm, serpentinizationBalance));
+  }
+
   public MetamorphicReactionState {
     if (reactionMechanism == null
         || retrogressionClass == null
         || serpentinizationBalance == null
+        || fluidContributions == null
         || dehydrationPpm < 0
         || dehydrationPpm > MaterialAssemblage.SCALE
         || decarbonationPpm < 0
@@ -26,6 +50,32 @@ public record MetamorphicReactionState(
       throw new IllegalArgumentException(
           "only a serpentinization reaction may produce serpentine product");
     }
+    if (fluidContributions.stream().anyMatch(java.util.Objects::isNull)) {
+      throw new IllegalArgumentException("metamorphic fluid contributions may not be null");
+    }
+    fluidContributions =
+        List.copyOf(fluidContributions).stream()
+            .sorted(
+                java.util.Comparator.comparing(MetamorphicFluidContribution::fluidSpecies)
+                    .thenComparing(MetamorphicFluidContribution::direction))
+            .toList();
+    if (fluidContributions.size()
+        != new HashSet<>(
+                fluidContributions.stream()
+                    .map(
+                        contribution ->
+                            contribution.fluidSpecies().name() + ":" + contribution.direction())
+                    .toList())
+            .size()) {
+      throw new IllegalArgumentException("metamorphic fluid contributions must be unique");
+    }
+    validateFluidSpecies(reactionMechanism, fluidContributions);
+    validateFluidContributions(
+        reactionMechanism,
+        dehydrationPpm,
+        decarbonationPpm,
+        serpentinizationBalance,
+        fluidContributions);
   }
 
   public static MetamorphicReactionState none() {
@@ -35,7 +85,8 @@ public record MetamorphicReactionState(
         0L,
         0L,
         0L,
-        SerpentinizationBalance.none());
+        SerpentinizationBalance.none(),
+        List.of());
   }
 
   /** Derives the bounded proof response from existing grade, path, and process classes. */
@@ -60,7 +111,9 @@ public record MetamorphicReactionState(
           0L,
           0L,
           0L,
-          SerpentinizationBalance.proof());
+          SerpentinizationBalance.proof(),
+          proofFluidContributions(
+              ReactionMechanism.SERPENTINIZATION, 0L, 0L, SerpentinizationBalance.proof()));
     }
     if (facies == MetamorphicFacies.GRANULITE && grade == MetamorphicGrade.HIGH) {
       return new MetamorphicReactionState(
@@ -69,7 +122,9 @@ public record MetamorphicReactionState(
           450_000L,
           0L,
           0L,
-          SerpentinizationBalance.none());
+          SerpentinizationBalance.none(),
+          proofFluidContributions(
+              ReactionMechanism.DEHYDRATION, 450_000L, 0L, SerpentinizationBalance.none()));
     }
     if (processClass == MaterialProcessClass.HYDROTHERMAL_METASOMATISM) {
       return new MetamorphicReactionState(
@@ -78,7 +133,8 @@ public record MetamorphicReactionState(
           0L,
           0L,
           0L,
-          SerpentinizationBalance.none());
+          SerpentinizationBalance.none(),
+          List.of());
     }
     if (processClass == MaterialProcessClass.WEATHERING) {
       return new MetamorphicReactionState(
@@ -87,7 +143,8 @@ public record MetamorphicReactionState(
           0L,
           0L,
           0L,
-          SerpentinizationBalance.none());
+          SerpentinizationBalance.none(),
+          List.of());
     }
     if (path == MetamorphicPath.CONTACT_LOW_P
         || processClass == MaterialProcessClass.ISOCHEMICAL_METAMORPHISM) {
@@ -97,7 +154,8 @@ public record MetamorphicReactionState(
           0L,
           0L,
           0L,
-          SerpentinizationBalance.none());
+          SerpentinizationBalance.none(),
+          List.of());
     }
     if (path == MetamorphicPath.COLLISION_CLOCKWISE) {
       return new MetamorphicReactionState(
@@ -106,7 +164,8 @@ public record MetamorphicReactionState(
           0L,
           0L,
           0L,
-          SerpentinizationBalance.none());
+          SerpentinizationBalance.none(),
+          List.of());
     }
     return none();
   }
@@ -116,6 +175,7 @@ public record MetamorphicReactionState(
     REGIONAL_RECRYSTALLIZATION,
     THERMAL_RECRYSTALLIZATION,
     DEHYDRATION,
+    DECARBONATION,
     SERPENTINIZATION,
     METASOMATIC_REPLACEMENT,
     SURFACE_ALTERATION
@@ -126,6 +186,119 @@ public record MetamorphicReactionState(
     LOW,
     MODERATE,
     HIGH
+  }
+
+  private static List<MetamorphicFluidContribution> proofFluidContributions(
+      ReactionMechanism reactionMechanism,
+      long dehydrationPpm,
+      long decarbonationPpm,
+      SerpentinizationBalance balance) {
+    List<MetamorphicFluidContribution> result = new java.util.ArrayList<>();
+    if (reactionMechanism == ReactionMechanism.DEHYDRATION && dehydrationPpm > 0) {
+      result.add(
+          new MetamorphicFluidContribution(
+              MetamorphicFluidContribution.FluidSpecies.WATER,
+              MetamorphicFluidContribution.Direction.OUTPUT,
+              dehydrationPpm));
+    }
+    if (reactionMechanism == ReactionMechanism.DECARBONATION && decarbonationPpm > 0) {
+      result.add(
+          new MetamorphicFluidContribution(
+              MetamorphicFluidContribution.FluidSpecies.CARBON_DIOXIDE,
+              MetamorphicFluidContribution.Direction.OUTPUT,
+              decarbonationPpm));
+    }
+    if (reactionMechanism == ReactionMechanism.SERPENTINIZATION) {
+      if (balance != null && balance.fluidInputPpm() > 0) {
+        result.add(
+            new MetamorphicFluidContribution(
+                MetamorphicFluidContribution.FluidSpecies.WATER,
+                MetamorphicFluidContribution.Direction.INPUT,
+                balance.fluidInputPpm()));
+      }
+      if (balance != null && balance.residualFluidPpm() > 0) {
+        result.add(
+            new MetamorphicFluidContribution(
+                MetamorphicFluidContribution.FluidSpecies.WATER,
+                MetamorphicFluidContribution.Direction.OUTPUT,
+                balance.residualFluidPpm()));
+      }
+    }
+    return List.copyOf(result);
+  }
+
+  private static void validateFluidSpecies(
+      ReactionMechanism reactionMechanism, List<MetamorphicFluidContribution> contributions) {
+    for (MetamorphicFluidContribution contribution : contributions) {
+      boolean supported =
+          switch (reactionMechanism) {
+            case SERPENTINIZATION ->
+                contribution.fluidSpecies() == MetamorphicFluidContribution.FluidSpecies.WATER;
+            case DEHYDRATION ->
+                contribution.fluidSpecies() == MetamorphicFluidContribution.FluidSpecies.WATER
+                    && contribution.direction() == MetamorphicFluidContribution.Direction.OUTPUT;
+            case DECARBONATION ->
+                contribution.fluidSpecies()
+                        == MetamorphicFluidContribution.FluidSpecies.CARBON_DIOXIDE
+                    && contribution.direction() == MetamorphicFluidContribution.Direction.OUTPUT;
+            default -> false;
+          };
+      if (!supported) {
+        throw new IllegalArgumentException(
+            "fluid species or direction is unsupported for reaction mechanism");
+      }
+    }
+  }
+
+  private static void validateFluidContributions(
+      ReactionMechanism reactionMechanism,
+      long dehydrationPpm,
+      long decarbonationPpm,
+      SerpentinizationBalance balance,
+      List<MetamorphicFluidContribution> contributions) {
+    long waterInput =
+        amount(
+            contributions,
+            MetamorphicFluidContribution.FluidSpecies.WATER,
+            MetamorphicFluidContribution.Direction.INPUT);
+    long waterOutput =
+        amount(
+            contributions,
+            MetamorphicFluidContribution.FluidSpecies.WATER,
+            MetamorphicFluidContribution.Direction.OUTPUT);
+    long carbonDioxideOutput =
+        amount(
+            contributions,
+            MetamorphicFluidContribution.FluidSpecies.CARBON_DIOXIDE,
+            MetamorphicFluidContribution.Direction.OUTPUT);
+    if (reactionMechanism == ReactionMechanism.SERPENTINIZATION) {
+      if (waterInput != balance.fluidInputPpm() || waterOutput != balance.residualFluidPpm()) {
+        throw new IllegalArgumentException(
+            "serpentinization fluid evidence disagrees with balance");
+      }
+    } else if (reactionMechanism == ReactionMechanism.DEHYDRATION) {
+      if (waterOutput != dehydrationPpm) {
+        throw new IllegalArgumentException("dehydration fluid evidence disagrees with reaction");
+      }
+    } else if (reactionMechanism == ReactionMechanism.DECARBONATION) {
+      if (carbonDioxideOutput != decarbonationPpm) {
+        throw new IllegalArgumentException("decarbonation fluid evidence disagrees with reaction");
+      }
+    } else if (!contributions.isEmpty()) {
+      throw new IllegalArgumentException("unsupported reaction cannot carry fluid evidence");
+    }
+  }
+
+  private static long amount(
+      List<MetamorphicFluidContribution> contributions,
+      MetamorphicFluidContribution.FluidSpecies species,
+      MetamorphicFluidContribution.Direction direction) {
+    return contributions.stream()
+        .filter(
+            contribution ->
+                contribution.fluidSpecies() == species && contribution.direction() == direction)
+        .mapToLong(MetamorphicFluidContribution::amountPpm)
+        .sum();
   }
 
   /** Exact normalized reaction-inventory proof for hydration of an ultramafic protolith. */

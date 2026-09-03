@@ -1895,6 +1895,20 @@ final class MaterialReviewPacketGenerator {
                     sample.metamorphism().processState().reactionState().decarbonationPpm(),
                     "partialMeltingPpm",
                     sample.metamorphism().processState().reactionState().partialMeltingPpm(),
+                    "fluidContributions",
+                    sample
+                        .metamorphism()
+                        .processState()
+                        .reactionState()
+                        .fluidContributions()
+                        .stream()
+                        .map(
+                            contribution ->
+                                JsonWriter.object(
+                                    "fluidSpecies", contribution.fluidSpecies().name(),
+                                    "direction", contribution.direction().name(),
+                                    "amountPpm", contribution.amountPpm()))
+                        .toList(),
                     "serpentinizationBalance",
                     JsonWriter.object(
                         "rockReactantPpm",

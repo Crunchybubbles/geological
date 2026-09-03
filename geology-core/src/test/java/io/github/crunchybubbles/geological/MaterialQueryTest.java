@@ -52,6 +52,7 @@ import io.github.crunchybubbles.geological.petrology.MaterialAssemblage;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
 import io.github.crunchybubbles.geological.petrology.MaterialQueryEngine;
 import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
+import io.github.crunchybubbles.geological.petrology.MetamorphicFluidContribution;
 import io.github.crunchybubbles.geological.petrology.MetamorphicGrade;
 import io.github.crunchybubbles.geological.petrology.MetamorphicPath;
 import io.github.crunchybubbles.geological.petrology.MetamorphicProcessState;
@@ -83,7 +84,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.80", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.81", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1189,6 +1190,35 @@ class MaterialQueryTest {
     assertEquals(
         MetamorphicReactionState.ReactionMechanism.DEHYDRATION,
         granulite.metamorphism().processState().reactionState().reactionMechanism());
+    assertEquals(
+        1, granulite.metamorphism().processState().reactionState().fluidContributions().size());
+    assertEquals(
+        MetamorphicFluidContribution.FluidSpecies.WATER,
+        granulite
+            .metamorphism()
+            .processState()
+            .reactionState()
+            .fluidContributions()
+            .getFirst()
+            .fluidSpecies());
+    assertEquals(
+        MetamorphicFluidContribution.Direction.OUTPUT,
+        granulite
+            .metamorphism()
+            .processState()
+            .reactionState()
+            .fluidContributions()
+            .getFirst()
+            .direction());
+    assertEquals(
+        450_000L,
+        granulite
+            .metamorphism()
+            .processState()
+            .reactionState()
+            .fluidContributions()
+            .getFirst()
+            .amountPpm());
     assertTrue(
         amphibolite.metamorphism().maximumPeakTemperatureCelsius()
             < granulite.metamorphism().maximumPeakTemperatureCelsius());
@@ -1305,6 +1335,27 @@ class MaterialQueryTest {
         serpentinite.metamorphism().processState().reactionState().reactionMechanism());
     var serpentBalance =
         serpentinite.metamorphism().processState().reactionState().serpentinizationBalance();
+    assertEquals(
+        2, serpentinite.metamorphism().processState().reactionState().fluidContributions().size());
+    assertEquals(
+        300_000L,
+        serpentinite.metamorphism().processState().reactionState().fluidContributions().stream()
+            .filter(
+                contribution ->
+                    contribution.fluidSpecies() == MetamorphicFluidContribution.FluidSpecies.WATER
+                        && contribution.direction() == MetamorphicFluidContribution.Direction.INPUT)
+            .mapToLong(MetamorphicFluidContribution::amountPpm)
+            .sum());
+    assertEquals(
+        100_000L,
+        serpentinite.metamorphism().processState().reactionState().fluidContributions().stream()
+            .filter(
+                contribution ->
+                    contribution.fluidSpecies() == MetamorphicFluidContribution.FluidSpecies.WATER
+                        && contribution.direction()
+                            == MetamorphicFluidContribution.Direction.OUTPUT)
+            .mapToLong(MetamorphicFluidContribution::amountPpm)
+            .sum());
     assertEquals(
         serpentBalance.rockReactantPpm() + serpentBalance.fluidInputPpm(),
         serpentBalance.serpentineProductPpm()

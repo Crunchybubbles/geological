@@ -49,6 +49,7 @@ import io.github.crunchybubbles.geological.petrology.MaterialAssemblage;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
 import io.github.crunchybubbles.geological.petrology.MetamorphicEventTiming;
 import io.github.crunchybubbles.geological.petrology.MetamorphicFacies;
+import io.github.crunchybubbles.geological.petrology.MetamorphicFluidContribution;
 import io.github.crunchybubbles.geological.petrology.MetamorphicGrade;
 import io.github.crunchybubbles.geological.petrology.MetamorphicHistory;
 import io.github.crunchybubbles.geological.petrology.MetamorphicPath;
@@ -289,6 +290,68 @@ class MaterialSchemaTest {
             new MetamorphicEventTiming(olderId, older),
             new MetamorphicEventTiming(youngerId, younger)),
         history.eventTimeline());
+  }
+
+  @Test
+  void metamorphicFluidContributionsAreCanonicalAndReactionBound() {
+    MetamorphicReactionState dehydration =
+        new MetamorphicReactionState(
+            MetamorphicReactionState.ReactionMechanism.DEHYDRATION,
+            MetamorphicReactionState.RetrogressionClass.LOW,
+            450_000L,
+            0L,
+            0L,
+            MetamorphicReactionState.none().serpentinizationBalance(),
+            List.of(
+                new MetamorphicFluidContribution(
+                    MetamorphicFluidContribution.FluidSpecies.WATER,
+                    MetamorphicFluidContribution.Direction.OUTPUT,
+                    450_000L)));
+
+    assertEquals(
+        List.of(
+            new MetamorphicFluidContribution(
+                MetamorphicFluidContribution.FluidSpecies.WATER,
+                MetamorphicFluidContribution.Direction.OUTPUT,
+                450_000L)),
+        dehydration.fluidContributions());
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new MetamorphicFluidContribution(
+                MetamorphicFluidContribution.FluidSpecies.WATER,
+                MetamorphicFluidContribution.Direction.INPUT,
+                0L));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new MetamorphicReactionState(
+                MetamorphicReactionState.ReactionMechanism.DEHYDRATION,
+                MetamorphicReactionState.RetrogressionClass.LOW,
+                450_000L,
+                0L,
+                0L,
+                MetamorphicReactionState.none().serpentinizationBalance(),
+                List.of(
+                    new MetamorphicFluidContribution(
+                        MetamorphicFluidContribution.FluidSpecies.WATER,
+                        MetamorphicFluidContribution.Direction.OUTPUT,
+                        449_999L))));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new MetamorphicReactionState(
+                MetamorphicReactionState.ReactionMechanism.REGIONAL_RECRYSTALLIZATION,
+                MetamorphicReactionState.RetrogressionClass.LOW,
+                0L,
+                0L,
+                0L,
+                MetamorphicReactionState.none().serpentinizationBalance(),
+                List.of(
+                    new MetamorphicFluidContribution(
+                        MetamorphicFluidContribution.FluidSpecies.WATER,
+                        MetamorphicFluidContribution.Direction.INPUT,
+                        1L))));
   }
 
   @Test
