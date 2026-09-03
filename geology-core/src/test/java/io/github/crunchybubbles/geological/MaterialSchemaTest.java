@@ -326,6 +326,39 @@ class MaterialSchemaTest {
     assertEquals(64, curvedPath.distanceBlocks());
     assertEquals(StrictMath.sqrt(2.0) * 32.0, curvedPath.straightLineDistanceBlocks(), 1.0e-12);
     assertEquals(90.0, curvedPath.maximumDeflectionFromInitialDegrees(), 1.0e-12);
+    assertEquals(2, curvedPath.reaches().size());
+    assertEquals(new Point2(1.0, 0.0), curvedPath.reaches().getFirst().routedUpslopeDirection());
+    assertEquals(new Point2(0.0, 1.0), curvedPath.reaches().getLast().routedUpslopeDirection());
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialSedimentBudget.TerrainPath(
+                32,
+                List.of(
+                    new ColluvialSedimentBudget.TerrainPathSample(0, new Point2(0.0, 0.0), 100.0),
+                    new ColluvialSedimentBudget.TerrainPathSample(
+                        32, new Point2(32.0, 0.0), 104.0)),
+                List.of(
+                    new ColluvialSedimentBudget.TerrainPathReach(
+                        0,
+                        new Point2(0.0, 0.0),
+                        new Point2(32.0, 0.0),
+                        new Point2(1.0, 0.0),
+                        new Point2(0.0, 1.0),
+                        false,
+                        false))));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialSedimentBudget.TerrainPathReach(
+                0,
+                new Point2(0.0, 0.0),
+                new Point2(32.0, 0.0),
+                new Point2(2.0, 0.0),
+                new Point2(1.0, 0.0),
+                false,
+                false));
 
     assertThrows(
         IllegalArgumentException.class,

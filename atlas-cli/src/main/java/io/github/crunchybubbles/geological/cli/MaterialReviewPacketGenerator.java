@@ -716,6 +716,26 @@ final class MaterialReviewPacketGenerator {
         path.straightLineDistanceBlocks(),
         "maximumDeflectionFromInitialDegrees",
         path.maximumDeflectionFromInitialDegrees(),
+        "reachDecisions",
+        path.reaches().stream()
+            .map(
+                reach ->
+                    JsonWriter.object(
+                        "upslopeDistanceBlocks",
+                        reach.upslopeDistanceBlocks(),
+                        "startPoint",
+                        pointJson(reach.startPoint()),
+                        "endPoint",
+                        pointJson(reach.endPoint()),
+                        "rawUpslopeDirection",
+                        pointJson(reach.rawUpslopeDirection()),
+                        "routedUpslopeDirection",
+                        pointJson(reach.routedUpslopeDirection()),
+                        "flatTerrainFallback",
+                        reach.flatTerrainFallback(),
+                        "deflectionClipped",
+                        reach.deflectionClipped()))
+            .toList(),
         "routeSamples",
         path.samples().stream()
             .map(

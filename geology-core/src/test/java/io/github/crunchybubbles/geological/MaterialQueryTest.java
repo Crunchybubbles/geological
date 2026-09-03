@@ -58,7 +58,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.35", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.36", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1401,20 +1401,38 @@ class MaterialQueryTest {
       assertEquals(
           contribution.upslopeDistanceBlocks() / 32,
           sourceBalance.balance().input().terrainPath().reachCount());
+      ColluvialSedimentBudget.TerrainPath actualPath =
+          sourceBalance.balance().input().terrainPath();
+      assertEquals(actualPath.reachCount(), actualPath.reaches().size());
+      for (int reachIndex = 0; reachIndex < actualPath.reaches().size(); reachIndex++) {
+        ColluvialSedimentBudget.TerrainPathReach reach = actualPath.reaches().get(reachIndex);
+        assertEquals(reachIndex * 32, reach.upslopeDistanceBlocks());
+        assertEquals(actualPath.samples().get(reachIndex).point(), reach.startPoint());
+        assertEquals(actualPath.samples().get(reachIndex + 1).point(), reach.endPoint());
+        assertEquals(
+            1.0,
+            StrictMath.hypot(reach.rawUpslopeDirection().x(), reach.rawUpslopeDirection().z()),
+            1.0e-9);
+        assertEquals(
+            1.0,
+            StrictMath.hypot(
+                reach.routedUpslopeDirection().x(), reach.routedUpslopeDirection().z()),
+            1.0e-9);
+        if (reachIndex == 0) {
+          assertFalse(reach.flatTerrainFallback());
+          assertFalse(reach.deflectionClipped());
+        }
+      }
       assertTrue(
-          sourceBalance.balance().input().terrainPath().straightLineDistanceBlocks()
-              <= contribution.upslopeDistanceBlocks() + 1.0e-6);
+          actualPath.straightLineDistanceBlocks() <= contribution.upslopeDistanceBlocks() + 1.0e-6);
       assertTrue(
-          sourceBalance.balance().input().terrainPath().straightLineDistanceBlocks()
+          actualPath.straightLineDistanceBlocks()
               >= contribution.upslopeDistanceBlocks() * 0.5 - 1.0e-6);
-      assertTrue(
-          sourceBalance.balance().input().terrainPath().maximumDeflectionFromInitialDegrees()
-              <= 60.0 + 1.0e-8);
+      assertTrue(actualPath.maximumDeflectionFromInitialDegrees() <= 60.0 + 1.0e-8);
       observedCurvedRoute |=
-          sourceBalance.balance().input().terrainPath().straightLineDistanceBlocks()
-              < contribution.upslopeDistanceBlocks() - 1.0e-6;
-      assertTrue(sourceBalance.balance().input().terrainPath().downslopeContinuityIndex() >= 0.0);
-      assertTrue(sourceBalance.balance().input().terrainPath().downslopeContinuityIndex() <= 1.0);
+          actualPath.straightLineDistanceBlocks() < contribution.upslopeDistanceBlocks() - 1.0e-6;
+      assertTrue(actualPath.downslopeContinuityIndex() >= 0.0);
+      assertTrue(actualPath.downslopeContinuityIndex() <= 1.0);
       assertTrue(sourceBalance.balance().transportPathResponse() >= 0.50);
       assertTrue(sourceBalance.balance().transportPathResponse() <= 1.0);
       assertTrue(sourceBalance.balance().transportDistanceScale() >= 0.10);
@@ -1821,6 +1839,7 @@ class MaterialQueryTest {
   private static ColluvialSedimentBudget.TerrainPath expectedTerrainPath(
       MaterialQueryEngine query, Point2 origin, int distanceBlocks) {
     List<ColluvialSedimentBudget.TerrainPathSample> samples = new ArrayList<>();
+    List<ColluvialSedimentBudget.TerrainPathReach> reaches = new ArrayList<>();
     Point2 samplePoint = origin;
     Point2 previousDirection = null;
     Point2 initialDirection = null;
@@ -1829,20 +1848,35 @@ class MaterialQueryTest {
           new ColluvialSedimentBudget.TerrainPathSample(
               distance, samplePoint, query.geology().surface(samplePoint).fields().elevation()));
       if (distance < distanceBlocks) {
-        Point2 direction = expectedTerrainUpslopeDirection(query, samplePoint, previousDirection);
+        ExpectedTerrainDirection terrainDirection =
+            expectedTerrainUpslopeDirection(query, samplePoint, previousDirection);
+        Point2 rawDirection = terrainDirection.direction();
+        Point2 direction = rawDirection;
+        boolean deflectionClipped = false;
         if (initialDirection == null) {
-          initialDirection = direction;
+          initialDirection = rawDirection;
         } else {
-          direction = constrainExpectedRouteDirection(initialDirection, direction);
+          direction = constrainExpectedRouteDirection(initialDirection, rawDirection);
+          deflectionClipped = expectedDeflectionClipped(initialDirection, rawDirection);
         }
-        samplePoint = samplePoint.add(direction.x() * 32.0, direction.z() * 32.0);
+        Point2 nextPoint = samplePoint.add(direction.x() * 32.0, direction.z() * 32.0);
+        reaches.add(
+            new ColluvialSedimentBudget.TerrainPathReach(
+                distance,
+                samplePoint,
+                nextPoint,
+                rawDirection,
+                direction,
+                terrainDirection.flatTerrainFallback(),
+                deflectionClipped));
+        samplePoint = nextPoint;
         previousDirection = direction;
       }
     }
-    return new ColluvialSedimentBudget.TerrainPath(32, samples);
+    return new ColluvialSedimentBudget.TerrainPath(32, samples, reaches);
   }
 
-  private static Point2 expectedTerrainUpslopeDirection(
+  private static ExpectedTerrainDirection expectedTerrainUpslopeDirection(
       MaterialQueryEngine query, Point2 point, Point2 flatTerrainFallback) {
     double gradientX =
         (query.geology().surface(point.add(4.0, 0.0)).fields().elevation()
@@ -1854,9 +1888,12 @@ class MaterialQueryTest {
             / 8.0;
     double gradientLength = StrictMath.hypot(gradientX, gradientZ);
     if (gradientLength <= 1.0e-12) {
-      return Objects.requireNonNull(flatTerrainFallback, "initial test gradient must be non-zero");
+      return new ExpectedTerrainDirection(
+          Objects.requireNonNull(flatTerrainFallback, "initial test gradient must be non-zero"),
+          true);
     }
-    return new Point2(gradientX / gradientLength, gradientZ / gradientLength);
+    return new ExpectedTerrainDirection(
+        new Point2(gradientX / gradientLength, gradientZ / gradientLength), false);
   }
 
   private static Point2 constrainExpectedRouteDirection(
@@ -1873,6 +1910,16 @@ class MaterialQueryTest {
         initialDirection.x() * cosine - initialDirection.z() * sine,
         initialDirection.x() * sine + initialDirection.z() * cosine);
   }
+
+  private static boolean expectedDeflectionClipped(Point2 initialDirection, Point2 localDirection) {
+    double signedDeflection =
+        StrictMath.atan2(
+            initialDirection.x() * localDirection.z() - initialDirection.z() * localDirection.x(),
+            initialDirection.x() * localDirection.x() + initialDirection.z() * localDirection.z());
+    return StrictMath.abs(signedDeflection) > StrictMath.PI / 3.0 + 1.0e-12;
+  }
+
+  private record ExpectedTerrainDirection(Point2 direction, boolean flatTerrainFallback) {}
 
   private static GeologicalSample sample(
       Province province,

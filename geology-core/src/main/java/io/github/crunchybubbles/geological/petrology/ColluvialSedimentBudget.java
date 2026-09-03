@@ -26,6 +26,7 @@ public record ColluvialSedimentBudget(
   private static final double MINIMUM_TRANSPORT_ROUGHNESS_RESPONSE = 0.40;
   private static final double MINIMUM_TRANSPORT_PATH_RESPONSE = 0.50;
   private static final double PATH_REACH_TOLERANCE_BLOCKS = 1.0e-6;
+  private static final double PATH_DIRECTION_TOLERANCE = 1.0e-9;
   private static final double GRAVEL_AND_COARSER_REFERENCE_E_FOLDING_DISTANCE_BLOCKS = 512.0;
   private static final double SAND_REFERENCE_E_FOLDING_DISTANCE_BLOCKS = 384.0;
   private static final double FINES_REFERENCE_E_FOLDING_DISTANCE_BLOCKS = 256.0;
@@ -367,7 +368,9 @@ public record ColluvialSedimentBudget(
   private static boolean extendsTerrainPath(TerrainPath path, TerrainPath prefix) {
     return path.reachLengthBlocks() == prefix.reachLengthBlocks()
         && path.samples().size() >= prefix.samples().size()
-        && path.samples().subList(0, prefix.samples().size()).equals(prefix.samples());
+        && path.samples().subList(0, prefix.samples().size()).equals(prefix.samples())
+        && path.reaches().size() >= prefix.reaches().size()
+        && path.reaches().subList(0, prefix.reaches().size()).equals(prefix.reaches());
   }
 
   /** Inputs controlling production, path-conditioned transport, and initial grain spectrum. */
@@ -412,8 +415,40 @@ public record ColluvialSedimentBudget(
     }
   }
 
+  /** One reach's raw-gradient decision and bounded bearing along the source route. */
+  public record TerrainPathReach(
+      int upslopeDistanceBlocks,
+      Point2 startPoint,
+      Point2 endPoint,
+      Point2 rawUpslopeDirection,
+      Point2 routedUpslopeDirection,
+      boolean flatTerrainFallback,
+      boolean deflectionClipped) {
+    public TerrainPathReach {
+      if (upslopeDistanceBlocks < 0
+          || startPoint == null
+          || endPoint == null
+          || rawUpslopeDirection == null
+          || routedUpslopeDirection == null) {
+        throw new IllegalArgumentException("colluvial terrain-path reach is incomplete");
+      }
+      if (!isUnitDirection(rawUpslopeDirection) || !isUnitDirection(routedUpslopeDirection)) {
+        throw new IllegalArgumentException("colluvial terrain-path reach directions are invalid");
+      }
+    }
+
+    private static boolean isUnitDirection(Point2 direction) {
+      return StrictMath.abs(StrictMath.hypot(direction.x(), direction.z()) - 1.0) <= 1.0e-9;
+    }
+  }
+
   /** Ordered terrain evidence and derived downhill continuity for one transport path. */
-  public record TerrainPath(int reachLengthBlocks, List<TerrainPathSample> samples) {
+  public record TerrainPath(
+      int reachLengthBlocks, List<TerrainPathSample> samples, List<TerrainPathReach> reaches) {
+    public TerrainPath(int reachLengthBlocks, List<TerrainPathSample> samples) {
+      this(reachLengthBlocks, samples, List.of());
+    }
+
     public TerrainPath {
       if (reachLengthBlocks <= 0 || samples == null || samples.isEmpty()) {
         throw new IllegalArgumentException("colluvial terrain path is incomplete");
@@ -422,6 +457,20 @@ public record ColluvialSedimentBudget(
         throw new IllegalArgumentException("colluvial terrain-path samples must be complete");
       }
       samples = List.copyOf(samples);
+      if (reaches == null) {
+        throw new IllegalArgumentException("colluvial terrain-path decisions are incomplete");
+      }
+      if (reaches.stream().anyMatch(reach -> reach == null)) {
+        throw new IllegalArgumentException("colluvial terrain-path decisions must be complete");
+      }
+      reaches = List.copyOf(reaches);
+      if (reaches.isEmpty() && samples.size() > 1) {
+        reaches = syntheticTerrainPathReaches(reachLengthBlocks, samples);
+      }
+      if (reaches.size() != samples.size() - 1) {
+        throw new IllegalArgumentException(
+            "colluvial terrain-path decision count must match reaches");
+      }
       double cumulativeRelief = 0.0;
       for (int index = 0; index < samples.size(); index++) {
         TerrainPathSample sample = samples.get(index);
@@ -446,8 +495,45 @@ public record ColluvialSedimentBudget(
             throw new IllegalArgumentException(
                 "colluvial terrain-path geometry must match its reach length");
           }
+          TerrainPathReach reach = reaches.get(index - 1);
+          if (reach.upslopeDistanceBlocks() != (int) ((long) (index - 1) * reachLengthBlocks)
+              || !reach.startPoint().equals(previousPoint)
+              || !reach.endPoint().equals(sample.point())) {
+            throw new IllegalArgumentException(
+                "colluvial terrain-path decision geometry must match its samples");
+          }
+          double routedDirectionX = (sample.point().x() - previousPoint.x()) / reachLengthBlocks;
+          double routedDirectionZ = (sample.point().z() - previousPoint.z()) / reachLengthBlocks;
+          if (StrictMath.hypot(
+                  routedDirectionX - reach.routedUpslopeDirection().x(),
+                  routedDirectionZ - reach.routedUpslopeDirection().z())
+              > PATH_DIRECTION_TOLERANCE) {
+            throw new IllegalArgumentException(
+                "colluvial terrain-path routed direction must match its geometry");
+          }
         }
       }
+    }
+
+    private static List<TerrainPathReach> syntheticTerrainPathReaches(
+        int reachLengthBlocks, List<TerrainPathSample> samples) {
+      List<TerrainPathReach> synthetic = new ArrayList<>();
+      for (int index = 1; index < samples.size(); index++) {
+        Point2 start = samples.get(index - 1).point();
+        Point2 end = samples.get(index).point();
+        double reachDistance = StrictMath.hypot(end.x() - start.x(), end.z() - start.z());
+        if (!Double.isFinite(reachDistance) || reachDistance <= 0.0) {
+          throw new IllegalArgumentException(
+              "colluvial terrain-path geometry must contain non-zero reaches");
+        }
+        double directionX = (end.x() - start.x()) / reachDistance;
+        double directionZ = (end.z() - start.z()) / reachDistance;
+        Point2 direction = new Point2(directionX, directionZ);
+        synthetic.add(
+            new TerrainPathReach(
+                (index - 1) * reachLengthBlocks, start, end, direction, direction, false, false));
+      }
+      return List.copyOf(synthetic);
     }
 
     public int distanceBlocks() {
