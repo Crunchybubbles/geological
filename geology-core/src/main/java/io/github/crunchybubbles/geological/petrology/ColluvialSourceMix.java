@@ -3,7 +3,10 @@ package io.github.crunchybubbles.geological.petrology;
 import io.github.crunchybubbles.geological.determinism.StableId;
 import io.github.crunchybubbles.geological.model.Point2;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /** Exact proof-level mixture along one bounded adaptive terrain route. */
 public record ColluvialSourceMix(
@@ -14,7 +17,8 @@ public record ColluvialSourceMix(
     ColluvialPhysicalState physicalState,
     ColluvialSedimentBudget sedimentBudget,
     ColluvialHorizonState horizonState,
-    ColluvialRoutePolicy routePolicy) {
+    ColluvialRoutePolicy routePolicy,
+    List<ColluvialSinkDestination> sinkDestinations) {
   public static final double MAXIMUM_ROUTE_DEFLECTION_DEGREES =
       ColluvialRoutePolicy.DEFAULT.maximumDeflectionDegrees();
 
@@ -33,7 +37,29 @@ public record ColluvialSourceMix(
         physicalState,
         sedimentBudget,
         ColluvialHorizonState.from(sedimentBudget),
-        ColluvialRoutePolicy.DEFAULT);
+        ColluvialRoutePolicy.DEFAULT,
+        List.of());
+  }
+
+  public ColluvialSourceMix(
+      Point2 initialUpslopeDirection,
+      List<ColluvialSourceContribution> sourceContributions,
+      long weatheredMatrixFractionPpm,
+      ColluvialTextureState textureState,
+      ColluvialPhysicalState physicalState,
+      ColluvialSedimentBudget sedimentBudget,
+      ColluvialHorizonState horizonState,
+      ColluvialRoutePolicy routePolicy) {
+    this(
+        initialUpslopeDirection,
+        sourceContributions,
+        weatheredMatrixFractionPpm,
+        textureState,
+        physicalState,
+        sedimentBudget,
+        horizonState,
+        routePolicy,
+        List.of());
   }
 
   public ColluvialSourceMix {
@@ -43,7 +69,8 @@ public record ColluvialSourceMix(
         || physicalState == null
         || sedimentBudget == null
         || horizonState == null
-        || routePolicy == null) {
+        || routePolicy == null
+        || sinkDestinations == null) {
       throw new IllegalArgumentException(
           "colluvial initial direction, sources, texture, physical state, budget, and horizon state are required");
     }
@@ -127,6 +154,18 @@ public record ColluvialSourceMix(
     if (!horizonState.matches(sedimentBudget)) {
       throw new IllegalArgumentException("colluvial horizon state must match its sediment budget");
     }
+    sinkDestinations =
+        List.copyOf(sinkDestinations).stream()
+            .sorted(
+                Comparator.comparingInt(ColluvialSinkDestination::upslopeDistanceBlocks)
+                    .thenComparing(
+                        destination ->
+                            destination.sourceBodyId().map(StableId::toString).orElse(""))
+                    .thenComparing(ColluvialSinkDestination::sinkRole))
+            .toList();
+    if (!sinkDestinations.isEmpty()) {
+      validateSinkDestinations(sinkDestinations, sedimentBudget);
+    }
   }
 
   public long sourceAssemblageFractionPpm() {
@@ -143,6 +182,101 @@ public record ColluvialSourceMix(
 
   public ColluvialSourceContribution localSource() {
     return sourceContributions.getFirst();
+  }
+
+  private static void validateSinkDestinations(
+      List<ColluvialSinkDestination> destinations, ColluvialSedimentBudget budget) {
+    Set<String> actualKeys = new HashSet<>();
+    for (ColluvialSinkDestination destination : destinations) {
+      String key =
+          destinationKey(
+              destination.sinkRole(),
+              destination.sourceBodyId(),
+              destination.upslopeDistanceBlocks());
+      if (!actualKeys.add(key)) {
+        throw new IllegalArgumentException("colluvial sink destination evidence must be unique");
+      }
+      ColluvialSedimentBudget.InputBalance balance =
+          balanceFor(destination.sourceBodyId(), destination.upslopeDistanceBlocks(), budget);
+      ColluvialSinkAllocation allocation = balance.sinkAllocation();
+      Point2 expectedPoint =
+          switch (destination.sinkRole()) {
+            case INTERMEDIATE_ROUTE_STORAGE -> {
+              if (!allocation.hasTransportLoss()) {
+                throw new IllegalArgumentException("transport-loss destination has no loss mass");
+              }
+              yield allocation.transportLossPoint();
+            }
+            case DOWNSTREAM_CONTINUATION -> {
+              if (!allocation.hasBypass()) {
+                throw new IllegalArgumentException("bypass destination has no bypass mass");
+              }
+              yield allocation.bypassPoint();
+            }
+            case NONE -> throw new IllegalArgumentException("inactive sink destination is invalid");
+          };
+      if (!expectedPoint.equals(destination.point())) {
+        throw new IllegalArgumentException(
+            "colluvial sink destination must match its route allocation");
+      }
+    }
+    Set<String> expectedKeys = new HashSet<>();
+    expectedSinkKey(expectedKeys, Optional.empty(), 0, budget.weatheredMatrixBalance());
+    for (ColluvialSedimentBudget.SourceBalance source : budget.sourceBalances()) {
+      expectedSinkKey(
+          expectedKeys,
+          Optional.of(source.sourceBodyId()),
+          source.upslopeDistanceBlocks(),
+          source.balance());
+    }
+    if (!actualKeys.equals(expectedKeys)) {
+      throw new IllegalArgumentException(
+          "colluvial sink destination evidence must cover active sinks");
+    }
+  }
+
+  private static void expectedSinkKey(
+      Set<String> keys,
+      Optional<StableId> sourceBodyId,
+      int distance,
+      ColluvialSedimentBudget.InputBalance balance) {
+    if (balance.sinkAllocation().hasTransportLoss()) {
+      keys.add(
+          destinationKey(
+              ColluvialSinkState.SinkRole.INTERMEDIATE_ROUTE_STORAGE, sourceBodyId, distance));
+    }
+    if (balance.sinkAllocation().hasBypass()) {
+      keys.add(
+          destinationKey(
+              ColluvialSinkState.SinkRole.DOWNSTREAM_CONTINUATION, sourceBodyId, distance));
+    }
+  }
+
+  private static ColluvialSedimentBudget.InputBalance balanceFor(
+      Optional<StableId> sourceBodyId, int distance, ColluvialSedimentBudget budget) {
+    if (sourceBodyId.isEmpty()) {
+      if (distance != 0) {
+        throw new IllegalArgumentException("weathered-matrix sink must be local");
+      }
+      return budget.weatheredMatrixBalance();
+    }
+    return budget.sourceBalances().stream()
+        .filter(
+            source ->
+                source.sourceBodyId().equals(sourceBodyId.orElseThrow())
+                    && source.upslopeDistanceBlocks() == distance)
+        .map(ColluvialSedimentBudget.SourceBalance::balance)
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException("unknown colluvial sink source"));
+  }
+
+  private static String destinationKey(
+      ColluvialSinkState.SinkRole role, Optional<StableId> sourceBodyId, int distance) {
+    return role.name()
+        + ":"
+        + sourceBodyId.map(StableId::toString).orElse("matrix")
+        + ":"
+        + distance;
   }
 
   private static long sourceAssemblageFractionPpm(List<ColluvialSourceContribution> contributions) {

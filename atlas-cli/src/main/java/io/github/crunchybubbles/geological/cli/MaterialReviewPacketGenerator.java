@@ -21,6 +21,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialProductionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialRoutePolicy;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkAllocation;
+import io.github.crunchybubbles.geological.petrology.ColluvialSinkDestination;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceGrainShare;
@@ -603,6 +604,10 @@ final class MaterialReviewPacketGenerator {
         colluvialHorizonStateJson(mix.horizonState()),
         "sedimentBudget",
         colluvialSedimentBudgetJson(mix.sedimentBudget()),
+        "sinkDestinations",
+        mix.sinkDestinations().stream()
+            .map(MaterialReviewPacketGenerator::colluvialSinkDestinationJson)
+            .toList(),
         "sourceContributions",
         mix.sourceContributions().stream()
             .map(MaterialReviewPacketGenerator::colluvialSourceContributionJson)
@@ -656,6 +661,31 @@ final class MaterialReviewPacketGenerator {
         policy.nearSourceCapacityFixedUnits(),
         "farSourceCapacityFixedUnits",
         policy.farSourceCapacityFixedUnits());
+  }
+
+  private static Map<String, Object> colluvialSinkDestinationJson(
+      ColluvialSinkDestination destination) {
+    return JsonWriter.object(
+        "sinkRole",
+        destination.sinkRole().name(),
+        "sourceBodyId",
+        destination.sourceBodyId().map(Object::toString).orElse(null),
+        "upslopeDistanceBlocks",
+        destination.upslopeDistanceBlocks(),
+        "point",
+        pointJson(destination.point()),
+        "receivingProvinceId",
+        destination.receivingProvinceId().toString(),
+        "receivingBedrockBodyId",
+        destination.receivingBedrockBodyId().toString(),
+        "receivingSurfaceMaterial",
+        destination.receivingSurfaceMaterial().name(),
+        "receivingSurfaceOverprint",
+        destination.receivingSurfaceOverprint().name(),
+        "receivingBedrockLithology",
+        destination.receivingBedrockLithology().name(),
+        "receivingBedrockOverprint",
+        destination.receivingBedrockOverprint().name());
   }
 
   private static Map<String, Object> colluvialPhysicalStateJson(

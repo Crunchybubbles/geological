@@ -27,6 +27,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialProductionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialRoutePolicy;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkAllocation;
+import io.github.crunchybubbles.geological.petrology.ColluvialSinkDestination;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceContribution;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceGrainShare;
@@ -71,7 +72,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.57", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.58", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1313,6 +1314,17 @@ class MaterialQueryTest {
     ColluvialSourceMix sourceMix = transported.context().colluvialSourceMix().orElseThrow();
     assertEquals(ColluvialRoutePolicy.DEFAULT, sourceMix.routePolicy());
     assertEquals(6, sourceMix.routePolicy().routeReachCount());
+    assertFalse(sourceMix.sinkDestinations().isEmpty());
+    for (ColluvialSinkDestination destination : sourceMix.sinkDestinations()) {
+      assertNotEquals(ColluvialSinkState.SinkRole.NONE, destination.sinkRole());
+      assertEquals(
+          query.geology().atlas().provinceAt(destination.point()).id(),
+          destination.receivingProvinceId());
+      GeologicalSample destinationBedrock = query.geology().surface(destination.point()).bedrock();
+      assertEquals(destinationBedrock.rockBodyId(), destination.receivingBedrockBodyId());
+      assertEquals(destinationBedrock.lithology(), destination.receivingBedrockLithology());
+      assertEquals(destinationBedrock.overprint(), destination.receivingBedrockOverprint());
+    }
     ColluvialHydraulicState hydraulicState = sourceMix.physicalState().hydraulicState();
     assertTrue(hydraulicState.infiltrationIndex() >= 0.0);
     assertTrue(hydraulicState.infiltrationIndex() <= 1.0);

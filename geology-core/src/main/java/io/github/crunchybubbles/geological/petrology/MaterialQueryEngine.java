@@ -211,7 +211,8 @@ public final class MaterialQueryEngine {
               physicalState,
               sedimentBudget,
               ColluvialHorizonState.from(sedimentBudget),
-              colluvialRoutePolicy);
+              colluvialRoutePolicy,
+              resolveColluvialSinkDestinations(sedimentBudget));
       StableId colluvialBodyId = colluvialBodyId(sourceMix);
       surface =
           new SurfaceSample(surface.fields(), bedrock, Lithology.SOIL_COLLUVIUM, Overprint.NONE);
@@ -532,6 +533,70 @@ public final class MaterialQueryEngine {
               return new ResolvedColluvialSource(contribution, candidate.material());
             })
         .toList();
+  }
+
+  private List<ColluvialSinkDestination> resolveColluvialSinkDestinations(
+      ColluvialSedimentBudget budget) {
+    List<ColluvialSinkDestination> destinations = new ArrayList<>();
+    addColluvialSinkDestinations(
+        destinations, Optional.empty(), 0, budget.weatheredMatrixBalance());
+    for (ColluvialSedimentBudget.SourceBalance source : budget.sourceBalances()) {
+      addColluvialSinkDestinations(
+          destinations,
+          Optional.of(source.sourceBodyId()),
+          source.upslopeDistanceBlocks(),
+          source.balance());
+    }
+    return List.copyOf(destinations);
+  }
+
+  private void addColluvialSinkDestinations(
+      List<ColluvialSinkDestination> destinations,
+      Optional<StableId> sourceBodyId,
+      int distance,
+      ColluvialSedimentBudget.InputBalance balance) {
+    ColluvialSinkAllocation allocation = balance.sinkAllocation();
+    if (allocation.hasTransportLoss()) {
+      destinations.add(
+          resolveColluvialSinkDestination(
+              ColluvialSinkState.SinkRole.INTERMEDIATE_ROUTE_STORAGE,
+              sourceBodyId,
+              distance,
+              allocation.transportLossPoint()));
+    }
+    if (allocation.hasBypass()) {
+      destinations.add(
+          resolveColluvialSinkDestination(
+              ColluvialSinkState.SinkRole.DOWNSTREAM_CONTINUATION,
+              sourceBodyId,
+              distance,
+              allocation.bypassPoint()));
+    }
+  }
+
+  private ColluvialSinkDestination resolveColluvialSinkDestination(
+      ColluvialSinkState.SinkRole sinkRole,
+      Optional<StableId> sourceBodyId,
+      int distance,
+      Point2 point) {
+    SurfaceSample receivingSurface = geology.surface(point);
+    GeologicalSample receivingBedrock = receivingSurface.bedrock();
+    Province receivingProvince = geology.atlas().provinceAt(point);
+    if (!receivingProvince.id().equals(receivingBedrock.provinceId())) {
+      throw new IllegalStateException(
+          "colluvial sink destination owner changed between query stages");
+    }
+    return new ColluvialSinkDestination(
+        sinkRole,
+        sourceBodyId,
+        distance,
+        point,
+        receivingProvince.id(),
+        receivingBedrock.rockBodyId(),
+        receivingSurface.surfaceMaterial(),
+        receivingSurface.surfaceOverprint(),
+        receivingBedrock.lithology(),
+        receivingBedrock.overprint());
   }
 
   private StableId colluvialBodyId(ColluvialSourceMix sourceMix) {

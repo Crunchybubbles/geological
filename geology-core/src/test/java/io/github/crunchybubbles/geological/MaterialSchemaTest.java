@@ -25,6 +25,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialProductionState;
 import io.github.crunchybubbles.geological.petrology.ColluvialRoutePolicy;
 import io.github.crunchybubbles.geological.petrology.ColluvialSedimentBudget;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkAllocation;
+import io.github.crunchybubbles.geological.petrology.ColluvialSinkDestination;
 import io.github.crunchybubbles.geological.petrology.ColluvialSinkState;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceGrainShare;
 import io.github.crunchybubbles.geological.petrology.ColluvialSourceUsage;
@@ -153,6 +154,24 @@ class MaterialSchemaTest {
             new ColluvialRoutePolicy(
                 0.1, 4.0, 32.0, 4.0, 8.0, 32, 64, 192, 60.0, 350_000L, 350_000L, 200_000L,
                 100_001L));
+  }
+
+  @Test
+  void inactiveColluvialSinkDestinationIsRejected() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ColluvialSinkDestination(
+                ColluvialSinkState.SinkRole.NONE,
+                Optional.empty(),
+                0,
+                new Point2(0.0, 0.0),
+                StableId.parse("00000000000000000000000000000001"),
+                StableId.parse("00000000000000000000000000000002"),
+                Lithology.BASALTIC,
+                Overprint.NONE,
+                Lithology.BASALTIC,
+                Overprint.NONE));
   }
 
   @Test
