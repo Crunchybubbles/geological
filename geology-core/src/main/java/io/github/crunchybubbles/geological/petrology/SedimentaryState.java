@@ -167,4 +167,9 @@ public record SedimentaryState(
       throw new IllegalArgumentException("sedimentary diagenesis fluid salinity must match basin");
     }
   }
+
+  /** Returns deterministic typed chemistry and inventory evidence for each sediment reservoir. */
+  public SedimentaryReservoirState reservoirState() {
+    return SedimentaryReservoirState.proofFor(inputBudget, basinState, reservoirContributions);
+  }
 }

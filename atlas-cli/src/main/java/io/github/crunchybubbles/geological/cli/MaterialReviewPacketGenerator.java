@@ -57,6 +57,7 @@ import io.github.crunchybubbles.geological.petrology.RegionalMetamorphicState;
 import io.github.crunchybubbles.geological.petrology.ReservoirTransfer;
 import io.github.crunchybubbles.geological.petrology.RockDefinition;
 import io.github.crunchybubbles.geological.petrology.SedimentGrainSize;
+import io.github.crunchybubbles.geological.petrology.SedimentaryReservoirState;
 import io.github.crunchybubbles.geological.petrology.SedimentaryState;
 import io.github.crunchybubbles.geological.petrology.SolidSolutionDefinition;
 import io.github.crunchybubbles.geological.petrology.SolidSolutionState;
@@ -2222,6 +2223,8 @@ final class MaterialReviewPacketGenerator {
                         "sourceBodyIds",
                         contribution.sourceBodyIds().stream().map(Object::toString).toList()))
             .toList(),
+        "reservoirState",
+        sedimentaryReservoirStateJson(state.reservoirState()),
         "diagenesisState",
         JsonWriter.object(
             "compactionClass",
@@ -2238,6 +2241,43 @@ final class MaterialReviewPacketGenerator {
             state.diagenesisState().fluidSalinity().name(),
             "retainedPorosityPpm",
             state.diagenesisState().retainedPorosityPpm()));
+  }
+
+  private Map<String, Object> sedimentaryReservoirStateJson(SedimentaryReservoirState state) {
+    return JsonWriter.object(
+        "aggregateCompositionPpm",
+        elementMap(state.aggregateCompositionPpm()),
+        "waterInventoryPpm",
+        state.waterInventoryPpm(),
+        "volatileInventoryPpm",
+        state.volatileInventoryPpm(),
+        "organicCarbonCapacityPpm",
+        state.organicCarbonCapacityPpm(),
+        "reducedSulfurCapacityPpm",
+        state.reducedSulfurCapacityPpm(),
+        "components",
+        state.components().stream().map(this::sedimentaryReservoirComponentJson).toList());
+  }
+
+  private Map<String, Object> sedimentaryReservoirComponentJson(
+      SedimentaryReservoirState.Component component) {
+    return JsonWriter.object(
+        "kind",
+        component.kind().name(),
+        "fractionPpm",
+        component.fractionPpm(),
+        "sourceBodyIds",
+        component.sourceBodyIds().stream().map(Object::toString).toList(),
+        "compositionPpm",
+        elementMap(component.compositionPpm()),
+        "waterInventoryPpm",
+        component.waterInventoryPpm(),
+        "volatileInventoryPpm",
+        component.volatileInventoryPpm(),
+        "organicCarbonCapacityPpm",
+        component.organicCarbonCapacityPpm(),
+        "reducedSulfurCapacityPpm",
+        component.reducedSulfurCapacityPpm());
   }
 
   private Map<String, Object> solidSolutionStateJson(SolidSolutionState state) {

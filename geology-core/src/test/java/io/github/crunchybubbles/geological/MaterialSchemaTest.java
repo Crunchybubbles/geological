@@ -77,6 +77,8 @@ import io.github.crunchybubbles.geological.petrology.SedimentaryDiagenesisState;
 import io.github.crunchybubbles.geological.petrology.SedimentaryInputBudget;
 import io.github.crunchybubbles.geological.petrology.SedimentaryReservoirContribution;
 import io.github.crunchybubbles.geological.petrology.SedimentaryReservoirKind;
+import io.github.crunchybubbles.geological.petrology.SedimentaryReservoirState;
+import io.github.crunchybubbles.geological.petrology.SedimentaryState;
 import io.github.crunchybubbles.geological.petrology.SulfurState;
 import io.github.crunchybubbles.geological.petrology.TraceElementVector;
 import io.github.crunchybubbles.geological.petrology.UnitIntervalDistribution;
@@ -149,6 +151,43 @@ class MaterialSchemaTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> new SedimentaryInputBudget(1_000_000L, 1L, 0L, 0L, 0L, 0L));
+  }
+
+  @Test
+  void sedimentaryReservoirStateAddsTypedChemistryAndInventoryEvidence() {
+    StableId source = StableId.parse("00000000000000000000000000000021");
+    SedimentaryState peat =
+        new SedimentaryState("buried_peat_mire", "fine", "immature", "compacted", List.of(source));
+    SedimentaryState evaporite =
+        new SedimentaryState(
+            "restricted_evaporite_basin_center",
+            "fine",
+            "mature",
+            "salt_recrystallized",
+            List.of(source));
+    SedimentaryReservoirState peatState = peat.reservoirState();
+    SedimentaryReservoirState evaporiteState = evaporite.reservoirState();
+
+    assertEquals(
+        MaterialAssemblage.SCALE,
+        peatState.aggregateCompositionPpm().values().stream().mapToLong(Long::longValue).sum());
+    assertTrue(peatState.organicCarbonCapacityPpm() > 0L);
+    assertTrue(peatState.reducedSulfurCapacityPpm() > 0L);
+    assertTrue(evaporiteState.waterInventoryPpm() > peatState.waterInventoryPpm());
+    assertTrue(
+        evaporiteState.components().stream()
+            .anyMatch(component -> component.kind() == SedimentaryReservoirKind.EVAPORITIC_BRINE));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            SedimentaryReservoirState.proofFor(
+                SedimentaryInputBudget.proofFor("buried_peat_mire"),
+                peat.basinState(),
+                List.of(
+                    new SedimentaryReservoirContribution(
+                        SedimentaryReservoirKind.CHEMICAL_PRECIPITATE,
+                        MaterialAssemblage.SCALE,
+                        List.of()))));
   }
 
   @Test
