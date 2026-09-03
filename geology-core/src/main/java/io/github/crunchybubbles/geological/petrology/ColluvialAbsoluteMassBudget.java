@@ -106,6 +106,30 @@ public record ColluvialAbsoluteMassBudget(
     return scale.productionRate(depositedFixedUnits());
   }
 
+  public ColluvialSedimentBudget.GrainMass capacityGrainMass() {
+    return normalizedBudget.capacityGrainMass();
+  }
+
+  public ColluvialSedimentBudget.GrainMass mobilizedGrainMass() {
+    return normalizedBudget.mobilizedGrainMass();
+  }
+
+  public ColluvialSedimentBudget.GrainMass retainedGrainMass() {
+    return normalizedBudget.retainedGrainMass();
+  }
+
+  public ColluvialSedimentBudget.GrainMass transportLossGrainMass() {
+    return normalizedBudget.transportLossGrainMass();
+  }
+
+  public ColluvialSedimentBudget.GrainMass bypassedGrainMass() {
+    return normalizedBudget.bypassedGrainMass();
+  }
+
+  public ColluvialSedimentBudget.GrainMass depositedGrainMass() {
+    return normalizedBudget.depositedGrainMass();
+  }
+
   private static List<InputMassBalance> canonicalInputBalances(List<InputMassBalance> balances) {
     return List.copyOf(balances).stream()
         .sorted(
@@ -152,7 +176,39 @@ public record ColluvialAbsoluteMassBudget(
       long retainedFixedUnits,
       long transportLossFixedUnits,
       long bypassedFixedUnits,
-      long depositedFixedUnits) {
+      long depositedFixedUnits,
+      ColluvialSedimentBudget.GrainMass capacityGrainMass,
+      ColluvialSedimentBudget.GrainMass mobilizedGrainMass,
+      ColluvialSedimentBudget.GrainMass retainedGrainMass,
+      ColluvialSedimentBudget.GrainMass transportLossGrainMass,
+      ColluvialSedimentBudget.GrainMass bypassedGrainMass,
+      ColluvialSedimentBudget.GrainMass depositedGrainMass) {
+    public InputMassBalance(
+        Optional<StableId> sourceBodyId,
+        int upslopeDistanceBlocks,
+        long capacityFixedUnits,
+        long mobilizedFixedUnits,
+        long retainedFixedUnits,
+        long transportLossFixedUnits,
+        long bypassedFixedUnits,
+        long depositedFixedUnits) {
+      this(
+          sourceBodyId,
+          upslopeDistanceBlocks,
+          capacityFixedUnits,
+          mobilizedFixedUnits,
+          retainedFixedUnits,
+          transportLossFixedUnits,
+          bypassedFixedUnits,
+          depositedFixedUnits,
+          new ColluvialSedimentBudget.GrainMass(capacityFixedUnits, 0, 0),
+          new ColluvialSedimentBudget.GrainMass(mobilizedFixedUnits, 0, 0),
+          new ColluvialSedimentBudget.GrainMass(retainedFixedUnits, 0, 0),
+          new ColluvialSedimentBudget.GrainMass(transportLossFixedUnits, 0, 0),
+          new ColluvialSedimentBudget.GrainMass(bypassedFixedUnits, 0, 0),
+          new ColluvialSedimentBudget.GrainMass(depositedFixedUnits, 0, 0));
+    }
+
     public InputMassBalance {
       if (sourceBodyId == null
           || upslopeDistanceBlocks < 0
@@ -162,9 +218,24 @@ public record ColluvialAbsoluteMassBudget(
           || transportLossFixedUnits < 0
           || bypassedFixedUnits < 0
           || depositedFixedUnits < 0
+          || capacityGrainMass == null
+          || mobilizedGrainMass == null
+          || retainedGrainMass == null
+          || transportLossGrainMass == null
+          || bypassedGrainMass == null
+          || depositedGrainMass == null
           || capacityFixedUnits != retainedFixedUnits + mobilizedFixedUnits
           || mobilizedFixedUnits
-              != transportLossFixedUnits + bypassedFixedUnits + depositedFixedUnits) {
+              != transportLossFixedUnits + bypassedFixedUnits + depositedFixedUnits
+          || capacityGrainMass.totalFixedUnits() != capacityFixedUnits
+          || mobilizedGrainMass.totalFixedUnits() != mobilizedFixedUnits
+          || retainedGrainMass.totalFixedUnits() != retainedFixedUnits
+          || transportLossGrainMass.totalFixedUnits() != transportLossFixedUnits
+          || bypassedGrainMass.totalFixedUnits() != bypassedFixedUnits
+          || depositedGrainMass.totalFixedUnits() != depositedFixedUnits
+          || !capacityGrainMass.equals(retainedGrainMass.add(mobilizedGrainMass))
+          || !mobilizedGrainMass.equals(
+              transportLossGrainMass.add(bypassedGrainMass).add(depositedGrainMass))) {
         throw new IllegalArgumentException("absolute mass input balance does not close");
       }
     }
@@ -181,7 +252,13 @@ public record ColluvialAbsoluteMassBudget(
           balance.retainedFixedUnits(),
           balance.transportLossFixedUnits(),
           balance.bypassedFixedUnits(),
-          balance.depositedFixedUnits());
+          balance.depositedFixedUnits(),
+          balance.capacityGrainMass(),
+          balance.mobilizedGrainMass(),
+          balance.retainedGrainMass(),
+          balance.transportLossGrainMass(),
+          balance.bypassedGrainMass(),
+          balance.depositedGrainMass());
     }
 
     private boolean matches(ColluvialSedimentBudget.InputBalance balance) {
@@ -190,7 +267,13 @@ public record ColluvialAbsoluteMassBudget(
           && retainedFixedUnits == balance.retainedFixedUnits()
           && transportLossFixedUnits == balance.transportLossFixedUnits()
           && bypassedFixedUnits == balance.bypassedFixedUnits()
-          && depositedFixedUnits == balance.depositedFixedUnits();
+          && depositedFixedUnits == balance.depositedFixedUnits()
+          && capacityGrainMass.equals(balance.capacityGrainMass())
+          && mobilizedGrainMass.equals(balance.mobilizedGrainMass())
+          && retainedGrainMass.equals(balance.retainedGrainMass())
+          && transportLossGrainMass.equals(balance.transportLossGrainMass())
+          && bypassedGrainMass.equals(balance.bypassedGrainMass())
+          && depositedGrainMass.equals(balance.depositedGrainMass());
     }
   }
 }

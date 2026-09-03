@@ -1072,6 +1072,18 @@ final class MaterialReviewPacketGenerator {
         budget.mobilizedRate(),
         "depositedRate",
         budget.depositedRate(),
+        "capacityGrainMass",
+        colluvialAbsoluteGrainMassJson(budget, budget.capacityGrainMass()),
+        "mobilizedGrainMass",
+        colluvialAbsoluteGrainMassJson(budget, budget.mobilizedGrainMass()),
+        "retainedGrainMass",
+        colluvialAbsoluteGrainMassJson(budget, budget.retainedGrainMass()),
+        "transportLossGrainMass",
+        colluvialAbsoluteGrainMassJson(budget, budget.transportLossGrainMass()),
+        "bypassedGrainMass",
+        colluvialAbsoluteGrainMassJson(budget, budget.bypassedGrainMass()),
+        "depositedGrainMass",
+        colluvialAbsoluteGrainMassJson(budget, budget.depositedGrainMass()),
         "inputBalances",
         budget.inputBalances().stream()
             .map(
@@ -1098,8 +1110,41 @@ final class MaterialReviewPacketGenerator {
                         "mobilizedMass",
                         budget.scale().mass(input.mobilizedFixedUnits()),
                         "depositedMass",
-                        budget.scale().mass(input.depositedFixedUnits())))
+                        budget.scale().mass(input.depositedFixedUnits()),
+                        "capacityGrainMass",
+                        colluvialAbsoluteGrainMassJson(budget, input.capacityGrainMass()),
+                        "mobilizedGrainMass",
+                        colluvialAbsoluteGrainMassJson(budget, input.mobilizedGrainMass()),
+                        "retainedGrainMass",
+                        colluvialAbsoluteGrainMassJson(budget, input.retainedGrainMass()),
+                        "transportLossGrainMass",
+                        colluvialAbsoluteGrainMassJson(budget, input.transportLossGrainMass()),
+                        "bypassedGrainMass",
+                        colluvialAbsoluteGrainMassJson(budget, input.bypassedGrainMass()),
+                        "depositedGrainMass",
+                        colluvialAbsoluteGrainMassJson(budget, input.depositedGrainMass())))
             .toList());
+  }
+
+  private static Map<String, Object> colluvialAbsoluteGrainMassJson(
+      ColluvialAbsoluteMassBudget budget, ColluvialSedimentBudget.GrainMass grainMass) {
+    return JsonWriter.object(
+        "gravelAndCoarserFixedUnits",
+        grainMass.gravelAndCoarserFixedUnits(),
+        "sandFixedUnits",
+        grainMass.sandFixedUnits(),
+        "finesFixedUnits",
+        grainMass.finesFixedUnits(),
+        "totalFixedUnits",
+        grainMass.totalFixedUnits(),
+        "gravelAndCoarserMass",
+        budget.scale().mass(grainMass.gravelAndCoarserFixedUnits()),
+        "sandMass",
+        budget.scale().mass(grainMass.sandFixedUnits()),
+        "finesMass",
+        budget.scale().mass(grainMass.finesFixedUnits()),
+        "totalMass",
+        budget.scale().mass(grainMass.totalFixedUnits()));
   }
 
   private static Map<String, Object> colluvialTransportPolicyJson(ColluvialTransportPolicy policy) {
