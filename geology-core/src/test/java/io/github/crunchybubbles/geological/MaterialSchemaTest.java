@@ -44,6 +44,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessMi
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessStageMix;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessUsage;
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
+import io.github.crunchybubbles.geological.petrology.FractureTensorState;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
 import io.github.crunchybubbles.geological.petrology.LigandCapacities;
 import io.github.crunchybubbles.geological.petrology.MagmaDifferentiationState;
@@ -472,6 +473,38 @@ class MaterialSchemaTest {
                 coalComposition,
                 MaterialProcessClass.WEATHERING,
                 Optional.empty()));
+  }
+
+  @Test
+  void fractureTensorStateClosesAndRejectsNonPositiveSemidefiniteEvidence() {
+    FractureTensorState isotropic = FractureTensorState.none();
+    FractureTensorState foliated =
+        FractureTensorState.proofFor(
+            Lithology.MICA_SCHIST,
+            RockTexture.SCHISTOSE,
+            MaterialProcessClass.NONE,
+            MetamorphicStrainState.proofFor(
+                MetamorphicPath.COLLISION_CLOCKWISE,
+                MetamorphicProcessState.StrainClass.DIRECTED_FOLIATION,
+                650_000L));
+    FractureTensorState weathered =
+        FractureTensorState.proofFor(
+            Lithology.SOIL_COLLUVIUM,
+            RockTexture.SOIL_COLLUVIAL,
+            MaterialProcessClass.WEATHERING,
+            MetamorphicStrainState.none());
+
+    assertEquals(MaterialAssemblage.SCALE, foliated.xxPpm() + foliated.yyPpm() + foliated.zzPpm());
+    assertTrue(foliated.intensityPpm() > isotropic.intensityPpm());
+    assertTrue(weathered.connectivityPpm() > isotropic.connectivityPpm());
+    assertEquals(0L, isotropic.intensityPpm());
+    assertEquals(0L, isotropic.connectivityPpm());
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new FractureTensorState(500_000L, 499_999L, 0L, 0L, 0L, 0L, 1L, 1L));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new FractureTensorState(500_000L, 500_000L, 0L, 600_000L, 0L, 0L, 1L, 1L));
   }
 
   @Test

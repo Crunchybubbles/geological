@@ -89,6 +89,12 @@ public record PetrologicSample(
         rock.lithology(), resolvedAssemblage, resolvedComposition, processClass, fluidState);
   }
 
+  /** Returns the deterministic normalized fracture-tensor proxy for this resolved sample. */
+  public FractureTensorState fractureTensorState() {
+    return FractureTensorState.proofFor(
+        rock.lithology(), resolvedTexture, processClass, metamorphism.processState().strainState());
+  }
+
   private static void requireUnit(double value, String name) {
     if (!Double.isFinite(value) || value < 0.0 || value > 1.0) {
       throw new IllegalArgumentException(name + " must lie in [0, 1]");

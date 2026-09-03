@@ -39,6 +39,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessMi
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessStageMix;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessUsage;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
+import io.github.crunchybubbles.geological.petrology.FractureTensorState;
 import io.github.crunchybubbles.geological.petrology.MagmaLineageState;
 import io.github.crunchybubbles.geological.petrology.MantleCargoState;
 import io.github.crunchybubbles.geological.petrology.MaterialBufferState;
@@ -1980,6 +1981,8 @@ final class MaterialReviewPacketGenerator {
         processJson(sample.materialProcessLedger()),
         "materialBufferState",
         materialBufferStateJson(sample.materialBufferState()),
+        "fractureTensorState",
+        fractureTensorStateJson(sample.fractureTensorState()),
         "alterationContribution",
         alterationContributionJson(sample.alterationContribution()),
         "fluidState",
@@ -2006,6 +2009,26 @@ final class MaterialReviewPacketGenerator {
         state.waterInventoryPpm(),
         "volatileInventoryPpm",
         state.volatileInventoryPpm());
+  }
+
+  private Map<String, Object> fractureTensorStateJson(FractureTensorState state) {
+    return JsonWriter.object(
+        "xxPpm",
+        state.xxPpm(),
+        "yyPpm",
+        state.yyPpm(),
+        "zzPpm",
+        state.zzPpm(),
+        "xyPpm",
+        state.xyPpm(),
+        "xzPpm",
+        state.xzPpm(),
+        "yzPpm",
+        state.yzPpm(),
+        "intensityPpm",
+        state.intensityPpm(),
+        "connectivityPpm",
+        state.connectivityPpm());
   }
 
   private Map<String, Object> regionalMetamorphicStateJson(RegionalMetamorphicState state) {
