@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.crunchybubbles.geological.determinism.StableId;
 import io.github.crunchybubbles.geological.determinism.WorldIdentity;
+import io.github.crunchybubbles.geological.model.AgeKey;
 import io.github.crunchybubbles.geological.model.Lithology;
 import io.github.crunchybubbles.geological.model.Overprint;
 import io.github.crunchybubbles.geological.model.Point2;
@@ -54,6 +55,8 @@ import io.github.crunchybubbles.geological.petrology.ModalVariationAxis;
 import io.github.crunchybubbles.geological.petrology.PrimaryMetamorphicDefinition;
 import io.github.crunchybubbles.geological.petrology.ProcessFluidState;
 import io.github.crunchybubbles.geological.petrology.RedoxClass;
+import io.github.crunchybubbles.geological.petrology.ReservoirSinkKind;
+import io.github.crunchybubbles.geological.petrology.ReservoirTransfer;
 import io.github.crunchybubbles.geological.petrology.RockDefinition;
 import io.github.crunchybubbles.geological.petrology.RockTexture;
 import io.github.crunchybubbles.geological.petrology.SalinityClass;
@@ -69,6 +72,37 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class MaterialSchemaTest {
+  @Test
+  void reservoirTransferCarriesOptionalAgeProcessAndConfidenceEvidence() {
+    StableId process = StableId.parse("00000000000000000000000000000011");
+    StableId sink = StableId.parse("00000000000000000000000000000012");
+    AgeKey age = new AgeKey(92.0, 0);
+    ReservoirTransfer transfer =
+        new ReservoirTransfer(
+            "deposit",
+            ReservoirSinkKind.DEPOSIT,
+            Optional.of(sink),
+            105_000L,
+            Optional.of(process),
+            Optional.of(age),
+            950_000L);
+
+    assertEquals(Optional.of(process), transfer.processId());
+    assertEquals(Optional.of(age), transfer.age());
+    assertEquals(950_000L, transfer.confidencePpm());
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new ReservoirTransfer(
+                "deposit",
+                ReservoirSinkKind.DEPOSIT,
+                Optional.of(sink),
+                105_000L,
+                Optional.of(process),
+                Optional.empty(),
+                950_000L));
+  }
+
   @Test
   void sedimentaryInputBudgetClosesAcrossExplicitSourceReservoirClasses() {
     SedimentaryInputBudget evaporite =

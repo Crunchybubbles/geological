@@ -1550,6 +1550,8 @@ public final class MaterialQueryEngine {
 
   private static ElementReservoirLedger reservoirLedger(MineralSystemDecision decision) {
     StableId source = decision.deposit().sourceIds().getFirst();
+    StableId processId = decision.deposit().mineralSystemId();
+    AgeKey age = decision.deposit().formationAge();
     List<ReservoirTransfer> transfers =
         decision.ledger().allocations().entrySet().stream()
             .map(
@@ -1560,20 +1562,33 @@ public final class MaterialQueryEngine {
                         role,
                         ReservoirSinkKind.DEPOSIT,
                         Optional.of(decision.deposit().id()),
-                        allocation.getValue());
+                        allocation.getValue(),
+                        Optional.of(processId),
+                        Optional.of(age),
+                        950_000L);
                   }
                   if (role.startsWith("retained_")) {
                     return new ReservoirTransfer(
                         role,
                         ReservoirSinkKind.RETAINED_SOURCE,
                         Optional.of(source),
-                        allocation.getValue());
+                        allocation.getValue(),
+                        Optional.of(processId),
+                        Optional.of(age),
+                        900_000L);
                   }
                   ReservoirSinkKind kind =
                       role.contains("transport")
                           ? ReservoirSinkKind.TRANSPORT_LOSS
                           : ReservoirSinkKind.DIFFUSE_HALO_OR_LOSS;
-                  return new ReservoirTransfer(role, kind, Optional.empty(), allocation.getValue());
+                  return new ReservoirTransfer(
+                      role,
+                      kind,
+                      Optional.empty(),
+                      allocation.getValue(),
+                      Optional.of(processId),
+                      Optional.of(age),
+                      kind == ReservoirSinkKind.TRANSPORT_LOSS ? 750_000L : 700_000L);
                 })
             .toList();
     return new ElementReservoirLedger(

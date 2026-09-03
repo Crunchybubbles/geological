@@ -80,7 +80,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.70", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.71", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1313,6 +1313,10 @@ class MaterialQueryTest {
           ledger.initialInventory(),
           ledger.transfers().stream().mapToLong(transfer -> transfer.amount()).sum());
       assertTrue(ledger.depositId().isPresent());
+      assertTrue(
+          ledger.transfers().stream().allMatch(transfer -> transfer.processId().isPresent()));
+      assertTrue(ledger.transfers().stream().allMatch(transfer -> transfer.age().isPresent()));
+      assertTrue(ledger.transfers().stream().allMatch(transfer -> transfer.confidencePpm() > 0));
     }
     ElementReservoirLedger porphyry =
         ledgers.stream().filter(ledger -> ledger.element().equals("Cu")).findFirst().orElseThrow();

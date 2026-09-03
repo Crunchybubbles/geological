@@ -2072,7 +2072,15 @@ final class MaterialReviewPacketGenerator {
         "sinkId",
         transfer.sinkId().map(Object::toString).orElse(null),
         "amount",
-        transfer.amount());
+        transfer.amount(),
+        "processId",
+        transfer.processId().map(Object::toString).orElse(null),
+        "ageMa",
+        transfer.age().map(AgeKey::ageMa).orElse(null),
+        "ageOrdinal",
+        transfer.age().map(AgeKey::ordinal).orElse(null),
+        "confidencePpm",
+        transfer.confidencePpm());
   }
 
   private static Map<String, Long> elementMap(Map<ChemicalElement, Long> source) {
