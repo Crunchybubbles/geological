@@ -534,6 +534,8 @@ public final class MaterialQueryEngine {
         .append(grainSize.finesPpm())
         .append(':')
         .append(sourceMix.textureState().sorting().name())
+        .append(":sorting-dominance:")
+        .append(sourceMix.textureState().sortingDominanceIndex())
         .append(':')
         .append(sourceMix.textureState().support().name())
         .append(':')

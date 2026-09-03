@@ -40,7 +40,6 @@ import io.github.crunchybubbles.geological.petrology.PetrologicState;
 import io.github.crunchybubbles.geological.petrology.RockTexture;
 import io.github.crunchybubbles.geological.petrology.SalinityClass;
 import io.github.crunchybubbles.geological.petrology.SedimentGrainSize;
-import io.github.crunchybubbles.geological.petrology.SedimentSorting;
 import io.github.crunchybubbles.geological.petrology.SolidSolutionState;
 import io.github.crunchybubbles.geological.petrology.SurfaceMaterialKind;
 import io.github.crunchybubbles.geological.petrology.SurfacePetrologicSample;
@@ -58,7 +57,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.38", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.39", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -1478,7 +1477,8 @@ class MaterialQueryTest {
         SedimentGrainSize.weightedBlend(unselectedGrainShares),
         sourceMix.textureState().grainSize());
     assertEquals(ColluvialTextureState.from(expectedGrains), sourceMix.textureState());
-    assertEquals(SedimentSorting.UNSORTED_TO_POORLY_SORTED, sourceMix.textureState().sorting());
+    assertTrue(sourceMix.textureState().sortingDominanceIndex() >= 0.0);
+    assertTrue(sourceMix.textureState().sortingDominanceIndex() <= 1.0);
     assertEquals(ClastShape.ANGULAR_TO_SUBROUNDED, sourceMix.textureState().clastShape());
     ColluvialPhysicalState expectedPhysical =
         ColluvialPhysicalState.derive(

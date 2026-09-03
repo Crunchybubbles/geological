@@ -20,7 +20,7 @@ class MaterialReviewPacketGeneratorTest {
 
     String firstJson = Files.readString(first);
     assertEquals(firstJson, Files.readString(second));
-    assertTrue(firstJson.contains("\"modelVersion\": \"phase2.0-alpha.38\""));
+    assertTrue(firstJson.contains("\"modelVersion\": \"phase2.0-alpha.39\""));
     assertTrue(firstJson.contains(Phase2World.SCIENTIFIC_DIGEST));
     assertTrue(firstJson.contains("\"materialProcess\""));
     assertTrue(firstJson.contains("\"elementReservoirLedgers\""));
@@ -69,6 +69,7 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"routedDistanceBlocks\""));
     assertTrue(firstJson.contains("\"routeDirectnessIndex\""));
     assertTrue(firstJson.contains("\"routeGradeIndex\""));
+    assertTrue(firstJson.contains("\"sortingDominanceIndex\""));
     assertTrue(firstJson.contains("\"maximumDeflectionFromInitialDegrees\""));
     assertTrue(firstJson.contains("\"reachDecisions\""));
     assertTrue(firstJson.contains("\"rawUpslopeDirection\""));

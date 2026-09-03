@@ -548,6 +548,8 @@ final class MaterialReviewPacketGenerator {
             sedimentGrainSizeJson(mix.textureState().grainSize()),
             "sorting",
             mix.textureState().sorting().name(),
+            "sortingDominanceIndex",
+            mix.textureState().sortingDominanceIndex(),
             "support",
             mix.textureState().support().name(),
             "clastShape",

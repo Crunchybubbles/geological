@@ -66,7 +66,7 @@ class MaterialSchemaTest {
   }
 
   @Test
-  void colluvialTextureClassifiesSupportWithoutInventingTransportSorting() {
+  void colluvialTextureClassifiesSupportAndCoarseSorting() {
     ColluvialTextureState matrix =
         ColluvialTextureState.from(new SedimentGrainSize(250_000L, 350_000L, 400_000L));
     ColluvialTextureState mixed =
@@ -78,6 +78,9 @@ class MaterialSchemaTest {
     assertEquals(SedimentSupport.MIXED_SUPPORT, mixed.support());
     assertEquals(SedimentSupport.CLAST_SUPPORTED, clast.support());
     assertEquals(SedimentSorting.UNSORTED_TO_POORLY_SORTED, mixed.sorting());
+    assertEquals(SedimentSorting.UNSORTED_TO_POORLY_SORTED, clast.sorting());
+    assertEquals(0.1, mixed.sortingDominanceIndex(), 1.0e-15);
+    assertEquals(0.25, clast.sortingDominanceIndex(), 1.0e-15);
     assertEquals(ClastShape.ANGULAR_TO_SUBROUNDED, mixed.clastShape());
   }
 
@@ -98,6 +101,10 @@ class MaterialSchemaTest {
             fineMatrix.clastShape());
     ColluvialTextureState sandyMatrix =
         ColluvialTextureState.from(new SedimentGrainSize(100_000L, 800_000L, 100_000L));
+
+    assertEquals(SedimentSorting.MODERATELY_SORTED, fineMatrix.sorting());
+    assertEquals(SedimentSorting.MODERATELY_SORTED, coarseClast.sorting());
+    assertEquals(SedimentSorting.WELL_SORTED, sandyMatrix.sorting());
 
     ColluvialPhysicalState fine =
         ColluvialPhysicalState.derive(fineMatrix, porosity, permeability, erodibility);
