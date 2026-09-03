@@ -64,6 +64,8 @@ import io.github.crunchybubbles.geological.petrology.SedimentGrainSize;
 import io.github.crunchybubbles.geological.petrology.SedimentSorting;
 import io.github.crunchybubbles.geological.petrology.SedimentSupport;
 import io.github.crunchybubbles.geological.petrology.SedimentaryInputBudget;
+import io.github.crunchybubbles.geological.petrology.SedimentaryReservoirContribution;
+import io.github.crunchybubbles.geological.petrology.SedimentaryReservoirKind;
 import io.github.crunchybubbles.geological.petrology.SulfurState;
 import io.github.crunchybubbles.geological.petrology.UnitIntervalDistribution;
 import java.util.List;
@@ -105,14 +107,33 @@ class MaterialSchemaTest {
 
   @Test
   void sedimentaryInputBudgetClosesAcrossExplicitSourceReservoirClasses() {
+    StableId basement = StableId.parse("00000000000000000000000000000001");
+    StableId volcanic = StableId.parse("00000000000000000000000000000002");
     SedimentaryInputBudget evaporite =
         SedimentaryInputBudget.proofFor("restricted_evaporite_basin_center");
     SedimentaryInputBudget coal = SedimentaryInputBudget.proofFor("buried_peat_mire");
+    List<SedimentaryReservoirContribution> volcanicMix =
+        SedimentaryReservoirContribution.proofFor(
+            SedimentaryInputBudget.proofFor("submarine_volcanic_apron"),
+            List.of(volcanic, basement));
 
     assertEquals(MaterialAssemblage.SCALE, total(evaporite));
     assertEquals(MaterialAssemblage.SCALE, total(coal));
     assertTrue(evaporite.evaporiticBrinePpm() > 0);
     assertTrue(coal.organicPpm() > 0);
+    assertEquals(
+        List.of(
+            SedimentaryReservoirKind.CLASTIC_TERRIGENOUS,
+            SedimentaryReservoirKind.VOLCANIC_ASH,
+            SedimentaryReservoirKind.CARBONATE_BIOGENIC,
+            SedimentaryReservoirKind.CHEMICAL_PRECIPITATE),
+        volcanicMix.stream().map(SedimentaryReservoirContribution::kind).toList());
+    assertEquals(List.of(basement, volcanic), volcanicMix.get(0).sourceBodyIds());
+    assertEquals(List.of(basement, volcanic), volcanicMix.get(1).sourceBodyIds());
+    assertEquals(0, volcanicMix.get(2).sourceBodyIds().size());
+    assertEquals(
+        MaterialAssemblage.SCALE,
+        volcanicMix.stream().mapToLong(SedimentaryReservoirContribution::fractionPpm).sum());
     assertThrows(
         IllegalArgumentException.class,
         () -> new SedimentaryInputBudget(1_000_000L, 1L, 0L, 0L, 0L, 0L));

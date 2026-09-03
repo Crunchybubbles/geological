@@ -11,7 +11,28 @@ public record SedimentaryState(
     String diagenesisClass,
     List<StableId> sourceBodyIds,
     SedimentaryBasinState basinState,
-    SedimentaryInputBudget inputBudget) {
+    SedimentaryInputBudget inputBudget,
+    List<SedimentaryReservoirContribution> reservoirContributions) {
+  /** Compatibility constructor for the pre-reservoir typed basin state. */
+  public SedimentaryState(
+      String faciesClass,
+      String grainSizeClass,
+      String maturityClass,
+      String diagenesisClass,
+      List<StableId> sourceBodyIds,
+      SedimentaryBasinState basinState,
+      SedimentaryInputBudget inputBudget) {
+    this(
+        faciesClass,
+        grainSizeClass,
+        maturityClass,
+        diagenesisClass,
+        sourceBodyIds,
+        basinState,
+        inputBudget,
+        SedimentaryReservoirContribution.proofFor(inputBudget, sourceBodyIds));
+  }
+
   public SedimentaryState(
       String faciesClass,
       String grainSizeClass,
@@ -25,7 +46,9 @@ public record SedimentaryState(
         diagenesisClass,
         sourceBodyIds,
         SedimentaryBasinState.proofFor(faciesClass, sourceBodyIds),
-        SedimentaryInputBudget.proofFor(faciesClass));
+        SedimentaryInputBudget.proofFor(faciesClass),
+        SedimentaryReservoirContribution.proofFor(
+            SedimentaryInputBudget.proofFor(faciesClass), sourceBodyIds));
   }
 
   public SedimentaryState(
@@ -42,7 +65,9 @@ public record SedimentaryState(
         diagenesisClass,
         sourceBodyIds,
         basinState,
-        SedimentaryInputBudget.proofFor(faciesClass));
+        SedimentaryInputBudget.proofFor(faciesClass),
+        SedimentaryReservoirContribution.proofFor(
+            SedimentaryInputBudget.proofFor(faciesClass), sourceBodyIds));
   }
 
   public SedimentaryState {
@@ -55,7 +80,8 @@ public record SedimentaryState(
         || diagenesisClass == null
         || diagenesisClass.isBlank()
         || basinState == null
-        || inputBudget == null) {
+        || inputBudget == null
+        || reservoirContributions == null) {
       throw new IllegalArgumentException("sedimentary state must be complete");
     }
     sourceBodyIds = List.copyOf(sourceBodyIds).stream().sorted().toList();
@@ -64,6 +90,50 @@ public record SedimentaryState(
     }
     if (!sourceBodyIds.equals(basinState.sourceCatchmentIds())) {
       throw new IllegalArgumentException("sedimentary basin sources must match sedimentary state");
+    }
+    reservoirContributions =
+        List.copyOf(reservoirContributions).stream()
+            .sorted(java.util.Comparator.comparing(SedimentaryReservoirContribution::kind))
+            .toList();
+    if (reservoirContributions.isEmpty()
+        || reservoirContributions.stream().anyMatch(contribution -> contribution == null)
+        || reservoirContributions.stream()
+                .map(SedimentaryReservoirContribution::kind)
+                .distinct()
+                .count()
+            != reservoirContributions.size()
+        || reservoirContributions.stream()
+                .mapToLong(SedimentaryReservoirContribution::fractionPpm)
+                .sum()
+            != MaterialAssemblage.SCALE) {
+      throw new IllegalArgumentException(
+          "sedimentary reservoir contributions must be unique and close to "
+              + MaterialAssemblage.SCALE);
+    }
+    long expectedClastic = inputBudget.clasticPpm();
+    long expectedVolcanic = inputBudget.volcanicPpm();
+    long expectedCarbonate = inputBudget.carbonatePpm();
+    long expectedOrganic = inputBudget.organicPpm();
+    long expectedChemical = inputBudget.chemicalPrecipitatePpm();
+    long expectedBrine = inputBudget.evaporiticBrinePpm();
+    for (SedimentaryReservoirContribution contribution : reservoirContributions) {
+      long expected =
+          switch (contribution.kind()) {
+            case CLASTIC_TERRIGENOUS -> expectedClastic;
+            case VOLCANIC_ASH -> expectedVolcanic;
+            case CARBONATE_BIOGENIC -> expectedCarbonate;
+            case ORGANIC_PEAT -> expectedOrganic;
+            case CHEMICAL_PRECIPITATE -> expectedChemical;
+            case EVAPORITIC_BRINE -> expectedBrine;
+          };
+      if (expected <= 0 || contribution.fractionPpm() != expected) {
+        throw new IllegalArgumentException(
+            "sedimentary reservoir contribution disagrees with budget");
+      }
+      if (!contribution.sourceBodyIds().stream().allMatch(sourceBodyIds::contains)) {
+        throw new IllegalArgumentException(
+            "sedimentary reservoir source is not a declared source body");
+      }
     }
   }
 }

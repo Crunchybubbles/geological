@@ -1987,7 +1987,19 @@ final class MaterialReviewPacketGenerator {
             "chemicalPrecipitatePpm",
             state.inputBudget().chemicalPrecipitatePpm(),
             "evaporiticBrinePpm",
-            state.inputBudget().evaporiticBrinePpm()));
+            state.inputBudget().evaporiticBrinePpm()),
+        "reservoirContributions",
+        state.reservoirContributions().stream()
+            .map(
+                contribution ->
+                    JsonWriter.object(
+                        "kind",
+                        contribution.kind().name(),
+                        "fractionPpm",
+                        contribution.fractionPpm(),
+                        "sourceBodyIds",
+                        contribution.sourceBodyIds().stream().map(Object::toString).toList()))
+            .toList());
   }
 
   private Map<String, Object> solidSolutionStateJson(SolidSolutionState state) {
