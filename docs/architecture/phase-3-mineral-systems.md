@@ -1,6 +1,6 @@
 # Phase 3 mineral-system increment
 
-Status: tenth Phase 3 architecture-proving slice; all six architecture-proving families, the gated porphyry supergene refinement, and source-audit plus held-out evidence contracts are explicit
+Status: eleventh Phase 3 architecture-proving slice; all six architecture-proving families, the gated porphyry supergene refinement, source-audit plus held-out evidence contracts, and a bounded non-concentric porphyry footprint are explicit
 
 ## Alpha.1 — linked porphyry topology
 
@@ -14,10 +14,12 @@ hard-gate name. Source and deposit fixed-unit budgets are copied from the existi
 the state cannot invent metal mass.
 
 The state is deliberately an explanatory envelope rather than a block-placement algorithm. Its
-205-block lateral and 160-block vertical extents, zone boundaries, and intensities are proof
-tunables. Voxel-scale veins, empirical grade-tonnage sampling, and non-concentric alteration
-geometry remain future slices. The state is exposed through both geology and material query
-facades and in the deterministic Phase 2 review packet until a dedicated Phase 3 packet exists.
+245-block lateral envelope, 160-block vertical extent, 28-degree alteration azimuth, and bounded
+zone offsets (0, 18, and 36 blocks) are proof tunables. The shifted annuli make the footprint
+deterministically non-concentric while retaining ordered zone precedence; voxel-scale veins and
+empirical grade-tonnage sampling remain future slices. The state is exposed through both geology
+and material query facades and in the deterministic Phase 2 review packet until a dedicated Phase
+3 packet exists.
 
 The focused mineral-system tests verify formed and barren outcomes, source/deposit budget bounds,
 intrusion/fluid/stockwork linkage, zone ordering and point classification, failed-gate semantics,
@@ -174,9 +176,18 @@ Completing the Phase 3 scientific exit still requires cleaning the source tables
 row-level bias/censor metadata, auditing redistribution, and promoting the held-out quantile and
 covariance comparisons to a source-backed result.
 
+## Alpha.11 — bounded non-concentric alteration footprint
+
+The porphyry topology now carries an explicit 28-degree alteration azimuth and per-zone center
+offsets of 0, 18, and 36 blocks. `zoneAt` evaluates each ordered annulus around its shifted center,
+with a 245-block lateral envelope that contains the furthest propylitic edge. The constructor
+rejects non-finite azimuths and shifted zones that exceed the envelope; formed and barren gate
+semantics remain unchanged. Focused tests prove both the existing zone vocabulary and asymmetric
+east/west classification, and the review packet preserves the geometry parameters.
+
 ## Remaining Phase 3 slices
 
 The six architecture families and their deterministic evidence contracts are represented. Remaining
-Phase 3 work is the raw-table audit/redistribution review and held-out statistical comparison, plus
-non-concentric topology refinement. Each new family must retain barren outcomes, explicit source
-budgets, and deterministic provenance before Minecraft presentation is attempted.
+Phase 3 work is the raw-table redistribution review and held-out statistical comparison. Each new
+family must retain barren outcomes, explicit source budgets, and deterministic provenance before
+Minecraft presentation is attempted.

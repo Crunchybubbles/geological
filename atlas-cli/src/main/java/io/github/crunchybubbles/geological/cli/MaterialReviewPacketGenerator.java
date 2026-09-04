@@ -2236,6 +2236,8 @@ final class MaterialReviewPacketGenerator {
         state.stockworkClass().name(),
         "localCenter",
         pointJson(state.localCenter()),
+        "alterationAzimuthDegrees",
+        state.alterationAzimuthDegrees(),
         "lateralExtentBlocks",
         state.lateralExtentBlocks(),
         "verticalExtentBlocks",
@@ -2256,7 +2258,9 @@ final class MaterialReviewPacketGenerator {
                         "intensityPpm",
                         zone.intensityPpm(),
                         "anchorId",
-                        zone.anchorId().toString()))
+                        zone.anchorId().toString(),
+                        "centerOffsetBlocks",
+                        zone.centerOffsetBlocks()))
             .toList(),
         "sourceBudgetFixedUnits",
         state.sourceBudgetFixedUnits(),

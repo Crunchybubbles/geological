@@ -59,6 +59,8 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"porphyrySystemState\""));
     assertTrue(firstJson.contains("\"MAGMATIC_HYDROTHERMAL\""));
     assertTrue(firstJson.contains("\"alterationZones\""));
+    assertTrue(firstJson.contains("\"alterationAzimuthDegrees\": 28.0"));
+    assertTrue(firstJson.contains("\"centerOffsetBlocks\": 36.0"));
     assertTrue(firstJson.contains("\"POTASSIC_CORE\""));
     assertTrue(firstJson.contains("\"vmsSystemState\""));
     assertTrue(firstJson.contains("\"STRATIFORM_LENS_WITH_FEEDER\""));

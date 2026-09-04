@@ -83,6 +83,12 @@ class MineralSystemProofTest {
         PorphyrySystemState.FluidSourceClass.MAGMATIC_HYDROTHERMAL, state.fluidSourceClass());
     assertEquals(PorphyrySystemState.StockworkClass.CONNECTED_STOCKWORK, state.stockworkClass());
     assertEquals(3, state.alterationZones().size());
+    assertEquals(28.0, state.alterationAzimuthDegrees(), 1e-12);
+    assertEquals(
+        List.of(0.0, 18.0, 36.0),
+        state.alterationZones().stream()
+            .map(PorphyrySystemState.AlterationZone::centerOffsetBlocks)
+            .toList());
     Point3 center = state.localCenter();
     assertEquals(
         PorphyrySystemState.AlterationZoneKind.POTASSIC_CORE,
@@ -93,6 +99,10 @@ class MineralSystemProofTest {
     assertEquals(
         PorphyrySystemState.AlterationZoneKind.PROPYLITIC_DISTAL,
         state.zoneAt(new Point3(center.x() + 170.0, center.y(), center.z())).orElseThrow().kind());
+    assertEquals(
+        PorphyrySystemState.AlterationZoneKind.PROPYLITIC_DISTAL,
+        state.zoneAt(new Point3(center.x() + 210.0, center.y(), center.z())).orElseThrow().kind());
+    assertTrue(state.zoneAt(new Point3(center.x() - 210.0, center.y(), center.z())).isEmpty());
     assertTrue(state.zoneAt(new Point3(center.x() + 250.0, center.y(), center.z())).isEmpty());
     assertEquals(1_000_000L, state.sourceBudgetFixedUnits());
     assertEquals(105_000L, state.depositAllocationFixedUnits());

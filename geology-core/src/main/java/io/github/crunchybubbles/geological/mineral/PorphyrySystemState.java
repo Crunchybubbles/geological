@@ -13,8 +13,8 @@ import java.util.Optional;
  * Phase 3 porphyry-system topology derived from the existing province and mineral-system proof.
  *
  * <p>The state is a bounded explanatory envelope: it records which intrusion, fluid, and stockwork
- * are linked and exposes coarse alteration zoning without claiming a voxel-scale vein solve or
- * measured grade distribution.
+ * are linked and exposes coarse, offset alteration zoning without claiming a voxel-scale vein solve
+ * or measured grade distribution.
  */
 public record PorphyrySystemState(
     StableId systemId,
@@ -26,6 +26,7 @@ public record PorphyrySystemState(
     FluidSourceClass fluidSourceClass,
     StockworkClass stockworkClass,
     Point3 localCenter,
+    double alterationAzimuthDegrees,
     double lateralExtentBlocks,
     double verticalExtentBlocks,
     List<AlterationZone> alterationZones,
@@ -45,6 +46,11 @@ public record PorphyrySystemState(
         || alterationZones == null
         || failedGate == null) {
       throw new IllegalArgumentException("porphyry system state must be complete");
+    }
+    if (!Double.isFinite(alterationAzimuthDegrees)
+        || alterationAzimuthDegrees < 0.0
+        || alterationAzimuthDegrees >= 360.0) {
+      throw new IllegalArgumentException("porphyry alteration azimuth must be in [0, 360)");
     }
     if (!Double.isFinite(lateralExtentBlocks)
         || lateralExtentBlocks <= 0.0
@@ -69,6 +75,9 @@ public record PorphyrySystemState(
       previousOuter = zone.outerRadiusBlocks();
       if (zone.outerRadiusBlocks() > lateralExtentBlocks) {
         throw new IllegalArgumentException("porphyry alteration zone exceeds system extent");
+      }
+      if (zone.outerRadiusBlocks() + zone.centerOffsetBlocks() > lateralExtentBlocks) {
+        throw new IllegalArgumentException("porphyry alteration footprint exceeds system extent");
       }
     }
     if (status == FormationStatus.FORMED && alterationZones.isEmpty()) {
@@ -119,21 +128,24 @@ public record PorphyrySystemState(
                     0.0,
                     65.0,
                     900_000L,
-                    province.proofIds().porphyrySystemId()),
+                    province.proofIds().porphyrySystemId(),
+                    0.0),
                 new AlterationZone(
                     AlterationZoneKind.PHYLLIC_INTERMEDIATE,
                     Overprint.PHYLLIC_ALTERATION,
                     65.0,
                     125.0,
                     650_000L,
-                    province.proofIds().porphyrySystemId()),
+                    province.proofIds().porphyrySystemId(),
+                    18.0),
                 new AlterationZone(
                     AlterationZoneKind.PROPYLITIC_DISTAL,
                     Overprint.PROPYLITIC_ALTERATION,
                     125.0,
                     205.0,
                     400_000L,
-                    province.proofIds().porphyrySystemId()))
+                    province.proofIds().porphyrySystemId(),
+                    36.0))
             : List.of();
     return new PorphyrySystemState(
         decision.candidateId(),
@@ -149,7 +161,8 @@ public record PorphyrySystemState(
             ? StockworkClass.CONNECTED_STOCKWORK
             : StockworkClass.DISCONNECTED_STOCKWORK,
         geometry.porphyryCenter(),
-        205.0,
+        28.0,
+        245.0,
         160.0,
         zones,
         sourceBudget,
@@ -168,14 +181,9 @@ public record PorphyrySystemState(
     }
     double dx = localPoint.x() - localCenter.x();
     double dz = localPoint.z() - localCenter.z();
-    double radius = StrictMath.sqrt(dx * dx + dz * dz);
+    double azimuthRadians = StrictMath.toRadians(alterationAzimuthDegrees);
     return alterationZones.stream()
-        .filter(
-            zone ->
-                radius >= zone.innerRadiusBlocks()
-                    && (radius < zone.outerRadiusBlocks()
-                        || radius == zone.outerRadiusBlocks()
-                            && zone.outerRadiusBlocks() == lateralExtentBlocks))
+        .filter(zone -> zone.contains(dx, dz, azimuthRadians))
         .findFirst();
   }
 
@@ -205,7 +213,8 @@ public record PorphyrySystemState(
       double innerRadiusBlocks,
       double outerRadiusBlocks,
       long intensityPpm,
-      StableId anchorId) {
+      StableId anchorId,
+      double centerOffsetBlocks) {
     public AlterationZone {
       if (kind == null || overprint == null || anchorId == null) {
         throw new IllegalArgumentException("porphyry alteration zone identity is required");
@@ -219,6 +228,18 @@ public record PorphyrySystemState(
       if (intensityPpm < 0L || intensityPpm > 1_000_000L) {
         throw new IllegalArgumentException("porphyry alteration intensity must be bounded");
       }
+      if (!Double.isFinite(centerOffsetBlocks) || centerOffsetBlocks < 0.0) {
+        throw new IllegalArgumentException("porphyry alteration center offset must be bounded");
+      }
+    }
+
+    private boolean contains(double deltaX, double deltaZ, double azimuthRadians) {
+      double centerX = centerOffsetBlocks * StrictMath.cos(azimuthRadians);
+      double centerZ = centerOffsetBlocks * StrictMath.sin(azimuthRadians);
+      double localX = deltaX - centerX;
+      double localZ = deltaZ - centerZ;
+      double radius = StrictMath.sqrt(localX * localX + localZ * localZ);
+      return radius >= innerRadiusBlocks && radius <= outerRadiusBlocks;
     }
   }
 }
