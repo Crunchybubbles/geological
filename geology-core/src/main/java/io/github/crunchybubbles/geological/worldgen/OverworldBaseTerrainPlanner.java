@@ -14,8 +14,8 @@ import java.util.Objects;
  * Builds a bounded, read-only Overworld base-terrain plan from the frozen worldgen context.
  *
  * <p>Every column is evaluated from the same world identity and is clipped at the geology-owned
- * surface. The planner does not access a live world or write a {@code ChunkAccess}; a later loader
- * slice owns that side effect and the presentation palette.
+ * surface. The planner does not access a live world or write a {@code ChunkAccess}; the separate
+ * writer bridge owns that side effect and the presentation palette remains injectable.
  */
 public final class OverworldBaseTerrainPlanner {
   private static final String OVERWORLD_DIMENSION = "minecraft:overworld";

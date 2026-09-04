@@ -8,7 +8,7 @@ import java.util.List;
  *
  * <p>The surface boundary is a presentation-independent block height. Material runs are clipped to
  * the solid part of the column; air, fluids, and Minecraft block states are deliberately left to
- * the platform palette/writer increment.
+ * the platform palette and the adapter's injected resolver.
  */
 public record OverworldBaseTerrainColumnPlan(
     long blockX,

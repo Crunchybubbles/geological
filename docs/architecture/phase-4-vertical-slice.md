@@ -1,7 +1,8 @@
 # Phase 4 vertical slice — canonical dimension identity
 
-Status: completed platform-neutral identity increment (`phase4-alpha.2`) plus the first loader
-adapter lock slice (`phase4-loader-alpha.1`); terrain and block placement are not introduced yet.
+Status: completed platform-neutral identity increment (`phase4-alpha.2`) plus loader adapter lock
+and chunk-writer slices (`phase4-loader-alpha.1`/`phase4-loader-alpha.2`); registered terrain and
+block palettes are not introduced yet.
 
 `DimensionGeologyProfile` freezes the shared contract that a future Minecraft adapter will consume
 for `minecraft:overworld`, `minecraft:the_nether`, and `minecraft:the_end`. Each profile carries a
@@ -33,8 +34,8 @@ Minecraft `ResourceKey<Level>` and `ChunkPos`, resolves one canonical profile id
 returns the platform-neutral `WorldgenChunkRequest`; null identity inputs are rejected before
 core work. A minimal `@Mod("geological")` entry point and generated `neoforge.mods.toml` prove
 that the packaged loader boundary is real. The adapter has no custom `ChunkGenerator`, world
-preset, terrain writes, block registrations, or neighbor generation yet, so it cannot change a
-world by itself. `OverworldTerrainControlSampler` now binds the coarse-terrain stage to the
+preset, default block palette, or neighbor generation yet. `OverworldTerrainControlSampler` now
+binds the coarse-terrain stage to the
 platform-supplied immutable snapshot and reconstructs deterministic elevation, uplift, slope,
 weathering, drainage, outcrop, and province/domain provenance for block-column centers. Samples
 from adjacent chunk contexts agree at the same world coordinate, and cache eviction does not alter
@@ -42,7 +43,10 @@ the result; this slice remains read-only. `OverworldBaseTerrainPlanner` then der
 column plan at the writable base-terrain stage: the continuous surface is clamped to the profile
 envelope, the existing geological material runs are clipped to the solid interval, and the
 terrain/lithology province owner is checked for agreement. Its target-chunk plan enumerates all
-256 columns in stable order without touching a Minecraft `ChunkAccess`.
+256 columns in stable order without touching a Minecraft `ChunkAccess`. `OverworldBaseTerrainWriter`
+applies those solid runs through a platform-neutral block sink, and `GeologicalChunkWriter` binds
+that sink to the authorized `ChunkAccess` with an injected, memoized material-to-block resolver;
+it does not register a palette or write air/fluid states.
 
 `WorldgenSnapshot` freezes the model, scientific, configuration, presentation, and scale identity
 that a generation worker may read. `WorldgenExecutionContext` accepts that snapshot, one authorized
@@ -51,7 +55,7 @@ live server/world handle. Non-writing stages and mismatched snapshots fail befor
 writable work still has to name the authorized target chunk. The review packet records the snapshot
 digests and the `stage_supplied_only`/`liveServerAccess=forbidden` policy.
 
-The next Phase 4 increment should implement a custom world preset/generator hook that consumes the
-frozen `WorldgenSnapshot`, request, and column plan to write only the authorized `ChunkAccess`.
-It must preserve the plan's clipping and deterministic seam tests; palette mapping and world-preset
-registration remain separate slices.
+The next Phase 4 increment should register a custom world preset/generator hook that consumes the
+frozen `WorldgenSnapshot`, request, and column plan and invokes the writer only for the authorized
+`ChunkAccess`. It must preserve the plan's clipping and deterministic seam tests; a concrete
+material palette, debug presentation, and compatibility/benchmark coverage remain separate slices.
