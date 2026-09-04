@@ -7,6 +7,7 @@ import io.github.crunchybubbles.geological.atlas.RiftArcGeometry;
 import io.github.crunchybubbles.geological.determinism.StableId;
 import io.github.crunchybubbles.geological.determinism.WorldIdentity;
 import io.github.crunchybubbles.geological.mineral.DepositType;
+import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
 import io.github.crunchybubbles.geological.mineral.MineralSystemDecision;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
 import io.github.crunchybubbles.geological.mineral.VmsSystemState;
@@ -141,6 +142,11 @@ public final class MaterialQueryEngine {
   /** Returns the linked Phase 3 VMS basin, stratiform lens, and feeder topology. */
   public VmsSystemState vmsSystemState(Province province) {
     return geology.vmsSystemState(province);
+  }
+
+  /** Returns the linked Phase 3 LCT pegmatite child-body lineage. */
+  public LctPegmatiteState lctPegmatiteState(Province province) {
+    return geology.lctPegmatiteState(province);
   }
 
   /** Builds a deterministic finite-query audit of source claims across colluvial parcels. */

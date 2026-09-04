@@ -1,6 +1,6 @@
 # Phase 3 mineral-system increment
 
-Status: second Phase 3 architecture-proving slice; porphyry and VMS topologies are explicit, while four deposit families are still open
+Status: third Phase 3 architecture-proving slice; porphyry, VMS, and LCT pegmatite topologies are explicit, while three deposit families are still open
 
 ## Alpha.1 — linked porphyry topology
 
@@ -37,10 +37,22 @@ empirical grade or vent-temperature distribution.
 Tests cover the lens/feeder split, synvolcanic age, basin and pathway linkage, source-budget
 closure, barren-driver rejection, and review JSON exposure.
 
+## Alpha.3 — LCT pegmatite child body
+
+`LctPegmatiteState` derives a stable child-body ID from the province identity and the final evolved
+pluton pulse. It requires the evolved residual-fluid potential and a porphyry-capable lineage before
+publishing an apical fracture/dike-swarm body with wall, intermediate, and quartz-core zones. The
+child allocation is explicitly bounded by a fixed-unit residual source budget. Barren or unresolved
+lineages retain a candidate child ID but publish no zones, no allocation, and the failed lineage or
+residual-budget gate. Dike dimensions, zone fractions, and proof budgets are tunable proxies rather
+than empirical grade-tonnage data.
+
+Tests cover parent/child identity, differentiation progress, fertility and emplacement gates,
+internal-zone point classification, budget bounds, barren-lineage rejection, and artifact exposure.
+
 ## Remaining Phase 3 slices
 
 The next bounded slices should add richer porphyry fluid/metal distributions and supergene gating,
-then the LCT pegmatite child-body lineage, BIF age/ocean-redox sheet, restricted-basin
-evaporite/potash sequence, and the full source-linked placer budget. Each family must retain barren
-outcomes, explicit source budgets, and deterministic provenance before Minecraft presentation is
-attempted.
+then the BIF age/ocean-redox sheet, restricted-basin evaporite/potash sequence, and the full
+source-linked placer budget. Each family must retain barren outcomes, explicit source budgets, and
+deterministic provenance before Minecraft presentation is attempted.

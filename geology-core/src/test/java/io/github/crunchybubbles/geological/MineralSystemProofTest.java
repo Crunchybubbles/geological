@@ -8,6 +8,7 @@ import io.github.crunchybubbles.geological.atlas.Province;
 import io.github.crunchybubbles.geological.atlas.ProvinceGrammar;
 import io.github.crunchybubbles.geological.mineral.FormationStatus;
 import io.github.crunchybubbles.geological.mineral.GateStatus;
+import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
 import io.github.crunchybubbles.geological.mineral.MineralSystemDecision;
 import io.github.crunchybubbles.geological.mineral.MineralSystemProofs;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
@@ -142,6 +143,49 @@ class MineralSystemProofTest {
     assertEquals(VmsSystemState.FluidSourceClass.NO_COEVAL_FLUID, state.fluidSourceClass());
     assertEquals("driver", state.failedGate().orElseThrow());
     assertTrue(state.zoneAt(state.localCenter()).isEmpty());
+  }
+
+  @Test
+  void evolvedLineagePublishesLctPegmatiteChildBodyAndInternalZones() {
+    GeologyQueryEngine query = Phase0World.create(8_675_309L);
+    Province province = query.atlas().provinceAt(new Point2(0.0, 0.0));
+    LctPegmatiteState state = query.lctPegmatiteState(province);
+
+    assertEquals(FormationStatus.FORMED, state.status());
+    assertEquals(province.geometry().plutonPulses().getLast().id(), state.parentIntrusionId());
+    assertEquals(LctPegmatiteState.FertilityClass.LCT_RARE_ELEMENT, state.fertilityClass());
+    assertEquals(
+        LctPegmatiteState.EmplacementClass.APICAL_FRACTURE_DIKE_SWARM, state.emplacementClass());
+    assertEquals(
+        LctPegmatiteState.FluidSourceClass.RESIDUAL_VOLATILE_MELT, state.fluidSourceClass());
+    assertEquals(0.85, state.differentiationProgress(), 1.0e-12);
+    assertEquals(3, state.internalZones().size());
+    Point3 center = state.localCenter();
+    assertEquals(
+        LctPegmatiteState.ZoneClass.QUARTZ_CORE, state.zoneAt(center).orElseThrow().kind());
+    assertEquals(
+        LctPegmatiteState.ZoneClass.INTERMEDIATE,
+        state.zoneAt(new Point3(center.x() + 20.0, center.y(), center.z())).orElseThrow().kind());
+    assertEquals(
+        LctPegmatiteState.ZoneClass.WALL,
+        state.zoneAt(new Point3(center.x() + 30.0, center.y(), center.z())).orElseThrow().kind());
+    assertTrue(state.zoneAt(new Point3(center.x() + 50.0, center.y(), center.z())).isEmpty());
+    assertTrue(state.childAllocationFixedUnits() <= state.sourceBudgetFixedUnits());
+    assertTrue(state.failedGate().isEmpty());
+  }
+
+  @Test
+  void barrenLineageCannotManufactureLctPegmatiteFertility() {
+    GeologyQueryEngine query = Phase1World.create(8_675_309L);
+    Province province =
+        Phase1TestSupport.provinceWithGrammar(query, ProvinceGrammar.BARREN_DRY_RIFT_TO_ARC);
+    LctPegmatiteState state = query.lctPegmatiteState(province);
+
+    assertEquals(FormationStatus.BARREN_SYSTEM, state.status());
+    assertEquals(LctPegmatiteState.FertilityClass.UNRESOLVED_FERTILITY, state.fertilityClass());
+    assertEquals("lineage", state.failedGate().orElseThrow());
+    assertTrue(state.internalZones().isEmpty());
+    assertEquals(0L, state.childAllocationFixedUnits());
   }
 
   private static MineralSystemDecision formed(

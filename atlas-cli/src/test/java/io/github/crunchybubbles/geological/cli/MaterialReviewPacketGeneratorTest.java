@@ -64,6 +64,9 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"STRATIFORM_LENS_WITH_FEEDER\""));
     assertTrue(firstJson.contains("\"seafloorAgeMa\": 241.0"));
     assertTrue(firstJson.contains("\"CHLORITIC_FEEDER\""));
+    assertTrue(firstJson.contains("\"lctPegmatiteState\""));
+    assertTrue(firstJson.contains("\"LCT_RARE_ELEMENT\""));
+    assertTrue(firstJson.contains("\"QUARTZ_CORE\""));
     assertTrue(firstJson.contains("\"diagenesisState\""));
     assertTrue(firstJson.contains("\"phase1Geology\""));
     assertTrue(firstJson.contains("\"phase2Material\""));

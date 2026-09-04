@@ -6,6 +6,7 @@ import io.github.crunchybubbles.geological.atlas.GeologyAtlas;
 import io.github.crunchybubbles.geological.atlas.Province;
 import io.github.crunchybubbles.geological.atlas.RiftArcGeometry;
 import io.github.crunchybubbles.geological.determinism.StableId;
+import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
 import io.github.crunchybubbles.geological.mineral.MineralSystemDecision;
 import io.github.crunchybubbles.geological.mineral.MineralSystemProofs;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
@@ -232,6 +233,11 @@ public final class GeologyQueryEngine {
   /** Returns the linked Phase 3 VMS basin, stratiform lens, and feeder topology. */
   public VmsSystemState vmsSystemState(Province province) {
     return mineralProofs.vmsState(province);
+  }
+
+  /** Returns the linked Phase 3 LCT pegmatite child-body lineage. */
+  public LctPegmatiteState lctPegmatiteState(Province province) {
+    return mineralProofs.lctPegmatiteState(province, atlas.identity());
   }
 
   private ProvinceSpatialIndex spatialIndex(Province province) {

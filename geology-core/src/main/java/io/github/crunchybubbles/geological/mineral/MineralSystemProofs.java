@@ -57,6 +57,15 @@ public final class MineralSystemProofs {
     return VmsSystemState.proofFor(province, primary);
   }
 
+  /** Returns the evolved-lineage LCT pegmatite child-body state for this province. */
+  public LctPegmatiteState lctPegmatiteState(
+      Province province, io.github.crunchybubbles.geological.determinism.WorldIdentity identity) {
+    if (province == null || identity == null) {
+      throw new IllegalArgumentException("province and world identity are required");
+    }
+    return LctPegmatiteState.proofFor(province, identity);
+  }
+
   private MineralSystemDecision barrenPrimaryPorphyry(Province province) {
     ProvinceProofIds ids = province.proofIds();
     return new MineralSystemDecision(

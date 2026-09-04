@@ -4,6 +4,7 @@ import io.github.crunchybubbles.geological.atlas.Province;
 import io.github.crunchybubbles.geological.atlas.ProvinceGrammar;
 import io.github.crunchybubbles.geological.atlas.RiftArcGeometry;
 import io.github.crunchybubbles.geological.determinism.StableId;
+import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
 import io.github.crunchybubbles.geological.mineral.VmsSystemState;
 import io.github.crunchybubbles.geological.model.AgeKey;
@@ -545,6 +546,8 @@ final class MaterialReviewPacketGenerator {
             porphyrySystemStateJson(query.porphyrySystemState(province)),
             "vmsSystemState",
             vmsSystemStateJson(query.vmsSystemState(province)),
+            "lctPegmatiteState",
+            lctPegmatiteStateJson(query.lctPegmatiteState(province)),
             "metamorphicPathVocabulary",
             Arrays.stream(MetamorphicPath.values()).map(Enum::name).toList(),
             "referenceProvince",
@@ -2283,6 +2286,54 @@ final class MaterialReviewPacketGenerator {
         state.sourceBudgetFixedUnits(),
         "depositAllocationFixedUnits",
         state.depositAllocationFixedUnits(),
+        "failedGate",
+        state.failedGate().orElse(null));
+  }
+
+  private static Map<String, Object> lctPegmatiteStateJson(LctPegmatiteState state) {
+    return JsonWriter.object(
+        "parentIntrusionId",
+        state.parentIntrusionId().toString(),
+        "childBodyId",
+        state.childBodyId().toString(),
+        "status",
+        state.status().name(),
+        "fertilityClass",
+        state.fertilityClass().name(),
+        "emplacementClass",
+        state.emplacementClass().name(),
+        "fluidSourceClass",
+        state.fluidSourceClass().name(),
+        "differentiationProgress",
+        state.differentiationProgress(),
+        "localCenter",
+        pointJson(state.localCenter()),
+        "dikeLengthBlocks",
+        state.dikeLengthBlocks(),
+        "dikeHalfWidthBlocks",
+        state.dikeHalfWidthBlocks(),
+        "dikeHalfHeightBlocks",
+        state.dikeHalfHeightBlocks(),
+        "zoneVocabulary",
+        java.util.Arrays.stream(LctPegmatiteState.ZoneClass.values()).map(Enum::name).toList(),
+        "internalZones",
+        state.internalZones().stream()
+            .map(
+                zone ->
+                    JsonWriter.object(
+                        "kind",
+                        zone.kind().name(),
+                        "innerRadiusFraction",
+                        zone.innerRadiusFraction(),
+                        "outerRadiusFraction",
+                        zone.outerRadiusFraction(),
+                        "intensityPpm",
+                        zone.intensityPpm()))
+            .toList(),
+        "sourceBudgetFixedUnits",
+        state.sourceBudgetFixedUnits(),
+        "childAllocationFixedUnits",
+        state.childAllocationFixedUnits(),
         "failedGate",
         state.failedGate().orElse(null));
   }
