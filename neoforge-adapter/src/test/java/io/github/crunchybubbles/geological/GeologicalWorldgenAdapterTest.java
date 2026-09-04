@@ -1,6 +1,7 @@
 package io.github.crunchybubbles.geological;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -28,6 +29,19 @@ class GeologicalWorldgenAdapterTest {
     assertEquals(-11, request.chunkX());
     assertEquals(17, request.chunkZ());
     assertEquals(WorldgenStage.LITHOLOGY, request.authorizedThrough());
+  }
+
+  @Test
+  void exposesNativeDimensionTraceWithoutGrantingWrites() {
+    var nether = GeologicalWorldgenAdapter.trace(8_675_309L, Level.NETHER, new ChunkPos(-7, 11));
+    var end = GeologicalWorldgenAdapter.trace(8_675_309L, Level.END, new ChunkPos(-7, 11));
+
+    assertEquals("minecraft:the_nether", nether.dimensionKey());
+    assertEquals("minecraft:the_end", end.dimensionKey());
+    assertNotEquals(nether.chunkId(), end.chunkId());
+    assertTrue(nether.seamStable());
+    assertTrue(end.seamStable());
+    assertTrue(end.topologyValid());
   }
 
   @Test

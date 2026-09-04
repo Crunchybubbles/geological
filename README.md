@@ -13,7 +13,8 @@ base-terrain/lithology column plan, provides an injected-palette chunk writer pl
 block palette, registers an Overworld generator/preset hook with explicit surface water/air, and
 applies a bounded Phase 2 regolith/surface-clue projection plus read-only `/geology` column, map,
 and section overlays. Phase 8 now includes the platform-neutral Nether thermal/cavern and
-material/resource review slices; End generation remains a future increment.
+material/resource slices, the End parent-fragment/progression contracts, and a cross-dimensional
+identity/provenance trace; production Nether/End generator bindings remain a future increment.
 
 See [implementation-status.md](docs/architecture/implementation-status.md) for the roadmap-aligned
 remaining estimate by phase. Phase 3 redistribution/statistical review remains an external sign-off
@@ -109,13 +110,15 @@ The checked-in Gradle wrapper is the only prerequisite beyond a Java 21 JDK.
 ./gradlew netherResources
 ./gradlew endFragments
 ./gradlew endProgression
+./gradlew dimensionTraces
 ```
 
 The Phase 8 Nether thermal review is written below
 `atlas-cli/build/phase8/nether-thermal/`, the material/resource review below
 `atlas-cli/build/phase8/nether-resources/`, and the End fragment review below
 `atlas-cli/build/phase8/end-fragments/`, and the End progression review below
-`atlas-cli/build/phase8/end-progression/`.
+`atlas-cli/build/phase8/end-progression/`, and the cross-dimensional adapter trace below
+`atlas-cli/build/phase8/dimension-traces/`.
 
 On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, column plans, JSON traces, and measurements are written below `atlas-cli/build/phase1/`; the deterministic material/catalog/reservoir review is written below `atlas-cli/build/phase2/`; the Phase 4 worldgen observation is written below `atlas-cli/build/phase4/worldgen/`; the Phase 5 exploration telemetry is written below `atlas-cli/build/phase5/exploration/`; the Phase 6 secondary-weathering review is written below `atlas-cli/build/phase6/secondary/`, the laterite review below `atlas-cli/build/phase6/laterite/`, the secondary-placer review below `atlas-cli/build/phase6/secondary-placers/`, the paleosurface structural review below `atlas-cli/build/phase6/paleosurface/`, the opt-in glacial review below `atlas-cli/build/phase6/glacial/`, the Phase 7 greisen review below `atlas-cli/build/phase7/greisen/`, the skarn review below `atlas-cli/build/phase7/skarn/`, the epithermal review below `atlas-cli/build/phase7/epithermal/`, the orogenic-gold review below `atlas-cli/build/phase7/orogenic-gold/`, the basin/redox review below `atlas-cli/build/phase7/basin-hydrothermal/`, the uranium review below `atlas-cli/build/phase7/uranium/`, and the layered-intrusion review below `atlas-cli/build/phase7/layered-intrusion/`.
 
@@ -130,8 +133,8 @@ On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, col
   generator/preset registration plus explicit surface water/air, bounded regolith/surface-clue
   projection, bounded Phase 6 secondary-weathering, laterite, secondary-placer, paleosurface, and opt-in glacial overlays, the Phase 7 greisen residual-fluid proxy, actual-host-only skarn and basin MVT fixture, shallow epithermal, metamorphic-fluid orogenic-gold, basin/redox, unconformity/sandstone uranium, and layered-intrusion chromite/Ni-Cu-PGE overlays, read-only `/geology` column/map/section/vertical-section/observation/hand-sample/sampling/anomaly/drill overlays, and the
   serial/shuffled/seam benchmark harness, and a bounded per-player discovery notebook/map saved-data
-  bridge. The platform-neutral Nether thermal/cavern compiler is documented in the Phase 8 slice;
-  loader adapters and End generation remain future work.
+  bridge. Phase 8 also exposes a read-only native-dimension identity/provenance trace for
+  Overworld, Nether, and End chunks; production Nether/End generator bindings remain future work.
 
 See [the Phase 0 architecture](docs/architecture/phase-0-atlas.md), [Phase 1 query-core increment](docs/architecture/phase-1-query-core.md), [Phase 2 material-state increment](docs/architecture/phase-2-material-state.md), [Phase 5 exploration increment](docs/architecture/phase-5-exploration.md), [Phase 6 secondary-systems increment](docs/architecture/phase-6-secondary-systems.md), [Phase 7 deposit-family increment](docs/architecture/phase-7-deposit-families.md), [Phase 8 dimension-profile increment](docs/architecture/phase-8-dimension-profiles.md), [registry authoring contract](docs/architecture/registry-authoring.md), [reproducibility contract](docs/architecture/reproducibility.md), and [toolchain policy](docs/development/toolchain.md) before extending the model.
 

@@ -1,6 +1,6 @@
 # Phase 8 dimension profiles — Nether and End native histories
 
-Status: `phase8-alpha.3` (Nether histories/resources plus End parent-fragment terrain and regolith).
+Status: `phase8-alpha.5` (native Nether/End compilers, progression protection, and cross-dimensional adapter traces).
 
 ## Alpha.1 — Nether thermal cavern boundary
 
@@ -99,9 +99,26 @@ anchors, role ownership, protected-write behavior, central/void topology, repeat
 adjacent chunk seams. The contract does not implement Minecraft structure placement; it is the
 geology-owned boundary that prevents terrain generation from overwriting progression structures.
 
+## Alpha.5 — Cross-dimensional adapter traces
+
+`DimensionWorldgenTracePlanner` provides one read-only debug projection at the platform boundary.
+It routes the Overworld through its bounded base-terrain planner, the Nether through thermal terrain
+and source-linked material/resource history, and the End through parent fragments plus progression
+protection. Each trace retains the frozen profile/version/scientific digest, the seed/chunk identity,
+owner IDs, bounded column/interval summaries, allowed and forbidden process families, fluid media,
+and seam/topology booleans. It reports provenance rather than block states and cannot authorize a
+world write.
+
+`GeologicalWorldgenAdapter.trace` exposes the same contract to NeoForge `ResourceKey<Level>` and
+`ChunkPos` callbacks. The `dimensionTraces` task writes
+`atlas-cli/build/phase8/dimension-traces/dimension-traces.json`, proving that the same seed and
+chunk have distinct dimension-scoped identities while all three native traces retain direct and
+adjacent seam stability. `DimensionWorldgenTracePlannerTest`,
+`DimensionWorldgenTracePacketGeneratorTest`, and the adapter test cover repeatability, forbidden
+process/medium evidence, identity separation, and read-only boundary behavior.
+
 ## Remaining Phase 8 slices
 
-The next bounded increments are an End parent-body/provenance and void-bounded terrain compiler,
-progression contracts, platform adapters and debug views, and a cross-dimensional seam/lore review.
-None of those later slices may weaken the frozen dimension profiles or silently reuse Overworld
-surface assumptions.
+The next bounded increments are production NeoForge Nether/End generator bindings, a cross-dimensional
+compatibility/lore review, and expert sign-off. None of those later slices may weaken the frozen
+dimension profiles or silently reuse Overworld surface assumptions.

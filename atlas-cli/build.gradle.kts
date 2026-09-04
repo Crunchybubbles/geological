@@ -228,3 +228,12 @@ tasks.register<JavaExec>("endProgression") {
     args("end-progression", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase8/end-progression").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("dimensionTraces") {
+    group = "verification"
+    description = "Writes cross-dimensional identity, adapter-boundary, and seam review evidence."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("dimension-traces", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase8/dimension-traces").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}

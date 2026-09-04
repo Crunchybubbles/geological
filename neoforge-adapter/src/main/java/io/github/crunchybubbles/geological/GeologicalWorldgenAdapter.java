@@ -2,6 +2,8 @@ package io.github.crunchybubbles.geological;
 
 import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfile;
 import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfiles;
+import io.github.crunchybubbles.geological.worldgen.DimensionWorldgenTrace;
+import io.github.crunchybubbles.geological.worldgen.DimensionWorldgenTracePlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldBaseTerrainPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldTerrainControlSampler;
 import io.github.crunchybubbles.geological.worldgen.WorldgenChunkRequest;
@@ -29,6 +31,16 @@ public final class GeologicalWorldgenAdapter {
     DimensionGeologyProfile profile =
         DimensionGeologyProfiles.require(dimension.location().toString());
     return WorldgenChunkRequest.forStage(worldSeed, profile, chunk.x, chunk.z, authorizedThrough);
+  }
+
+  /** Returns a read-only native-dimension debug trace for the requested chunk. */
+  public static DimensionWorldgenTrace trace(
+      long worldSeed, ResourceKey<Level> dimension, ChunkPos chunk) {
+    if (dimension == null || chunk == null) {
+      throw new IllegalArgumentException("dimension and chunk are required");
+    }
+    return DimensionWorldgenTracePlanner.fromSeed(worldSeed)
+        .trace(dimension.location().toString(), chunk.x, chunk.z);
   }
 
   /** Binds a platform-supplied executor and frozen snapshot to the read-only terrain stage. */
