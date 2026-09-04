@@ -11,9 +11,9 @@ description='''
 Geological generates deterministic, causal geology for Minecraft dimensions.
 The Overworld generator/preset hook now applies the bounded geological terrain plan, explicit
 surface water/air, and a bounded regolith/surface-clue projection; read-only `/geology` traces for
-columns, maps, and sections are available; serial/shuffled generation and seam observations are
-available through the standalone benchmark task, while dimension-native Nether/End generation
-follows in subsequent verified increments.
+columns, maps, sections, and transient surface observations are available; serial/shuffled
+generation and seam observations are available through the standalone benchmark task, while
+dimension-native Nether/End generation follows in subsequent verified increments.
 '''
 
 [[dependencies.${mod_id}]]

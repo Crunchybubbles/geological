@@ -16,6 +16,7 @@ class GeologicalCommandsTest {
     var geology = dispatcher.getRoot().getChild("geology");
     assertNotNull(geology);
     assertNotNull(geology.getChild("here"));
+    assertNotNull(geology.getChild("observations"));
     assertNotNull(geology.getChild("column"));
     assertNotNull(geology.getChild("column").getChild("x"));
     assertNotNull(geology.getChild("column").getChild("x").getChild("z"));

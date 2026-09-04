@@ -10,6 +10,8 @@ import io.github.crunchybubbles.geological.worldgen.OverworldAirFluidColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldAirFluidPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldBaseTerrainColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldColumnDebugTrace;
+import io.github.crunchybubbles.geological.worldgen.OverworldExplorationObservation;
+import io.github.crunchybubbles.geological.worldgen.OverworldExplorationObservationPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldMapDebugTrace;
 import io.github.crunchybubbles.geological.worldgen.OverworldRegolithColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldRegolithPlanner;
@@ -21,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
@@ -54,6 +57,9 @@ public final class GeologicalCommands {
                 .requires(source -> source.hasPermission(2))
                 .then(Commands.literal("here").executes(GeologicalCommands::showHere))
                 .then(
+                    Commands.literal("observations")
+                        .executes(GeologicalCommands::showObservationsHere))
+                .then(
                     Commands.literal("column")
                         .then(
                             Commands.argument("x", IntegerArgumentType.integer())
@@ -80,6 +86,30 @@ public final class GeologicalCommands {
   private static int showHere(CommandContext<CommandSourceStack> context) {
     BlockPos position = BlockPos.containing(context.getSource().getPosition());
     return showColumn(context, position.getX(), position.getZ());
+  }
+
+  private static int showObservationsHere(CommandContext<CommandSourceStack> context) {
+    BlockPos position = BlockPos.containing(context.getSource().getPosition());
+    CommandSourceStack source = context.getSource();
+    try {
+      OverworldRegolithPlanner regolith =
+          planner(source.getLevel(), position.getX(), position.getZ());
+      List<OverworldExplorationObservation> observations =
+          OverworldExplorationObservationPlanner.from(regolith)
+              .plan(position.getX(), position.getZ());
+      String summary =
+          observations.isEmpty()
+              ? "observations none at=(%d,%d)".formatted(position.getX(), position.getZ())
+              : observations.stream()
+                  .map(OverworldExplorationObservation::summary)
+                  .collect(Collectors.joining("; "));
+      source.sendSuccess(() -> Component.literal(summary), false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(
+          Component.literal("geology observations unavailable: " + exception.getMessage()));
+      return 0;
+    }
   }
 
   private static int showColumn(CommandContext<CommandSourceStack> context) {
