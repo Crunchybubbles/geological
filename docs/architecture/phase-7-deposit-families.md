@@ -1,7 +1,7 @@
 # Phase 7 deposit families — source-gated deposit projections
 
-Status: `phase7-alpha.3` (greisen, explicit skarn host fixture, and epithermal shallow-fluid
-projection).
+Status: `phase7-alpha.4` (greisen, explicit skarn host fixture, epithermal shallow-fluid, and
+orogenic-gold metamorphic-fluid projections).
 
 ## Alpha.1 — evolved-felsic greisen proof
 
@@ -84,6 +84,30 @@ catalog increment adds explicit silica/argillic vocabulary.
 closed budgets, and seam equality. `EpithermalPacketGeneratorTest` checks byte-repeatable JSON,
 explicit proxy labeling, formed horizons, budget closure, and seam stability.
 
-Orogenic-gold, basin/redox, uranium, layered-intrusion, carbonatite/REE,
+## Alpha.4 — metamorphic-fluid orogenic gold
+
+`OrogenicGoldSystemState` is tied to the existing regional metamorphic fold field and inherited
+finite fault rather than a generic quartz vein. A formed profile requires a non-NONE regional
+collision path with a metamorphic grade/depth class, a receptive metasedimentary or volcanic host,
+the fault damage zone as a connected crustal structure, a competency/strain-supported dilational
+or reactive trap, and preserved low-relief ground. The source is an explicitly named bounded
+`METAMORPHIC_AQUEOUS_CARBONIC_PROXY`, with grade- and strain-conditioned fixed-point fluid units;
+it is not a measured fluid mass, Au grade, or tonnage. The fold event supplies formation timing and
+the fault/host/driver IDs are retained in the source set.
+
+Three contiguous quartz-carbonate vein, laminated shear-vein, and sulfidation-carbonate-halo
+horizons are clipped to solid terrain by `OverworldOrogenicGoldPlanner`. The planner keeps the
+stable X-then-Z target-chunk order and adjacent-chunk seam equality. The read-only
+`/geology orogenic-gold` command and `orogenicGold` task expose the state; the task writes
+`atlas-cli/build/phase7/orogenic-gold/orogenic-gold.json` with depth, fluid, host, structure,
+trap, preservation, horizon, ledger, and seam evidence. Existing phyllic/propylitic overprints
+carry the coarse alteration response until a future Phase 2 catalog increment adds explicit
+quartz-carbonate/sulfide vocabulary.
+
+`OverworldOrogenicGoldPlannerTest` covers formed deformation/fluid behavior, barren gate retention,
+closed budgets, and seam equality. `OrogenicGoldPacketGeneratorTest` checks byte-repeatable JSON,
+explicit metamorphic-fluid proxy labeling, formed horizons, budget closure, and seam stability.
+
+MVT/SEDEX/sediment-hosted copper, uranium, layered-intrusion, carbonatite/REE,
 phosphorite/coal/brine, and geothermal families remain separate future Phase 7 slices; they must
 not inherit the greisen proxy or be inferred from a generic catalog lithology.

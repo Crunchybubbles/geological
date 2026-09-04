@@ -22,7 +22,9 @@ secondary overlays; glacial behavior remains opt-in behind explicit ice-history 
 not an Sn/W assay or voxel-grade inventory. The `/geology skarn` view is actual-host-only by
 default and exposes the Phase 7 carbonate-contact proof without inventing a host body. The
 `/geology epithermal` view exposes the Phase 7 shallow magmatic-hydrothermal fluid-path proxy;
-its silica/argillic horizons are not Au/Ag assays or voxel-grade inventories.
+its silica/argillic horizons are not Au/Ag assays or voxel-grade inventories. The
+`/geology orogenic-gold` view exposes the Phase 7 deformation/metamorphic-fluid proxy;
+its quartz-carbonate/sulfide horizons are not Au assays or voxel-grade inventories.
 '''
 
 [[dependencies.${mod_id}]]

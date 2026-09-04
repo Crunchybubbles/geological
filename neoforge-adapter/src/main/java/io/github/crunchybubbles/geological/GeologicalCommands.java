@@ -35,6 +35,9 @@ import io.github.crunchybubbles.geological.worldgen.OverworldLateriteColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldLateriteInterval;
 import io.github.crunchybubbles.geological.worldgen.OverworldLateritePlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldMapDebugTrace;
+import io.github.crunchybubbles.geological.worldgen.OverworldOrogenicGoldColumnPlan;
+import io.github.crunchybubbles.geological.worldgen.OverworldOrogenicGoldInterval;
+import io.github.crunchybubbles.geological.worldgen.OverworldOrogenicGoldPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldPaleosurfaceColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldPaleosurfaceInterval;
 import io.github.crunchybubbles.geological.worldgen.OverworldPaleosurfacePlanner;
@@ -113,6 +116,9 @@ public final class GeologicalCommands {
                 .then(Commands.literal("skarn").executes(GeologicalCommands::showSkarnHere))
                 .then(
                     Commands.literal("epithermal").executes(GeologicalCommands::showEpithermalHere))
+                .then(
+                    Commands.literal("orogenic-gold")
+                        .executes(GeologicalCommands::showOrogenicGoldHere))
                 .then(
                     Commands.literal("hand-sample")
                         .executes(GeologicalCommands::showHandSampleHere))
@@ -475,6 +481,35 @@ public final class GeologicalCommands {
     } catch (IllegalArgumentException | IllegalStateException exception) {
       source.sendFailure(
           Component.literal("geology epithermal unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static int showOrogenicGoldHere(CommandContext<CommandSourceStack> context) {
+    BlockPos position = BlockPos.containing(context.getSource().getPosition());
+    CommandSourceStack source = context.getSource();
+    try {
+      OverworldOrogenicGoldColumnPlan plan =
+          OverworldOrogenicGoldPlanner.from(
+                  planner(source.getLevel(), position.getX(), position.getZ()))
+              .plan(position.getX(), position.getZ());
+      OverworldOrogenicGoldInterval interval = plan.at(position.getY()).orElse(null);
+      String summary =
+          interval == null
+              ? plan.summary()
+                  + " at=("
+                  + position.getX()
+                  + ","
+                  + position.getY()
+                  + ","
+                  + position.getZ()
+                  + ") horizon=none"
+              : plan.summary() + " " + interval.summary();
+      source.sendSuccess(() -> Component.literal(summary), false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(
+          Component.literal("geology orogenic-gold unavailable: " + exception.getMessage()));
       return 0;
     }
   }

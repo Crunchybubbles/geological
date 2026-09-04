@@ -70,6 +70,10 @@ public final class AtlasCli {
         Path report = new EpithermalPacketGenerator(seed).generate(output);
         System.out.println("Wrote Phase 7 epithermal review to " + report);
       }
+      case "orogenic-gold" -> {
+        Path report = new OrogenicGoldPacketGenerator(seed).generate(output);
+        System.out.println("Wrote Phase 7 orogenic-gold review to " + report);
+      }
       default -> throw new IllegalArgumentException("Unknown command: " + command);
     }
   }
@@ -97,6 +101,6 @@ public final class AtlasCli {
 
   private static void printUsage() {
     System.out.println(
-        "Usage: atlas-cli <generate|measure|materials|worldgen-benchmark|exploration-telemetry|secondary-weathering|laterite|secondary-placers|paleosurface|glacial|greisen|skarn|epithermal> [--seed <long>] [--output <directory>]");
+        "Usage: atlas-cli <generate|measure|materials|worldgen-benchmark|exploration-telemetry|secondary-weathering|laterite|secondary-placers|paleosurface|glacial|greisen|skarn|epithermal|orogenic-gold> [--seed <long>] [--output <directory>]");
   }
 }

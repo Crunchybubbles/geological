@@ -129,3 +129,12 @@ tasks.register<JavaExec>("epithermal") {
     args("epithermal", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase7/epithermal").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("orogenicGold") {
+    group = "verification"
+    description = "Writes the deterministic Phase 7 metamorphic-fluid orogenic-gold review."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("orogenic-gold", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase7/orogenic-gold").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}
