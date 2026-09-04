@@ -1,12 +1,12 @@
 # Phase 5 exploration geology — observations and hand samples
 
-Status: completed the seventh bounded exploration slice (`phase5-alpha.7`): deterministic transient
+Status: completed the eighth bounded exploration slice (`phase5-alpha.8`): deterministic transient
 outcrop, float, contact, and structural observations derived from the Phase 4 Overworld column
 trace, stable observation IDs, provenance body references, confidence/scale fields, and the
 read-only `/geology observations` command, plus coarse hand-sample identification and surface
 sediment sampling, interval-valued geochemical anomaly estimates, bounded drill-core logs, and
-vertical cross-section traces, and world-persistent player notebooks/maps containing only
-player-visible evidence.
+vertical cross-section traces, world-persistent player notebooks/maps containing only player-visible
+evidence, and a bounded clue-sufficiency/travel-burden telemetry review artifact.
 
 `OverworldExplorationObservationPlanner` consumes the same immutable
 `OverworldRegolithPlanner` used by generation and debug overlays. An exposed bedrock clue yields an
@@ -96,4 +96,18 @@ map <radius>` shows retained markers, and `/geology notebook forget <entryId>` r
 entry. All mutation commands are player-only and run on the server thread; natural geology remains
 reconstructed on demand.
 
-The remaining Phase 5 slice is telemetry/exit review measuring clue sufficiency and travel burden.
+## Alpha.8 exploration telemetry and exit evidence
+
+`OverworldExplorationTelemetry` surveys a bounded integer-spaced window using the same observation,
+hand-sample, sediment, and geochemical planners exposed to players. `ExplorationTelemetryReport`
+records visited cells, evidence-category coverage, detected/anomalous cells, hypothesis-ready cells,
+nearest evidence distances, a bounded travel-burden score, and a bounded clue-sufficiency score.
+Missing evidence is penalized as travel burden rather than treated as a positive clue. The report is
+deterministic, canonical-digestable, and explicitly an engineering observation rather than a
+microbenchmark or hidden-deposit oracle.
+
+`atlas-cli exploration-telemetry` (or the root `explorationTelemetry` task) writes
+`atlas-cli/build/phase5/exploration/exploration-telemetry.json` with the fixed seed/window fixture;
+the artifact and core/CLI tests cover the Phase 5 exit metrics. Phase 5 has no required
+implementation slices remaining; scientific/readability review and contributor-world telemetry
+reruns remain external sign-off work.

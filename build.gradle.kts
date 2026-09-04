@@ -87,6 +87,12 @@ tasks.register("benchmarkWorldgen") {
     dependsOn(":atlas-cli:benchmarkWorldgen")
 }
 
+tasks.register("explorationTelemetry") {
+    group = "verification"
+    description = "Runs the bounded Phase 5 exploration clue-sufficiency and travel-burden harness."
+    dependsOn(":atlas-cli:explorationTelemetry")
+}
+
 // Serialize the formatter's isolated workers across modules; concurrent Windows clean builds can
 // otherwise race while loading google-java-format's provisioned classes.
 project(":atlas-cli").tasks.matching { it.name.startsWith("spotless") }.configureEach {

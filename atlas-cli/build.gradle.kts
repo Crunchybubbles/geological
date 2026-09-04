@@ -48,3 +48,12 @@ tasks.register<JavaExec>("benchmarkWorldgen") {
     args("worldgen-benchmark", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase4/worldgen").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("explorationTelemetry") {
+    group = "verification"
+    description = "Measures bounded Phase 5 exploration clue sufficiency and travel burden."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("exploration-telemetry", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase5/exploration").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}

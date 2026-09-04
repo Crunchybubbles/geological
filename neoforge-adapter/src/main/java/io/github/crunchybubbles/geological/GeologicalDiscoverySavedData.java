@@ -103,7 +103,8 @@ public final class GeologicalDiscoverySavedData extends SavedData {
                 DIMENSION_PROFILE_ID,
                 entries);
         if (notebooks.put(playerId, notebook) != null) {
-          throw new IllegalArgumentException("saved discovery notebook contains duplicate player IDs");
+          throw new IllegalArgumentException(
+              "saved discovery notebook contains duplicate player IDs");
         }
       }
     }

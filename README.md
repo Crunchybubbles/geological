@@ -20,13 +20,13 @@ item; the Phase 4 required implementation slices are complete, with the remainin
 the exploration and dimension-native phases described in the status table.
 The bounded non-concentric porphyry footprint is implemented.
 
-Phase 5 alpha.7 now exposes transient, provenance-rich Overworld outcrop/float/contact/structural
+Phase 5 alpha.8 now exposes transient, provenance-rich Overworld outcrop/float/contact/structural
 observations, bounded coarse hand-sample and soil/stream/heavy-mineral sampling, interval-valued
 geochemical anomaly estimates, bounded drill-core logs, vertical cross-sections, and persistent
 player-visible notebook/map evidence through `/geology observations`,
 `/geology hand-sample`, `/geology soil`, `/geology stream-sediment`, `/geology heavy-mineral`,
 `/geology anomaly`, `/geology drill`, `/geology vertical-section`, and `/geology notebook` commands;
-Phase 5 telemetry remains the final bounded follow-on slice.
+the bounded `explorationTelemetry` review task measures clue sufficiency and travel burden.
 
 Geological is a causal geology and terrain-generation project for Minecraft Java 1.21.1 on NeoForge 21.1.x. Its selected world preset will eventually own the canonical Overworld, Nether, and End through dimension-specific geological histories rather than add a separate geology dimension.
 
@@ -54,9 +54,10 @@ The checked-in Gradle wrapper is the only prerequisite beyond a Java 21 JDK.
 ./gradlew generateExampleAtlas
 ./gradlew measureAtlas
 ./gradlew benchmarkWorldgen
+./gradlew explorationTelemetry
 ```
 
-On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, column plans, JSON traces, and measurements are written below `atlas-cli/build/phase1/`; the deterministic material/catalog/reservoir review is written below `atlas-cli/build/phase2/`; the Phase 4 worldgen observation is written below `atlas-cli/build/phase4/worldgen/`.
+On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, column plans, JSON traces, and measurements are written below `atlas-cli/build/phase1/`; the deterministic material/catalog/reservoir review is written below `atlas-cli/build/phase2/`; the Phase 4 worldgen observation is written below `atlas-cli/build/phase4/worldgen/`; the Phase 5 exploration telemetry is written below `atlas-cli/build/phase5/exploration/`.
 
 ## Modules
 
