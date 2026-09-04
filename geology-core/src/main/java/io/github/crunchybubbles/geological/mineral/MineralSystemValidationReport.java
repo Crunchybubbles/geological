@@ -19,9 +19,9 @@ import java.util.TreeMap;
 /**
  * Phase 3 empirical-distribution and validation evidence for one primary mineral-system model.
  *
- * <p>The checked-in rows are deliberately marked as provisional source anchors until a raw,
- * licensed table is audited. They provide a deterministic importer/validator contract without
- * pretending that a few review anchors are an unbiased natural population.
+ * <p>Checked-in raw-table subsets are explicitly distinguished from provisional source anchors;
+ * neither claims to be a complete or redistributable natural population. Every row retains the
+ * provenance and limitation metadata needed for deterministic review.
  */
 public record MineralSystemValidationReport(
     StableId systemId,
@@ -665,7 +665,7 @@ public record MineralSystemValidationReport(
         return bif();
       }
       if (MineralSystemProofs.EVAPORITE_MODEL.equals(modelId)) {
-        return evaporite();
+        return evaporitePotash();
       }
       throw new IllegalArgumentException("no empirical dataset is registered for " + modelId);
     }
@@ -1080,74 +1080,113 @@ public record MineralSystemValidationReport(
                   Set.of("fe_grade"))));
     }
 
-    private static EmpiricalDataset evaporite() {
-      String version = "USGS-SIR-2010-5090-S";
-      String aggregation = "basin_member_definition_preserved";
-      String cutoff = "original_resource_basis";
-      return dataset(
-          "usgs:sir2010_5090s_global_potash",
-          "https://pubs.usgs.gov/publication/sir20105090S",
+    private static EmpiricalDataset evaporitePotash() {
+      String version = "USGS-SIR-2010-5090-S-v1.0";
+      String aggregation = "deposit_row_definition_preserved";
+      String cutoff = "positive_rr_ore_and_rr_k2o_resource_basis";
+      return readPotashSubset(version, aggregation, cutoff);
+    }
+
+    private static EmpiricalDataset readPotashSubset(
+        String version, String aggregation, String cutoff) {
+      String resourcePath = "/data/geological/empirical/potash_subset.tsv";
+      var resource = EmpiricalDataset.class.getResourceAsStream(resourcePath);
+      if (resource == null) {
+        throw new IllegalStateException("missing empirical source resource " + resourcePath);
+      }
+      List<SampleRow> rows = new ArrayList<>();
+      try (BufferedReader reader =
+          new BufferedReader(new InputStreamReader(resource, StandardCharsets.UTF_8))) {
+        String line;
+        int lineNumber = 0;
+        while ((line = reader.readLine()) != null) {
+          lineNumber++;
+          String trimmed = line.trim();
+          if (trimmed.isEmpty() || trimmed.startsWith("#") || trimmed.startsWith("source_id")) {
+            continue;
+          }
+          String[] fields = line.split("\\|", -1);
+          if (fields.length != 13) {
+            throw new IllegalStateException(
+                "potash source row " + lineNumber + " has " + fields.length + " fields");
+          }
+          String sourceId = fields[0].trim();
+          String depositName = fields[1].trim();
+          String subtype = fields[2].trim();
+          SampleRole role = SampleRole.valueOf(fields[3].trim());
+          double percentile = parseSourceNumber(fields[4], lineNumber, "percentile");
+          double tonnage = parseSourceNumber(fields[5], lineNumber, "rr_ore_mt");
+          double k2oPercent = parseSourceNumber(fields[6], lineNumber, "rr_k2o_pct");
+          double bedDepth = parseSourceNumber(fields[7], lineNumber, "bed_depth_m");
+          String basin = fields[8].trim();
+          String minerals = fields[9].trim();
+          String unit = fields[10].trim();
+          String depthSourceText = fields[11].trim();
+          String resourceStatus = fields[12].trim();
+          if (sourceId.isBlank()
+              || depositName.isBlank()
+              || subtype.isBlank()
+              || basin.isBlank()
+              || minerals.isBlank()
+              || unit.isBlank()
+              || depthSourceText.isBlank()
+              || resourceStatus.isBlank()
+              || percentile <= 0.0
+              || percentile > 1.0) {
+            throw new IllegalStateException("invalid potash source identity at row " + lineNumber);
+          }
+          String sourceRowRef =
+              "PotashDeposits.xlsx:ID="
+                  + sourceId
+                  + ";SITE="
+                  + depositName
+                  + ";BASIN="
+                  + basin
+                  + ";UNIT="
+                  + unit;
+          String resourceBasis =
+              "RR_ORE_MT_to_Mt;RR_K2O_PCT_to_mass_fraction;K_DEPTH_M_first_numeric_bound="
+                  + depthSourceText
+                  + ";K_MINERALS="
+                  + minerals
+                  + ";P_STATUS="
+                  + resourceStatus;
+          rows.add(
+              new SampleRow(
+                  "potash-deposit-" + sourceId + "-" + depositName,
+                  subtype,
+                  percentile,
+                  role,
+                  sourceRowRef,
+                  version,
+                  aggregation,
+                  cutoff,
+                  resourceBasis,
+                  Map.of(
+                      "tonnage", tonnage,
+                      "k2o_grade", k2oPercent / 100.0,
+                      "bed_depth", bedDepth),
+                  Set.of(),
+                  Set.of()));
+        }
+      } catch (IOException | IllegalArgumentException exception) {
+        throw new IllegalStateException("invalid potash empirical source subset", exception);
+      }
+      if (rows.size() < 10) {
+        throw new IllegalStateException("potash empirical source subset is unexpectedly small");
+      }
+      return new EmpiricalDataset(
+          "usgs:sir20105090s_global_potash_audited_subset",
+          "https://pubs.usgs.gov/sir/2010/5090/s/PotashXL.zip",
           version,
-          "global_potash_deposits_member_aware",
+          "global_potash_deposits_positive_rr_ore_k2o_audited_subset",
           aggregation,
           cutoff,
+          "USGS Scientific Investigations Report 2010-5090-S PotashXL deposit subset; source IDs, deposit names, basin/member metadata, resource statuses, and raw depth text are checked in for reproducible review. K2O percentages are converted to mass fractions and ranged depth text uses its first numeric bound; the subset is not the full population.",
+          DistributionKind.EMPIRICAL_ROW,
+          AuditStatus.RAW_TABLE_AUDITED_SUBSET,
           Map.of("tonnage", "Mt", "k2o_grade", "mass_fraction", "bed_depth", "m"),
-          List.of(
-              row(
-                  "potash-q10",
-                  "sylvinite",
-                  0.10,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 10.0, "k2o_grade", 0.12, "bed_depth", 250.0),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "potash-q25",
-                  "sylvinite",
-                  0.25,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 40.0, "k2o_grade", 0.18, "bed_depth", 450.0),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "potash-q50",
-                  "sylvinite",
-                  0.50,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 120.0, "k2o_grade", 0.24, "bed_depth", 700.0),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "potash-q75",
-                  "carnallite",
-                  0.75,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 350.0, "k2o_grade", 0.30, "bed_depth", 1100.0),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "potash-q90",
-                  "carnallite",
-                  0.90,
-                  SampleRole.HELD_OUT,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 900.0, "k2o_grade", 0.38, "bed_depth", 1600.0),
-                  Set.of(),
-                  Set.of("bed_depth"))));
+          rows);
     }
 
     private static EmpiricalDataset dataset(

@@ -10,7 +10,7 @@ calendar promise. The current repository is the source of truth for what is actu
 | 0 — atlas proof | Implemented deterministic atlas, chronicle, geometry, drainage, map/section traces, and measurements. | 1 sign-off slice: geological review of the synthetic fixture plus contributor-hardware baselines. |
 | 1 — 3-D query core | Implemented point/column/map/trace queries, pullback deformation, bounded planning, spatial index, seam/order/property tests. | 1–2 sign-off slices: review/calibration of tunables and final performance baselines. |
 | 2 — material state | `phase2.0-alpha.94` exit contract is satisfied by the catalog/query/schema/review tests; no deposit generation is required by this phase. | 0 required implementation slices; scientific catalog review remains an external calibration activity. |
-| 3 — mineral systems | Six architecture families, porphyry fluid/metal zoning, gated supergene refinement, audited porphyry/VMS/LCT source subsets, and deterministic held-out quantile/covariance projections are implemented. | 2–3 slices: audit BIF and evaporite sources, promote full-population statistics, and refine non-concentric geometry. |
+| 3 — mineral systems | Six architecture families, porphyry fluid/metal zoning, gated supergene refinement, audited porphyry/VMS/LCT/potash source subsets, and deterministic held-out quantile/covariance projections are implemented. | 2–3 slices: audit BIF and placer sources, promote full-population statistics, and refine non-concentric geometry. |
 | 4 — Minecraft vertical slice | No NeoForge adapter or canonical-dimension worldgen is checked in yet; GeologyCore remains platform-neutral as required. | 7–10 slices: platform scaffold/identity, Overworld terrain/material stages, clipping/caches, palette, commands/debug traces, compatibility, and benchmarks. |
 | 5 — exploration geology | No persistent exploration/observation loop is checked in yet. | 5–7 slices: outcrops/float, hand samples, soil/stream sampling, uncertainty, drilling/cross-sections, and notebook/map persistence. |
 | 6 — secondary expansion | Primary-Cu supergene proof exists as a Phase 3 refinement; broader secondary families are not generated. | 4–6 slices: bauxite/Ni-Co, additional heavy-mineral/diamond placers, karst/regolith/paleosurfaces, and optional glacial transport. |
@@ -20,8 +20,8 @@ calendar promise. The current repository is the source of truth for what is actu
 | 10 — extraction/processing | Deliberately not started; the roadmap makes this a separate future design after generation is credible. | A new design phase, not an outstanding generation bug. |
 
 The immediate next engineering slice is the Phase 3 raw-table audit for the remaining families.
-Porphyry, VMS, and LCT now have checked-in `RAW_TABLE_AUDITED_SUBSET` resources; BIF and
-evaporite/potash remain provisional. The remaining
+Porphyry, VMS, LCT, and evaporite/potash now have checked-in `RAW_TABLE_AUDITED_SUBSET` resources;
+BIF and placer remain provisional. The remaining
 `MineralSystemValidationReport` rows remain `SOURCE_ANCHORS_PROVISIONAL`. Together they establish
 the metadata, missing/censoring, budget, and deterministic quantile/covariance report contracts
 without claiming that a small subset or anchor table is an unbiased or redistributable full

@@ -550,7 +550,6 @@ class MineralSystemProofTest {
             .filter(
                 report ->
                     report.modelId().equals(MineralSystemProofs.BIF_MODEL)
-                        || report.modelId().equals(MineralSystemProofs.EVAPORITE_MODEL)
                         || report.modelId().equals(MineralSystemProofs.PLACER_MODEL))
             .allMatch(
                 report ->
@@ -568,15 +567,16 @@ class MineralSystemProofTest {
       boolean auditedPorphyry = report.modelId().equals(MineralSystemProofs.PORPHYRY_MODEL);
       boolean auditedVms = report.modelId().equals(MineralSystemProofs.VMS_MODEL);
       boolean auditedLct = report.modelId().equals(MineralSystemProofs.LCT_MODEL);
-      boolean auditedSubset = auditedPorphyry || auditedVms || auditedLct;
+      boolean auditedEvaporite = report.modelId().equals(MineralSystemProofs.EVAPORITE_MODEL);
+      boolean auditedSubset = auditedPorphyry || auditedVms || auditedLct || auditedEvaporite;
       assertEquals(
-          auditedPorphyry ? 14 : auditedVms ? 17 : auditedLct ? 16 : 5,
+          auditedPorphyry ? 14 : auditedVms ? 17 : auditedLct ? 16 : auditedEvaporite ? 16 : 5,
           report.empiricalDataset().rows().size());
       assertEquals(
-          auditedPorphyry ? 10 : auditedVms ? 12 : auditedLct ? 12 : 4,
+          auditedPorphyry ? 10 : auditedVms ? 12 : auditedLct ? 12 : auditedEvaporite ? 12 : 4,
           report.empiricalDataset().calibrationRowCount());
       assertEquals(
-          auditedPorphyry ? 4 : auditedVms ? 5 : auditedLct ? 4 : 1,
+          auditedPorphyry ? 4 : auditedVms ? 5 : auditedLct ? 4 : auditedEvaporite ? 4 : 1,
           report.empiricalDataset().heldOutRowCount());
       assertEquals(
           auditedSubset
@@ -650,7 +650,9 @@ class MineralSystemProofTest {
                   ? MineralSystemValidationReport.StatisticalStatus.AUDITED_SUBSET
                   : auditedLct
                       ? MineralSystemValidationReport.StatisticalStatus.AUDITED_SUBSET
-                      : MineralSystemValidationReport.StatisticalStatus.PROVISIONAL_ANCHORS,
+                      : auditedEvaporite
+                          ? MineralSystemValidationReport.StatisticalStatus.AUDITED_SUBSET
+                          : MineralSystemValidationReport.StatisticalStatus.PROVISIONAL_ANCHORS,
           statistical.status());
       assertTrue(
           statistical.quantileComparisons().stream()
@@ -658,6 +660,25 @@ class MineralSystemProofTest {
       assertTrue(
           statistical.covarianceSummaries().stream()
               .allMatch(summary -> summary.calibrationPairCount() >= 2));
+      if (auditedEvaporite) {
+        assertEquals(
+            "https://pubs.usgs.gov/sir/2010/5090/s/PotashXL.zip",
+            report.empiricalDataset().sourceUri());
+        assertEquals("USGS-SIR-2010-5090-S-v1.0", report.empiricalDataset().sourceVersion());
+        MineralSystemValidationReport.SampleRow tancamichapa =
+            report.empiricalDataset().rows().stream()
+                .filter(
+                    row ->
+                        row.sourceRowRef()
+                            .equals(
+                                "PotashDeposits.xlsx:ID=519;SITE=Tancamichapa;BASIN=Gulf of Mexico;UNIT=Salina Fm"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(12.0, tancamichapa.values().get("tonnage"), 1.0e-12);
+        assertEquals(0.14, tancamichapa.values().get("k2o_grade"), 1.0e-12);
+        assertEquals(500.0, tancamichapa.values().get("bed_depth"), 1.0e-12);
+        assertTrue(tancamichapa.resourceBasis().contains("K_MINERALS=brine, sylvite, carnallite"));
+      }
     }
   }
 

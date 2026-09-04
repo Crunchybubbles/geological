@@ -143,6 +143,13 @@ missingness; it converts tonnes to Mt, Li2O percent to mass fraction, and Ta2O5 
 fraction. The deterministic four-row held-out split keeps conditional Ta coverage explicit rather
 than treating unreported Ta as zero.
 
+The evaporite/potash importer reads a 16-row subset of the USGS `PotashDeposits.xlsx` workbook
+from the PotashXL package. It preserves deposit IDs, basin and member metadata, K-mineral labels,
+resource status, and the raw depth text; the population rule keeps rows with positive reported
+`RR_ORE_MT` and `RR_K2O_PCT`, converts K2O percent to mass fraction, and uses the first numeric
+bound of ranged bed-depth text as the modeled depth. The deterministic four-row held-out split is
+explicitly a subset audit, not a full 981-site population release.
+
 ## Alpha.10 — held-out statistical projection
 
 The remaining two families still use `SOURCE_ANCHORS_PROVISIONAL`: those anchors make the import
@@ -150,8 +157,8 @@ and report contract deterministic and reviewable, but do not claim that a handfu
 replace a raw, licensed table. All reports emit deterministic held-out quantile projections (with
 log-space error where values are usable) and calibration covariance/correlation summaries for
 every declared variable pair. These metrics make missing, censored, and insufficient held-out
-coverage explicit; the porphyry, VMS, and LCT metrics are subset-audited, while the BIF and
-evaporite/potash families remain provisional until their raw source rows replace the anchors.
+coverage explicit; the porphyry, VMS, LCT, and evaporite/potash metrics are subset-audited, while
+the BIF and placer families remain provisional until their raw source rows replace the anchors.
 
 Completing the Phase 3 scientific exit still requires cleaning the source tables, preserving their
 row-level bias/censor metadata, auditing redistribution, and promoting the held-out quantile and
