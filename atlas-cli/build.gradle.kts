@@ -138,3 +138,12 @@ tasks.register<JavaExec>("orogenicGold") {
     args("orogenic-gold", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase7/orogenic-gold").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("basinHydrothermal") {
+    group = "verification"
+    description = "Writes the deterministic Phase 7 MVT/SEDEX/sediment-hosted copper review."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("basin-hydrothermal", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase7/basin-hydrothermal").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}

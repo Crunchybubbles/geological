@@ -16,6 +16,9 @@ import io.github.crunchybubbles.geological.worldgen.HandSampleIdentification;
 import io.github.crunchybubbles.geological.worldgen.OverworldAirFluidColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldAirFluidPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldBaseTerrainColumnPlan;
+import io.github.crunchybubbles.geological.worldgen.OverworldBasinHydrothermalColumnPlan;
+import io.github.crunchybubbles.geological.worldgen.OverworldBasinHydrothermalInterval;
+import io.github.crunchybubbles.geological.worldgen.OverworldBasinHydrothermalPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldColumnDebugTrace;
 import io.github.crunchybubbles.geological.worldgen.OverworldDrillCorePlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldEpithermalColumnPlan;
@@ -119,6 +122,9 @@ public final class GeologicalCommands {
                 .then(
                     Commands.literal("orogenic-gold")
                         .executes(GeologicalCommands::showOrogenicGoldHere))
+                .then(
+                    Commands.literal("basin-hydrothermal")
+                        .executes(GeologicalCommands::showBasinHydrothermalHere))
                 .then(
                     Commands.literal("hand-sample")
                         .executes(GeologicalCommands::showHandSampleHere))
@@ -510,6 +516,35 @@ public final class GeologicalCommands {
     } catch (IllegalArgumentException | IllegalStateException exception) {
       source.sendFailure(
           Component.literal("geology orogenic-gold unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static int showBasinHydrothermalHere(CommandContext<CommandSourceStack> context) {
+    BlockPos position = BlockPos.containing(context.getSource().getPosition());
+    CommandSourceStack source = context.getSource();
+    try {
+      OverworldBasinHydrothermalColumnPlan plan =
+          OverworldBasinHydrothermalPlanner.from(
+                  planner(source.getLevel(), position.getX(), position.getZ()))
+              .plan(position.getX(), position.getZ());
+      OverworldBasinHydrothermalInterval interval = plan.at(position.getY()).orElse(null);
+      String summary =
+          interval == null
+              ? plan.summary()
+                  + " at=("
+                  + position.getX()
+                  + ","
+                  + position.getY()
+                  + ","
+                  + position.getZ()
+                  + ") horizon=none"
+              : plan.summary() + " " + interval.summary();
+      source.sendSuccess(() -> Component.literal(summary), false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(
+          Component.literal("geology basin-hydrothermal unavailable: " + exception.getMessage()));
       return 0;
     }
   }

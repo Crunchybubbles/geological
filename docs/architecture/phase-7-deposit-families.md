@@ -1,7 +1,7 @@
 # Phase 7 deposit families — source-gated deposit projections
 
-Status: `phase7-alpha.4` (greisen, explicit skarn host fixture, epithermal shallow-fluid, and
-orogenic-gold metamorphic-fluid projections).
+Status: `phase7-alpha.5` (greisen, explicit skarn host fixture, epithermal shallow-fluid,
+orogenic-gold metamorphic-fluid, and basin/redox projections).
 
 ## Alpha.1 — evolved-felsic greisen proof
 
@@ -108,6 +108,36 @@ quartz-carbonate/sulfide vocabulary.
 closed budgets, and seam equality. `OrogenicGoldPacketGeneratorTest` checks byte-repeatable JSON,
 explicit metamorphic-fluid proxy labeling, formed horizons, budget closure, and seam stability.
 
-MVT/SEDEX/sediment-hosted copper, uranium, layered-intrusion, carbonatite/REE,
+## Alpha.5 — basin/redox hydrothermal families
+
+`BasinHydrothermalSystemState` adds three separate basin-fluid proofs: Mississippi Valley-type
+Pb-Zn replacement, SEDEX Zn-Pb-Ag exhalative horizons, and sediment-hosted copper redox
+replacement. Each family requires typed basin facies, saline basin-brine potential, a connected
+aquifer/fault or permeability path, a family-specific reaction or redox trap, and preserved basin
+relief. The finite brine ledger closes released fluid into transport loss plus deposit allocation;
+these are source-budgeted proxies rather than Pb-Zn-Ag-Cu assays, grades, or tonnages.
+
+The default `BasinHydrothermalHostPolicy.none()` resolves actual bedrock only. Because the current
+synthetic atlas does not generate a carbonate bedrock body, the review-only deterministic
+`BasinHydrothermalHostPolicy.fixture()` supplies a named dolostone host so the MVT reaction path
+is testable without weakening the default host gate. Three family-specific horizons are emitted
+(`DOLOMITE_REPLACEMENT`/`BRECCIA_OPEN_SPACE_FILL`/`SULFIDE_GOSSAN_HALO`,
+`LAMINATED_SULFIDE`/`BARITE_SILICA_EXHALITE`/`FEEDER_ALTERATION`, or
+`RED_BED_DISSEMINATION`/`REDOX_REPLACEMENT`/`OXIDIZED_CU_HALO`). Existing phyllic and
+propylitic overprints remain coarse response proxies until a future Phase 2 catalog increment.
+
+`OverworldBasinHydrothermalPlanner` clips all horizons to realized solid terrain, retains stable
+X-then-Z target-chunk ordering, and checks adjacent-chunk seam equality. The read-only
+`/geology basin-hydrothermal` command and `basinHydrothermal` task expose both actual-host and
+fixture evidence. The task writes
+`atlas-cli/build/phase7/basin-hydrothermal/basin-hydrothermal.json` with family, facies, brine,
+pathway, trap, preservation, horizon, ledger, default-negative, and seam evidence.
+
+`OverworldBasinHydrothermalPlannerTest` covers MVT fixture formation, actual-host-only behavior,
+barren gate retention, closed ledgers, and seam equality. `BasinHydrothermalPacketGeneratorTest`
+checks byte-repeatable JSON, explicit redox-proxy labeling, family/horizon evidence, budget
+closure, the default negative proof, and seam stability.
+
+Uranium, layered-intrusion, carbonatite/REE,
 phosphorite/coal/brine, and geothermal families remain separate future Phase 7 slices; they must
-not inherit the greisen proxy or be inferred from a generic catalog lithology.
+not inherit these basin proxies or be inferred from a generic catalog lithology.

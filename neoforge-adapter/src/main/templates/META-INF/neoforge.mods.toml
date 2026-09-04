@@ -24,7 +24,11 @@ default and exposes the Phase 7 carbonate-contact proof without inventing a host
 `/geology epithermal` view exposes the Phase 7 shallow magmatic-hydrothermal fluid-path proxy;
 its silica/argillic horizons are not Au/Ag assays or voxel-grade inventories. The
 `/geology orogenic-gold` view exposes the Phase 7 deformation/metamorphic-fluid proxy;
-its quartz-carbonate/sulfide horizons are not Au assays or voxel-grade inventories.
+its quartz-carbonate/sulfide horizons are not Au assays or voxel-grade inventories. The
+`/geology basin-hydrothermal` view exposes separate MVT Pb-Zn, SEDEX Zn-Pb-Ag, and
+sediment-hosted copper basin/redox proxies; the default planner resolves actual hosts only and
+the deterministic dolostone fixture is review-only. Its horizons are not metal assays or
+voxel-grade inventories.
 '''
 
 [[dependencies.${mod_id}]]
