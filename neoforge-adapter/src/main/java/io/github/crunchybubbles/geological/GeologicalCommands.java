@@ -6,6 +6,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfile;
 import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfiles;
+import io.github.crunchybubbles.geological.worldgen.ExplorationSampleKind;
 import io.github.crunchybubbles.geological.worldgen.HandSampleIdentification;
 import io.github.crunchybubbles.geological.worldgen.OverworldAirFluidColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldAirFluidPlanner;
@@ -19,6 +20,8 @@ import io.github.crunchybubbles.geological.worldgen.OverworldRegolithColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldRegolithPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldSectionDebugTrace;
 import io.github.crunchybubbles.geological.worldgen.OverworldSectionDebugTrace.Axis;
+import io.github.crunchybubbles.geological.worldgen.OverworldSedimentSample;
+import io.github.crunchybubbles.geological.worldgen.OverworldSedimentSampler;
 import io.github.crunchybubbles.geological.worldgen.WorldgenExecutionContext;
 import io.github.crunchybubbles.geological.worldgen.WorldgenSnapshot;
 import java.util.ArrayList;
@@ -64,6 +67,19 @@ public final class GeologicalCommands {
                 .then(
                     Commands.literal("hand-sample")
                         .executes(GeologicalCommands::showHandSampleHere))
+                .then(
+                    Commands.literal("soil")
+                        .executes(context -> showSedimentHere(context, ExplorationSampleKind.SOIL)))
+                .then(
+                    Commands.literal("stream-sediment")
+                        .executes(
+                            context ->
+                                showSedimentHere(context, ExplorationSampleKind.STREAM_SEDIMENT)))
+                .then(
+                    Commands.literal("heavy-mineral")
+                        .executes(
+                            context ->
+                                showSedimentHere(context, ExplorationSampleKind.HEAVY_MINERAL)))
                 .then(
                     Commands.literal("column")
                         .then(
@@ -130,6 +146,28 @@ public final class GeologicalCommands {
     } catch (IllegalArgumentException | IllegalStateException exception) {
       source.sendFailure(
           Component.literal("geology hand-sample unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static int showSedimentHere(
+      CommandContext<CommandSourceStack> context, ExplorationSampleKind kind) {
+    BlockPos position = BlockPos.containing(context.getSource().getPosition());
+    CommandSourceStack source = context.getSource();
+    try {
+      OverworldSedimentSample sample =
+          OverworldSedimentSampler.from(
+                  planner(source.getLevel(), position.getX(), position.getZ()))
+              .sample(kind, position.getX(), position.getZ());
+      source.sendSuccess(() -> Component.literal(sample.summary()), false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(
+          Component.literal(
+              "geology "
+                  + kind.name().toLowerCase(Locale.ROOT)
+                  + " unavailable: "
+                  + exception.getMessage()));
       return 0;
     }
   }

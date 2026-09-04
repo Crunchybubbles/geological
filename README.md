@@ -20,10 +20,11 @@ item; the Phase 4 required implementation slices are complete, with the remainin
 the exploration and dimension-native phases described in the status table.
 The bounded non-concentric porphyry footprint is implemented.
 
-Phase 5 alpha.2 now exposes transient, provenance-rich Overworld outcrop/float/contact/structural
-observations and bounded coarse hand-sample identification through the read-only `/geology observations`
-and `/geology hand-sample` commands; sediment sampling, uncertainty, drilling, and notebook
-persistence remain bounded follow-on slices.
+Phase 5 alpha.3 now exposes transient, provenance-rich Overworld outcrop/float/contact/structural
+observations, bounded coarse hand-sample identification, and soil/stream/heavy-mineral sampling
+through read-only `/geology observations`, `/geology hand-sample`, `/geology soil`,
+`/geology stream-sediment`, and `/geology heavy-mineral` commands; uncertainty, drilling, and
+notebook persistence remain bounded follow-on slices.
 
 Geological is a causal geology and terrain-generation project for Minecraft Java 1.21.1 on NeoForge 21.1.x. Its selected world preset will eventually own the canonical Overworld, Nether, and End through dimension-specific geological histories rather than add a separate geology dimension.
 

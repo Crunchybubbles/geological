@@ -18,6 +18,9 @@ class GeologicalCommandsTest {
     assertNotNull(geology.getChild("here"));
     assertNotNull(geology.getChild("observations"));
     assertNotNull(geology.getChild("hand-sample"));
+    assertNotNull(geology.getChild("soil"));
+    assertNotNull(geology.getChild("stream-sediment"));
+    assertNotNull(geology.getChild("heavy-mineral"));
     assertNotNull(geology.getChild("column"));
     assertNotNull(geology.getChild("column").getChild("x"));
     assertNotNull(geology.getChild("column").getChild("x").getChild("z"));
