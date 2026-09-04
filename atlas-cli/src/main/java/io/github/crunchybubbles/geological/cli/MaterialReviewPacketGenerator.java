@@ -80,6 +80,8 @@ import io.github.crunchybubbles.geological.petrology.UnitIntervalDistribution;
 import io.github.crunchybubbles.geological.query.GeologicalSample;
 import io.github.crunchybubbles.geological.query.Phase1World;
 import io.github.crunchybubbles.geological.query.Phase2World;
+import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfile;
+import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfiles;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -521,7 +523,11 @@ final class MaterialReviewPacketGenerator {
                     "scientificDigest",
                     query.materialIdentity().scientificDigest(),
                     "dimensionProfile",
-                    query.materialIdentity().dimensionProfileId())),
+                    query.materialIdentity().dimensionProfileId()),
+                "dimensionProfiles",
+                DimensionGeologyProfiles.all().stream()
+                    .map(MaterialReviewPacketGenerator::dimensionGeologyProfileJson)
+                    .toList()),
             "catalog",
             JsonWriter.object(
                 "mineralCount",
@@ -2760,6 +2766,50 @@ final class MaterialReviewPacketGenerator {
                         "explanation",
                         check.explanation()))
             .toList());
+  }
+
+  private static Map<String, Object> dimensionGeologyProfileJson(DimensionGeologyProfile profile) {
+    return JsonWriter.object(
+        "dimensionKey",
+        profile.dimensionKey(),
+        "profileId",
+        profile.profileId(),
+        "version",
+        profile.version(),
+        "premiseClass",
+        profile.premiseClass(),
+        "confidencePolicy",
+        profile.confidencePolicy().name(),
+        "atlasTopology",
+        profile.atlasTopology().name(),
+        "verticalEnvelope",
+        JsonWriter.object(
+            "minimumY",
+            profile.verticalEnvelope().minimumY(),
+            "maximumY",
+            profile.verticalEnvelope().maximumY()),
+        "gravityFrame",
+        profile.gravityFrame().name(),
+        "allowedProcessFamilies",
+        profile.allowedProcessFamilies().stream().map(Enum::name).sorted().toList(),
+        "forbiddenProcessFamilies",
+        profile.forbiddenProcessFamilies().stream().map(Enum::name).sorted().toList(),
+        "fluidMedia",
+        profile.fluidMedia().stream().map(Enum::name).sorted().toList(),
+        "boundaryTerrainModel",
+        profile.boundaryTerrainModel(),
+        "materialRegistryIds",
+        profile.materialRegistryIds().stream().sorted().toList(),
+        "mineralSystemRegistryIds",
+        profile.mineralSystemRegistryIds().stream().sorted().toList(),
+        "biomeFieldAdapter",
+        profile.biomeFieldAdapter(),
+        "structureProgressionContract",
+        profile.structureProgressionContract(),
+        "scaleProfileId",
+        profile.scaleProfileId(),
+        "scientificDigest",
+        profile.scientificDigest());
   }
 
   private static Map<String, Object> statisticalValidationJson(

@@ -120,6 +120,11 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"diagenesisState\""));
     assertTrue(firstJson.contains("\"phase1Geology\""));
     assertTrue(firstJson.contains("\"phase2Material\""));
+    assertTrue(firstJson.contains("\"dimensionProfiles\""));
+    assertTrue(firstJson.contains("\"minecraft:the_nether\""));
+    assertTrue(firstJson.contains("\"minecraft:the_end\""));
+    assertTrue(firstJson.contains("\"CAVERN_VOLUME\""));
+    assertTrue(firstJson.contains("\"BOUNDED_BODIES_IN_VOID\""));
     assertTrue(firstJson.contains("\"modelVersion\": \"phase1.0-alpha.2\""));
     assertTrue(firstJson.contains(Phase2World.SCIENTIFIC_DIGEST));
     assertTrue(firstJson.contains("\"materialProcess\""));
