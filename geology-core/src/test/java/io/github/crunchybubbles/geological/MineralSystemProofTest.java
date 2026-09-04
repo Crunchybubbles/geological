@@ -547,10 +547,7 @@ class MineralSystemProofTest {
             .validationStatus());
     assertTrue(
         reports.stream()
-            .filter(
-                report ->
-                    report.modelId().equals(MineralSystemProofs.BIF_MODEL)
-                        || report.modelId().equals(MineralSystemProofs.PLACER_MODEL))
+            .filter(report -> report.modelId().equals(MineralSystemProofs.PLACER_MODEL))
             .allMatch(
                 report ->
                     report.validationStatus()
@@ -567,16 +564,24 @@ class MineralSystemProofTest {
       boolean auditedPorphyry = report.modelId().equals(MineralSystemProofs.PORPHYRY_MODEL);
       boolean auditedVms = report.modelId().equals(MineralSystemProofs.VMS_MODEL);
       boolean auditedLct = report.modelId().equals(MineralSystemProofs.LCT_MODEL);
+      boolean auditedBif = report.modelId().equals(MineralSystemProofs.BIF_MODEL);
       boolean auditedEvaporite = report.modelId().equals(MineralSystemProofs.EVAPORITE_MODEL);
-      boolean auditedSubset = auditedPorphyry || auditedVms || auditedLct || auditedEvaporite;
+      boolean auditedSubset =
+          auditedPorphyry || auditedVms || auditedLct || auditedBif || auditedEvaporite;
       assertEquals(
-          auditedPorphyry ? 14 : auditedVms ? 17 : auditedLct ? 16 : auditedEvaporite ? 16 : 5,
+          auditedPorphyry
+              ? 14
+              : auditedVms ? 17 : auditedLct ? 16 : auditedBif ? 16 : auditedEvaporite ? 16 : 5,
           report.empiricalDataset().rows().size());
       assertEquals(
-          auditedPorphyry ? 10 : auditedVms ? 12 : auditedLct ? 12 : auditedEvaporite ? 12 : 4,
+          auditedPorphyry
+              ? 10
+              : auditedVms ? 12 : auditedLct ? 12 : auditedBif ? 12 : auditedEvaporite ? 12 : 4,
           report.empiricalDataset().calibrationRowCount());
       assertEquals(
-          auditedPorphyry ? 4 : auditedVms ? 5 : auditedLct ? 4 : auditedEvaporite ? 4 : 1,
+          auditedPorphyry
+              ? 4
+              : auditedVms ? 5 : auditedLct ? 4 : auditedBif ? 4 : auditedEvaporite ? 4 : 1,
           report.empiricalDataset().heldOutRowCount());
       assertEquals(
           auditedSubset
@@ -650,9 +655,11 @@ class MineralSystemProofTest {
                   ? MineralSystemValidationReport.StatisticalStatus.AUDITED_SUBSET
                   : auditedLct
                       ? MineralSystemValidationReport.StatisticalStatus.AUDITED_SUBSET
-                      : auditedEvaporite
+                      : auditedBif
                           ? MineralSystemValidationReport.StatisticalStatus.AUDITED_SUBSET
-                          : MineralSystemValidationReport.StatisticalStatus.PROVISIONAL_ANCHORS,
+                          : auditedEvaporite
+                              ? MineralSystemValidationReport.StatisticalStatus.AUDITED_SUBSET
+                              : MineralSystemValidationReport.StatisticalStatus.PROVISIONAL_ANCHORS,
           statistical.status());
       assertTrue(
           statistical.quantileComparisons().stream()
@@ -660,6 +667,29 @@ class MineralSystemProofTest {
       assertTrue(
           statistical.covarianceSummaries().stream()
               .allMatch(summary -> summary.calibrationPairCount() >= 2));
+      if (auditedBif) {
+        assertEquals(
+            "https://pubs.usgs.gov/of/1993/ofr-93-0280/of93-0280.pdf",
+            report.empiricalDataset().sourceUri());
+        assertEquals("USGS-OFR-1993-0280-v1.0", report.empiricalDataset().sourceVersion());
+        MineralSystemValidationReport.SampleRow mountHale =
+            report.empiricalDataset().rows().stream()
+                .filter(
+                    row ->
+                        row.sourceRowRef()
+                            .equals("OFR-93-0280.pdf:p95:Mount-Hale;Name=Mount Hale;Country=AUWA"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(1.4, mountHale.values().get("tonnage"), 1.0e-12);
+        assertEquals(0.65, mountHale.values().get("fe_grade"), 1.0e-12);
+        assertEquals(0.00076, mountHale.values().get("p_grade"), 1.0e-12);
+        MineralSystemValidationReport.SampleRow bahia =
+            report.empiricalDataset().rows().stream()
+                .filter(row -> row.sourceRowRef().contains("Name=Bahia;Country=BRZL"))
+                .findFirst()
+                .orElseThrow();
+        assertTrue(bahia.missingFields().contains("p_grade"));
+      }
       if (auditedEvaporite) {
         assertEquals(
             "https://pubs.usgs.gov/sir/2010/5090/s/PotashXL.zip",

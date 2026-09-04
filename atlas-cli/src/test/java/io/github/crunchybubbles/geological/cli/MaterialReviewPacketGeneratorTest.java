@@ -102,6 +102,7 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"usgs:of20091034_vms_cu_zn_audited_subset\""));
     assertTrue(firstJson.contains("\"usgs:2026_lct_global_audited_subset\""));
     assertTrue(firstJson.contains("\"usgs:sir20105090s_global_potash_audited_subset\""));
+    assertTrue(firstJson.contains("\"usgs:of93280_superior_algoma_fe_audited_subset\""));
     assertTrue(firstJson.contains("\"missing_and_censor_flags\""));
     assertTrue(firstJson.contains("\"statisticalValidation\""));
     assertTrue(firstJson.contains("\"quantileComparisons\""));
@@ -110,7 +111,6 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"CENSORED\""));
     assertTrue(firstJson.contains("\"mineralSystemValidationReports\""));
     assertTrue(firstJson.contains("\"usgs:2026_lct_global_audited_subset\""));
-    assertTrue(firstJson.contains("\"usgs:bif_superior_algoma\""));
     assertTrue(firstJson.contains("\"diagenesisState\""));
     assertTrue(firstJson.contains("\"phase1Geology\""));
     assertTrue(firstJson.contains("\"phase2Material\""));

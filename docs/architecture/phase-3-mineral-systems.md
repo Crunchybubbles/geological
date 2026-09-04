@@ -150,15 +150,21 @@ resource status, and the raw depth text; the population rule keeps rows with pos
 bound of ranged bed-depth text as the modeled depth. The deterministic four-row held-out split is
 explicitly a subset audit, not a full 981-site population release.
 
+The BIF importer reads a 16-row subset of the combined Superior-Algoma Fe table in USGS
+Open-File Report 93-0280. It preserves the source page/name/country references and combined-model
+rule, converts Fe and P percent grades to mass fractions, and retains blank phosphorus as explicit
+missingness. The deterministic four-row held-out split is a subset audit; the historical table's
+mixed deposit/district sampling and the unredistributed full population remain documented limits.
+
 ## Alpha.10 — held-out statistical projection
 
-The remaining two families still use `SOURCE_ANCHORS_PROVISIONAL`: those anchors make the import
+The remaining placer family still uses `SOURCE_ANCHORS_PROVISIONAL`: those anchors make the import
 and report contract deterministic and reviewable, but do not claim that a handful of anchors
 replace a raw, licensed table. All reports emit deterministic held-out quantile projections (with
 log-space error where values are usable) and calibration covariance/correlation summaries for
 every declared variable pair. These metrics make missing, censored, and insufficient held-out
-coverage explicit; the porphyry, VMS, LCT, and evaporite/potash metrics are subset-audited, while
-the BIF and placer families remain provisional until their raw source rows replace the anchors.
+coverage explicit; the porphyry, VMS, LCT, evaporite/potash, and BIF metrics are subset-audited,
+while the placer family remains provisional until its raw source rows replace the anchors.
 
 Completing the Phase 3 scientific exit still requires cleaning the source tables, preserving their
 row-level bias/censor metadata, auditing redistribution, and promoting the held-out quantile and

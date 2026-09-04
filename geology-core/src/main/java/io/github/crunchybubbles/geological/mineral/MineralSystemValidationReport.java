@@ -1011,73 +1011,115 @@ public record MineralSystemValidationReport(
     }
 
     private static EmpiricalDataset bif() {
-      String version = "USGS-BUL-1693-BIF-Superior-Algoma";
-      String aggregation = "formation_scale_resource_prior_no_mine_cutoff";
-      String cutoff = "broad_ore_resource_prior_not_economic_cutoff";
-      return dataset(
-          "usgs:bif_superior_algoma",
-          "https://pubs.usgs.gov/bul/b1693/html/bull1tut.htm",
+      String version = "USGS-OFR-1993-0280-v1.0";
+      String aggregation = "source_deposit_unit_as_published";
+      String cutoff = "production_plus_reserves_resources_lowest_reported_cutoff";
+      return readBifSubset(version, aggregation, cutoff);
+    }
+
+    private static EmpiricalDataset readBifSubset(
+        String version, String aggregation, String cutoff) {
+      String resourcePath = "/data/geological/empirical/bif_subset.tsv";
+      var resource = EmpiricalDataset.class.getResourceAsStream(resourcePath);
+      if (resource == null) {
+        throw new IllegalStateException("missing empirical source resource " + resourcePath);
+      }
+      List<SampleRow> rows = new ArrayList<>();
+      try (BufferedReader reader =
+          new BufferedReader(new InputStreamReader(resource, StandardCharsets.UTF_8))) {
+        String line;
+        int lineNumber = 0;
+        while ((line = reader.readLine()) != null) {
+          lineNumber++;
+          String trimmed = line.trim();
+          if (trimmed.isEmpty()
+              || trimmed.startsWith("#")
+              || trimmed.startsWith("source_row_ref")) {
+            continue;
+          }
+          String[] fields = line.split("\\|", -1);
+          if (fields.length != 8) {
+            throw new IllegalStateException(
+                "BIF source row " + lineNumber + " has " + fields.length + " fields");
+          }
+          String sourceRowRef = fields[0].trim();
+          String depositName = fields[1].trim();
+          String countryCode = fields[2].trim();
+          SampleRole role = SampleRole.valueOf(fields[3].trim());
+          double percentile = parseSourceNumber(fields[4], lineNumber, "percentile");
+          double tonnage = parseSourceNumber(fields[5], lineNumber, "tonnage_mt");
+          double ironPercent = parseSourceNumber(fields[6], lineNumber, "fe_grade_pct");
+          String phosphorusField = fields[7].trim();
+          if (sourceRowRef.isBlank()
+              || depositName.isBlank()
+              || countryCode.isBlank()
+              || percentile <= 0.0
+              || percentile > 1.0) {
+            throw new IllegalStateException("invalid BIF source identity at row " + lineNumber);
+          }
+          TreeMap<String, Double> values = new TreeMap<>();
+          values.put("tonnage", tonnage);
+          values.put("fe_grade", ironPercent / 100.0);
+          Set<String> missing = Set.of();
+          if (phosphorusField.isBlank()) {
+            missing = Set.of("p_grade");
+          } else {
+            values.put(
+                "p_grade",
+                parseSourceNonNegativeNumber(phosphorusField, lineNumber, "p_grade_pct") / 100.0);
+          }
+          rows.add(
+              new SampleRow(
+                  "bif-deposit-" + sourceRowRef.replace(':', '-') + "-" + depositName,
+                  "superior_algoma_combined",
+                  percentile,
+                  role,
+                  "OFR-93-0280.pdf:"
+                      + sourceRowRef
+                      + ";Name="
+                      + depositName
+                      + ";Country="
+                      + countryCode,
+                  version,
+                  aggregation,
+                  cutoff,
+                  "Tonnes/10^6_to_Mt;Fe_percent_to_mass_fraction;P_percent_to_mass_fraction;source_combines_Superior_and_Algoma;country_code="
+                      + countryCode,
+                  values,
+                  missing,
+                  Set.of()));
+        }
+      } catch (IOException | IllegalArgumentException exception) {
+        throw new IllegalStateException("invalid BIF empirical source subset", exception);
+      }
+      if (rows.size() < 10) {
+        throw new IllegalStateException("BIF empirical source subset is unexpectedly small");
+      }
+      return new EmpiricalDataset(
+          "usgs:of93280_superior_algoma_fe_audited_subset",
+          "https://pubs.usgs.gov/of/1993/ofr-93-0280/of93-0280.pdf",
           version,
-          "banded_iron_formation_superior_algoma_broad_prior",
+          "superior_algoma_bif_deposits_positive_tonnage_fe_audited_subset",
           aggregation,
           cutoff,
-          Map.of("tonnage", "Mt", "fe_grade", "mass_fraction"),
-          List.of(
-              row(
-                  "bif-q10",
-                  "algoma",
-                  0.10,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 50.0, "fe_grade", 0.25),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "bif-q25",
-                  "algoma",
-                  0.25,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 150.0, "fe_grade", 0.30),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "bif-q50",
-                  "superior",
-                  0.50,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 500.0, "fe_grade", 0.35),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "bif-q75",
-                  "superior",
-                  0.75,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 1500.0, "fe_grade", 0.42),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "bif-q90",
-                  "superior",
-                  0.90,
-                  SampleRole.HELD_OUT,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 5000.0, "fe_grade", 0.55),
-                  Set.of(),
-                  Set.of("fe_grade"))));
+          "USGS Open-File Report 93-0280 Superior-Algoma Fe table subset; source page references, country codes, Fe/P grades, and the combined-model rule are checked in for reproducible review. Fe/P percentages are converted to mass fractions; blank P values remain missing and the subset is not the full population.",
+          DistributionKind.EMPIRICAL_ROW,
+          AuditStatus.RAW_TABLE_AUDITED_SUBSET,
+          Map.of("tonnage", "Mt", "fe_grade", "mass_fraction", "p_grade", "mass_fraction"),
+          rows);
+    }
+
+    private static double parseSourceNonNegativeNumber(String value, int lineNumber, String field) {
+      try {
+        double parsed = Double.parseDouble(value.trim());
+        if (!Double.isFinite(parsed) || parsed < 0.0) {
+          throw new IllegalArgumentException(field + " must be non-negative");
+        }
+        return parsed;
+      } catch (NumberFormatException exception) {
+        throw new IllegalArgumentException(
+            "invalid " + field + " at BIF source row " + lineNumber, exception);
+      }
     }
 
     private static EmpiricalDataset evaporitePotash() {
