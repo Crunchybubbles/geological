@@ -50,6 +50,10 @@ neoForge {
 
 dependencies {
     implementation project(':geology-core')
+    // The standalone mod jar must carry the platform-neutral core for production installs.
+    // The dependency remains on implementation for compilation and dev runs; jarJar embeds
+    // the same project artifact under META-INF/jarjar for ordinary NeoForge launchers.
+    jarJar project(':geology-core')
 
     testImplementation platform(libs.junit.bom)
     testImplementation libs.junit.jupiter

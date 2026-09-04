@@ -166,6 +166,28 @@ The Phase 8 Nether thermal review is written below
 
 On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, column plans, JSON traces, and measurements are written below `atlas-cli/build/phase1/`; the deterministic material/catalog/reservoir review is written below `atlas-cli/build/phase2/`; the Phase 4 worldgen observation is written below `atlas-cli/build/phase4/worldgen/`; the Phase 5 exploration telemetry is written below `atlas-cli/build/phase5/exploration/`; the Phase 6 secondary-weathering review is written below `atlas-cli/build/phase6/secondary/`, the laterite review below `atlas-cli/build/phase6/laterite/`, the secondary-placer review below `atlas-cli/build/phase6/secondary-placers/`, the paleosurface structural review below `atlas-cli/build/phase6/paleosurface/`, the opt-in glacial review below `atlas-cli/build/phase6/glacial/`, the Phase 7 greisen review below `atlas-cli/build/phase7/greisen/`, the skarn review below `atlas-cli/build/phase7/skarn/`, the epithermal review below `atlas-cli/build/phase7/epithermal/`, the orogenic-gold review below `atlas-cli/build/phase7/orogenic-gold/`, the basin/redox review below `atlas-cli/build/phase7/basin-hydrothermal/`, the uranium review below `atlas-cli/build/phase7/uranium/`, and the layered-intrusion review below `atlas-cli/build/phase7/layered-intrusion/`.
 
+## Install the playable alpha
+
+The current loader slice is playable on Minecraft Java Edition 1.21.1 with NeoForge 21.1.249.
+Install the NeoForge **client** profile for that exact Minecraft version, then build the
+standalone mod jar from PowerShell:
+
+```powershell
+cd C:\geological
+.\gradlew.bat :neoforge-adapter:jar
+```
+
+Copy only `neoforge-adapter\build\libs\geological-0.1.0-alpha.1.jar` into the `mods` folder
+for the NeoForge 1.21.1 instance (the default vanilla launcher folder is
+`%APPDATA%\.minecraft\mods`). The jar embeds `geology-core`; do not copy the `-sources`,
+`-javadoc`, or old `SNAPSHOT` jars. Launch that NeoForge profile, create a **new** world, and
+choose the **Geological** world preset in world creation. Existing worlds keep their original
+generator. In-game, `/geology here` and `/geology column <x> <z>` show the deterministic geology
+trace; the other read-only `/geology` subcommands are listed in the architecture docs.
+
+This is an alpha vertical slice: the terrain and native Nether/End profiles are bounded review
+implementations, and a new test world is recommended before using the mod with an important save.
+
 ## Modules
 
 - `geology-core` is a platform-neutral Java library. It implements stable identity, cell- and object-keyed deterministic random streams, strict public JSON registry authoring and canonical compilation, atlas descriptors, stratigraphic and unconformity kernels, varied event grammar, bounded spatial candidates, exact interval-proved column runs, causal mineral-system proofs, Overworld surface queries, and on-demand Phase 2 constituent assemblage, ideal solid-solution composition, host-conditioned process response, bulk-composition, and typed reservoir-ledger resolution for points, columns, and surface materials.
