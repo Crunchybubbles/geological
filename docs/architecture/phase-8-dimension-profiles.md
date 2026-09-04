@@ -1,6 +1,6 @@
 # Phase 8 dimension profiles — Nether and End native histories
 
-Status: `phase8-alpha.2` (Nether thermal/magmatic terrain, material history, and resource prototypes).
+Status: `phase8-alpha.3` (Nether histories/resources plus End parent-fragment terrain and regolith).
 
 ## Alpha.1 — Nether thermal cavern boundary
 
@@ -54,6 +54,32 @@ stability. The packet is review evidence, not an assay, reserve, temperature, or
 `NetherResourcePlannerTest` and `NetherResourcePacketGeneratorTest` cover identity locking, all
 four families, material-event ordering, closed ledgers, barren host gating, repeatable JSON, and
 chunk seams.
+
+## Alpha.3 — End parent fragments, impacts, and void regolith
+
+`EndParentBodyState` establishes a stable parent-body provenance record before fragmentation. Each
+bounded lattice cell chooses a primitive, silicate-differentiated, metal-separated, or previously
+melted parent family and retains composition/metal reservoir identities, a fragment identity, an
+impactor identity, an ordered differentiation/fragmentation/impact/void/regolith chronicle, and
+closed parent-material and regolith ledgers. Central progression, gateway-ring, and outer-island
+roles are explicit. Cells outside the bounded outer ring are void; they do not receive an implicit
+continuous crust.
+
+`EndFragmentTerrainCompiler` evaluates complete 3-D island membership from an ellipsoidal body,
+not a single Overworld-style surface. It preserves a central island and open void gap, bounded
+gateway/outer bodies, impact excavation, shock/breccia or impact-melt events, and a short
+void-exposed regolith interval. Every column carries its parent-fragment provenance or an explicit
+void result. The frozen End profile's `VOID` medium and forbidden plate, water, sediment, uplift,
+and hydrothermal process families are emitted as review evidence. Direct and isolated shuffled
+chunk access produce equal columns at seams.
+
+The standalone `endFragments` task writes
+`atlas-cli/build/phase8/end-fragments/end-fragments.json`, including role/family/differentiation
+counts, impact and regolith events, void columns, progression-contract identity, closed ledgers,
+and seam stability. It is a fictional dimension review packet, not an asteroid claim or a voxel
+save format. `EndFragmentTerrainCompilerTest` and `EndFragmentPacketGeneratorTest` cover central,
+gateway, outer, void, all parent families, impact/regolith bounds, identity locking, repeatable
+JSON, and chunk seams.
 
 ## Remaining Phase 8 slices
 

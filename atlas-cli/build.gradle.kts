@@ -210,3 +210,12 @@ tasks.register<JavaExec>("netherResources") {
     args("nether-resources", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase8/nether-resources").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("endFragments") {
+    group = "verification"
+    description = "Writes the deterministic Phase 8 End parent-fragment and void-regolith review."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("end-fragments", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase8/end-fragments").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}
