@@ -62,6 +62,10 @@ public final class AtlasCli {
         Path report = new GreisenPacketGenerator(seed).generate(output);
         System.out.println("Wrote Phase 7 greisen review to " + report);
       }
+      case "skarn" -> {
+        Path report = new SkarnPacketGenerator(seed).generate(output);
+        System.out.println("Wrote Phase 7 skarn review to " + report);
+      }
       default -> throw new IllegalArgumentException("Unknown command: " + command);
     }
   }
@@ -89,6 +93,6 @@ public final class AtlasCli {
 
   private static void printUsage() {
     System.out.println(
-        "Usage: atlas-cli <generate|measure|materials|worldgen-benchmark|exploration-telemetry|secondary-weathering|laterite|secondary-placers|paleosurface|glacial|greisen> [--seed <long>] [--output <directory>]");
+        "Usage: atlas-cli <generate|measure|materials|worldgen-benchmark|exploration-telemetry|secondary-weathering|laterite|secondary-placers|paleosurface|glacial|greisen|skarn> [--seed <long>] [--output <directory>]");
   }
 }

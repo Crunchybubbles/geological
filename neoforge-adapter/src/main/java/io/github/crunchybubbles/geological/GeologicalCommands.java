@@ -47,6 +47,9 @@ import io.github.crunchybubbles.geological.worldgen.OverworldSectionDebugTrace;
 import io.github.crunchybubbles.geological.worldgen.OverworldSectionDebugTrace.Axis;
 import io.github.crunchybubbles.geological.worldgen.OverworldSedimentSample;
 import io.github.crunchybubbles.geological.worldgen.OverworldSedimentSampler;
+import io.github.crunchybubbles.geological.worldgen.OverworldSkarnColumnPlan;
+import io.github.crunchybubbles.geological.worldgen.OverworldSkarnInterval;
+import io.github.crunchybubbles.geological.worldgen.OverworldSkarnPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldVerticalSectionPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldVerticalSectionTrace;
 import io.github.crunchybubbles.geological.worldgen.WorldgenExecutionContext;
@@ -104,6 +107,7 @@ public final class GeologicalCommands {
                         .executes(GeologicalCommands::showPaleosurfaceHere))
                 .then(Commands.literal("glacial").executes(GeologicalCommands::showGlacialHere))
                 .then(Commands.literal("greisen").executes(GeologicalCommands::showGreisenHere))
+                .then(Commands.literal("skarn").executes(GeologicalCommands::showSkarnHere))
                 .then(
                     Commands.literal("hand-sample")
                         .executes(GeologicalCommands::showHandSampleHere))
@@ -410,6 +414,33 @@ public final class GeologicalCommands {
     } catch (IllegalArgumentException | IllegalStateException exception) {
       source.sendFailure(
           Component.literal("geology greisen unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static int showSkarnHere(CommandContext<CommandSourceStack> context) {
+    BlockPos position = BlockPos.containing(context.getSource().getPosition());
+    CommandSourceStack source = context.getSource();
+    try {
+      OverworldSkarnColumnPlan plan =
+          OverworldSkarnPlanner.from(planner(source.getLevel(), position.getX(), position.getZ()))
+              .plan(position.getX(), position.getZ());
+      OverworldSkarnInterval interval = plan.at(position.getY()).orElse(null);
+      String summary =
+          interval == null
+              ? plan.summary()
+                  + " at=("
+                  + position.getX()
+                  + ","
+                  + position.getY()
+                  + ","
+                  + position.getZ()
+                  + ") horizon=none"
+              : plan.summary() + " " + interval.summary();
+      source.sendSuccess(() -> Component.literal(summary), false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(Component.literal("geology skarn unavailable: " + exception.getMessage()));
       return 0;
     }
   }

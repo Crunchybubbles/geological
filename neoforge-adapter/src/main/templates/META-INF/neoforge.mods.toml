@@ -19,7 +19,8 @@ the read-only `/geology secondary`, `/geology laterite`, `/geology placers`, `/g
 paleosurface`, and `/geology glacial` views expose source-budgeted or structural Phase 6
 secondary overlays; glacial behavior remains opt-in behind explicit ice-history evidence. The
 `/geology greisen` view exposes the Phase 7 evolved-felsic residual-fluid proxy overlay, which is
-not an Sn/W assay or voxel-grade inventory.
+not an Sn/W assay or voxel-grade inventory. The `/geology skarn` view is actual-host-only by
+default and exposes the Phase 7 carbonate-contact proof without inventing a host body.
 '''
 
 [[dependencies.${mod_id}]]

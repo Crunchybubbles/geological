@@ -111,3 +111,12 @@ tasks.register<JavaExec>("greisen") {
     args("greisen", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase7/greisen").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("skarn") {
+    group = "verification"
+    description = "Writes the deterministic Phase 7 carbonate-contact skarn review."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("skarn", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase7/skarn").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}
