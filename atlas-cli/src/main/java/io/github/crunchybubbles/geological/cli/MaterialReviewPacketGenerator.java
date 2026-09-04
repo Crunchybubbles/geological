@@ -42,6 +42,7 @@ import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.FluidTransportState;
 import io.github.crunchybubbles.geological.petrology.FractureTensorState;
 import io.github.crunchybubbles.geological.petrology.MagmaLineageState;
+import io.github.crunchybubbles.geological.petrology.MagmaResidualInventoryState;
 import io.github.crunchybubbles.geological.petrology.MantleCargoState;
 import io.github.crunchybubbles.geological.petrology.MaterialBufferState;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessLedger;
@@ -1858,6 +1859,11 @@ final class MaterialReviewPacketGenerator {
         sample.erodibilityIndex(),
         "magmaLineage",
         sample.magmaLineage().map(this::magmaLineageJson).orElse(null),
+        "magmaResidualInventoryState",
+        sample
+            .magmaResidualInventoryState()
+            .map(this::magmaResidualInventoryStateJson)
+            .orElse(null),
         "mantleCargo",
         sample.mantleCargo().map(this::mantleCargoJson).orElse(null),
         "sedimentaryState",
@@ -2146,6 +2152,24 @@ final class MaterialReviewPacketGenerator {
             state.differentiationState().residualFluidPotential().name(),
             "fertilityTags",
             state.differentiationState().fertilityTags()));
+  }
+
+  private Map<String, Object> magmaResidualInventoryStateJson(MagmaResidualInventoryState state) {
+    return JsonWriter.object(
+        "cumulativeCrystalFractionPpm",
+        state.cumulativeCrystalFractionPpm(),
+        "residualMeltFractionPpm",
+        state.residualMeltFractionPpm(),
+        "residualFluidFractionPpm",
+        state.residualFluidFractionPpm(),
+        "sourceInventoryPpm",
+        elementMap(state.sourceInventoryPpm()),
+        "crystallizedInventoryPpm",
+        elementMap(state.crystallizedInventoryPpm()),
+        "residualMeltInventoryPpm",
+        elementMap(state.residualMeltInventoryPpm()),
+        "residualFluidInventoryPpm",
+        elementMap(state.residualFluidInventoryPpm()));
   }
 
   private Map<String, Object> mantleCargoJson(MantleCargoState state) {

@@ -49,6 +49,7 @@ import io.github.crunchybubbles.geological.petrology.FractureTensorState;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
 import io.github.crunchybubbles.geological.petrology.LigandCapacities;
 import io.github.crunchybubbles.geological.petrology.MagmaDifferentiationState;
+import io.github.crunchybubbles.geological.petrology.MagmaResidualInventoryState;
 import io.github.crunchybubbles.geological.petrology.MaterialAssemblage;
 import io.github.crunchybubbles.geological.petrology.MaterialBufferState;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
@@ -213,6 +214,46 @@ class MaterialSchemaTest {
     assertEquals(FluidTransportState.WaterRockRatioClass.VERY_HIGH, meteoric.waterRockRatioClass());
     assertEquals(FluidTransportState.PhaseBehaviorClass.MIXING, meteoric.phaseBehaviorClass());
     assertThrows(IllegalArgumentException.class, () -> FluidTransportState.proofFor(null));
+  }
+
+  @Test
+  void magmaResidualInventorySplitsTrackedElementsWithExactClosure() {
+    BulkComposition composition =
+        new BulkComposition(
+            Map.of(
+                ChemicalElement.SI, 400_000L,
+                ChemicalElement.O, 300_000L,
+                ChemicalElement.S, 100_000L,
+                ChemicalElement.P, 50_000L,
+                ChemicalElement.K, 50_000L,
+                ChemicalElement.CU, 50_000L,
+                ChemicalElement.ZN, 50_000L),
+            2.5);
+    StableId source = StableId.parse("00000000000000000000000000000022");
+    MagmaResidualInventoryState undersaturated =
+        MagmaResidualInventoryState.proofFor(
+            composition, MagmaDifferentiationState.arcProofFor(0, List.of(source)));
+    MagmaResidualInventoryState saturated =
+        MagmaResidualInventoryState.proofFor(
+            composition, MagmaDifferentiationState.arcProofFor(2, List.of(source)));
+
+    assertEquals(
+        MaterialAssemblage.SCALE,
+        undersaturated.cumulativeCrystalFractionPpm() + undersaturated.residualMeltFractionPpm());
+    for (ChemicalElement element : undersaturated.sourceInventoryPpm().keySet()) {
+      assertEquals(
+          undersaturated.sourceInventoryPpm().get(element),
+          undersaturated.crystallizedInventoryPpm().getOrDefault(element, 0L)
+              + undersaturated.residualMeltInventoryPpm().getOrDefault(element, 0L)
+              + undersaturated.residualFluidInventoryPpm().getOrDefault(element, 0L));
+    }
+    assertTrue(
+        saturated.residualMeltInventoryPpm().get(ChemicalElement.CU)
+            < undersaturated.residualMeltInventoryPpm().get(ChemicalElement.CU));
+    assertTrue(saturated.residualFluidInventoryPpm().containsKey(ChemicalElement.S));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> MagmaResidualInventoryState.proofFor(composition, null));
   }
 
   @Test

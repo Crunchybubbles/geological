@@ -136,6 +136,14 @@ public record PetrologicState(
     return fluidState.map(FluidTransportState::proofFor);
   }
 
+  /** Returns the optional normalized incompatible-element split for this magma pulse. */
+  public Optional<MagmaResidualInventoryState> magmaResidualInventoryState() {
+    return magmaLineage.map(
+        lineage ->
+            MagmaResidualInventoryState.proofFor(
+                resolvedComposition, lineage.differentiationState()));
+  }
+
   private static void requireUnit(double value, String name) {
     if (!Double.isFinite(value) || value < 0.0 || value > 1.0) {
       throw new IllegalArgumentException(name + " must lie in [0, 1]");
