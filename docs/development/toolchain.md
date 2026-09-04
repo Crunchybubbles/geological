@@ -10,7 +10,17 @@ Only the internal `spotlessJava` transform is excluded from Gradle's build cache
 
 Jackson is an implementation dependency only of `geology-core` and is confined to strict JSON authoring ingestion. Public geology/query APIs expose project-owned types, and runtime atlas queries do not parse JSON. Jackson 3 is the current line recommended by FasterXML for new projects; all transitive artifacts are locked and SHA-256 verified by Gradle.
 
-Minecraft and NeoForge dependencies are intentionally absent. Phase 0 is a standalone proof, and a dormant loader dependency would weaken the platform boundary. The [official NeoForge Maven](https://maven.neoforged.net/releases/net/neoforged/neoforge/) currently publishes the selected 21.1 line; its exact patch and the matching supported build plugin will be verified and locked when the actual adapter scaffold begins.
+The platform-neutral `geology-core` and `atlas-cli` modules remain free of Minecraft and loader
+dependencies. The first loader adapter is now a separate `neoforge-adapter` module. It pins
+Minecraft `1.21.1`, NeoForge `21.1.249`, ModDevGradle `2.0.146`, Parchment `2024.11.17`, and
+Java 21 in `neoforge-adapter/gradle.properties`; its resolved configurations are checked in via
+`neoforge-adapter/gradle.lockfile` and `gradle/verification-metadata.xml`. The settings-level
+NeoForged repositories plugin keeps the loader repository available without weakening Gradle's
+central repository policy. The adapter currently exposes only the entry point and a dimension/
+chunk-to-core identity bridge; terrain, block registration, and world-preset ownership remain
+future slices. See the [official ModDevGradle documentation](https://docs.neoforged.net/toolchain/docs/plugins/mdg/)
+and [NeoForge 21.1.249 artifacts](https://maven.neoforged.net/releases/net/neoforged/neoforge/21.1.249/)
+for the upstream toolchain references.
 
 To refresh dependency locks after an intentional version change:
 

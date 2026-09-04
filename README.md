@@ -6,11 +6,14 @@ Current Phase 3 checkpoint: porphyry, VMS, LCT, BIF, restricted-basin evaporite/
 
 The current Phase 4 identity increments freeze platform-neutral canonical dimension profiles for
 the Overworld, Nether, and End, plus deterministic seed/profile/chunk identity, immutable
-worldgen snapshots, and logical stage contracts before a NeoForge adapter is introduced.
+worldgen snapshots, and logical stage contracts. A minimal `neoforge-adapter` now pins the
+Minecraft 1.21.1 / NeoForge 21.1.249 toolchain and bridges Minecraft dimension/chunk identity into
+that contract; it does not place terrain or blocks yet.
 
 See [implementation-status.md](docs/architecture/implementation-status.md) for the roadmap-aligned
 remaining estimate by phase. Phase 3 redistribution/statistical review remains an external sign-off
-item; the next engineering slice is the NeoForge adapter lock against the frozen Phase 4 contract.
+item; the next engineering slice is a read-only Overworld world-preset/generator hook against the
+frozen Phase 4 contract.
 The bounded non-concentric porphyry footprint is implemented.
 
 Geological is a causal geology and terrain-generation project for Minecraft Java 1.21.1 on NeoForge 21.1.x. Its selected world preset will eventually own the canonical Overworld, Nether, and End through dimension-specific geological histories rather than add a separate geology dimension.
@@ -35,6 +38,7 @@ The checked-in Gradle wrapper is the only prerequisite beyond a Java 21 JDK.
 
 ```shell
 ./gradlew build
+./gradlew :neoforge-adapter:test
 ./gradlew generateExampleAtlas
 ./gradlew measureAtlas
 ```
@@ -45,6 +49,9 @@ On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, col
 
 - `geology-core` is a platform-neutral Java library. It implements stable identity, cell- and object-keyed deterministic random streams, strict public JSON registry authoring and canonical compilation, atlas descriptors, stratigraphic and unconformity kernels, varied event grammar, bounded spatial candidates, exact interval-proved column runs, causal mineral-system proofs, Overworld surface queries, and on-demand Phase 2 constituent assemblage, ideal solid-solution composition, host-conditioned process response, bulk-composition, and typed reservoir-ledger resolution for points, columns, and surface materials.
 - `atlas-cli` is a standalone renderer and measurement harness. It emits maps, cross-sections, the canonical registry snapshot, stratigraphic/deformation/provenance traces, column proofs, and engineering observations. It depends on the core but no Minecraft or loader classes.
+- `neoforge-adapter` is the pinned NeoForge 21.1.249 loader boundary. It contains the mod entry
+  point and a deterministic `ResourceKey<Level>`/`ChunkPos` bridge into the core worldgen request;
+  terrain generators, world presets, and block palettes are intentionally future increments.
 
 See [the Phase 0 architecture](docs/architecture/phase-0-atlas.md), [Phase 1 query-core increment](docs/architecture/phase-1-query-core.md), [Phase 2 material-state increment](docs/architecture/phase-2-material-state.md), [registry authoring contract](docs/architecture/registry-authoring.md), [reproducibility contract](docs/architecture/reproducibility.md), and [toolchain policy](docs/development/toolchain.md) before extending the model.
 

@@ -1,7 +1,7 @@
 # Phase 4 vertical slice — canonical dimension identity
 
-Status: second Phase 4 platform-neutral identity increment (`phase4-alpha.2`); no NeoForge
-dependency or block placement is introduced yet.
+Status: completed platform-neutral identity increment (`phase4-alpha.2`) plus the first loader
+adapter lock slice (`phase4-loader-alpha.1`); terrain and block placement are not introduced yet.
 
 `DimensionGeologyProfile` freezes the shared contract that a future Minecraft adapter will consume
 for `minecraft:overworld`, `minecraft:the_nether`, and `minecraft:the_end`. Each profile carries a
@@ -26,9 +26,15 @@ stage-keyed random streams without mutable draw state. `WorldgenStage` freezes t
 order (context, terrain controls, base terrain, lithology, structures/deposits/alteration,
 caves/aquifers, regolith/clues, biome decoration, and validation). A request can only expose its
 authorized prefix, marks non-writing stages explicitly, and rejects writes to a neighboring chunk.
-Negative chunk coordinates and profile/identity mismatch are covered by deterministic tests. This
-is an adapter-facing contract, not a NeoForge implementation: no platform classes, terrain writes,
-or neighbor generation are present yet.
+Negative chunk coordinates and profile/identity mismatch are covered by deterministic tests. The
+separate `neoforge-adapter` module now pins Minecraft `1.21.1`, NeoForge `21.1.249`, ModDevGradle
+`2.0.146`, Parchment `2024.11.17`, and Java 21. Its `GeologicalWorldgenAdapter` accepts a
+Minecraft `ResourceKey<Level>` and `ChunkPos`, resolves one canonical profile identity, and
+returns the platform-neutral `WorldgenChunkRequest`; null identity inputs are rejected before
+core work. A minimal `@Mod("geological")` entry point and generated `neoforge.mods.toml` prove
+that the packaged loader boundary is real. The adapter has no custom `ChunkGenerator`, world
+preset, terrain writes, block registrations, or neighbor generation yet, so it cannot change a
+world by itself.
 
 `WorldgenSnapshot` freezes the model, scientific, configuration, presentation, and scale identity
 that a generation worker may read. `WorldgenExecutionContext` accepts that snapshot, one authorized
@@ -37,5 +43,7 @@ live server/world handle. Non-writing stages and mismatched snapshots fail befor
 writable work still has to name the authorized target chunk. The review packet records the snapshot
 digests and the `stage_supplied_only`/`liveServerAccess=forbidden` policy.
 
-The next Phase 4 increment should lock the exact NeoForge 21.1.x patch/build plugin and implement
-the adapter boundary against this frozen identity contract before adding terrain or palette writes.
+The next Phase 4 increment should implement a custom world preset/generator hook that consumes a
+frozen `WorldgenSnapshot` and request for Overworld coarse terrain controls. It should remain
+read-only until deterministic chunk-local bounds, stage authorization, and seed/profile identity
+tests pass; palette writes belong to a later slice.
