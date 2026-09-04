@@ -7,6 +7,9 @@ import com.mojang.brigadier.context.CommandContext;
 import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfile;
 import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfiles;
 import io.github.crunchybubbles.geological.worldgen.DrillCoreLog;
+import io.github.crunchybubbles.geological.worldgen.ExplorationMapSnapshot;
+import io.github.crunchybubbles.geological.worldgen.ExplorationNotebook;
+import io.github.crunchybubbles.geological.worldgen.ExplorationNotebookEntry;
 import io.github.crunchybubbles.geological.worldgen.ExplorationSampleKind;
 import io.github.crunchybubbles.geological.worldgen.GeochemicalAnomalyEstimate;
 import io.github.crunchybubbles.geological.worldgen.HandSampleIdentification;
@@ -40,15 +43,18 @@ import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
-/** Read-only server commands exposing deterministic Overworld geology provenance overlays. */
+/** Server commands exposing deterministic Overworld geology overlays and player notebooks. */
 public final class GeologicalCommands {
   private static final int MAX_MAP_RADIUS = 8;
   private static final int MAX_SECTION_LENGTH = 64;
+  private static final int MAX_NOTEBOOK_DISPLAY_ENTRIES = 8;
+  private static final int MAX_NOTEBOOK_MAP_MARKERS = 32;
   private static final DimensionGeologyProfile OVERWORLD =
       DimensionGeologyProfiles.require("minecraft:overworld");
   private static final WorldgenSnapshot SNAPSHOT = WorldgenSnapshot.forProfile(OVERWORLD);
@@ -117,6 +123,33 @@ public final class GeologicalCommands {
                                                             .MAX_CORE_DEPTH_BLOCKS))
                                                 .executes(
                                                     GeologicalCommands::showVerticalSectionHere)))))
+                .then(
+                    Commands.literal("notebook")
+                        .executes(GeologicalCommands::showNotebookHere)
+                        .then(
+                            Commands.literal("record")
+                                .executes(context -> recordNotebookHere(context, ""))
+                                .then(
+                                    Commands.argument("note", StringArgumentType.greedyString())
+                                        .executes(
+                                            context ->
+                                                recordNotebookHere(
+                                                    context,
+                                                    StringArgumentType.getString(
+                                                        context, "note")))))
+                        .then(
+                            Commands.literal("map")
+                                .then(
+                                    Commands.argument(
+                                            "radius",
+                                            IntegerArgumentType.integer(
+                                                0, ExplorationMapSnapshot.MAX_RADIUS_BLOCKS))
+                                        .executes(GeologicalCommands::showNotebookMapHere)))
+                        .then(
+                            Commands.literal("forget")
+                                .then(
+                                    Commands.argument("entryId", StringArgumentType.word())
+                                        .executes(GeologicalCommands::forgetNotebookHere))))
                 .then(
                     Commands.literal("column")
                         .then(
@@ -293,6 +326,136 @@ public final class GeologicalCommands {
           .getSource()
           .sendFailure(
               Component.literal("geology vertical-section unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static int showNotebookHere(CommandContext<CommandSourceStack> context) {
+    CommandSourceStack source = context.getSource();
+    ServerPlayer player = source.getPlayer();
+    if (player == null) {
+      source.sendFailure(Component.literal("geology notebook is player-only"));
+      return 0;
+    }
+    try {
+      GeologicalDiscoverySavedData data = GeologicalDiscoverySavedData.get(source.getLevel());
+      ExplorationNotebook notebook = data.notebook(player.getUUID());
+      String entries =
+          notebook.entries().stream()
+              .limit(MAX_NOTEBOOK_DISPLAY_ENTRIES)
+              .map(ExplorationNotebookEntry::summary)
+              .collect(Collectors.joining("; "));
+      String suffix = entries.isBlank() ? "" : " entries=[" + entries + "]";
+      boolean compatible = data.isCompatibleWithCurrentSnapshot();
+      source.sendSuccess(
+          () -> Component.literal(notebook.summary() + " compatible=" + compatible + suffix),
+          false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(
+          Component.literal("geology notebook unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static int recordNotebookHere(CommandContext<CommandSourceStack> context, String note) {
+    CommandSourceStack source = context.getSource();
+    ServerPlayer player = source.getPlayer();
+    if (player == null) {
+      source.sendFailure(Component.literal("geology notebook is player-only"));
+      return 0;
+    }
+    BlockPos position = BlockPos.containing(source.getPosition());
+    try {
+      List<OverworldExplorationObservation> observations =
+          OverworldExplorationObservationPlanner.from(
+                  planner(source.getLevel(), position.getX(), position.getZ()))
+              .plan(position.getX(), position.getZ());
+      if (observations.isEmpty()) {
+        source.sendFailure(Component.literal("geology notebook found no observable evidence here"));
+        return 0;
+      }
+      List<ExplorationNotebookEntry> entries =
+          observations.stream()
+              .map(
+                  observation ->
+                      ExplorationNotebookEntry.fromObservation(
+                          observation, note, OVERWORLD.profileId()))
+              .toList();
+      GeologicalDiscoverySavedData data = GeologicalDiscoverySavedData.get(source.getLevel());
+      ExplorationNotebook notebook = data.record(player.getUUID(), entries);
+      source.sendSuccess(
+          () ->
+              Component.literal(
+                  "notebook recorded="
+                      + entries.size()
+                      + " total="
+                      + notebook.entries().size()
+                      + " digest="
+                      + notebook.digest()),
+          false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(
+          Component.literal("geology notebook unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static int showNotebookMapHere(CommandContext<CommandSourceStack> context) {
+    CommandSourceStack source = context.getSource();
+    ServerPlayer player = source.getPlayer();
+    if (player == null) {
+      source.sendFailure(Component.literal("geology notebook map is player-only"));
+      return 0;
+    }
+    BlockPos position = BlockPos.containing(source.getPosition());
+    int radius = IntegerArgumentType.getInteger(context, "radius");
+    try {
+      ExplorationNotebook notebook =
+          GeologicalDiscoverySavedData.get(source.getLevel()).notebook(player.getUUID());
+      ExplorationMapSnapshot map = notebook.map(position.getX(), position.getZ(), radius);
+      String markers =
+          map.markers().stream()
+              .limit(MAX_NOTEBOOK_MAP_MARKERS)
+              .map(
+                  marker ->
+                      "%s@(%d,%d)"
+                          .formatted(marker.evidenceKind(), marker.blockX(), marker.blockZ()))
+              .collect(Collectors.joining(", "));
+      String suffix = markers.isBlank() ? "" : " markers=[" + markers + "]";
+      source.sendSuccess(() -> Component.literal(map.summary() + suffix), false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(
+          Component.literal("geology notebook map unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static int forgetNotebookHere(CommandContext<CommandSourceStack> context) {
+    CommandSourceStack source = context.getSource();
+    ServerPlayer player = source.getPlayer();
+    if (player == null) {
+      source.sendFailure(Component.literal("geology notebook is player-only"));
+      return 0;
+    }
+    String value = StringArgumentType.getString(context, "entryId");
+    try {
+      boolean removed =
+          GeologicalDiscoverySavedData.get(source.getLevel())
+              .forget(
+                  player.getUUID(),
+                  io.github.crunchybubbles.geological.determinism.StableId.parse(value));
+      if (!removed) {
+        source.sendFailure(Component.literal("geology notebook entry not found: " + value));
+        return 0;
+      }
+      source.sendSuccess(() -> Component.literal("notebook forgot=" + value), false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(
+          Component.literal("geology notebook unavailable: " + exception.getMessage()));
       return 0;
     }
   }

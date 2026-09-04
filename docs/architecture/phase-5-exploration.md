@@ -1,11 +1,12 @@
 # Phase 5 exploration geology — observations and hand samples
 
-Status: completed the sixth bounded exploration slice (`phase5-alpha.6`): deterministic transient
+Status: completed the seventh bounded exploration slice (`phase5-alpha.7`): deterministic transient
 outcrop, float, contact, and structural observations derived from the Phase 4 Overworld column
 trace, stable observation IDs, provenance body references, confidence/scale fields, and the
 read-only `/geology observations` command, plus coarse hand-sample identification and surface
 sediment sampling, interval-valued geochemical anomaly estimates, bounded drill-core logs, and
-vertical cross-section traces.
+vertical cross-section traces, and world-persistent player notebooks/maps containing only
+player-visible evidence.
 
 `OverworldExplorationObservationPlanner` consumes the same immutable
 `OverworldRegolithPlanner` used by generation and debug overlays. An exposed bedrock clue yields an
@@ -78,5 +79,21 @@ provides a deterministic lithology histogram. The `/geology vertical-section <ax
 <depth>` command exposes this view; it is read-only and does not fill air, write shafts, or cache
 hidden geology.
 
-Remaining Phase 5 slices are a discovery notebook/map that persists player observations rather than
-hidden truth, and Phase 5 telemetry/exit review.
+## Alpha.7 discovery notebook and map persistence
+
+`ExplorationNotebook` is an immutable, 256-entry bounded store of player-visible evidence. Entries
+retain a stable evidence ID, location, provenance references, confidence, generated presentation
+summary, and an optional player note; they never copy `MaterialState`, hidden deposit fields, or
+full assay vectors. Canonical CBOR bytes and a SHA-256 digest make insertion/reload order
+observable and deterministic. `ExplorationMapSnapshot` derives bounded 16-block map markers from
+the saved entries, so map views can be discarded and rebuilt without storing natural geology.
+
+`GeologicalDiscoverySavedData` persists one notebook per player in the Overworld's normal saved
+data, records the frozen model/scientific/configuration/presentation/scale identity, bounds NBT
+payloads, and refuses edits when that identity is stale. `/geology notebook` lists the caller's
+entries, `/geology notebook record [note]` records current surface observations, `/geology notebook
+map <radius>` shows retained markers, and `/geology notebook forget <entryId>` removes a player
+entry. All mutation commands are player-only and run on the server thread; natural geology remains
+reconstructed on demand.
+
+The remaining Phase 5 slice is telemetry/exit review measuring clue sufficiency and travel burden.

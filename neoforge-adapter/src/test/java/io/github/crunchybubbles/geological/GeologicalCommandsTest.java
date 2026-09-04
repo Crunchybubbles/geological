@@ -28,6 +28,11 @@ class GeologicalCommandsTest {
     assertNotNull(geology.getChild("vertical-section"));
     assertNotNull(geology.getChild("vertical-section").getChild("axis"));
     assertNotNull(geology.getChild("vertical-section").getChild("axis").getChild("length"));
+    assertNotNull(geology.getChild("notebook"));
+    assertNotNull(geology.getChild("notebook").getChild("record"));
+    assertNotNull(geology.getChild("notebook").getChild("map"));
+    assertNotNull(geology.getChild("notebook").getChild("map").getChild("radius"));
+    assertNotNull(geology.getChild("notebook").getChild("forget"));
     assertNotNull(geology.getChild("column"));
     assertNotNull(geology.getChild("column").getChild("x"));
     assertNotNull(geology.getChild("column").getChild("x").getChild("z"));

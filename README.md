@@ -20,12 +20,13 @@ item; the Phase 4 required implementation slices are complete, with the remainin
 the exploration and dimension-native phases described in the status table.
 The bounded non-concentric porphyry footprint is implemented.
 
-Phase 5 alpha.6 now exposes transient, provenance-rich Overworld outcrop/float/contact/structural
+Phase 5 alpha.7 now exposes transient, provenance-rich Overworld outcrop/float/contact/structural
 observations, bounded coarse hand-sample and soil/stream/heavy-mineral sampling, interval-valued
-geochemical anomaly estimates, and bounded drill-core logs through read-only `/geology observations`,
+geochemical anomaly estimates, bounded drill-core logs, vertical cross-sections, and persistent
+player-visible notebook/map evidence through `/geology observations`,
 `/geology hand-sample`, `/geology soil`, `/geology stream-sediment`, `/geology heavy-mineral`,
-`/geology anomaly`, `/geology drill`, and `/geology vertical-section` commands; notebook
-persistence and Phase 5 telemetry remain bounded follow-on slices.
+`/geology anomaly`, `/geology drill`, `/geology vertical-section`, and `/geology notebook` commands;
+Phase 5 telemetry remains the final bounded follow-on slice.
 
 Geological is a causal geology and terrain-generation project for Minecraft Java 1.21.1 on NeoForge 21.1.x. Its selected world preset will eventually own the canonical Overworld, Nether, and End through dimension-specific geological histories rather than add a separate geology dimension.
 
@@ -67,7 +68,8 @@ On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, col
   injected material-to-block resolver, a total coarse vanilla block palette, and an Overworld
   generator/preset registration plus explicit surface water/air, bounded regolith/surface-clue
   projection, read-only `/geology` column/map/section/vertical-section/observation/hand-sample/sampling/anomaly/drill overlays, and the
-  serial/shuffled/seam benchmark harness; dimension-native Nether/End generation is a future
+  serial/shuffled/seam benchmark harness, and a bounded per-player discovery notebook/map saved-data
+  bridge; dimension-native Nether/End generation is a future
   Phase 8 increment.
 
 See [the Phase 0 architecture](docs/architecture/phase-0-atlas.md), [Phase 1 query-core increment](docs/architecture/phase-1-query-core.md), [Phase 2 material-state increment](docs/architecture/phase-2-material-state.md), [Phase 5 exploration increment](docs/architecture/phase-5-exploration.md), [registry authoring contract](docs/architecture/registry-authoring.md), [reproducibility contract](docs/architecture/reproducibility.md), and [toolchain policy](docs/development/toolchain.md) before extending the model.
