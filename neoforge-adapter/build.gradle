@@ -54,6 +54,26 @@ dependencies {
     // The dependency remains on implementation for compilation and dev runs; jarJar embeds
     // the same project artifact under META-INF/jarjar for ordinary NeoForge launchers.
     jarJar project(':geology-core')
+    // geology-core's JSON authoring boundary uses Jackson 3 at runtime. Bundle its public
+    // dependency as well; the project jar does not carry transitive libraries by itself.
+    jarJar(implementation('tools.jackson.core:jackson-databind:3.2.1')) {
+        version {
+            strictly '[3.2.1]'
+            prefer '3.2.1'
+        }
+    }
+    jarJar(implementation('tools.jackson.core:jackson-core:3.2.1')) {
+        version {
+            strictly '[3.2.1]'
+            prefer '3.2.1'
+        }
+    }
+    jarJar(implementation('com.fasterxml.jackson.core:jackson-annotations:2.22')) {
+        version {
+            strictly '[2.22]'
+            prefer '2.22'
+        }
+    }
 
     testImplementation platform(libs.junit.bom)
     testImplementation libs.junit.jupiter
