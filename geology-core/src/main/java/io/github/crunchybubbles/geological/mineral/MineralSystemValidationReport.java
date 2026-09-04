@@ -153,6 +153,12 @@ public record MineralSystemValidationReport(
                     == dataset.rows().size(),
                 "Every imported row retains a source-row reference, version, subtype, grouping, and cutoff basis."),
             check(
+                "source_population_coverage",
+                dataset.sourceCoverage().qualifyingRowCount() == dataset.rows().size()
+                    && (dataset.auditStatus() != AuditStatus.RAW_TABLE_AUDITED
+                        || dataset.sourceCoverage().completeRelease()),
+                "The source release size, qualifying row count, declared rule, and complete-release status are explicit for redistribution review."),
+            check(
                 "missing_and_censor_flags",
                 dataset.rows().stream()
                     .allMatch(
@@ -262,6 +268,31 @@ public record MineralSystemValidationReport(
     AUDITED_SUBSET,
     PROVISIONAL_ANCHORS,
     INSUFFICIENT_DATA
+  }
+
+  /** Deterministic source-release and qualifying-population coverage evidence. */
+  public record SourceCoverage(
+      int sourceRowCount,
+      int qualifyingRowCount,
+      String qualificationRule,
+      boolean completeRelease) {
+    public SourceCoverage {
+      if (sourceRowCount <= 0
+          || qualifyingRowCount < 0
+          || qualifyingRowCount > sourceRowCount
+          || qualificationRule == null
+          || qualificationRule.isBlank()) {
+        throw new IllegalArgumentException("source coverage evidence must be bounded and named");
+      }
+    }
+
+    public int excludedRowCount() {
+      return sourceRowCount - qualifyingRowCount;
+    }
+
+    public double qualifyingFraction() {
+      return (double) qualifyingRowCount / sourceRowCount;
+    }
   }
 
   public enum ComparisonStatus {
@@ -568,7 +599,39 @@ public record MineralSystemValidationReport(
       DistributionKind distributionKind,
       AuditStatus auditStatus,
       Map<String, String> variableUnits,
-      List<SampleRow> rows) {
+      List<SampleRow> rows,
+      SourceCoverage sourceCoverage) {
+    public EmpiricalDataset(
+        String id,
+        String sourceUri,
+        String sourceVersion,
+        String population,
+        String aggregationRule,
+        String cutoffBasis,
+        String licenseNote,
+        DistributionKind distributionKind,
+        AuditStatus auditStatus,
+        Map<String, String> variableUnits,
+        List<SampleRow> rows) {
+      this(
+          id,
+          sourceUri,
+          sourceVersion,
+          population,
+          aggregationRule,
+          cutoffBasis,
+          licenseNote,
+          distributionKind,
+          auditStatus,
+          variableUnits,
+          rows,
+          new SourceCoverage(
+              rows == null ? 1 : rows.size(),
+              rows == null ? 0 : rows.size(),
+              "unspecified_anchor_rows",
+              false));
+    }
+
     public EmpiricalDataset {
       if (id == null
           || id.isBlank()
@@ -587,8 +650,17 @@ public record MineralSystemValidationReport(
           || distributionKind == null
           || auditStatus == null
           || variableUnits == null
-          || rows == null) {
+          || rows == null
+          || sourceCoverage == null) {
         throw new IllegalArgumentException("empirical dataset metadata must be complete");
+      }
+      if (sourceCoverage.qualifyingRowCount() != rows.size()) {
+        throw new IllegalArgumentException(
+            "source coverage qualifying count must match imported row count");
+      }
+      if (auditStatus == AuditStatus.RAW_TABLE_AUDITED && !sourceCoverage.completeRelease()) {
+        throw new IllegalArgumentException(
+            "complete raw-table audits require complete source-release coverage");
       }
       TreeMap<String, String> units = new TreeMap<>();
       variableUnits.forEach(
@@ -924,7 +996,8 @@ public record MineralSystemValidationReport(
               "mo_grade", "mass_fraction",
               "au_grade", "g_per_tonne",
               "ag_grade", "g_per_tonne"),
-          rows);
+          rows,
+          new SourceCoverage(690, 228, "positive_tonnage_cu_mo", true));
     }
 
     private static double parseSourceNumber(String value, int lineNumber, String field) {
@@ -1181,7 +1254,8 @@ public record MineralSystemValidationReport(
               "pb_grade", "mass_fraction",
               "au_grade", "g_per_tonne",
               "ag_grade", "g_per_tonne"),
-          rows);
+          rows,
+          new SourceCoverage(1_090, 608, "positive_tonnage_cu_zn", true));
     }
 
     private static EmpiricalDataset placer() {
@@ -1292,7 +1366,8 @@ public record MineralSystemValidationReport(
           DistributionKind.EMPIRICAL_ROW,
           AuditStatus.RAW_TABLE_AUDITED,
           Map.of("tonnage", "Mt", "pt_grade", "g_per_tonne", "au_grade", "g_per_tonne"),
-          rows);
+          rows,
+          new SourceCoverage(83, 83, "published_placer_table_rows", true));
     }
 
     private static EmpiricalDataset lctPegmatite() {
@@ -1473,7 +1548,8 @@ public record MineralSystemValidationReport(
               "mass_fraction",
               "sn_grade",
               "mass_fraction"),
-          rows);
+          rows,
+          new SourceCoverage(86, 86, "positive_ore_tonnage_selected_release_rows", true));
     }
 
     private static EmpiricalDataset bif() {
@@ -1572,7 +1648,8 @@ public record MineralSystemValidationReport(
           DistributionKind.EMPIRICAL_ROW,
           AuditStatus.RAW_TABLE_AUDITED,
           Map.of("tonnage", "Mt", "fe_grade", "mass_fraction", "p_grade", "mass_fraction"),
-          rows);
+          rows,
+          new SourceCoverage(66, 66, "published_superior_algoma_fe_table_rows", true));
     }
 
     private static double parseSourceNonNegativeNumber(String value, int lineNumber, String field) {
@@ -1746,7 +1823,8 @@ public record MineralSystemValidationReport(
           DistributionKind.EMPIRICAL_ROW,
           AuditStatus.RAW_TABLE_AUDITED,
           Map.of("tonnage", "Mt", "k2o_grade", "mass_fraction", "bed_depth", "m"),
-          rows);
+          rows,
+          new SourceCoverage(981, 102, "positive_first_numeric_rr_ore_and_rr_k2o", true));
     }
 
     private static OptionalDouble parseFirstSourceNumber(

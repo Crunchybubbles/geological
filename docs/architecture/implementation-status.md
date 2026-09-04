@@ -21,6 +21,7 @@ calendar promise. The current repository is the source of truth for what is actu
 
 The immediate next engineering slice is the Phase 3 raw-table redistribution/sign-off review.
 Porphyry, VMS, LCT, BIF, potash, and placer now have complete 228-row, 608-row, 86-row, 66-row,
-102-row qualifying, and 83-row `RAW_TABLE_AUDITED` resources. Together they establish
-the metadata, missing/censoring, budget, and deterministic quantile/covariance report contracts
-without claiming that historical source tables are unbiased natural populations.
+102-row qualifying, and 83-row `RAW_TABLE_AUDITED` resources. Together they establish the
+metadata, structured source-coverage counts, missing/censoring, budget, and deterministic
+quantile/covariance report contracts without claiming that historical source tables are unbiased
+natural populations.

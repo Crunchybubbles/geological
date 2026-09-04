@@ -1,6 +1,6 @@
 # Phase 3 mineral-system increment
 
-Status: thirteenth Phase 3 architecture-proving slice; all six architecture-proving families, the gated porphyry supergene refinement, source-audit plus held-out evidence contracts, and a bounded non-concentric porphyry footprint are explicit
+Status: fourteenth Phase 3 architecture-proving slice; all six architecture-proving families, the gated porphyry supergene refinement, source-audit plus held-out evidence contracts, and a bounded non-concentric porphyry footprint are explicit
 
 ## Alpha.1 — linked porphyry topology
 
@@ -180,10 +180,12 @@ bias limit.
 The complete 228-row porphyry, 608-row VMS, 86-row LCT, 66-row BIF, 102-row potash, and 83-row
 placer tables are `RAW_TABLE_AUDITED`: these statuses make the import and report contract deterministic
 and reviewable without claiming that any historical table is an unbiased natural population. All
-reports emit deterministic held-out quantile projections (with log-space error where values are
-usable) and calibration covariance/correlation summaries for every declared variable pair. These
-metrics make missing, censored, and insufficient held-out coverage explicit; redistribution and
-coverage and redistribution review remains outstanding for the historical source releases.
+reports now also publish structured source-coverage evidence (release row count, qualifying row
+count, excluded count, qualification rule, and complete-release flag). They emit deterministic
+held-out quantile projections (with log-space error where values are usable) and calibration
+covariance/correlation summaries for every declared variable pair. These metrics make missing,
+censored, and insufficient held-out coverage explicit; redistribution and coverage review remains
+outstanding for the historical source releases.
 
 Completing the Phase 3 scientific exit still requires cleaning the source tables, preserving their
 row-level bias/censor metadata, auditing redistribution, and promoting the held-out quantile and
@@ -197,6 +199,16 @@ with a 245-block lateral envelope that contains the furthest propylitic edge. Th
 rejects non-finite azimuths and shifted zones that exceed the envelope; formed and barren gate
 semantics remain unchanged. Focused tests prove both the existing zone vocabulary and asymmetric
 east/west classification, and the review packet preserves the geometry parameters.
+
+## Alpha.12 — structured source-coverage evidence
+
+Each audited empirical release now publishes a structured source-coverage record alongside its
+row-level provenance: the source release row count, qualifying row count, excluded count,
+qualification rule, qualifying fraction, and complete-release flag. The validation report checks
+that the qualifying count equals the imported table and that a `RAW_TABLE_AUDITED` dataset cannot
+claim incomplete release coverage. The review packet exposes these fields for redistribution and
+coverage sign-off; they describe the selected historical releases and do not imply an unbiased
+natural population.
 
 ## Remaining Phase 3 slices
 

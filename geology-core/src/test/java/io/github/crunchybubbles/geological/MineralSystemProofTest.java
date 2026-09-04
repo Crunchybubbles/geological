@@ -610,6 +610,20 @@ class MineralSystemProofTest {
                       ? 17
                       : auditedBif ? 13 : auditedEvaporite ? 20 : auditedPlacer ? 16 : 1,
           report.empiricalDataset().heldOutRowCount());
+      int sourceRowCount =
+          auditedPorphyry
+              ? 690
+              : auditedVms
+                  ? 1_090
+                  : auditedLct ? 86 : auditedBif ? 66 : auditedEvaporite ? 981 : 83;
+      assertEquals(sourceRowCount, report.empiricalDataset().sourceCoverage().sourceRowCount());
+      assertEquals(
+          report.empiricalDataset().rows().size(),
+          report.empiricalDataset().sourceCoverage().qualifyingRowCount());
+      assertEquals(
+          sourceRowCount - report.empiricalDataset().rows().size(),
+          report.empiricalDataset().sourceCoverage().excludedRowCount());
+      assertTrue(report.empiricalDataset().sourceCoverage().completeRelease());
       assertEquals(
           MineralSystemValidationReport.AuditStatus.RAW_TABLE_AUDITED,
           report.empiricalDataset().auditStatus());
@@ -726,6 +740,9 @@ class MineralSystemProofTest {
       assertTrue(
           report.invariantChecks().stream()
               .anyMatch(check -> check.name().equals("missing_and_censor_flags")));
+      assertTrue(
+          report.invariantChecks().stream()
+              .anyMatch(check -> check.name().equals("source_population_coverage")));
       MineralSystemValidationReport.StatisticalValidation statistical =
           report.statisticalValidation();
       assertEquals(

@@ -105,6 +105,10 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"usgs:sir20105090s_global_potash_audited_full\""));
     assertTrue(firstJson.contains("\"usgs:of93280_superior_algoma_fe_audited_full\""));
     assertTrue(firstJson.contains("\"usgs:of93280_placer_pt_au_audited_full\""));
+    assertTrue(firstJson.contains("\"sourceCoverage\""));
+    assertTrue(firstJson.contains("\"sourceRowCount\": 1090"));
+    assertTrue(firstJson.contains("\"qualifyingRowCount\": 608"));
+    assertTrue(firstJson.contains("\"source_population_coverage\""));
     assertTrue(firstJson.contains("\"missing_and_censor_flags\""));
     assertTrue(firstJson.contains("\"statisticalValidation\""));
     assertTrue(firstJson.contains("\"quantileComparisons\""));
