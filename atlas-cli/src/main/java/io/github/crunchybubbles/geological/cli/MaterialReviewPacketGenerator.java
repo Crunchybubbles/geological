@@ -2728,6 +2728,8 @@ final class MaterialReviewPacketGenerator {
                             "censoredFields",
                             row.censoredFields()))
                 .toList()),
+        "statisticalValidation",
+        statisticalValidationJson(report.statisticalValidation()),
         "invariantChecks",
         report.invariantChecks().stream()
             .map(
@@ -2740,6 +2742,59 @@ final class MaterialReviewPacketGenerator {
                         "explanation",
                         check.explanation()))
             .toList());
+  }
+
+  private static Map<String, Object> statisticalValidationJson(
+      MineralSystemValidationReport.StatisticalValidation validation) {
+    return JsonWriter.object(
+        "status",
+        validation.status().name(),
+        "limitation",
+        validation.limitation(),
+        "quantileComparisons",
+        validation.quantileComparisons().stream()
+            .map(
+                comparison ->
+                    JsonWriter.object(
+                        "variable",
+                        comparison.variable(),
+                        "heldOutRowId",
+                        comparison.heldOutRowId(),
+                        "targetPercentile",
+                        comparison.targetPercentile(),
+                        "observedValue",
+                        optionalDoubleOrNull(comparison.observedValue()),
+                        "predictedValue",
+                        optionalDoubleOrNull(comparison.predictedValue()),
+                        "absoluteLog10Error",
+                        optionalDoubleOrNull(comparison.absoluteLog10Error()),
+                        "status",
+                        comparison.status().name()))
+            .toList(),
+        "covarianceSummaries",
+        validation.covarianceSummaries().stream()
+            .map(
+                summary ->
+                    JsonWriter.object(
+                        "firstVariable",
+                        summary.firstVariable(),
+                        "secondVariable",
+                        summary.secondVariable(),
+                        "calibrationPairCount",
+                        summary.calibrationPairCount(),
+                        "calibrationCovariance",
+                        optionalDoubleOrNull(summary.calibrationCovariance()),
+                        "calibrationCorrelation",
+                        optionalDoubleOrNull(summary.calibrationCorrelation()),
+                        "heldOutPairCount",
+                        summary.heldOutPairCount(),
+                        "heldOutStatus",
+                        summary.heldOutStatus().name()))
+            .toList());
+  }
+
+  private static Double optionalDoubleOrNull(java.util.OptionalDouble value) {
+    return value.isPresent() ? value.getAsDouble() : null;
   }
 
   private Map<String, Object> mantleCargoJson(MantleCargoState state) {

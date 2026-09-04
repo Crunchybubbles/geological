@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -133,6 +134,7 @@ public record MineralSystemValidationReport(
       long depositAllocation,
       Optional<String> failedGate,
       boolean sourceBudgetClosure) {
+    StatisticalValidation statistical = StatisticalValidation.from(dataset);
     List<InvariantCheck> checks =
         List.of(
             check(
@@ -153,6 +155,16 @@ public record MineralSystemValidationReport(
                 "calibration_held_out_partition",
                 dataset.calibrationRowCount() > 0 && dataset.heldOutRowCount() > 0,
                 "The dataset retains at least one calibration row and one held-out row."),
+            check(
+                "held_out_quantile_comparison",
+                statistical.quantileComparisons().size()
+                    == dataset.heldOutRowCount() * dataset.variableUnits().size(),
+                "Each held-out row and declared variable receives a deterministic quantile comparison."),
+            check(
+                "held_out_covariance_summary",
+                statistical.covarianceSummaries().size()
+                    == dataset.variableUnits().size() * (dataset.variableUnits().size() - 1) / 2,
+                "Every declared variable pair receives a calibration covariance and held-out availability summary."),
             check(
                 "source_budget_closure",
                 sourceBudgetClosure,
@@ -185,6 +197,11 @@ public record MineralSystemValidationReport(
 
   public boolean hardInvariantsPass() {
     return invariantChecks.stream().noneMatch(check -> check.status() == CheckStatus.FAIL);
+  }
+
+  /** Returns deterministic quantile and covariance evidence for the dataset partitions. */
+  public StatisticalValidation statisticalValidation() {
+    return StatisticalValidation.from(empiricalDataset);
   }
 
   public enum ValidationStatus {
@@ -224,6 +241,300 @@ public record MineralSystemValidationReport(
   public enum SampleRole {
     CALIBRATION,
     HELD_OUT
+  }
+
+  public enum StatisticalStatus {
+    COMPLETE,
+    PROVISIONAL_ANCHORS,
+    INSUFFICIENT_DATA
+  }
+
+  public enum ComparisonStatus {
+    AVAILABLE,
+    MISSING,
+    CENSORED,
+    NO_CALIBRATION_DATA,
+    INSUFFICIENT_ROWS
+  }
+
+  /** Quantile and covariance projections used to audit the calibration/held-out split. */
+  public record StatisticalValidation(
+      List<QuantileComparison> quantileComparisons,
+      List<CovarianceSummary> covarianceSummaries,
+      StatisticalStatus status,
+      String limitation) {
+    public StatisticalValidation {
+      if (quantileComparisons == null
+          || covarianceSummaries == null
+          || status == null
+          || limitation == null
+          || limitation.isBlank()) {
+        throw new IllegalArgumentException("statistical validation evidence must be complete");
+      }
+      quantileComparisons =
+          List.copyOf(quantileComparisons).stream()
+              .sorted(
+                  Comparator.comparing(QuantileComparison::heldOutRowId)
+                      .thenComparing(QuantileComparison::variable))
+              .toList();
+      covarianceSummaries =
+          List.copyOf(covarianceSummaries).stream()
+              .sorted(
+                  Comparator.comparing(CovarianceSummary::firstVariable)
+                      .thenComparing(CovarianceSummary::secondVariable))
+              .toList();
+      if (quantileComparisons.stream().anyMatch(comparison -> comparison == null)
+          || covarianceSummaries.stream().anyMatch(summary -> summary == null)) {
+        throw new IllegalArgumentException("statistical validation entries cannot be null");
+      }
+    }
+
+    private static StatisticalValidation from(EmpiricalDataset dataset) {
+      List<SampleRow> calibration =
+          dataset.rows().stream().filter(row -> row.role() == SampleRole.CALIBRATION).toList();
+      List<SampleRow> heldOut =
+          dataset.rows().stream().filter(row -> row.role() == SampleRole.HELD_OUT).toList();
+      List<String> variables = dataset.variableUnits().keySet().stream().sorted().toList();
+      List<QuantileComparison> quantiles =
+          heldOut.stream()
+              .flatMap(
+                  row ->
+                      variables.stream()
+                          .map(variable -> quantileComparison(row, variable, calibration)))
+              .toList();
+      List<CovarianceSummary> covariance =
+          java.util.stream.IntStream.range(0, variables.size())
+              .boxed()
+              .flatMap(
+                  firstIndex ->
+                      java.util.stream.IntStream.range(firstIndex + 1, variables.size())
+                          .mapToObj(
+                              secondIndex ->
+                                  covarianceSummary(
+                                      variables.get(firstIndex),
+                                      variables.get(secondIndex),
+                                      calibration,
+                                      heldOut)))
+              .toList();
+      StatisticalStatus status =
+          dataset.auditStatus() == AuditStatus.RAW_TABLE_AUDITED
+              ? StatisticalStatus.COMPLETE
+              : heldOut.isEmpty() || calibration.isEmpty()
+                  ? StatisticalStatus.INSUFFICIENT_DATA
+                  : StatisticalStatus.PROVISIONAL_ANCHORS;
+      String limitation =
+          status == StatisticalStatus.COMPLETE
+              ? "Source rows are audited; held-out metrics are computed from the declared partitions."
+              : "Anchor metrics are deterministic review evidence only; raw-table audit and redistribution approval remain outstanding.";
+      return new StatisticalValidation(quantiles, covariance, status, limitation);
+    }
+
+    private static QuantileComparison quantileComparison(
+        SampleRow heldOut, String variable, List<SampleRow> calibration) {
+      boolean missing = heldOut.missingFields().contains(variable);
+      boolean censored = heldOut.censoredFields().contains(variable);
+      OptionalDouble observed =
+          heldOut.values().containsKey(variable)
+              ? OptionalDouble.of(heldOut.values().get(variable))
+              : OptionalDouble.empty();
+      List<SampleRow> usable =
+          calibration.stream()
+              .filter(row -> row.values().containsKey(variable))
+              .filter(row -> !row.missingFields().contains(variable))
+              .filter(row -> !row.censoredFields().contains(variable))
+              .sorted(Comparator.comparingDouble(SampleRow::percentile))
+              .toList();
+      if (usable.isEmpty()) {
+        return new QuantileComparison(
+            variable,
+            heldOut.rowId(),
+            heldOut.percentile(),
+            observed,
+            OptionalDouble.empty(),
+            OptionalDouble.empty(),
+            missing
+                ? ComparisonStatus.MISSING
+                : censored ? ComparisonStatus.CENSORED : ComparisonStatus.NO_CALIBRATION_DATA);
+      }
+      double predicted = interpolate(usable, variable, heldOut.percentile());
+      OptionalDouble error =
+          !observed.isPresent() || missing || censored
+              ? OptionalDouble.empty()
+              : OptionalDouble.of(log10AbsoluteError(observed.getAsDouble(), predicted));
+      return new QuantileComparison(
+          variable,
+          heldOut.rowId(),
+          heldOut.percentile(),
+          observed,
+          OptionalDouble.of(predicted),
+          error,
+          missing
+              ? ComparisonStatus.MISSING
+              : censored ? ComparisonStatus.CENSORED : ComparisonStatus.AVAILABLE);
+    }
+
+    private static double interpolate(List<SampleRow> rows, String variable, double percentile) {
+      if (rows.size() == 1 || percentile <= rows.getFirst().percentile()) {
+        return rows.getFirst().values().get(variable);
+      }
+      if (percentile >= rows.getLast().percentile()) {
+        return rows.getLast().values().get(variable);
+      }
+      for (int index = 1; index < rows.size(); index++) {
+        SampleRow lower = rows.get(index - 1);
+        SampleRow upper = rows.get(index);
+        if (percentile <= upper.percentile()) {
+          double fraction =
+              (percentile - lower.percentile()) / (upper.percentile() - lower.percentile());
+          return lower.values().get(variable)
+              + fraction * (upper.values().get(variable) - lower.values().get(variable));
+        }
+      }
+      return rows.getLast().values().get(variable);
+    }
+
+    private static double log10AbsoluteError(double observed, double predicted) {
+      double floor = 1.0e-12;
+      return Math.abs(
+          Math.log10(Math.max(observed, floor)) - Math.log10(Math.max(predicted, floor)));
+    }
+
+    private static CovarianceSummary covarianceSummary(
+        String firstVariable,
+        String secondVariable,
+        List<SampleRow> calibration,
+        List<SampleRow> heldOut) {
+      List<double[]> calibrationPairs = pairs(calibration, firstVariable, secondVariable);
+      OptionalDouble covariance = covariance(calibrationPairs, false);
+      OptionalDouble correlation = covariance(calibrationPairs, true);
+      List<double[]> heldOutPairs = pairs(heldOut, firstVariable, secondVariable);
+      ComparisonStatus heldOutStatus =
+          heldOutPairs.size() >= 2
+              ? ComparisonStatus.AVAILABLE
+              : heldOut.stream()
+                      .anyMatch(
+                          row ->
+                              row.missingFields().contains(firstVariable)
+                                  || row.missingFields().contains(secondVariable))
+                  ? ComparisonStatus.MISSING
+                  : heldOut.stream()
+                          .anyMatch(
+                              row ->
+                                  row.censoredFields().contains(firstVariable)
+                                      || row.censoredFields().contains(secondVariable))
+                      ? ComparisonStatus.CENSORED
+                      : ComparisonStatus.INSUFFICIENT_ROWS;
+      return new CovarianceSummary(
+          firstVariable,
+          secondVariable,
+          calibrationPairs.size(),
+          covariance,
+          correlation,
+          heldOutPairs.size(),
+          heldOutStatus);
+    }
+
+    private static List<double[]> pairs(
+        List<SampleRow> rows, String firstVariable, String secondVariable) {
+      return rows.stream()
+          .filter(
+              row ->
+                  row.values().containsKey(firstVariable)
+                      && row.values().containsKey(secondVariable))
+          .filter(
+              row ->
+                  !row.missingFields().contains(firstVariable)
+                      && !row.missingFields().contains(secondVariable))
+          .filter(
+              row ->
+                  !row.censoredFields().contains(firstVariable)
+                      && !row.censoredFields().contains(secondVariable))
+          .map(
+              row ->
+                  new double[] {row.values().get(firstVariable), row.values().get(secondVariable)})
+          .toList();
+    }
+
+    private static OptionalDouble covariance(List<double[]> pairs, boolean correlation) {
+      if (pairs.size() < 2) {
+        return OptionalDouble.empty();
+      }
+      double firstMean = pairs.stream().mapToDouble(pair -> pair[0]).average().orElseThrow();
+      double secondMean = pairs.stream().mapToDouble(pair -> pair[1]).average().orElseThrow();
+      double numerator =
+          pairs.stream().mapToDouble(pair -> (pair[0] - firstMean) * (pair[1] - secondMean)).sum();
+      double firstVariance =
+          pairs.stream().mapToDouble(pair -> Math.pow(pair[0] - firstMean, 2.0)).sum();
+      double secondVariance =
+          pairs.stream().mapToDouble(pair -> Math.pow(pair[1] - secondMean, 2.0)).sum();
+      if (correlation) {
+        if (firstVariance == 0.0 || secondVariance == 0.0) {
+          return OptionalDouble.empty();
+        }
+        return OptionalDouble.of(numerator / Math.sqrt(firstVariance * secondVariance));
+      }
+      return OptionalDouble.of(numerator / pairs.size());
+    }
+  }
+
+  public record QuantileComparison(
+      String variable,
+      String heldOutRowId,
+      double targetPercentile,
+      OptionalDouble observedValue,
+      OptionalDouble predictedValue,
+      OptionalDouble absoluteLog10Error,
+      ComparisonStatus status) {
+    public QuantileComparison {
+      if (variable == null
+          || variable.isBlank()
+          || heldOutRowId == null
+          || heldOutRowId.isBlank()
+          || !Double.isFinite(targetPercentile)
+          || targetPercentile < 0.0
+          || targetPercentile > 1.0
+          || observedValue == null
+          || predictedValue == null
+          || absoluteLog10Error == null
+          || status == null) {
+        throw new IllegalArgumentException("quantile comparison must be complete");
+      }
+      validateOptional(observedValue, "observed value");
+      validateOptional(predictedValue, "predicted value");
+      validateOptional(absoluteLog10Error, "absolute log error");
+    }
+  }
+
+  public record CovarianceSummary(
+      String firstVariable,
+      String secondVariable,
+      int calibrationPairCount,
+      OptionalDouble calibrationCovariance,
+      OptionalDouble calibrationCorrelation,
+      int heldOutPairCount,
+      ComparisonStatus heldOutStatus) {
+    public CovarianceSummary {
+      if (firstVariable == null
+          || firstVariable.isBlank()
+          || secondVariable == null
+          || secondVariable.isBlank()
+          || firstVariable.compareTo(secondVariable) >= 0
+          || calibrationPairCount < 0
+          || calibrationCovariance == null
+          || calibrationCorrelation == null
+          || heldOutPairCount < 0
+          || heldOutStatus == null) {
+        throw new IllegalArgumentException("covariance summary must be complete and ordered");
+      }
+      validateOptional(calibrationCovariance, "calibration covariance");
+      validateOptional(calibrationCorrelation, "calibration correlation");
+    }
+  }
+
+  private static void validateOptional(OptionalDouble value, String label) {
+    if (value.isPresent() && !Double.isFinite(value.getAsDouble())) {
+      throw new IllegalArgumentException(label + " must be finite when present");
+    }
   }
 
   /** Source-specific distribution metadata and row-level audit fields. */

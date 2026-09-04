@@ -558,6 +558,26 @@ class MineralSystemProofTest {
       assertTrue(
           report.invariantChecks().stream()
               .anyMatch(check -> check.name().equals("missing_and_censor_flags")));
+      MineralSystemValidationReport.StatisticalValidation statistical =
+          report.statisticalValidation();
+      assertEquals(
+          report.empiricalDataset().heldOutRowCount()
+              * report.empiricalDataset().variableUnits().size(),
+          statistical.quantileComparisons().size());
+      assertEquals(
+          report.empiricalDataset().variableUnits().size()
+              * (report.empiricalDataset().variableUnits().size() - 1)
+              / 2,
+          statistical.covarianceSummaries().size());
+      assertEquals(
+          MineralSystemValidationReport.StatisticalStatus.PROVISIONAL_ANCHORS,
+          statistical.status());
+      assertTrue(
+          statistical.quantileComparisons().stream()
+              .allMatch(comparison -> comparison.predictedValue().isPresent()));
+      assertTrue(
+          statistical.covarianceSummaries().stream()
+              .allMatch(summary -> summary.calibrationPairCount() >= 2));
     }
   }
 

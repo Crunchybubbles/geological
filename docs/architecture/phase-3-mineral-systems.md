@@ -1,6 +1,6 @@
 # Phase 3 mineral-system increment
 
-Status: ninth Phase 3 architecture-proving slice; all six architecture-proving families, the gated porphyry supergene refinement, and a source-audit report contract are explicit
+Status: tenth Phase 3 architecture-proving slice; all six architecture-proving families, the gated porphyry supergene refinement, and source-audit plus held-out evidence contracts are explicit
 
 ## Alpha.1 — linked porphyry topology
 
@@ -126,11 +126,18 @@ validator rejects undeclared variables, duplicate rows, contradictory flags, and
 calibration/held-out partitions. Primary-system ledgers and derived LCT/BIF/evaporite budgets are
 checked for exact bounded closure, while barren or rejected candidates retain their failed gate.
 
+## Alpha.10 — held-out statistical projection
+
 The current rows are intentionally `SOURCE_ANCHORS_PROVISIONAL`: they make the import and report
 contract deterministic and reviewable, but do not claim that a handful of anchors replace a raw,
-licensed USGS table. Completing the Phase 3 scientific exit still requires cleaning the source
-tables, preserving their row-level bias/censor metadata, and adding held-out quantile/covariance
-comparison results.
+licensed USGS table. The report now also emits deterministic held-out quantile projections (with
+log-space error where values are usable) and calibration covariance/correlation summaries for
+every declared variable pair. These metrics make missing, censored, and insufficient held-out
+coverage explicit; they are still provisional until the raw source rows replace the anchors.
+
+Completing the Phase 3 scientific exit still requires cleaning the source tables, preserving their
+row-level bias/censor metadata, auditing redistribution, and promoting the held-out quantile and
+covariance comparisons to a source-backed result.
 
 ## Remaining Phase 3 slices
 

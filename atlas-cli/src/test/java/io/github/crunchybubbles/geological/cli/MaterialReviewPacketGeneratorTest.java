@@ -96,6 +96,11 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"calibrationRowCount\": 4"));
     assertTrue(firstJson.contains("\"heldOutRowCount\": 1"));
     assertTrue(firstJson.contains("\"missing_and_censor_flags\""));
+    assertTrue(firstJson.contains("\"statisticalValidation\""));
+    assertTrue(firstJson.contains("\"quantileComparisons\""));
+    assertTrue(firstJson.contains("\"absoluteLog10Error\""));
+    assertTrue(firstJson.contains("\"covarianceSummaries\""));
+    assertTrue(firstJson.contains("\"INSUFFICIENT_ROWS\""));
     assertTrue(firstJson.contains("\"mineralSystemValidationReports\""));
     assertTrue(firstJson.contains("\"usgs:2026_lct_global\""));
     assertTrue(firstJson.contains("\"usgs:bif_superior_algoma\""));
