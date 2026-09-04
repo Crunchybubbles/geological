@@ -26,6 +26,8 @@ import io.github.crunchybubbles.geological.worldgen.OverworldSectionDebugTrace;
 import io.github.crunchybubbles.geological.worldgen.OverworldSectionDebugTrace.Axis;
 import io.github.crunchybubbles.geological.worldgen.OverworldSedimentSample;
 import io.github.crunchybubbles.geological.worldgen.OverworldSedimentSampler;
+import io.github.crunchybubbles.geological.worldgen.OverworldVerticalSectionPlanner;
+import io.github.crunchybubbles.geological.worldgen.OverworldVerticalSectionTrace;
 import io.github.crunchybubbles.geological.worldgen.WorldgenExecutionContext;
 import io.github.crunchybubbles.geological.worldgen.WorldgenSnapshot;
 import java.util.ArrayList;
@@ -97,6 +99,24 @@ public final class GeologicalCommands {
                                     IntegerArgumentType.integer(
                                         1, OverworldDrillCorePlanner.MAX_CORE_DEPTH_BLOCKS))
                                 .executes(GeologicalCommands::showDrillHere)))
+                .then(
+                    Commands.literal("vertical-section")
+                        .then(
+                            Commands.argument("axis", StringArgumentType.word())
+                                .then(
+                                    Commands.argument(
+                                            "length",
+                                            IntegerArgumentType.integer(
+                                                1, OverworldVerticalSectionTrace.MAX_LENGTH))
+                                        .then(
+                                            Commands.argument(
+                                                    "depth",
+                                                    IntegerArgumentType.integer(
+                                                        1,
+                                                        OverworldDrillCorePlanner
+                                                            .MAX_CORE_DEPTH_BLOCKS))
+                                                .executes(
+                                                    GeologicalCommands::showVerticalSectionHere)))))
                 .then(
                     Commands.literal("column")
                         .then(
@@ -240,6 +260,39 @@ public final class GeologicalCommands {
       return 1;
     } catch (IllegalArgumentException | IllegalStateException exception) {
       source.sendFailure(Component.literal("geology drill unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static int showVerticalSectionHere(CommandContext<CommandSourceStack> context) {
+    BlockPos position = BlockPos.containing(context.getSource().getPosition());
+    String axisName = StringArgumentType.getString(context, "axis");
+    int length = IntegerArgumentType.getInteger(context, "length");
+    int depth = IntegerArgumentType.getInteger(context, "depth");
+    int offset = length / 2;
+    Axis axis;
+    try {
+      axis = Axis.valueOf(axisName.toUpperCase(Locale.ROOT));
+    } catch (IllegalArgumentException exception) {
+      context
+          .getSource()
+          .sendFailure(Component.literal("geology vertical-section axis must be X or Z"));
+      return 0;
+    }
+    long originX = axis == Axis.X ? (long) position.getX() - offset : position.getX();
+    long originZ = axis == Axis.Z ? (long) position.getZ() - offset : position.getZ();
+    try {
+      OverworldVerticalSectionTrace trace =
+          OverworldVerticalSectionPlanner.from(
+                  planner(context.getSource().getLevel(), position.getX(), position.getZ()))
+              .section(axis, originX, originZ, length, depth);
+      context.getSource().sendSuccess(() -> Component.literal(trace.summary()), false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      context
+          .getSource()
+          .sendFailure(
+              Component.literal("geology vertical-section unavailable: " + exception.getMessage()));
       return 0;
     }
   }

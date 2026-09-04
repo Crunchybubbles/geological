@@ -1,10 +1,11 @@
 # Phase 5 exploration geology — observations and hand samples
 
-Status: completed the fifth bounded exploration slice (`phase5-alpha.5`): deterministic transient
+Status: completed the sixth bounded exploration slice (`phase5-alpha.6`): deterministic transient
 outcrop, float, contact, and structural observations derived from the Phase 4 Overworld column
 trace, stable observation IDs, provenance body references, confidence/scale fields, and the
 read-only `/geology observations` command, plus coarse hand-sample identification and surface
-sediment sampling, interval-valued geochemical anomaly estimates, and bounded drill-core logs.
+sediment sampling, interval-valued geochemical anomaly estimates, bounded drill-core logs, and
+vertical cross-section traces.
 
 `OverworldExplorationObservationPlanner` consumes the same immutable
 `OverworldRegolithPlanner` used by generation and debug overlays. An exposed bedrock clue yields an
@@ -68,5 +69,14 @@ validates contiguous coverage, refuses air or fluid intervals and depths beyond 
 retains material-evaluation counts for review. `/geology drill <depth>` exposes the log without
 writing a shaft, changing terrain, or persisting hidden geology.
 
-Remaining Phase 5 slices are vertical cross-sections; a discovery notebook/map that persists player
-observations rather than hidden truth; and Phase 5 telemetry/exit review.
+## Alpha.6 vertical cross-sections
+
+`OverworldVerticalSectionPlanner` composes surface-collared drill logs along a contiguous X or Z
+line. `OverworldVerticalSectionTrace` keeps each column's actual topographic collar and bounded
+depth, validates horizontal contiguity, aggregates interval provenance/evaluation counts, and
+provides a deterministic lithology histogram. The `/geology vertical-section <axis> <length>
+<depth>` command exposes this view; it is read-only and does not fill air, write shafts, or cache
+hidden geology.
+
+Remaining Phase 5 slices are a discovery notebook/map that persists player observations rather than
+hidden truth, and Phase 5 telemetry/exit review.

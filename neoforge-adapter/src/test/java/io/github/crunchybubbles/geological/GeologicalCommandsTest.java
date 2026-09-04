@@ -25,6 +25,9 @@ class GeologicalCommandsTest {
     assertNotNull(geology.getChild("anomaly").getChild("kind"));
     assertNotNull(geology.getChild("drill"));
     assertNotNull(geology.getChild("drill").getChild("depth"));
+    assertNotNull(geology.getChild("vertical-section"));
+    assertNotNull(geology.getChild("vertical-section").getChild("axis"));
+    assertNotNull(geology.getChild("vertical-section").getChild("axis").getChild("length"));
     assertNotNull(geology.getChild("column"));
     assertNotNull(geology.getChild("column").getChild("x"));
     assertNotNull(geology.getChild("column").getChild("x").getChild("z"));
