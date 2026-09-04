@@ -1,9 +1,9 @@
-# Phase 5 exploration geology — surface observations
+# Phase 5 exploration geology — observations and hand samples
 
-Status: completed the first bounded exploration slice (`phase5-alpha.1`): deterministic transient
+Status: completed the second bounded exploration slice (`phase5-alpha.2`): deterministic transient
 outcrop, float, contact, and structural observations derived from the Phase 4 Overworld column
 trace, stable observation IDs, provenance body references, confidence/scale fields, and the
-read-only `/geology observations` command.
+read-only `/geology observations` command, plus coarse hand-sample identification.
 
 `OverworldExplorationObservationPlanner` consumes the same immutable
 `OverworldRegolithPlanner` used by generation and debug overlays. An exposed bedrock clue yields an
@@ -20,6 +20,17 @@ truth. The command is therefore safe to run on a server and returns only the bou
 at the caller's current Overworld column. `planTargetChunk()` provides the same transient evidence
 for deterministic review without crossing the chunk-local generation write boundary.
 
-Remaining Phase 5 slices are hand-sample rock/mineral identification; soil, stream-sediment, and
-heavy-mineral sampling; uncertainty/detection-limit handling; drill-core/logging and section
-tools; and a discovery notebook/map that persists player observations rather than hidden truth.
+## Alpha.2 hand-sample identification
+
+`OverworldHandSamplePlanner` adds a bounded hand-sample readout for the exposed solid surface and
+for an explicitly selected solid block. It reports the material's coarse lithology, rock definition,
+texture, overprint, stable sample ID, provenance bodies, and confidence. Visible constituent modes
+are limited to major modes (at least `25,000` ppm, with a maximum of eight and a deterministic
+fallback for fine-grained material); any unresolved remainder sets `assayRequired=true`. Air and
+fluid intervals are rejected, and the readout remains transient: it does not persist samples or
+expose hidden assay truth. Servers can inspect the current surface with the read-only
+`/geology hand-sample` command.
+
+Remaining Phase 5 slices are soil, stream-sediment, and heavy-mineral sampling; uncertainty and
+detection-limit handling; drill-core/logging and section tools; and a discovery notebook/map that
+persists player observations rather than hidden truth.

@@ -6,12 +6,14 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfile;
 import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfiles;
+import io.github.crunchybubbles.geological.worldgen.HandSampleIdentification;
 import io.github.crunchybubbles.geological.worldgen.OverworldAirFluidColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldAirFluidPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldBaseTerrainColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldColumnDebugTrace;
 import io.github.crunchybubbles.geological.worldgen.OverworldExplorationObservation;
 import io.github.crunchybubbles.geological.worldgen.OverworldExplorationObservationPlanner;
+import io.github.crunchybubbles.geological.worldgen.OverworldHandSamplePlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldMapDebugTrace;
 import io.github.crunchybubbles.geological.worldgen.OverworldRegolithColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldRegolithPlanner;
@@ -59,6 +61,9 @@ public final class GeologicalCommands {
                 .then(
                     Commands.literal("observations")
                         .executes(GeologicalCommands::showObservationsHere))
+                .then(
+                    Commands.literal("hand-sample")
+                        .executes(GeologicalCommands::showHandSampleHere))
                 .then(
                     Commands.literal("column")
                         .then(
@@ -108,6 +113,23 @@ public final class GeologicalCommands {
     } catch (IllegalArgumentException | IllegalStateException exception) {
       source.sendFailure(
           Component.literal("geology observations unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static int showHandSampleHere(CommandContext<CommandSourceStack> context) {
+    BlockPos position = BlockPos.containing(context.getSource().getPosition());
+    CommandSourceStack source = context.getSource();
+    try {
+      HandSampleIdentification identification =
+          OverworldHandSamplePlanner.from(
+                  planner(source.getLevel(), position.getX(), position.getZ()))
+              .identifySurface(position.getX(), position.getZ());
+      source.sendSuccess(() -> Component.literal(identification.summary()), false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(
+          Component.literal("geology hand-sample unavailable: " + exception.getMessage()));
       return 0;
     }
   }
