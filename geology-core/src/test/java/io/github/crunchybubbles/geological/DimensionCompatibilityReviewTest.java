@@ -20,6 +20,7 @@ class DimensionCompatibilityReviewTest {
     assertTrue(review.processContractsValid());
     assertTrue(review.mediumContractsValid());
     assertTrue(review.nativeBoundaryContractsValid());
+    assertTrue(review.biomeSubstrateContractsValid());
     assertTrue(review.progressionContractsValid());
     assertTrue(review.traceSeamsStable());
     assertTrue(review.traceTopologiesValid());

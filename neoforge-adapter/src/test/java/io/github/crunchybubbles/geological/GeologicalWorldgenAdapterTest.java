@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.crunchybubbles.geological.worldgen.DimensionBiomeSubstrateState;
 import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfiles;
 import io.github.crunchybubbles.geological.worldgen.OverworldBaseTerrainColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldBaseTerrainPlanner;
@@ -126,5 +127,48 @@ class GeologicalWorldgenAdapterTest {
     assertEquals(WorldgenStage.REGOLITH_SURFACE_CLUES, context.stage());
     assertTrue(context.canWriteTarget());
     assertTrue(context.request().includes(WorldgenStage.BASE_TERRAIN));
+  }
+
+  @Test
+  void exposesNativeBiomeSubstrateControlsForAllCanonicalDimensions() {
+    var overworldProfile = DimensionGeologyProfiles.require("minecraft:overworld");
+    var netherProfile = DimensionGeologyProfiles.require("minecraft:the_nether");
+    var endProfile = DimensionGeologyProfiles.require("minecraft:the_end");
+    var overworldContext =
+        GeologicalWorldgenAdapter.coarseTerrainContext(
+            8_675_309L,
+            Level.OVERWORLD,
+            new ChunkPos(0, 0),
+            WorldgenSnapshot.forProfile(overworldProfile),
+            Runnable::run);
+    var netherContext =
+        GeologicalWorldgenAdapter.coarseTerrainContext(
+            8_675_309L,
+            Level.NETHER,
+            new ChunkPos(0, 0),
+            WorldgenSnapshot.forProfile(netherProfile),
+            Runnable::run);
+    var endContext =
+        GeologicalWorldgenAdapter.coarseTerrainContext(
+            8_675_309L,
+            Level.END,
+            new ChunkPos(0, 0),
+            WorldgenSnapshot.forProfile(endProfile),
+            Runnable::run);
+
+    DimensionBiomeSubstrateState overworld =
+        GeologicalWorldgenAdapter.biomeSubstrateControls(overworldContext, 0L, 0L);
+    DimensionBiomeSubstrateState nether =
+        GeologicalWorldgenAdapter.biomeSubstrateControls(netherContext, 0L, 0L);
+    DimensionBiomeSubstrateState end =
+        GeologicalWorldgenAdapter.biomeSubstrateControls(endContext, 320L, 0L);
+
+    assertEquals("minecraft:overworld_climate_bridge", overworld.adapterId());
+    assertEquals("geological:nether_thermal_substrate_bridge", nether.adapterId());
+    assertEquals("geological:end_fragment_provenance_bridge", end.adapterId());
+    assertTrue(overworld.ownerId().isPresent());
+    assertTrue(nether.ownerId().isPresent());
+    assertTrue(end.voidMedium());
+    assertTrue(end.ownerId().isEmpty());
   }
 }

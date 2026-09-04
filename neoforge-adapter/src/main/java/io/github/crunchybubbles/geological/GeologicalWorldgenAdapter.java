@@ -1,9 +1,13 @@
 package io.github.crunchybubbles.geological;
 
+import io.github.crunchybubbles.geological.worldgen.DimensionBiomeSubstrateAdapter;
+import io.github.crunchybubbles.geological.worldgen.DimensionBiomeSubstrateState;
 import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfile;
 import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfiles;
 import io.github.crunchybubbles.geological.worldgen.DimensionWorldgenTrace;
 import io.github.crunchybubbles.geological.worldgen.DimensionWorldgenTracePlanner;
+import io.github.crunchybubbles.geological.worldgen.EndFragmentTerrainCompiler;
+import io.github.crunchybubbles.geological.worldgen.NetherThermalTerrainCompiler;
 import io.github.crunchybubbles.geological.worldgen.OverworldBaseTerrainPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldTerrainControlSampler;
 import io.github.crunchybubbles.geological.worldgen.WorldgenChunkRequest;
@@ -98,5 +102,31 @@ public final class GeologicalWorldgenAdapter {
   /** Exposes the platform-neutral base-terrain planner for a validated Overworld callback. */
   public static OverworldBaseTerrainPlanner baseTerrainPlanner(WorldgenExecutionContext context) {
     return OverworldBaseTerrainPlanner.from(context);
+  }
+
+  /** Exposes the profile-locked read-only biome/substrate controls at a native callback. */
+  public static DimensionBiomeSubstrateState biomeSubstrateControls(
+      WorldgenExecutionContext context, long blockX, long blockZ) {
+    Objects.requireNonNull(context, "worldgen execution context");
+    context.request().requireStage(WorldgenStage.COARSE_TERRAIN_CONTROLS);
+    DimensionGeologyProfile profile = context.request().profile();
+    return switch (profile.dimensionKey()) {
+      case "minecraft:overworld" ->
+          DimensionBiomeSubstrateAdapter.overworld(
+              profile, OverworldTerrainControlSampler.from(context).sample(blockX, blockZ));
+      case "minecraft:the_nether" ->
+          DimensionBiomeSubstrateAdapter.nether(
+              profile,
+              NetherThermalTerrainCompiler.from(context.request().worldIdentity())
+                  .provinceAt(blockX, blockZ));
+      case "minecraft:the_end" ->
+          DimensionBiomeSubstrateAdapter.end(
+              profile,
+              EndFragmentTerrainCompiler.from(context.request().worldIdentity())
+                  .planColumn(blockX, blockZ));
+      default ->
+          throw new IllegalStateException(
+              "unhandled canonical dimension " + profile.dimensionKey());
+    };
   }
 }

@@ -24,9 +24,11 @@ class DimensionCompatibilityPacketGeneratorTest {
     assertEquals(firstJson, Files.readString(second));
     assertTrue(firstJson.contains("phase8_cross_dimensional_compatibility_lore_review"));
     assertTrue(firstJson.contains("\"allChecksPassed\": true"));
+    assertTrue(firstJson.contains("\"biomeSubstrateContractsValid\": true"));
     assertTrue(firstJson.contains("\"failedChecks\": []"));
     assertTrue(firstJson.contains("portal_ratio_is_topology_only_not_shared_geology"));
     assertTrue(firstJson.contains("structures_remain_platform_owned"));
+    assertTrue(firstJson.contains("biome_substrate_controls_are_read_only_and_profile_locked"));
     assertTrue(firstJson.contains("\"expertReviewRequired\": true"));
   }
 }

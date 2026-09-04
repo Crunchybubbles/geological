@@ -1,6 +1,6 @@
 # Phase 8 dimension profiles — Nether and End native histories
 
-Status: `phase8-alpha.7` (native Nether/End compilers, progression protection, adapter traces, and compatibility review).
+Status: `phase8-alpha.8` (native Nether/End compilers, progression protection, adapter traces, compatibility review, and biome/substrate controls).
 
 ## Alpha.1 — Nether thermal cavern boundary
 
@@ -147,6 +147,28 @@ The `dimensionCompatibility` task writes
 fictional-premise guardrails: Nether behavior is not Earth geology, End behavior is not an asteroid
 claim, biome names do not cause deep materials, and structures remain platform-owned. The artifact
 passes all deterministic checks but marks expert/lore review as still required.
+
+## Alpha.8 — Biome/substrate controls and shuffled generation order
+
+`DimensionBiomeSubstrateAdapter` projects the Overworld terrain-control sample, Nether thermal
+province, and End parent-fragment/void column into normalized, profile-locked controls. Each
+`DimensionBiomeSubstrateState` retains a stable owner where a solid body exists, bounded signals,
+semantic tags, and explicit water/void medium flags. The state contains no biome choice, block
+state, deep-material inference, or write authority; biome names remain presentation inputs rather
+than causes of material history.
+
+`GeologicalWorldgenAdapter.biomeSubstrateControls` exposes the same projection at the NeoForge
+callback boundary after the coarse-terrain stage, preserving the platform-supplied snapshot and
+stage authorization while keeping the projection read-only.
+
+`DimensionNativeShuffleTest` requests Nether resource chunks and End fragment chunks in a fixed
+seeded shuffle across island, void, and chunk-boundary coordinates, then compares each result with
+the canonical request-order plan. This proves that native dimension compilers remain random-access
+and independent of worker scheduling.
+
+The `dimensionCompatibility` artifact now includes the profile-locked biome/substrate adapter
+contract and its read-only guardrail. The deterministic adapter and shuffle checks pass, while
+expert/lore review and contributor-world validation remain external release gates.
 
 ## Remaining Phase 8 slices
 

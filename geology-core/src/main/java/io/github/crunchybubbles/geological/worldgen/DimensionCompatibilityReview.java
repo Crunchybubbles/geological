@@ -23,6 +23,7 @@ public record DimensionCompatibilityReview(
     boolean processContractsValid,
     boolean mediumContractsValid,
     boolean nativeBoundaryContractsValid,
+    boolean biomeSubstrateContractsValid,
     boolean progressionContractsValid,
     boolean traceSeamsStable,
     boolean traceTopologiesValid) {
@@ -76,6 +77,8 @@ public record DimensionCompatibilityReview(
     boolean processContractsValid = processContractsValid(overworld, nether, end);
     boolean mediumContractsValid = mediumContractsValid(overworld, nether, end);
     boolean nativeBoundaryContractsValid = nativeBoundaryContractsValid(overworld, nether, end);
+    boolean biomeSubstrateContractsValid =
+        biomeSubstrateContractsValid(worldSeed, sampleChunkX, sampleChunkZ, overworld, nether, end);
 
     WorldIdentity endIdentity =
         WorldgenChunkRequest.forChunk(worldSeed, end, sampleChunkX, sampleChunkZ).worldIdentity();
@@ -104,6 +107,7 @@ public record DimensionCompatibilityReview(
         processContractsValid,
         mediumContractsValid,
         nativeBoundaryContractsValid,
+        biomeSubstrateContractsValid,
         progressionContractsValid,
         traces.stream().allMatch(DimensionWorldgenTrace::seamStable),
         traces.stream().allMatch(DimensionWorldgenTrace::topologyValid));
@@ -115,6 +119,7 @@ public record DimensionCompatibilityReview(
         && processContractsValid
         && mediumContractsValid
         && nativeBoundaryContractsValid
+        && biomeSubstrateContractsValid
         && progressionContractsValid
         && traceSeamsStable
         && traceTopologiesValid;
@@ -137,6 +142,9 @@ public record DimensionCompatibilityReview(
     }
     if (!nativeBoundaryContractsValid) {
       failed.add("native_boundary_contracts_valid");
+    }
+    if (!biomeSubstrateContractsValid) {
+      failed.add("biome_substrate_contracts_valid");
     }
     if (!progressionContractsValid) {
       failed.add("progression_contracts_valid");
@@ -216,5 +224,61 @@ public record DimensionCompatibilityReview(
         && end.gravityFrame() == DimensionGeologyProfile.GravityFrame.LOCAL_ISLAND_DOWN
         && nether.boundaryTerrainModel().contains("cavern")
         && end.boundaryTerrainModel().contains("void");
+  }
+
+  private static boolean biomeSubstrateContractsValid(
+      long worldSeed,
+      long sampleChunkX,
+      long sampleChunkZ,
+      DimensionGeologyProfile overworld,
+      DimensionGeologyProfile nether,
+      DimensionGeologyProfile end) {
+    WorldgenChunkRequest overworldRequest =
+        WorldgenChunkRequest.forStage(
+            worldSeed,
+            overworld,
+            sampleChunkX,
+            sampleChunkZ,
+            WorldgenStage.COARSE_TERRAIN_CONTROLS);
+    WorldgenExecutionContext overworldContext =
+        new WorldgenExecutionContext(
+            overworldRequest,
+            WorldgenStage.COARSE_TERRAIN_CONTROLS,
+            WorldgenSnapshot.forProfile(overworld),
+            Runnable::run);
+    DimensionBiomeSubstrateState overworldState =
+        DimensionBiomeSubstrateAdapter.overworld(
+            overworld,
+            OverworldTerrainControlSampler.from(overworldContext)
+                .sample(sampleChunkX * 16L, sampleChunkZ * 16L));
+
+    WorldgenChunkRequest netherRequest =
+        WorldgenChunkRequest.forChunk(worldSeed, nether, sampleChunkX, sampleChunkZ);
+    DimensionBiomeSubstrateState netherState =
+        DimensionBiomeSubstrateAdapter.nether(
+            nether,
+            NetherThermalTerrainCompiler.from(netherRequest.worldIdentity())
+                .provinceAt(sampleChunkX * 16L, sampleChunkZ * 16L));
+
+    WorldgenChunkRequest endRequest =
+        WorldgenChunkRequest.forChunk(worldSeed, end, sampleChunkX, sampleChunkZ);
+    EndFragmentTerrainCompiler endCompiler =
+        EndFragmentTerrainCompiler.from(endRequest.worldIdentity());
+    DimensionBiomeSubstrateState endBodyState =
+        DimensionBiomeSubstrateAdapter.end(end, endCompiler.planColumn(0L, 0L));
+    DimensionBiomeSubstrateState endVoidState =
+        DimensionBiomeSubstrateAdapter.end(end, endCompiler.planColumn(320L, 0L));
+    return overworldState.ownerId().isPresent()
+        && overworldState.surfaceWaterEligible()
+        && !overworldState.voidMedium()
+        && netherState.ownerId().isPresent()
+        && !netherState.surfaceWaterEligible()
+        && !netherState.voidMedium()
+        && endBodyState.ownerId().isPresent()
+        && !endBodyState.surfaceWaterEligible()
+        && !endBodyState.voidMedium()
+        && endVoidState.ownerId().isEmpty()
+        && !endVoidState.surfaceWaterEligible()
+        && endVoidState.voidMedium();
   }
 }

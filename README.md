@@ -54,7 +54,7 @@ horizons are bounded projections rather than assays or voxel-grade inventories; 
 retain explicit actual-host/source gates, and artifacts record closed proxy ledgers and
 adjacent-chunk seam proofs.
 
-Phase 8 alpha.7 now adds a profile-locked, platform-neutral Nether thermal/magmatic province,
+Phase 8 alpha.8 now adds a profile-locked, platform-neutral Nether thermal/magmatic province,
 3-D cavern compiler, ordered material history, and source-linked quartz, gold, glowstone, and
 ancient-debris prototypes, plus an End parent-body/fragment compiler. It produces bounded
 floor/roof/lava and island/void intervals, optional hanging bridges and impact-melt/regolith
@@ -65,7 +65,9 @@ gateway, outer-city, and chorus structure slots through `endProgression`. The co
 the frozen dimension envelopes and forbidden-process contracts; `dimensionTraces` proves distinct
 cross-dimensional identity and seam evidence, `dimensionCompatibility` records compatibility and
 premise-relative lore guardrails, and the selected preset binds custom Nether/End generator codecs
-to their native writers. Expert/lore review remains a separate increment.
+to their native writers. Profile-locked biome/substrate controls remain read-only and a seeded
+shuffle check proves native plans do not depend on request order. Expert/lore review remains a
+separate increment.
 
 Geological is a causal geology and terrain-generation project for Minecraft Java 1.21.1 on NeoForge 21.1.x. Its selected world preset will eventually own the canonical Overworld, Nether, and End through dimension-specific geological histories rather than add a separate geology dimension.
 

@@ -61,6 +61,8 @@ final class DimensionCompatibilityPacketGenerator {
                 review.mediumContractsValid(),
                 "nativeBoundaryContractsValid",
                 review.nativeBoundaryContractsValid(),
+                "biomeSubstrateContractsValid",
+                review.biomeSubstrateContractsValid(),
                 "progressionContractsValid",
                 review.progressionContractsValid(),
                 "traceSeamsStable",
@@ -79,6 +81,11 @@ final class DimensionCompatibilityPacketGenerator {
                 "geological:nether",
                 "minecraft:the_end",
                 "geological:end"),
+            "biomeSubstrateAdapters",
+            JsonWriter.object(
+                "minecraft:overworld", "minecraft:overworld_climate_bridge",
+                "minecraft:the_nether", "geological:nether_thermal_substrate_bridge",
+                "minecraft:the_end", "geological:end_fragment_provenance_bridge"),
             "traceSummaries",
             traces.stream().map(DimensionWorldgenTrace::summary).toList(),
             "loreGuardrails",
@@ -87,6 +94,7 @@ final class DimensionCompatibilityPacketGenerator {
                 "end_is_fictional_premise_relative_not_asteroid_claim",
                 "portal_ratio_is_topology_only_not_shared_geology",
                 "biome_names_do_not_generate_deep_materials",
+                "biome_substrate_controls_are_read_only_and_profile_locked",
                 "structures_remain_platform_owned"),
             "expertReviewRequired",
             true);
