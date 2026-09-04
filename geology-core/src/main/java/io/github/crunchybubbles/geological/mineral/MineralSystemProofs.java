@@ -97,6 +97,20 @@ public final class MineralSystemProofs {
     return PlacerSystemState.proofFor(province, primary);
   }
 
+  /** Returns the richer porphyry fluid-phase and metal-distribution refinement. */
+  public PorphyryFluidMetalState porphyryFluidMetalState(Province province) {
+    if (province == null) {
+      throw new IllegalArgumentException("province is required");
+    }
+    MineralSystemDecision primary =
+        compile(province).stream()
+            .filter(
+                decision -> decision.candidateId().equals(province.proofIds().porphyrySystemId()))
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("porphyry proof is missing"));
+    return PorphyryFluidMetalState.proofFor(province, primary);
+  }
+
   private MineralSystemDecision barrenPrimaryPorphyry(Province province) {
     ProvinceProofIds ids = province.proofIds();
     return new MineralSystemDecision(

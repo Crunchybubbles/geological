@@ -1,6 +1,6 @@
 # Phase 3 mineral-system increment
 
-Status: fifth Phase 3 architecture-proving slice; porphyry, VMS, LCT pegmatite, BIF, and evaporite/potash topologies are explicit, while placer remains open
+Status: seventh Phase 3 architecture-proving slice; all six architecture-proving families are explicit, with porphyry fluid/metal refinement also present and supergene gating still open
 
 ## Alpha.1 — linked porphyry topology
 
@@ -76,8 +76,31 @@ solute-budget gate; present-day biome or aridity is not used as a shortcut.
 Tests cover the restricted-basin gates, younger-upward brine succession, basin-bound point
 classification, source-budget closure, barren behavior, and deterministic review JSON exposure.
 
+## Alpha.6 — source-linked placer transport and sorting
+
+`PlacerSystemState` turns the existing alluvial placer decision and surface budget into an explicit
+source-to-sink state. A formed state links the exposed porphyry source, weathering event, connected
+water catchment, hydraulic gradient break, and dense-mineral sorting class. Release, transport loss,
+and trap allocation close exactly against the primary Au source budget. Rejected candidates retain
+their hydraulic location but publish no source release or deposit allocation.
+
+Tests cover source and weathering identity, exposure and transport gates, trap classification,
+release/loss/deposit closure, barren candidate behavior, and deterministic review JSON exposure.
+
+## Alpha.7 — porphyry fluid phases and metal distributions
+
+`PorphyryFluidMetalState` refines the intrusion-centered proof with three bounded fluid pulses:
+concentrated magmatic brine, vapor-rich separated fluid, and a distal meteoric mixture. It also
+publishes normalized Cu-Au-S-Zn vectors for the potassic, phyllic, and propylitic zones. The zone
+allocations sum exactly to the existing porphyry deposit ledger, while fluid and metal values remain
+comparative proxies rather than measured grades or equilibrium calculations. Barren porphyry
+lineages publish neither fluid pulses nor metal distributions and retain the failed source gate.
+
+Tests cover phase ordering, salinity/temperature/phase behavior, normalized metal closure, zoned
+point queries, source-budget bounds, barren behavior, and deterministic review JSON exposure.
+
 ## Remaining Phase 3 slices
 
-The next bounded slices should add richer porphyry fluid/metal distributions and supergene gating,
-then the full source-linked placer budget. Each family must retain barren outcomes, explicit source
-budgets, and deterministic provenance before Minecraft presentation is attempted.
+The next bounded slice should add a primary-Cu-dependent oxidation/leaching and supergene blanket
+state with an explicit water-table/preservation gate. Each family must retain barren outcomes,
+explicit source budgets, and deterministic provenance before Minecraft presentation is attempted.

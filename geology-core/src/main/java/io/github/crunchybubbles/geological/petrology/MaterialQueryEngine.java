@@ -12,6 +12,7 @@ import io.github.crunchybubbles.geological.mineral.EvaporitePotashState;
 import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
 import io.github.crunchybubbles.geological.mineral.MineralSystemDecision;
 import io.github.crunchybubbles.geological.mineral.PlacerSystemState;
+import io.github.crunchybubbles.geological.mineral.PorphyryFluidMetalState;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
 import io.github.crunchybubbles.geological.mineral.VmsSystemState;
 import io.github.crunchybubbles.geological.model.AgeKey;
@@ -165,6 +166,11 @@ public final class MaterialQueryEngine {
   /** Returns the linked Phase 3 source, transport, and hydraulic-trap placer state. */
   public PlacerSystemState placerSystemState(Province province) {
     return geology.placerSystemState(province);
+  }
+
+  /** Returns the richer Phase 3 porphyry fluid-phase and metal-distribution state. */
+  public PorphyryFluidMetalState porphyryFluidMetalState(Province province) {
+    return geology.porphyryFluidMetalState(province);
   }
 
   /** Builds a deterministic finite-query audit of source claims across colluvial parcels. */

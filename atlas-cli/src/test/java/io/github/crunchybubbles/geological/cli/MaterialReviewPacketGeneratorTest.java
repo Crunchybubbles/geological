@@ -80,6 +80,10 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"DENSE_MINERAL_HYDRAULIC_SORTING\""));
     assertTrue(firstJson.contains("\"releasedSourceBudgetFixedUnits\""));
     assertTrue(firstJson.contains("\"retainedSourceBudgetFixedUnits\""));
+    assertTrue(firstJson.contains("\"porphyryFluidMetalState\""));
+    assertTrue(firstJson.contains("\"VAPOR_RICH_SEPARATED\""));
+    assertTrue(firstJson.contains("\"sourceMetalFractionsPpm\""));
+    assertTrue(firstJson.contains("\"metalDistributions\""));
     assertTrue(firstJson.contains("\"diagenesisState\""));
     assertTrue(firstJson.contains("\"phase1Geology\""));
     assertTrue(firstJson.contains("\"phase2Material\""));

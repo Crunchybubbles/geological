@@ -8,6 +8,7 @@ import io.github.crunchybubbles.geological.mineral.BifSystemState;
 import io.github.crunchybubbles.geological.mineral.EvaporitePotashState;
 import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
 import io.github.crunchybubbles.geological.mineral.PlacerSystemState;
+import io.github.crunchybubbles.geological.mineral.PorphyryFluidMetalState;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
 import io.github.crunchybubbles.geological.mineral.VmsSystemState;
 import io.github.crunchybubbles.geological.model.AgeKey;
@@ -557,6 +558,8 @@ final class MaterialReviewPacketGenerator {
             evaporitePotashStateJson(query.evaporitePotashState(province)),
             "placerSystemState",
             placerSystemStateJson(query.placerSystemState(province)),
+            "porphyryFluidMetalState",
+            porphyryFluidMetalStateJson(query.porphyryFluidMetalState(province)),
             "metamorphicPathVocabulary",
             Arrays.stream(MetamorphicPath.values()).map(Enum::name).toList(),
             "referenceProvince",
@@ -2503,6 +2506,68 @@ final class MaterialReviewPacketGenerator {
         state.retainedSourceBudgetFixedUnits(),
         "transportLossFixedUnits",
         state.transportLossFixedUnits(),
+        "depositAllocationFixedUnits",
+        state.depositAllocationFixedUnits(),
+        "failedGate",
+        state.failedGate().orElse(null));
+  }
+
+  private static Map<String, Object> porphyryFluidMetalStateJson(PorphyryFluidMetalState state) {
+    return JsonWriter.object(
+        "systemId",
+        state.systemId().toString(),
+        "status",
+        state.status().name(),
+        "sourceReservoirId",
+        state.sourceReservoirId().toString(),
+        "fluidPathId",
+        state.fluidPathId().toString(),
+        "localCenter",
+        pointJson(state.localCenter()),
+        "lateralExtentBlocks",
+        state.lateralExtentBlocks(),
+        "verticalExtentBlocks",
+        state.verticalExtentBlocks(),
+        "sourceMetalFractionsPpm",
+        elementMap(state.sourceMetalFractionsPpm()),
+        "fluidPulses",
+        state.fluidPulses().stream()
+            .map(
+                pulse ->
+                    JsonWriter.object(
+                        "phase",
+                        pulse.phase().name(),
+                        "temperature",
+                        pulse.temperature().name(),
+                        "salinity",
+                        pulse.salinity().name(),
+                        "phaseBehavior",
+                        pulse.phaseBehavior().name(),
+                        "innerRadiusBlocks",
+                        pulse.innerRadiusBlocks(),
+                        "outerRadiusBlocks",
+                        pulse.outerRadiusBlocks(),
+                        "integratedFluxPpm",
+                        pulse.integratedFluxPpm(),
+                        "pathId",
+                        pulse.pathId().toString()))
+            .toList(),
+        "metalDistributions",
+        state.metalDistributions().stream()
+            .map(
+                distribution ->
+                    JsonWriter.object(
+                        "zone",
+                        distribution.zone().name(),
+                        "abundancePpm",
+                        elementMap(distribution.abundancePpm()),
+                        "allocationFixedUnits",
+                        distribution.allocationFixedUnits(),
+                        "hostId",
+                        distribution.hostId().toString()))
+            .toList(),
+        "sourceBudgetFixedUnits",
+        state.sourceBudgetFixedUnits(),
         "depositAllocationFixedUnits",
         state.depositAllocationFixedUnits(),
         "failedGate",

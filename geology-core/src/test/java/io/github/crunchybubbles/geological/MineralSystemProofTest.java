@@ -14,6 +14,7 @@ import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
 import io.github.crunchybubbles.geological.mineral.MineralSystemDecision;
 import io.github.crunchybubbles.geological.mineral.MineralSystemProofs;
 import io.github.crunchybubbles.geological.mineral.PlacerSystemState;
+import io.github.crunchybubbles.geological.mineral.PorphyryFluidMetalState;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
 import io.github.crunchybubbles.geological.mineral.VmsSystemState;
 import io.github.crunchybubbles.geological.model.Point2;
@@ -358,6 +359,73 @@ class MineralSystemProofTest {
     assertEquals(0L, state.sourceBudgetFixedUnits());
     assertEquals(0.0, state.hydraulicTrapScore());
     assertTrue(state.zoneAt(state.trapCenter()).isEmpty());
+  }
+
+  @Test
+  void formedPorphyryPublishesFluidPhaseAndMetalDistributionZones() {
+    GeologyQueryEngine query = Phase0World.create(8_675_309L);
+    Province province = query.atlas().provinceAt(new Point2(0.0, 0.0));
+    PorphyryFluidMetalState state = query.porphyryFluidMetalState(province);
+
+    assertEquals(FormationStatus.FORMED, state.status());
+    assertEquals(province.proofIds().magmaLineageId(), state.sourceReservoirId());
+    assertEquals(province.proofIds().porphyrySystemId(), state.fluidPathId());
+    assertEquals(
+        1_000_000L,
+        state.sourceMetalFractionsPpm().values().stream().mapToLong(Long::longValue).sum());
+    assertEquals(3, state.fluidPulses().size());
+    assertEquals(3, state.metalDistributions().size());
+    Point3 center = state.localCenter();
+    assertEquals(
+        PorphyryFluidMetalState.FluidPhaseClass.MAGMATIC_BRINE,
+        state.fluidAt(center).orElseThrow().phase());
+    assertEquals(
+        PorphyryFluidMetalState.FluidPhaseClass.VAPOR_RICH_SEPARATED,
+        state.fluidAt(new Point3(center.x() + 90.0, center.y(), center.z())).orElseThrow().phase());
+    assertEquals(
+        PorphyryFluidMetalState.FluidPhaseClass.METEORIC_MIXTURE,
+        state
+            .fluidAt(new Point3(center.x() + 170.0, center.y(), center.z()))
+            .orElseThrow()
+            .phase());
+    assertEquals(
+        620_000L,
+        state
+            .metalAt(center)
+            .orElseThrow()
+            .abundancePpm()
+            .get(io.github.crunchybubbles.geological.petrology.ChemicalElement.CU));
+    assertEquals(
+        300_000L,
+        state
+            .metalAt(new Point3(center.x() + 170.0, center.y(), center.z()))
+            .orElseThrow()
+            .abundancePpm()
+            .get(io.github.crunchybubbles.geological.petrology.ChemicalElement.CU));
+    assertEquals(1_000_000L, state.sourceBudgetFixedUnits());
+    assertEquals(105_000L, state.depositAllocationFixedUnits());
+    assertEquals(
+        state.depositAllocationFixedUnits(),
+        state.metalDistributions().stream()
+            .mapToLong(PorphyryFluidMetalState.MetalDistribution::allocationFixedUnits)
+            .sum());
+    assertTrue(state.failedGate().isEmpty());
+  }
+
+  @Test
+  void barrenPorphyryDoesNotPublishInventedFluidOrMetalDistributions() {
+    GeologyQueryEngine query = Phase1World.create(8_675_309L);
+    Province province =
+        Phase1TestSupport.provinceWithGrammar(query, ProvinceGrammar.BARREN_DRY_RIFT_TO_ARC);
+    PorphyryFluidMetalState state = query.porphyryFluidMetalState(province);
+
+    assertEquals(FormationStatus.BARREN_SYSTEM, state.status());
+    assertEquals("source", state.failedGate().orElseThrow());
+    assertTrue(state.sourceMetalFractionsPpm().isEmpty());
+    assertTrue(state.fluidPulses().isEmpty());
+    assertTrue(state.metalDistributions().isEmpty());
+    assertTrue(state.fluidAt(state.localCenter()).isEmpty());
+    assertTrue(state.metalAt(state.localCenter()).isEmpty());
   }
 
   private static MineralSystemDecision formed(
