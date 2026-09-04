@@ -12,10 +12,12 @@ import org.junit.jupiter.api.Test;
 
 class GeologicalWorldPresetResourceTest {
   @Test
-  void presetUsesTheRegisteredGeologicalGeneratorOnlyForTheOverworld() throws IOException {
+  void presetUsesRegisteredGeologicalGeneratorsForAllCanonicalDimensions() throws IOException {
     String preset = read("data/geological/worldgen/world_preset/geological.json");
 
     assertTrue(preset.contains("\"type\": \"geological:overworld\""));
+    assertTrue(preset.contains("\"type\": \"geological:nether\""));
+    assertTrue(preset.contains("\"type\": \"geological:end\""));
     assertTrue(preset.contains("\"minecraft:the_nether\""));
     assertTrue(preset.contains("\"minecraft:the_end\""));
   }
@@ -26,6 +28,14 @@ class GeologicalWorldPresetResourceTest {
         GeologicalOverworldChunkGenerator.CODEC,
         BuiltInRegistries.CHUNK_GENERATOR.get(
             ResourceLocation.fromNamespaceAndPath(GeologicalMod.MOD_ID, "overworld")));
+    assertEquals(
+        GeologicalNetherChunkGenerator.CODEC,
+        BuiltInRegistries.CHUNK_GENERATOR.get(
+            ResourceLocation.fromNamespaceAndPath(GeologicalMod.MOD_ID, "nether")));
+    assertEquals(
+        GeologicalEndChunkGenerator.CODEC,
+        BuiltInRegistries.CHUNK_GENERATOR.get(
+            ResourceLocation.fromNamespaceAndPath(GeologicalMod.MOD_ID, "end")));
   }
 
   private static String read(String resource) throws IOException {

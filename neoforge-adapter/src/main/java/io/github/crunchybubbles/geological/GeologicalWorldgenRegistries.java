@@ -15,6 +15,12 @@ public final class GeologicalWorldgenRegistries {
   public static final Supplier<MapCodec<GeologicalOverworldChunkGenerator>> OVERWORLD_GENERATOR =
       CHUNK_GENERATORS.register("overworld", () -> GeologicalOverworldChunkGenerator.CODEC);
 
+  public static final Supplier<MapCodec<GeologicalNetherChunkGenerator>> NETHER_GENERATOR =
+      CHUNK_GENERATORS.register("nether", () -> GeologicalNetherChunkGenerator.CODEC);
+
+  public static final Supplier<MapCodec<GeologicalEndChunkGenerator>> END_GENERATOR =
+      CHUNK_GENERATORS.register("end", () -> GeologicalEndChunkGenerator.CODEC);
+
   private GeologicalWorldgenRegistries() {}
 
   public static void register(IEventBus modBus) {

@@ -45,6 +45,14 @@ final class DimensionWorldgenTracePacketGenerator {
             "crossDimensionalIdentityDistinct",
             profileIds.stream().distinct().count() == traces.size()
                 && chunkIds.stream().distinct().count() == traces.size(),
+            "generatorBindings",
+            JsonWriter.object(
+                "minecraft:overworld",
+                "geological:overworld",
+                "minecraft:the_nether",
+                "geological:nether",
+                "minecraft:the_end",
+                "geological:end"),
             "allSeamsStable",
             traces.stream().allMatch(DimensionWorldgenTrace::seamStable),
             "allTopologyValid",

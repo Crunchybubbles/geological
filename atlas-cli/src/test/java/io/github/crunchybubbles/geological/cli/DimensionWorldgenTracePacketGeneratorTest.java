@@ -25,6 +25,8 @@ class DimensionWorldgenTracePacketGeneratorTest {
     assertTrue(firstJson.contains("phase8_cross_dimensional_identity_adapter_trace"));
     assertTrue(firstJson.contains("\"profileCount\": 3"));
     assertTrue(firstJson.contains("\"crossDimensionalIdentityDistinct\": true"));
+    assertTrue(firstJson.contains("\"minecraft:the_nether\": \"geological:nether\""));
+    assertTrue(firstJson.contains("\"minecraft:the_end\": \"geological:end\""));
     assertTrue(firstJson.contains("\"allSeamsStable\": true"));
     assertTrue(firstJson.contains("\"allTopologyValid\": true"));
     assertTrue(firstJson.contains("minecraft:the_nether"));

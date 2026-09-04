@@ -13,8 +13,9 @@ base-terrain/lithology column plan, provides an injected-palette chunk writer pl
 block palette, registers an Overworld generator/preset hook with explicit surface water/air, and
 applies a bounded Phase 2 regolith/surface-clue projection plus read-only `/geology` column, map,
 and section overlays. Phase 8 now includes the platform-neutral Nether thermal/cavern and
-material/resource slices, the End parent-fragment/progression contracts, and a cross-dimensional
-identity/provenance trace; production Nether/End generator bindings remain a future increment.
+material/resource slices, the End parent-fragment/progression contracts, a cross-dimensional
+identity/provenance trace, and profile-locked NeoForge Nether/End generator bindings;
+compatibility/lore review remains.
 
 See [implementation-status.md](docs/architecture/implementation-status.md) for the roadmap-aligned
 remaining estimate by phase. Phase 3 redistribution/statistical review remains an external sign-off
@@ -53,7 +54,7 @@ horizons are bounded projections rather than assays or voxel-grade inventories; 
 retain explicit actual-host/source gates, and artifacts record closed proxy ledgers and
 adjacent-chunk seam proofs.
 
-Phase 8 alpha.4 now adds a profile-locked, platform-neutral Nether thermal/magmatic province,
+Phase 8 alpha.6 now adds a profile-locked, platform-neutral Nether thermal/magmatic province,
 3-D cavern compiler, ordered material history, and source-linked quartz, gold, glowstone, and
 ancient-debris prototypes, plus an End parent-body/fragment compiler. It produces bounded
 floor/roof/lava and island/void intervals, optional hanging bridges and impact-melt/regolith
@@ -61,8 +62,9 @@ layers, stable provenance identities, four synthetic Nether province families an
 families, closed ledgers, and adjacent-chunk seam evidence through the `netherThermal`,
 `netherResources`, and `endFragments` review tasks. It also freezes protected portal, dragon-arena,
 gateway, outer-city, and chorus structure slots through `endProgression`. The compilers preserve
-the frozen dimension envelopes and forbidden-process contracts; platform adapters and
-cross-dimensional review remain separate increments.
+the frozen dimension envelopes and forbidden-process contracts; `dimensionTraces` proves distinct
+cross-dimensional identity and seam evidence, and the selected preset binds custom Nether/End
+generator codecs to their native writers. Compatibility/lore review remains a separate increment.
 
 Geological is a causal geology and terrain-generation project for Minecraft Java 1.21.1 on NeoForge 21.1.x. Its selected world preset will eventually own the canonical Overworld, Nether, and End through dimension-specific geological histories rather than add a separate geology dimension.
 
@@ -134,7 +136,7 @@ On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, col
   projection, bounded Phase 6 secondary-weathering, laterite, secondary-placer, paleosurface, and opt-in glacial overlays, the Phase 7 greisen residual-fluid proxy, actual-host-only skarn and basin MVT fixture, shallow epithermal, metamorphic-fluid orogenic-gold, basin/redox, unconformity/sandstone uranium, and layered-intrusion chromite/Ni-Cu-PGE overlays, read-only `/geology` column/map/section/vertical-section/observation/hand-sample/sampling/anomaly/drill overlays, and the
   serial/shuffled/seam benchmark harness, and a bounded per-player discovery notebook/map saved-data
   bridge. Phase 8 also exposes a read-only native-dimension identity/provenance trace for
-  Overworld, Nether, and End chunks; production Nether/End generator bindings remain future work.
+  Overworld, Nether, and End chunks and profile-locked custom Nether/End generator bindings.
 
 See [the Phase 0 architecture](docs/architecture/phase-0-atlas.md), [Phase 1 query-core increment](docs/architecture/phase-1-query-core.md), [Phase 2 material-state increment](docs/architecture/phase-2-material-state.md), [Phase 5 exploration increment](docs/architecture/phase-5-exploration.md), [Phase 6 secondary-systems increment](docs/architecture/phase-6-secondary-systems.md), [Phase 7 deposit-family increment](docs/architecture/phase-7-deposit-families.md), [Phase 8 dimension-profile increment](docs/architecture/phase-8-dimension-profiles.md), [registry authoring contract](docs/architecture/registry-authoring.md), [reproducibility contract](docs/architecture/reproducibility.md), and [toolchain policy](docs/development/toolchain.md) before extending the model.
 

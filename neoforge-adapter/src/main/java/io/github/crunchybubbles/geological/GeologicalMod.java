@@ -15,6 +15,6 @@ public final class GeologicalMod {
   public GeologicalMod(IEventBus modBus) {
     GeologicalWorldgenRegistries.register(modBus);
     NeoForge.EVENT_BUS.register(GeologicalCommands.class);
-    LOGGER.info("Geological Overworld worldgen adapter initialized");
+    LOGGER.info("Geological Overworld, Nether, and End worldgen adapters initialized");
   }
 }
