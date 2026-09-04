@@ -9,13 +9,13 @@ the Overworld, Nether, and End, plus deterministic seed/profile/chunk identity, 
 worldgen snapshots, and logical stage contracts. A minimal `neoforge-adapter` now pins the
 Minecraft 1.21.1 / NeoForge 21.1.249 toolchain, bridges Minecraft dimension/chunk identity into
 that contract, exposes deterministic read-only Overworld terrain controls, builds a bounded
-base-terrain/lithology column plan, and provides an injected-palette chunk writer; no world preset
-or default block palette is registered yet.
+base-terrain/lithology column plan, and provides an injected-palette chunk writer plus a small
+vanilla block palette; no world preset/generator is registered yet.
 
 See [implementation-status.md](docs/architecture/implementation-status.md) for the roadmap-aligned
 remaining estimate by phase. Phase 3 redistribution/statistical review remains an external sign-off
-item; the next engineering slice is the NeoForge world-preset/generator hook and concrete palette
-for the bounded base-terrain/lithology writer against the frozen Phase 4 contract.
+item; the next engineering slice is the NeoForge world-preset/generator hook for the bounded
+base-terrain/lithology writer against the frozen Phase 4 contract.
 The bounded non-concentric porphyry footprint is implemented.
 
 Geological is a causal geology and terrain-generation project for Minecraft Java 1.21.1 on NeoForge 21.1.x. Its selected world preset will eventually own the canonical Overworld, Nether, and End through dimension-specific geological histories rather than add a separate geology dimension.
@@ -53,9 +53,9 @@ On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, col
 - `atlas-cli` is a standalone renderer and measurement harness. It emits maps, cross-sections, the canonical registry snapshot, stratigraphic/deformation/provenance traces, column proofs, and engineering observations. It depends on the core but no Minecraft or loader classes.
 - `neoforge-adapter` is the pinned NeoForge 21.1.249 loader boundary. It contains the mod entry
   point, deterministic `ResourceKey<Level>`/`ChunkPos` and stage bridges, a read-only Overworld
-  terrain-control sampler, a bounded base-terrain/lithology planner, and a chunk writer with an
-  injected material-to-block resolver; the world preset and concrete block palette are future
-  increments.
+  terrain-control sampler, a bounded base-terrain/lithology planner, a chunk writer with an
+  injected material-to-block resolver, and a total coarse vanilla block palette; the world preset
+  and custom block registrations are future increments.
 
 See [the Phase 0 architecture](docs/architecture/phase-0-atlas.md), [Phase 1 query-core increment](docs/architecture/phase-1-query-core.md), [Phase 2 material-state increment](docs/architecture/phase-2-material-state.md), [registry authoring contract](docs/architecture/registry-authoring.md), [reproducibility contract](docs/architecture/reproducibility.md), and [toolchain policy](docs/development/toolchain.md) before extending the model.
 
