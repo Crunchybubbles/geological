@@ -807,14 +807,13 @@ public record MineralSystemValidationReport(
 
     private static EmpiricalDataset vms() {
       String version = "USGS-OF-2009-1034-v1.0";
-      String aggregation = "group_records_within_500_m";
-      String cutoff = "source_model_resource_basis";
-      return readVmsSubset(version, aggregation, cutoff);
+      String aggregation = "source_row_definition_preserved";
+      String cutoff = "positive_tonnage_cu_zn_source_release";
+      return readVmsFull(version, aggregation, cutoff);
     }
 
-    private static EmpiricalDataset readVmsSubset(
-        String version, String aggregation, String cutoff) {
-      String resourcePath = "/data/geological/empirical/vms_subset.tsv";
+    private static EmpiricalDataset readVmsFull(String version, String aggregation, String cutoff) {
+      String resourcePath = "/data/geological/empirical/vms_full.tsv";
       var resource = EmpiricalDataset.class.getResourceAsStream(resourcePath);
       if (resource == null) {
         throw new IllegalStateException("missing empirical source resource " + resourcePath);
@@ -833,21 +832,133 @@ public record MineralSystemValidationReport(
             continue;
           }
           String[] fields = line.split("\\|", -1);
-          if (fields.length != 8) {
+          if (fields.length != 26) {
             throw new IllegalStateException(
                 "VMS source row " + lineNumber + " has " + fields.length + " fields");
           }
           String sourceRowRef = fields[0].trim();
           String depositName = fields[1].trim();
-          String rowId = "vms-deposit-" + sourceRowRef.replace(':', '-') + "-" + depositName;
-          String subtype = fields[2].trim();
-          SampleRole role = SampleRole.valueOf(fields[3].trim());
-          double percentile = parseSourceNumber(fields[4], lineNumber, "percentile");
-          double tonnage = parseSourceNumber(fields[5], lineNumber, "tonnage");
-          double copperPercent = parseSourceNumber(fields[6], lineNumber, "cu_grade_pct");
-          double zincPercent = parseSourceNumber(fields[7], lineNumber, "zn_grade_pct");
-          if (percentile <= 0.0 || percentile > 1.0 || depositName.isBlank()) {
+          String countryCode = fields[2].trim();
+          String country = fields[3].trim();
+          String districtCode = fields[4].trim();
+          String stateOrProvince = fields[5].trim();
+          String subtype = fields[6].trim();
+          SampleRole role = SampleRole.valueOf(fields[7].trim());
+          double percentile = parseSourceNumber(fields[8], lineNumber, "percentile");
+          double tonnage = parseSourceNumber(fields[9], lineNumber, "tonnage_mt");
+          double copperPercent = parseSourceNumber(fields[10], lineNumber, "cu_grade_pct");
+          double zincPercent = parseSourceNumber(fields[11], lineNumber, "zn_grade_pct");
+          double leadPercent =
+              parseFirstSourceNumber(fields[12], lineNumber, "pb_grade_pct").getAsDouble();
+          double goldGramsPerTonne =
+              parseFirstSourceNumber(fields[13], lineNumber, "au_grade_gpt").getAsDouble();
+          double silverGramsPerTonne =
+              parseFirstSourceNumber(fields[14], lineNumber, "ag_grade_gpt").getAsDouble();
+          String tonnageSourceText = fields[15].trim();
+          String copperSourceText = fields[16].trim();
+          String zincSourceText = fields[17].trim();
+          String leadSourceText = fields[18].trim();
+          String goldSourceText = fields[19].trim();
+          String silverSourceText = fields[20].trim();
+          String stringerZone = fields[21].trim();
+          String comments = fields[22].trim();
+          String mineralogy = fields[23].trim();
+          String hostRocks = fields[24].trim();
+          String referenceExcerpt = fields[25].trim();
+          OptionalDouble sourceTonnage =
+              parseFirstSourceNumber(tonnageSourceText, lineNumber, "tonnage_source");
+          OptionalDouble sourceCopper =
+              parseFirstSourceNumber(copperSourceText, lineNumber, "cu_source");
+          OptionalDouble sourceZinc =
+              parseFirstSourceNumber(zincSourceText, lineNumber, "zn_source");
+          OptionalDouble sourceLead =
+              parseFirstSourceNumber(leadSourceText, lineNumber, "pb_source");
+          OptionalDouble sourceGold =
+              parseFirstSourceNumber(goldSourceText, lineNumber, "au_source");
+          OptionalDouble sourceSilver =
+              parseFirstSourceNumber(silverSourceText, lineNumber, "ag_source");
+          if (sourceRowRef.isBlank()
+              || depositName.isBlank()
+              || countryCode.isBlank()
+              || country.isBlank()
+              || districtCode.isBlank()
+              || subtype.isBlank()
+              || tonnageSourceText.isBlank()
+              || copperSourceText.isBlank()
+              || zincSourceText.isBlank()
+              || leadSourceText.isBlank()
+              || goldSourceText.isBlank()
+              || silverSourceText.isBlank()
+              || percentile <= 0.0
+              || percentile > 1.0
+              || sourceTonnage.isEmpty()
+              || sourceCopper.isEmpty()
+              || sourceZinc.isEmpty()
+              || sourceLead.isEmpty()
+              || sourceGold.isEmpty()
+              || sourceSilver.isEmpty()
+              || Math.abs(sourceTonnage.getAsDouble() - tonnage) > 1.0e-9
+              || Math.abs(sourceCopper.getAsDouble() - copperPercent) > 1.0e-9
+              || Math.abs(sourceZinc.getAsDouble() - zincPercent) > 1.0e-9
+              || Math.abs(sourceLead.getAsDouble() - leadPercent) > 1.0e-9
+              || Math.abs(sourceGold.getAsDouble() - goldGramsPerTonne) > 1.0e-9
+              || Math.abs(sourceSilver.getAsDouble() - silverGramsPerTonne) > 1.0e-9) {
             throw new IllegalStateException("invalid VMS source identity at row " + lineNumber);
+          }
+          String rowId = "vms-deposit-" + sourceRowRef.replace(':', '-') + "-" + depositName;
+          String resourceBasis =
+              "source_model_resource_row"
+                  + ";country_code="
+                  + countryCode
+                  + ";country="
+                  + country
+                  + ";district_code="
+                  + districtCode
+                  + ";state_or_province="
+                  + metadataValue(stateOrProvince)
+                  + ";deposit_type="
+                  + subtype
+                  + ";TONNAGE_RAW="
+                  + tonnageSourceText
+                  + ";CU_RAW="
+                  + copperSourceText
+                  + ";ZN_RAW="
+                  + zincSourceText
+                  + ";PB_RAW="
+                  + leadSourceText
+                  + ";AU_RAW="
+                  + goldSourceText
+                  + ";AG_RAW="
+                  + silverSourceText
+                  + ";percent_grades_converted_to_mass_fraction"
+                  + ";STRINGER_ZONE="
+                  + metadataValue(stringerZone)
+                  + ";COMMENTS="
+                  + metadataValue(comments)
+                  + ";MINERALOGY="
+                  + metadataValue(mineralogy)
+                  + ";HOST_ROCKS="
+                  + metadataValue(hostRocks)
+                  + ";REFERENCE_EXCERPT="
+                  + metadataValue(referenceExcerpt);
+          Set<String> censoredFields = new HashSet<>();
+          if (sourceValueIsCensored(tonnageSourceText)) {
+            censoredFields.add("tonnage");
+          }
+          if (sourceValueIsCensored(copperSourceText)) {
+            censoredFields.add("cu_grade");
+          }
+          if (sourceValueIsCensored(zincSourceText)) {
+            censoredFields.add("zn_grade");
+          }
+          if (sourceValueIsCensored(leadSourceText)) {
+            censoredFields.add("pb_grade");
+          }
+          if (sourceValueIsCensored(goldSourceText)) {
+            censoredFields.add("au_grade");
+          }
+          if (sourceValueIsCensored(silverSourceText)) {
+            censoredFields.add("ag_grade");
           }
           rows.add(
               new SampleRow(
@@ -859,31 +970,47 @@ public record MineralSystemValidationReport(
                   version,
                   aggregation,
                   cutoff,
-                  "source_model_resource_row;percent_grades_converted_to_mass_fraction",
+                  resourceBasis,
                   Map.of(
-                      "tonnage", tonnage,
-                      "cu_grade", copperPercent / 100.0,
-                      "zn_grade", zincPercent / 100.0),
+                      "tonnage",
+                      tonnage,
+                      "cu_grade",
+                      copperPercent / 100.0,
+                      "zn_grade",
+                      zincPercent / 100.0,
+                      "pb_grade",
+                      leadPercent / 100.0,
+                      "au_grade",
+                      goldGramsPerTonne,
+                      "ag_grade",
+                      silverGramsPerTonne),
                   Set.of(),
-                  Set.of()));
+                  censoredFields));
         }
       } catch (IOException | IllegalArgumentException exception) {
-        throw new IllegalStateException("invalid VMS empirical source subset", exception);
+        throw new IllegalStateException("invalid VMS empirical source table", exception);
       }
-      if (rows.size() < 10) {
-        throw new IllegalStateException("VMS empirical source subset is unexpectedly small");
+      if (rows.size() != 608) {
+        throw new IllegalStateException(
+            "VMS empirical source table must contain the complete 608-row qualifying table");
       }
       return new EmpiricalDataset(
-          "usgs:of20091034_vms_cu_zn_audited_subset",
+          "usgs:of20091034_vms_cu_zn_audited_full",
           "https://pubs.usgs.gov/of/2009/1034/of2009-1034_data.zip",
           version,
-          "vms_global_deposits_positive_tonnage_cu_zn_audited_subset",
+          "vms_global_deposits_complete_608_of_1090_row_table_positive_tonnage_cu_zn_audited",
           aggregation,
           cutoff,
-          "USGS Open-File Report 2009-1034 VMS data-package subset; source row references and subtype names are checked in for reproducible review. Cu/Zn percentages are converted to mass fractions; zero/unknown source rows are excluded under the declared population rule.",
+          "USGS Open-File Report 2009-1034 VMS data-package table; all 608 of 1,090 source records qualifying under positive tonnage, Cu, and Zn are checked in with country/district metadata, deposit type, raw grades, stringer/comments/mineralogy/host-rock context, and reference excerpts. Cu/Pb/Zn percentages are converted to mass fractions; zero Pb/Au/Ag values remain measured zeros. The complete qualifying historical table is audited as a source release, not asserted to be an unbiased natural population.",
           DistributionKind.EMPIRICAL_ROW,
-          AuditStatus.RAW_TABLE_AUDITED_SUBSET,
-          Map.of("tonnage", "Mt", "cu_grade", "mass_fraction", "zn_grade", "mass_fraction"),
+          AuditStatus.RAW_TABLE_AUDITED,
+          Map.of(
+              "tonnage", "Mt",
+              "cu_grade", "mass_fraction",
+              "zn_grade", "mass_fraction",
+              "pb_grade", "mass_fraction",
+              "au_grade", "g_per_tonne",
+              "ag_grade", "g_per_tonne"),
           rows);
     }
 

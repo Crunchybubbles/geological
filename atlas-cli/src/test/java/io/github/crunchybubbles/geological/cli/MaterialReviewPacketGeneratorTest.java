@@ -97,11 +97,11 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"RAW_TABLE_AUDITED_SUBSET\""));
     assertTrue(firstJson.contains("\"RAW_TABLE_AUDITED\""));
     assertTrue(firstJson.contains("\"AUDITED_SUBSET\""));
-    assertTrue(firstJson.contains("\"calibrationRowCount\": 12"));
-    assertTrue(firstJson.contains("\"heldOutRowCount\": 5"));
+    assertTrue(firstJson.contains("\"calibrationRowCount\": 487"));
+    assertTrue(firstJson.contains("\"heldOutRowCount\": 121"));
     assertTrue(firstJson.contains("\"calibrationRowCount\": 10"));
     assertTrue(firstJson.contains("\"heldOutRowCount\": 4"));
-    assertTrue(firstJson.contains("\"usgs:of20091034_vms_cu_zn_audited_subset\""));
+    assertTrue(firstJson.contains("\"usgs:of20091034_vms_cu_zn_audited_full\""));
     assertTrue(firstJson.contains("\"usgs:2026_lct_global_audited_full\""));
     assertTrue(firstJson.contains("\"usgs:sir20105090s_global_potash_audited_full\""));
     assertTrue(firstJson.contains("\"usgs:of93280_superior_algoma_fe_audited_full\""));

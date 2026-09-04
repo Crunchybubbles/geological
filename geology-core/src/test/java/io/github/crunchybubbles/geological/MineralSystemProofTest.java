@@ -563,7 +563,7 @@ class MineralSystemProofTest {
                     report.validationStatus()
                         == MineralSystemValidationReport.ValidationStatus.PASSED));
     assertEquals(
-        MineralSystemValidationReport.ValidationStatus.AUDITED_SUBSET,
+        MineralSystemValidationReport.ValidationStatus.PASSED,
         reports.stream()
             .filter(report -> report.modelId().equals(MineralSystemProofs.VMS_MODEL))
             .findFirst()
@@ -583,12 +583,12 @@ class MineralSystemProofTest {
       boolean auditedBif = report.modelId().equals(MineralSystemProofs.BIF_MODEL);
       boolean auditedEvaporite = report.modelId().equals(MineralSystemProofs.EVAPORITE_MODEL);
       boolean auditedPlacer = report.modelId().equals(MineralSystemProofs.PLACER_MODEL);
-      boolean auditedSubset = auditedPorphyry || auditedVms;
+      boolean auditedSubset = auditedPorphyry;
       assertEquals(
           auditedPorphyry
               ? 14
               : auditedVms
-                  ? 17
+                  ? 608
                   : auditedLct
                       ? 86
                       : auditedBif ? 66 : auditedEvaporite ? 102 : auditedPlacer ? 83 : 5,
@@ -597,7 +597,7 @@ class MineralSystemProofTest {
           auditedPorphyry
               ? 10
               : auditedVms
-                  ? 12
+                  ? 487
                   : auditedLct
                       ? 69
                       : auditedBif ? 53 : auditedEvaporite ? 82 : auditedPlacer ? 67 : 4,
@@ -606,13 +606,13 @@ class MineralSystemProofTest {
           auditedPorphyry
               ? 4
               : auditedVms
-                  ? 5
+                  ? 121
                   : auditedLct
                       ? 17
                       : auditedBif ? 13 : auditedEvaporite ? 20 : auditedPlacer ? 16 : 1,
           report.empiricalDataset().heldOutRowCount());
       assertEquals(
-          auditedBif || auditedLct || auditedEvaporite || auditedPlacer
+          auditedVms || auditedBif || auditedLct || auditedEvaporite || auditedPlacer
               ? MineralSystemValidationReport.AuditStatus.RAW_TABLE_AUDITED
               : auditedSubset
                   ? MineralSystemValidationReport.AuditStatus.RAW_TABLE_AUDITED_SUBSET
@@ -639,6 +639,12 @@ class MineralSystemProofTest {
             "https://pubs.usgs.gov/of/2009/1034/of2009-1034_data.zip",
             report.empiricalDataset().sourceUri());
         assertEquals("USGS-OF-2009-1034-v1.0", report.empiricalDataset().sourceVersion());
+        assertEquals(608, report.empiricalDataset().rows().size());
+        assertEquals(487, report.empiricalDataset().calibrationRowCount());
+        assertEquals(121, report.empiricalDataset().heldOutRowCount());
+        assertTrue(report.empiricalDataset().sourceAuditComplete());
+        assertEquals("VMS.tab:471", report.empiricalDataset().rows().getFirst().sourceRowRef());
+        assertEquals("VMS.tab:764", report.empiricalDataset().rows().getLast().sourceRowRef());
         MineralSystemValidationReport.SampleRow beatriz =
             report.empiricalDataset().rows().stream()
                 .filter(row -> row.sourceRowRef().equals("VMS.tab:1"))
@@ -646,6 +652,9 @@ class MineralSystemProofTest {
                 .orElseThrow();
         assertEquals(0.013, beatriz.values().get("cu_grade"), 1.0e-12);
         assertEquals(0.02, beatriz.values().get("zn_grade"), 1.0e-12);
+        assertEquals(0.0, beatriz.values().get("pb_grade"), 1.0e-12);
+        assertEquals(0.16, beatriz.values().get("au_grade"), 1.0e-12);
+        assertEquals(13.0, beatriz.values().get("ag_grade"), 1.0e-12);
       }
       if (auditedLct) {
         assertEquals(
@@ -706,7 +715,7 @@ class MineralSystemProofTest {
               / 2,
           statistical.covarianceSummaries().size());
       assertEquals(
-          auditedBif || auditedLct || auditedEvaporite || auditedPlacer
+          auditedVms || auditedBif || auditedLct || auditedEvaporite || auditedPlacer
               ? MineralSystemValidationReport.StatisticalStatus.COMPLETE
               : auditedSubset
                   ? MineralSystemValidationReport.StatisticalStatus.AUDITED_SUBSET

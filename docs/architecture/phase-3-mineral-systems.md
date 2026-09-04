@@ -1,6 +1,6 @@
 # Phase 3 mineral-system increment
 
-Status: eleventh Phase 3 architecture-proving slice; all six architecture-proving families, the gated porphyry supergene refinement, source-audit plus held-out evidence contracts, and a bounded non-concentric porphyry footprint are explicit
+Status: twelfth Phase 3 architecture-proving slice; all six architecture-proving families, the gated porphyry supergene refinement, source-audit plus held-out evidence contracts, and a bounded non-concentric porphyry footprint are explicit
 
 ## Alpha.1 — linked porphyry topology
 
@@ -134,10 +134,14 @@ positive tonnage/Cu/Mo values under the declared population rule, converts repor
 to mass fractions, and splits the rows into deterministic calibration and held-out roles. Its
 `RAW_TABLE_AUDITED_SUBSET` status is intentionally distinct from a full-population audit.
 
-The VMS importer follows the same contract against the 17-row subset of `VMS.tab` from the USGS
-2009-1034 data package. It preserves one-based source-row references, deposit names, and the
-source's Felsic, Mafic, and Bimodal-Mafic subtype labels, filters to positive tonnage/Cu/Zn rows,
-converts percent grades to mass fractions, and retains a deterministic five-row held-out split.
+The VMS importer follows the same contract against all 608 qualifying rows of `VMS.tab` from the
+USGS 2009-1034 data package (608 of 1,090 source records have positive tonnage, Cu, and Zn).
+It preserves one-based source-row references, country/district metadata, deposit names, the
+source's Felsic, Mafic, and Bimodal-Mafic subtype labels, raw Pb/Au/Ag grades, and contextual
+stringer/comment/mineralogy/host-rock/reference fields. Percent grades are converted to mass
+fractions, Au and Ag remain in g/t, and zero Pb/Au/Ag values remain measured zeros; the
+deterministic every-fifth-row split retains 121 held-out rows. This is a complete audit of the
+qualifying source release, not an unbiased natural population.
 
 The LCT importer reads all 86 rows of the USGS v2.0 `LiCsRb_peg_GT_Deposits.csv` release. It
 preserves release IDs, country and ore-mineral subtype labels, per-row cutoff values/units,
@@ -171,13 +175,13 @@ bias limit.
 
 ## Alpha.10 — held-out statistical projection
 
-Two families use `RAW_TABLE_AUDITED_SUBSET`, while the complete 86-row LCT, 66-row BIF, 102-row
-potash, and 83-row placer tables are `RAW_TABLE_AUDITED`: these statuses make the import and report contract deterministic
+The porphyry family uses `RAW_TABLE_AUDITED_SUBSET`, while the complete 608-row VMS, 86-row LCT,
+66-row BIF, 102-row potash, and 83-row placer tables are `RAW_TABLE_AUDITED`: these statuses make the import and report contract deterministic
 and reviewable without claiming that any historical table is an unbiased natural population. All
 reports emit deterministic held-out quantile projections (with log-space error where values are
 usable) and calibration covariance/correlation summaries for every declared variable pair. These
 metrics make missing, censored, and insufficient held-out coverage explicit; redistribution and
-coverage review remains outstanding for the subset families.
+coverage review remains outstanding for the porphyry subset family.
 
 Completing the Phase 3 scientific exit still requires cleaning the source tables, preserving their
 row-level bias/censor metadata, auditing redistribution, and promoting the held-out quantile and
@@ -196,5 +200,5 @@ east/west classification, and the review packet preserves the geometry parameter
 
 The six architecture families and their deterministic evidence contracts are represented. Remaining
 Phase 3 work is the raw-table redistribution review and held-out statistical comparison for the
-remaining subset families. Each new family must retain barren outcomes, explicit source budgets,
-and deterministic provenance before Minecraft presentation is attempted.
+remaining porphyry subset family. Each new family must retain barren outcomes, explicit source
+budgets, and deterministic provenance before Minecraft presentation is attempted.
