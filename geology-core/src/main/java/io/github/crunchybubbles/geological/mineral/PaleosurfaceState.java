@@ -150,6 +150,8 @@ public record PaleosurfaceState(
     boolean buriedPaleosurface =
         refinementKind == RefinementKind.BURIED_PALEOSURFACE
             && insideUnconformity
+            && !fields.outcrop()
+            && surface.context().kind() != SurfaceMaterialKind.BEDROCK_OUTCROP
             && burialDepth >= unconformity.weatheringThickness() + 1.0;
     boolean carbonateParent =
         parent.geology().lithology() == Lithology.LIMESTONE
