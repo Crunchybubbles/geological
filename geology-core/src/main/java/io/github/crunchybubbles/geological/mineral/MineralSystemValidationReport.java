@@ -677,14 +677,14 @@ public record MineralSystemValidationReport(
 
     private static EmpiricalDataset porphyry() {
       String version = "USGS-OFR-2008-1155-v1.0";
-      String aggregation = "aggregate_related_mineralization_within_2_km";
-      String cutoff = "production_plus_reserves_resources_lowest_reported_cutoff";
-      return readPorphyrySubset(version, aggregation, cutoff);
+      String aggregation = "source_row_definition_preserved";
+      String cutoff = "positive_tonnage_cu_mo_source_release";
+      return readPorphyryFull(version, aggregation, cutoff);
     }
 
-    private static EmpiricalDataset readPorphyrySubset(
+    private static EmpiricalDataset readPorphyryFull(
         String version, String aggregation, String cutoff) {
-      String resourcePath = "/data/geological/empirical/porphyry_cu_subset.tsv";
+      String resourcePath = "/data/geological/empirical/porphyry_full.tsv";
       var resource = EmpiricalDataset.class.getResourceAsStream(resourcePath);
       if (resource == null) {
         throw new IllegalStateException("missing empirical source resource " + resourcePath);
@@ -703,21 +703,188 @@ public record MineralSystemValidationReport(
             continue;
           }
           String[] fields = line.split("\\|", -1);
-          if (fields.length != 7) {
+          if (fields.length != 46) {
             throw new IllegalStateException(
                 "porphyry source row " + lineNumber + " has " + fields.length + " fields");
           }
           String sourceRowRef = fields[0].trim();
-          String rowId = "porphyry-deposit-" + sourceRowRef;
-          String subtype = fields[1].trim();
-          SampleRole role = SampleRole.valueOf(fields[2].trim());
-          double percentile = parseSourceNumber(fields[3], lineNumber, "percentile");
-          double tonnage = parseSourceNumber(fields[4], lineNumber, "tonnage");
-          double copperPercent = parseSourceNumber(fields[5], lineNumber, "cu_grade_pct");
-          double molybdenumPercent = parseSourceNumber(fields[6], lineNumber, "mo_grade_pct");
-          if (percentile <= 0.0 || percentile > 1.0) {
+          String depositId = fields[1].trim();
+          String depositName = fields[2].trim();
+          String includes = fields[3].trim();
+          String otherNames = fields[4].trim();
+          String country = fields[5].trim();
+          String countryCode = fields[6].trim();
+          String stateOrProvince = fields[7].trim();
+          String latitudeDecimal = fields[8].trim();
+          String longitudeDecimal = fields[9].trim();
+          String ageMy = fields[10].trim();
+          String depositAge = fields[11].trim();
+          double tonnage = parseSourceNumber(fields[12], lineNumber, "tonnage_mt");
+          double copperPercent = parseSourceNumber(fields[13], lineNumber, "cu_grade_pct");
+          double molybdenumPercent = parseSourceNumber(fields[14], lineNumber, "mo_grade_pct");
+          OptionalDouble goldGramsPerTonne =
+              parseFirstSourceNumber(fields[15], lineNumber, "gold_grade_gpt");
+          OptionalDouble silverGramsPerTonne =
+              parseFirstSourceNumber(fields[16], lineNumber, "silver_grade_gpt");
+          String subtype = fields[17].trim();
+          String emplacementDepthKm = fields[18].trim();
+          String associatedLess10Km = fields[19].trim();
+          String associatedLess5Km = fields[20].trim();
+          SampleRole role = SampleRole.valueOf(fields[21].trim());
+          double percentile = parseSourceNumber(fields[22], lineNumber, "percentile");
+          String latitudeDegrees = fields[23].trim();
+          String latitudeMinutes = fields[24].trim();
+          String latitudeSeconds = fields[25].trim();
+          String longitudeDegrees = fields[26].trim();
+          String longitudeMinutes = fields[27].trim();
+          String longitudeSeconds = fields[28].trim();
+          String minerals = fields[29].trim();
+          String rocksInDeposit = fields[30].trim();
+          String rocksOnMap = fields[31].trim();
+          String rocksOnMapInDeposit = fields[32].trim();
+          String discoveryDate = fields[33].trim();
+          String startupDate = fields[34].trim();
+          String oreAAxis = fields[35].trim();
+          String oreBAxis = fields[36].trim();
+          String oreArea = fields[37].trim();
+          String alterAAxis = fields[38].trim();
+          String alterBAxis = fields[39].trim();
+          String alterArea = fields[40].trim();
+          String sulfideAAxis = fields[41].trim();
+          String sulfideBAxis = fields[42].trim();
+          String sulfideArea = fields[43].trim();
+          String comments = fields[44].trim();
+          String referenceExcerpt = fields[45].trim();
+          OptionalDouble sourceTonnage =
+              parseFirstSourceNumber(fields[12], lineNumber, "tonnage_source");
+          OptionalDouble sourceCopper = parseFirstSourceNumber(fields[13], lineNumber, "cu_source");
+          OptionalDouble sourceMolybdenum =
+              parseFirstSourceNumber(fields[14], lineNumber, "mo_source");
+          OptionalDouble sourceGold = parseFirstSourceNumber(fields[15], lineNumber, "gold_source");
+          OptionalDouble sourceSilver =
+              parseFirstSourceNumber(fields[16], lineNumber, "silver_source");
+          if (sourceRowRef.isBlank()
+              || depositId.isBlank()
+              || depositName.isBlank()
+              || country.isBlank()
+              || countryCode.isBlank()
+              || subtype.isBlank()
+              || percentile <= 0.0
+              || percentile > 1.0
+              || sourceTonnage.isEmpty()
+              || sourceCopper.isEmpty()
+              || sourceMolybdenum.isEmpty()
+              || sourceGold.isEmpty() != goldGramsPerTonne.isEmpty()
+              || sourceSilver.isEmpty() != silverGramsPerTonne.isEmpty()) {
             throw new IllegalStateException(
-                "porphyry percentile is outside (0,1] at row " + lineNumber);
+                "invalid porphyry source identity at row " + lineNumber);
+          }
+          requireOptionalSourceMatch(
+              OptionalDouble.of(tonnage), sourceTonnage, lineNumber, "tonnage");
+          requireOptionalSourceMatch(
+              OptionalDouble.of(copperPercent), sourceCopper, lineNumber, "cu_grade_pct");
+          requireOptionalSourceMatch(
+              OptionalDouble.of(molybdenumPercent), sourceMolybdenum, lineNumber, "mo_grade_pct");
+          requireOptionalSourceMatch(goldGramsPerTonne, sourceGold, lineNumber, "gold_grade_gpt");
+          requireOptionalSourceMatch(
+              silverGramsPerTonne, sourceSilver, lineNumber, "silver_grade_gpt");
+          String rowId = "porphyry-deposit-" + sourceRowRef.replace(':', '-');
+          String resourceBasis =
+              "source_row_definition_preserved"
+                  + ";DEPOSIT_ID="
+                  + depositId
+                  + ";COUNTRY="
+                  + country
+                  + ";COUNTRY_CODE="
+                  + countryCode
+                  + ";STATE_OR_PROVINCE="
+                  + metadataValue(stateOrProvince)
+                  + ";LATITUDE_DECIMAL="
+                  + metadataValue(latitudeDecimal)
+                  + ";LONGITUDE_DECIMAL="
+                  + metadataValue(longitudeDecimal)
+                  + ";AGE_MY="
+                  + metadataValue(ageMy)
+                  + ";DEPOSIT_AGE="
+                  + metadataValue(depositAge)
+                  + ";TONNAGE_RAW="
+                  + fields[12].trim()
+                  + ";CU_RAW="
+                  + fields[13].trim()
+                  + ";MO_RAW="
+                  + fields[14].trim()
+                  + ";AU_RAW="
+                  + metadataValue(fields[15].trim())
+                  + ";AG_RAW="
+                  + metadataValue(fields[16].trim())
+                  + ";SUBTYPE="
+                  + subtype
+                  + ";EMPLACEMENT_DEPTH_KM="
+                  + metadataValue(emplacementDepthKm)
+                  + ";ASSOCIATED_LESS_10_KM="
+                  + metadataValue(associatedLess10Km)
+                  + ";ASSOCIATED_LESS_5_KM="
+                  + metadataValue(associatedLess5Km)
+                  + ";INCLUDES="
+                  + metadataValue(includes)
+                  + ";OTHER_NAMES="
+                  + metadataValue(otherNames)
+                  + ";MINERALS="
+                  + metadataValue(minerals)
+                  + ";ROCKS_IN_DEPOSIT="
+                  + metadataValue(rocksInDeposit)
+                  + ";ROCKS_ON_MAP="
+                  + metadataValue(rocksOnMap)
+                  + ";ROCKS_ON_MAP_IN_DEPOSIT="
+                  + metadataValue(rocksOnMapInDeposit)
+                  + ";DISCOVERY_DATE="
+                  + metadataValue(discoveryDate)
+                  + ";STARTUP_DATE="
+                  + metadataValue(startupDate)
+                  + ";ORE_AXES="
+                  + metadataValue(oreAAxis)
+                  + ","
+                  + metadataValue(oreBAxis)
+                  + ","
+                  + metadataValue(oreArea)
+                  + ";ALTERATION_AXES="
+                  + metadataValue(alterAAxis)
+                  + ","
+                  + metadataValue(alterBAxis)
+                  + ","
+                  + metadataValue(alterArea)
+                  + ";SULFIDE_AXES="
+                  + metadataValue(sulfideAAxis)
+                  + ","
+                  + metadataValue(sulfideBAxis)
+                  + ","
+                  + metadataValue(sulfideArea)
+                  + ";COMMENTS="
+                  + metadataValue(comments)
+                  + ";REFERENCE_EXCERPT="
+                  + metadataValue(referenceExcerpt);
+          Map<String, Double> values = new TreeMap<>();
+          values.put("tonnage", tonnage);
+          values.put("cu_grade", copperPercent / 100.0);
+          values.put("mo_grade", molybdenumPercent / 100.0);
+          Set<String> missingFields = new HashSet<>();
+          addOptionalScaledValue(values, missingFields, "au_grade", goldGramsPerTonne, 1.0);
+          addOptionalScaledValue(values, missingFields, "ag_grade", silverGramsPerTonne, 1.0);
+          Set<String> censoredFields = new HashSet<>();
+          if (sourceValueIsCensored(fields[12])) {
+            censoredFields.add("tonnage");
+          }
+          if (sourceValueIsCensored(fields[13])) {
+            censoredFields.add("cu_grade");
+          }
+          if (sourceValueIsCensored(fields[14])) {
+            censoredFields.add("mo_grade");
+          }
+          if (sourceValueIsCensored(fields[15]) && goldGramsPerTonne.isPresent()) {
+            censoredFields.add("au_grade");
+          }
+          if (sourceValueIsCensored(fields[16]) && silverGramsPerTonne.isPresent()) {
+            censoredFields.add("ag_grade");
           }
           rows.add(
               new SampleRow(
@@ -725,35 +892,38 @@ public record MineralSystemValidationReport(
                   subtype,
                   percentile,
                   role,
-                  "DepositID=" + sourceRowRef,
+                  sourceRowRef,
                   version,
                   aggregation,
                   cutoff,
-                  "production_plus_reserves_resources_source_row;percent_grades_converted_to_mass_fraction",
-                  Map.of(
-                      "tonnage", tonnage,
-                      "cu_grade", copperPercent / 100.0,
-                      "mo_grade", molybdenumPercent / 100.0),
-                  Set.of(),
-                  Set.of()));
+                  resourceBasis,
+                  values,
+                  missingFields,
+                  censoredFields));
         }
       } catch (IOException | IllegalArgumentException exception) {
-        throw new IllegalStateException("invalid porphyry empirical source subset", exception);
+        throw new IllegalStateException("invalid porphyry empirical source table", exception);
       }
-      if (rows.size() < 10) {
-        throw new IllegalStateException("porphyry empirical source subset is unexpectedly small");
+      if (rows.size() != 228) {
+        throw new IllegalStateException(
+            "porphyry empirical source table must contain the complete 228-row qualifying table");
       }
       return new EmpiricalDataset(
-          "usgs:ofr20081155_porphyry_cu_audited_subset",
+          "usgs:ofr20081155_porphyry_cu_audited_full",
           "https://pubs.usgs.gov/of/2008/1155/data/",
           version,
-          "porphyry_cu_calc_alkaline_deposits_complete_tonnage_cu_mo_audited_subset",
+          "porphyry_cu_calc_alkaline_deposits_complete_228_of_690_row_table_positive_tonnage_cu_mo_audited",
           aggregation,
           cutoff,
-          "USGS Open-File Report 2008-1155 source subset; source rows are checked in for reproducible review. Cu/Mo percentages are converted to mass fractions; the subset is not the full redistributable population.",
+          "USGS Open-File Report 2008-1155 PorCuTX2008.txt table; all 228 of 690 source records qualifying under positive tonnage, Cu, and Mo are checked in with deposit IDs, subtype/country/state metadata, coordinates/age text, association fields, geometry dimensions, mineral/rock context, comments, and reference excerpts. Cu/Mo percentages are converted to mass fractions; Au and Ag remain in g/t, including reported zeros. The complete qualifying historical table is audited as a source release, not asserted to be an unbiased natural population.",
           DistributionKind.EMPIRICAL_ROW,
-          AuditStatus.RAW_TABLE_AUDITED_SUBSET,
-          Map.of("tonnage", "Mt", "cu_grade", "mass_fraction", "mo_grade", "mass_fraction"),
+          AuditStatus.RAW_TABLE_AUDITED,
+          Map.of(
+              "tonnage", "Mt",
+              "cu_grade", "mass_fraction",
+              "mo_grade", "mass_fraction",
+              "au_grade", "g_per_tonne",
+              "ag_grade", "g_per_tonne"),
           rows);
     }
 

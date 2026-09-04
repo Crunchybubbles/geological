@@ -1,6 +1,6 @@
 # Phase 3 mineral-system increment
 
-Status: twelfth Phase 3 architecture-proving slice; all six architecture-proving families, the gated porphyry supergene refinement, source-audit plus held-out evidence contracts, and a bounded non-concentric porphyry footprint are explicit
+Status: thirteenth Phase 3 architecture-proving slice; all six architecture-proving families, the gated porphyry supergene refinement, source-audit plus held-out evidence contracts, and a bounded non-concentric porphyry footprint are explicit
 
 ## Alpha.1 — linked porphyry topology
 
@@ -128,11 +128,13 @@ validator rejects undeclared variables, duplicate rows, contradictory flags, and
 calibration/held-out partitions. Primary-system ledgers and derived LCT/BIF/evaporite budgets are
 checked for exact bounded closure, while barren or rejected candidates retain their failed gate.
 
-The porphyry importer now reads a checked-in, 14-row cleaned subset of the USGS
-`PorCuTX2008.txt` table. It preserves source deposit IDs and subtype codes, excludes rows without
-positive tonnage/Cu/Mo values under the declared population rule, converts reported percent grades
-to mass fractions, and splits the rows into deterministic calibration and held-out roles. Its
-`RAW_TABLE_AUDITED_SUBSET` status is intentionally distinct from a full-population audit.
+The porphyry importer reads all 228 qualifying rows of the USGS `PorCuTX2008.txt` table (228 of
+690 source records have positive tonnage, Cu, and Mo). It preserves source row/ deposit IDs,
+names, country/state, coordinates and age text, association and geometry fields, mineral/rock
+context, comments, and reference excerpts. Cu/Mo percentages are converted to mass fractions;
+Au and Ag remain in g/t, including reported zeros. Rows are tonnage-ranked with a deterministic
+every-fifth-row held-out split, and the complete qualifying source release is audited without
+claiming an unbiased natural population.
 
 The VMS importer follows the same contract against all 608 qualifying rows of `VMS.tab` from the
 USGS 2009-1034 data package (608 of 1,090 source records have positive tonnage, Cu, and Zn).
@@ -175,13 +177,13 @@ bias limit.
 
 ## Alpha.10 — held-out statistical projection
 
-The porphyry family uses `RAW_TABLE_AUDITED_SUBSET`, while the complete 608-row VMS, 86-row LCT,
-66-row BIF, 102-row potash, and 83-row placer tables are `RAW_TABLE_AUDITED`: these statuses make the import and report contract deterministic
+The complete 228-row porphyry, 608-row VMS, 86-row LCT, 66-row BIF, 102-row potash, and 83-row
+placer tables are `RAW_TABLE_AUDITED`: these statuses make the import and report contract deterministic
 and reviewable without claiming that any historical table is an unbiased natural population. All
 reports emit deterministic held-out quantile projections (with log-space error where values are
 usable) and calibration covariance/correlation summaries for every declared variable pair. These
 metrics make missing, censored, and insufficient held-out coverage explicit; redistribution and
-coverage review remains outstanding for the porphyry subset family.
+coverage and redistribution review remains outstanding for the historical source releases.
 
 Completing the Phase 3 scientific exit still requires cleaning the source tables, preserving their
 row-level bias/censor metadata, auditing redistribution, and promoting the held-out quantile and
@@ -200,5 +202,6 @@ east/west classification, and the review packet preserves the geometry parameter
 
 The six architecture families and their deterministic evidence contracts are represented. Remaining
 Phase 3 work is the raw-table redistribution review and held-out statistical comparison for the
-remaining porphyry subset family. Each new family must retain barren outcomes, explicit source
-budgets, and deterministic provenance before Minecraft presentation is attempted.
+remaining redistribution/statistical sign-off for the historical source releases. Each new family
+must retain barren outcomes, explicit source budgets, and deterministic provenance before Minecraft
+presentation is attempted.

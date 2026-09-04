@@ -549,7 +549,7 @@ class MineralSystemProofTest {
         reports.stream().map(MineralSystemValidationReport::modelId).toList());
     assertTrue(reports.stream().allMatch(MineralSystemValidationReport::hardInvariantsPass));
     assertEquals(
-        MineralSystemValidationReport.ValidationStatus.AUDITED_SUBSET,
+        MineralSystemValidationReport.ValidationStatus.PASSED,
         reports.stream()
             .filter(report -> report.modelId().equals(MineralSystemProofs.PORPHYRY_MODEL))
             .findFirst()
@@ -583,10 +583,9 @@ class MineralSystemProofTest {
       boolean auditedBif = report.modelId().equals(MineralSystemProofs.BIF_MODEL);
       boolean auditedEvaporite = report.modelId().equals(MineralSystemProofs.EVAPORITE_MODEL);
       boolean auditedPlacer = report.modelId().equals(MineralSystemProofs.PLACER_MODEL);
-      boolean auditedSubset = auditedPorphyry;
       assertEquals(
           auditedPorphyry
-              ? 14
+              ? 228
               : auditedVms
                   ? 608
                   : auditedLct
@@ -595,7 +594,7 @@ class MineralSystemProofTest {
           report.empiricalDataset().rows().size());
       assertEquals(
           auditedPorphyry
-              ? 10
+              ? 183
               : auditedVms
                   ? 487
                   : auditedLct
@@ -604,7 +603,7 @@ class MineralSystemProofTest {
           report.empiricalDataset().calibrationRowCount());
       assertEquals(
           auditedPorphyry
-              ? 4
+              ? 45
               : auditedVms
                   ? 121
                   : auditedLct
@@ -612,11 +611,7 @@ class MineralSystemProofTest {
                       : auditedBif ? 13 : auditedEvaporite ? 20 : auditedPlacer ? 16 : 1,
           report.empiricalDataset().heldOutRowCount());
       assertEquals(
-          auditedVms || auditedBif || auditedLct || auditedEvaporite || auditedPlacer
-              ? MineralSystemValidationReport.AuditStatus.RAW_TABLE_AUDITED
-              : auditedSubset
-                  ? MineralSystemValidationReport.AuditStatus.RAW_TABLE_AUDITED_SUBSET
-                  : MineralSystemValidationReport.AuditStatus.SOURCE_ANCHORS_PROVISIONAL,
+          MineralSystemValidationReport.AuditStatus.RAW_TABLE_AUDITED,
           report.empiricalDataset().auditStatus());
       if (auditedPorphyry) {
         assertEquals(
@@ -625,10 +620,38 @@ class MineralSystemProofTest {
         assertEquals(
             MineralSystemValidationReport.DistributionKind.EMPIRICAL_ROW,
             report.empiricalDataset().distributionKind());
-        assertTrue(report.empiricalDataset().sourceAuditSubsetComplete());
+        assertEquals(228, report.empiricalDataset().rows().size());
+        assertEquals(183, report.empiricalDataset().calibrationRowCount());
+        assertEquals(45, report.empiricalDataset().heldOutRowCount());
+        assertTrue(report.empiricalDataset().sourceAuditComplete());
+        assertTrue(
+            report
+                .empiricalDataset()
+                .rows()
+                .getFirst()
+                .sourceRowRef()
+                .contains("row=671;DepositID=50;NAME=OK"));
+        assertTrue(
+            report
+                .empiricalDataset()
+                .rows()
+                .getLast()
+                .sourceRowRef()
+                .contains("row=164;DepositID=286;NAME=Chuquicamata"));
+        List<MineralSystemValidationReport.SampleRow> porphyryRows =
+            report.empiricalDataset().rows();
+        for (int index = 0; index < porphyryRows.size(); index++) {
+          MineralSystemValidationReport.SampleRow row = porphyryRows.get(index);
+          assertEquals((index + 1) / 228.0, row.percentile(), 1.0e-12);
+          assertEquals(
+              (index + 1) % 5 == 0
+                  ? MineralSystemValidationReport.SampleRole.HELD_OUT
+                  : MineralSystemValidationReport.SampleRole.CALIBRATION,
+              row.role());
+        }
         MineralSystemValidationReport.SampleRow aguaRica =
             report.empiricalDataset().rows().stream()
-                .filter(row -> row.sourceRowRef().equals("DepositID=323"))
+                .filter(row -> row.sourceRowRef().contains("DepositID=323;NAME=Agua Rica"))
                 .findFirst()
                 .orElseThrow();
         assertEquals(0.0042, aguaRica.values().get("cu_grade"), 1.0e-12);
@@ -714,13 +737,7 @@ class MineralSystemProofTest {
               * (report.empiricalDataset().variableUnits().size() - 1)
               / 2,
           statistical.covarianceSummaries().size());
-      assertEquals(
-          auditedVms || auditedBif || auditedLct || auditedEvaporite || auditedPlacer
-              ? MineralSystemValidationReport.StatisticalStatus.COMPLETE
-              : auditedSubset
-                  ? MineralSystemValidationReport.StatisticalStatus.AUDITED_SUBSET
-                  : MineralSystemValidationReport.StatisticalStatus.PROVISIONAL_ANCHORS,
-          statistical.status());
+      assertEquals(MineralSystemValidationReport.StatisticalStatus.COMPLETE, statistical.status());
       assertTrue(
           statistical.quantileComparisons().stream()
               .allMatch(comparison -> comparison.predictedValue().isPresent()));
