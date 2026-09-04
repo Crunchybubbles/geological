@@ -102,3 +102,12 @@ tasks.register<JavaExec>("glacial") {
     args("glacial", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase6/glacial").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("greisen") {
+    group = "verification"
+    description = "Writes the deterministic Phase 7 residual-fluid greisen review."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("greisen", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase7/greisen").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}

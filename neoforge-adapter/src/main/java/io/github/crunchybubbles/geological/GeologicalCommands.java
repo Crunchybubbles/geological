@@ -24,6 +24,9 @@ import io.github.crunchybubbles.geological.worldgen.OverworldGeochemicalAnomalyP
 import io.github.crunchybubbles.geological.worldgen.OverworldGlacialTransportColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldGlacialTransportInterval;
 import io.github.crunchybubbles.geological.worldgen.OverworldGlacialTransportPlanner;
+import io.github.crunchybubbles.geological.worldgen.OverworldGreisenColumnPlan;
+import io.github.crunchybubbles.geological.worldgen.OverworldGreisenInterval;
+import io.github.crunchybubbles.geological.worldgen.OverworldGreisenPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldHandSamplePlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldLateriteColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldLateriteInterval;
@@ -100,6 +103,7 @@ public final class GeologicalCommands {
                     Commands.literal("paleosurface")
                         .executes(GeologicalCommands::showPaleosurfaceHere))
                 .then(Commands.literal("glacial").executes(GeologicalCommands::showGlacialHere))
+                .then(Commands.literal("greisen").executes(GeologicalCommands::showGreisenHere))
                 .then(
                     Commands.literal("hand-sample")
                         .executes(GeologicalCommands::showHandSampleHere))
@@ -378,6 +382,34 @@ public final class GeologicalCommands {
     } catch (IllegalArgumentException | IllegalStateException exception) {
       source.sendFailure(
           Component.literal("geology glacial unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static int showGreisenHere(CommandContext<CommandSourceStack> context) {
+    BlockPos position = BlockPos.containing(context.getSource().getPosition());
+    CommandSourceStack source = context.getSource();
+    try {
+      OverworldGreisenColumnPlan plan =
+          OverworldGreisenPlanner.from(planner(source.getLevel(), position.getX(), position.getZ()))
+              .plan(position.getX(), position.getZ());
+      OverworldGreisenInterval interval = plan.at(position.getY()).orElse(null);
+      String summary =
+          interval == null
+              ? plan.summary()
+                  + " at=("
+                  + position.getX()
+                  + ","
+                  + position.getY()
+                  + ","
+                  + position.getZ()
+                  + ") horizon=none"
+              : plan.summary() + " " + interval.summary();
+      source.sendSuccess(() -> Component.literal(summary), false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(
+          Component.literal("geology greisen unavailable: " + exception.getMessage()));
       return 0;
     }
   }

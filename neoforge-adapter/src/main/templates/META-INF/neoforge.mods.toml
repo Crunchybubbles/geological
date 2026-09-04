@@ -17,7 +17,9 @@ dimension-native Nether/End generation follows in subsequent verified increments
 exploration telemetry task records bounded clue-sufficiency and travel-burden observations, and
 the read-only `/geology secondary`, `/geology laterite`, `/geology placers`, `/geology
 paleosurface`, and `/geology glacial` views expose source-budgeted or structural Phase 6
-secondary overlays; glacial behavior remains opt-in behind explicit ice-history evidence.
+secondary overlays; glacial behavior remains opt-in behind explicit ice-history evidence. The
+`/geology greisen` view exposes the Phase 7 evolved-felsic residual-fluid proxy overlay, which is
+not an Sn/W assay or voxel-grade inventory.
 '''
 
 [[dependencies.${mod_id}]]
