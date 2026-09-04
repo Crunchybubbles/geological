@@ -14,7 +14,8 @@ surface water/air, and a bounded regolith/surface-clue projection; read-only `/g
 columns, maps, sections, vertical cross-sections, transient surface observations, coarse hand-sample, soil/stream/heavy-mineral, geochemical anomaly, drill-core readouts, and bounded per-player discovery notebooks/maps are available; serial/shuffled
 generation and seam observations are available through the standalone benchmark task, while
 dimension-native Nether/End generation follows in subsequent verified increments; the standalone
-exploration telemetry task records bounded clue-sufficiency and travel-burden observations.
+exploration telemetry task records bounded clue-sufficiency and travel-burden observations, and
+the read-only `/geology secondary` view exposes the source-budgeted Phase 6 supergene overlay.
 '''
 
 [[dependencies.${mod_id}]]

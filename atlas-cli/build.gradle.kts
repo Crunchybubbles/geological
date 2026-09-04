@@ -57,3 +57,12 @@ tasks.register<JavaExec>("explorationTelemetry") {
     args("exploration-telemetry", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase5/exploration").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("secondaryWeathering") {
+    group = "verification"
+    description = "Writes the deterministic Phase 6 source-budgeted secondary-weathering review."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("secondary-weathering", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase6/secondary").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}
