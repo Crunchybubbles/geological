@@ -31,6 +31,7 @@ class GeologicalCommandsTest {
     assertNotNull(geology.getChild("layered-intrusion"));
     assertNotNull(geology.getChild("carbonatite-kimberlite"));
     assertNotNull(geology.getChild("sedimentary-resources"));
+    assertNotNull(geology.getChild("geothermal"));
     assertNotNull(geology.getChild("hand-sample"));
     assertNotNull(geology.getChild("soil"));
     assertNotNull(geology.getChild("stream-sediment"));

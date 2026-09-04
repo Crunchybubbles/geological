@@ -36,16 +36,17 @@ view; `secondaryWeathering`, `laterite`, `secondaryPlacers`, `paleosurface`, and
 source-budget or structural proof and adjacent-chunk seam stability in deterministic review
 artifacts.
 
-Phase 7 alpha.9 now adds a source-gated greisen residual-fluid proxy around an evolved felsic pulse,
+Phase 7 alpha.10 now adds a source-gated greisen residual-fluid proxy around an evolved felsic pulse,
 an explicit carbonate-contact skarn fixture, shallow epithermal and deformation/metamorphic-fluid
 orogenic-gold projections, separate MVT/SEDEX/sediment-hosted copper basin/redox projections,
 unconformity/sandstone uranium redox-groundwater projections, and layered-intrusion chromite/
 Ni-Cu-PGE projections through `/geology greisen`, `/geology skarn`, `/geology epithermal`,
 `/geology orogenic-gold`, `/geology basin-hydrothermal`, `/geology uranium`,
-`/geology layered-intrusion`, `/geology carbonatite-kimberlite`, `/geology sedimentary-resources`, and the matching review tasks. These quartz-muscovite,
+`/geology layered-intrusion`, `/geology carbonatite-kimberlite`, `/geology sedimentary-resources`, `/geology geothermal`, and the matching review tasks. These quartz-muscovite,
 tourmaline-proxy, calc-silicate, retrograde, silica, argillic, quartz-carbonate,
 dolomite-replacement, exhalative, redox, uranium-system, chromitite, sulfide, PGE-reef,
-carbonatite/peralkaline REE, kimberlite-cargo, phosphorite, manganese, coal, brine, and helium-resource
+carbonatite/peralkaline REE, kimberlite-cargo, phosphorite, manganese, coal, brine, helium-resource,
+and geothermal heat/reservoir
 horizons are bounded projections rather than assays or voxel-grade inventories; default planners
 retain explicit actual-host/source gates, and artifacts record closed proxy ledgers and
 adjacent-chunk seam proofs.
@@ -91,6 +92,7 @@ The checked-in Gradle wrapper is the only prerequisite beyond a Java 21 JDK.
 ./gradlew layeredIntrusion
 ./gradlew carbonatiteKimberlite
 ./gradlew sedimentaryResources
+./gradlew geothermal
 ```
 
 On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, column plans, JSON traces, and measurements are written below `atlas-cli/build/phase1/`; the deterministic material/catalog/reservoir review is written below `atlas-cli/build/phase2/`; the Phase 4 worldgen observation is written below `atlas-cli/build/phase4/worldgen/`; the Phase 5 exploration telemetry is written below `atlas-cli/build/phase5/exploration/`; the Phase 6 secondary-weathering review is written below `atlas-cli/build/phase6/secondary/`, the laterite review below `atlas-cli/build/phase6/laterite/`, the secondary-placer review below `atlas-cli/build/phase6/secondary-placers/`, the paleosurface structural review below `atlas-cli/build/phase6/paleosurface/`, the opt-in glacial review below `atlas-cli/build/phase6/glacial/`, the Phase 7 greisen review below `atlas-cli/build/phase7/greisen/`, the skarn review below `atlas-cli/build/phase7/skarn/`, the epithermal review below `atlas-cli/build/phase7/epithermal/`, the orogenic-gold review below `atlas-cli/build/phase7/orogenic-gold/`, the basin/redox review below `atlas-cli/build/phase7/basin-hydrothermal/`, the uranium review below `atlas-cli/build/phase7/uranium/`, and the layered-intrusion review below `atlas-cli/build/phase7/layered-intrusion/`.

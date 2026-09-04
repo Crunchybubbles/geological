@@ -183,3 +183,12 @@ tasks.register<JavaExec>("sedimentaryResources") {
     args("sedimentary-resources", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase7/sedimentary-resources").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("geothermal") {
+    group = "verification"
+    description = "Writes the deterministic Phase 7 geothermal heat/fluid/reservoir review."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("geothermal", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase7/geothermal").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}

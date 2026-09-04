@@ -43,6 +43,10 @@ The `/geology sedimentary-resources` view exposes source-gated phosphorite, sedi
 coal, lithium/potash/borate brine, and helium-bearing gas proxies; fluids remain porous-medium
 state and the deterministic facies fixture is review-only. Its horizons are not assays, grades,
 reserves, or voxel-grade inventories.
+The `/geology geothermal` view exposes source-gated high-enthalpy, fault-controlled, sedimentary
+aquifer, and hot-dry-rock heat/reservoir proxies; heat and fluids remain porous-medium state and
+the deterministic reservoir fixture is review-only. Its horizons are not temperatures, flow rates,
+reserves, or voxel-grade inventories.
 '''
 
 [[dependencies.${mod_id}]]

@@ -1,8 +1,9 @@
 # Phase 7 deposit families — source-gated deposit projections
 
-Status: `phase7-alpha.9` (greisen, explicit skarn host fixture, epithermal shallow-fluid,
+Status: `phase7-alpha.10` (greisen, explicit skarn host fixture, epithermal shallow-fluid,
 orogenic-gold metamorphic-fluid, basin/redox, uranium, layered-intrusion,
-carbonatite/peralkaline-REE plus kimberlite/diamond, and sedimentary-resource projections).
+carbonatite/peralkaline-REE plus kimberlite/diamond, sedimentary-resource, and geothermal
+projections).
 
 ## Alpha.1 — evolved-felsic greisen proof
 
@@ -244,5 +245,26 @@ salinity/redox, pathway, trap, horizon, ledger, policy, default-negative, and se
 six families, actual-host barren behavior, closed accounting, repeated bytes, and chunk seams.
 The fixture is review-only and is not a production host fallback.
 
-Geothermal resources remain the next separate Phase 7 slice; they must not inherit sedimentary
-brine or helium proxies or be inferred from lava proximity alone.
+## Alpha.10 — geothermal heat and porous reservoirs
+
+`GeothermalSystemState` adds four source-gated geothermal types: volcanic/high-enthalpy,
+fault-controlled circulation, sedimentary aquifer, and hot-dry-rock/enhanced potential. A formed
+profile requires explicit heat, fluid or recharge, permeable reservoir, connected circulation,
+reservoir trap/cap, and accessible preservation evidence. Magma thermal context, process-fluid
+medium, fracture connectivity, permeability, sedimentary water inventory, and fault identity are
+reused from the existing material state; proximity to lava alone cannot satisfy the proof. Heat and
+reservoir ledgers are bounded explanatory proxies rather than temperatures, flow rates, recoverable
+energy, reserves, or voxel inventories, and the horizons represent porous-medium state rather than
+replacement blocks.
+
+The default `GeothermalHostPolicy.none()` resolves actual heat/fluid/reservoir evidence only. The
+review-only `GeothermalHostPolicy.fixture()` supplies a deterministic four-type reservoir fixture
+for validation without weakening the production gate. `OverworldGeothermalPlanner` clips the three
+contiguous heat/reservoir horizons to realized solid terrain, preserves stable X-then-Z target-chunk
+ordering, and checks adjacent seams. The read-only `/geology geothermal` command and `geothermal`
+task write `atlas-cli/build/phase7/geothermal/geothermal.json` with heat, fluid, reservoir,
+pathway, trap, preservation, ledger, policy, default-negative, and seam evidence.
+
+`OverworldGeothermalPlannerTest` and `GeothermalPacketGeneratorTest` cover all four types, actual
+evidence-only barren behavior, closed accounting, repeated bytes, and chunk seams. The fixture is
+review-only and is not a production heat or reservoir fallback.

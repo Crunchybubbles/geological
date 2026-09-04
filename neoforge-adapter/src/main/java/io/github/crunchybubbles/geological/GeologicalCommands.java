@@ -30,6 +30,9 @@ import io.github.crunchybubbles.geological.worldgen.OverworldEpithermalPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldExplorationObservation;
 import io.github.crunchybubbles.geological.worldgen.OverworldExplorationObservationPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldGeochemicalAnomalyPlanner;
+import io.github.crunchybubbles.geological.worldgen.OverworldGeothermalColumnPlan;
+import io.github.crunchybubbles.geological.worldgen.OverworldGeothermalInterval;
+import io.github.crunchybubbles.geological.worldgen.OverworldGeothermalPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldGlacialTransportColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldGlacialTransportInterval;
 import io.github.crunchybubbles.geological.worldgen.OverworldGlacialTransportPlanner;
@@ -147,6 +150,8 @@ public final class GeologicalCommands {
                 .then(
                     Commands.literal("sedimentary-resources")
                         .executes(GeologicalCommands::showSedimentaryResourcesHere))
+                .then(
+                    Commands.literal("geothermal").executes(GeologicalCommands::showGeothermalHere))
                 .then(
                     Commands.literal("hand-sample")
                         .executes(GeologicalCommands::showHandSampleHere))
@@ -684,6 +689,35 @@ public final class GeologicalCommands {
       source.sendFailure(
           Component.literal(
               "geology sedimentary-resources unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static int showGeothermalHere(CommandContext<CommandSourceStack> context) {
+    BlockPos position = BlockPos.containing(context.getSource().getPosition());
+    CommandSourceStack source = context.getSource();
+    try {
+      OverworldGeothermalColumnPlan plan =
+          OverworldGeothermalPlanner.from(
+                  planner(source.getLevel(), position.getX(), position.getZ()))
+              .plan(position.getX(), position.getZ());
+      OverworldGeothermalInterval interval = plan.at(position.getY()).orElse(null);
+      String summary =
+          interval == null
+              ? plan.summary()
+                  + " at=("
+                  + position.getX()
+                  + ","
+                  + position.getY()
+                  + ","
+                  + position.getZ()
+                  + ") horizon=none"
+              : plan.summary() + " " + interval.summary();
+      source.sendSuccess(() -> Component.literal(summary), false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(
+          Component.literal("geology geothermal unavailable: " + exception.getMessage()));
       return 0;
     }
   }
