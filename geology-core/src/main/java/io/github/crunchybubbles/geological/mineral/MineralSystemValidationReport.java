@@ -848,73 +848,112 @@ public record MineralSystemValidationReport(
     }
 
     private static EmpiricalDataset placer() {
-      String version = "USGS-BUL-1693-placer-model";
-      String aggregation = "group_records_within_1_6_km";
-      String cutoff = "placer_model_resource_basis";
-      return dataset(
-          "usgs:model_39a_appropriate_subpopulation",
-          "https://pubs.usgs.gov/bul/b1693/html/bull6945.htm",
+      String version = "USGS-OFR-1993-0280-v1.0";
+      String aggregation = "source_deposit_or_district_as_published";
+      String cutoff = "production_plus_reserves_resources_lowest_reported_cutoff";
+      return readPlacerSubset(version, aggregation, cutoff);
+    }
+
+    private static EmpiricalDataset readPlacerSubset(
+        String version, String aggregation, String cutoff) {
+      String resourcePath = "/data/geological/empirical/placer_subset.tsv";
+      var resource = EmpiricalDataset.class.getResourceAsStream(resourcePath);
+      if (resource == null) {
+        throw new IllegalStateException("missing empirical source resource " + resourcePath);
+      }
+      List<SampleRow> rows = new ArrayList<>();
+      try (BufferedReader reader =
+          new BufferedReader(new InputStreamReader(resource, StandardCharsets.UTF_8))) {
+        String line;
+        int lineNumber = 0;
+        while ((line = reader.readLine()) != null) {
+          lineNumber++;
+          String trimmed = line.trim();
+          if (trimmed.isEmpty()
+              || trimmed.startsWith("#")
+              || trimmed.startsWith("source_row_ref")) {
+            continue;
+          }
+          String[] fields = line.split("\\|", -1);
+          if (fields.length != 12) {
+            throw new IllegalStateException(
+                "placer source row " + lineNumber + " has " + fields.length + " fields");
+          }
+          String sourceRowRef = fields[0].trim();
+          String depositName = fields[1].trim();
+          String countryCode = fields[2].trim();
+          String district = fields[3].trim();
+          SampleRole role = SampleRole.valueOf(fields[4].trim());
+          double percentile = parseSourceNumber(fields[5], lineNumber, "percentile");
+          double tonnage = parseSourceNumber(fields[6], lineNumber, "tonnage_mt");
+          double platinumPpb = parseSourceNumber(fields[7], lineNumber, "pt_grade_ppb");
+          double goldGramsPerTonne = parseSourceNumber(fields[8], lineNumber, "au_grade_gpt");
+          String osmiumPpb = fields[9].trim();
+          String iridiumPpb = fields[10].trim();
+          String palladiumPpb = fields[11].trim();
+          if (sourceRowRef.isBlank()
+              || depositName.isBlank()
+              || countryCode.isBlank()
+              || percentile <= 0.0
+              || percentile > 1.0
+              || osmiumPpb.isBlank()
+              || iridiumPpb.isBlank()
+              || palladiumPpb.isBlank()) {
+            throw new IllegalStateException("invalid placer source identity at row " + lineNumber);
+          }
+          String sourceRow =
+              "OFR-93-0280.pdf:"
+                  + sourceRowRef
+                  + ";Name="
+                  + depositName
+                  + ";Country="
+                  + countryCode
+                  + ";District="
+                  + district;
+          String resourceBasis =
+              "Tonnes/10^6_to_Mt;Pt_ppb_to_g_per_tonne;Au_g_per_tonne;Os_ppb="
+                  + osmiumPpb
+                  + ";Ir_ppb="
+                  + iridiumPpb
+                  + ";Pd_ppb="
+                  + palladiumPpb
+                  + ";source_deposit_or_district_as_published";
+          rows.add(
+              new SampleRow(
+                  "placer-deposit-" + sourceRowRef.replace(':', '-') + "-" + depositName,
+                  "placer_pt_au",
+                  percentile,
+                  role,
+                  sourceRow,
+                  version,
+                  aggregation,
+                  cutoff,
+                  resourceBasis,
+                  Map.of(
+                      "tonnage", tonnage,
+                      "pt_grade", platinumPpb / 1_000.0,
+                      "au_grade", goldGramsPerTonne),
+                  Set.of(),
+                  Set.of()));
+        }
+      } catch (IOException | IllegalArgumentException exception) {
+        throw new IllegalStateException("invalid placer empirical source subset", exception);
+      }
+      if (rows.size() < 10) {
+        throw new IllegalStateException("placer empirical source subset is unexpectedly small");
+      }
+      return new EmpiricalDataset(
+          "usgs:of93280_placer_pt_au_audited_subset",
+          "https://pubs.usgs.gov/of/1993/ofr-93-0280/of93-0280.pdf",
           version,
-          "alluvial_placer_gold_appropriate_subpopulation",
+          "placer_pt_au_deposits_positive_tonnage_pt_au_audited_subset",
           aggregation,
           cutoff,
-          Map.of("tonnage", "Mt", "au_grade", "g_per_tonne"),
-          List.of(
-              row(
-                  "placer-q10",
-                  "alluvial",
-                  0.10,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 0.001, "au_grade", 0.20),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "placer-q25",
-                  "alluvial",
-                  0.25,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 0.005, "au_grade", 0.45),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "placer-q50",
-                  "alluvial",
-                  0.50,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 0.02, "au_grade", 1.10),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "placer-q75",
-                  "alluvial",
-                  0.75,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 0.08, "au_grade", 2.60),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "placer-q90",
-                  "alluvial",
-                  0.90,
-                  SampleRole.HELD_OUT,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 0.30, "au_grade", 6.0),
-                  Set.of(),
-                  Set.of("au_grade"))));
+          "USGS Open-File Report 93-0280 Placer Pt-Au table subset; source page references, country/district labels, and Os/Ir/Pd companion fields are retained in each row's resource basis. Pt ppb is converted to g/t, Au remains g/t, and the subset is not the full population.",
+          DistributionKind.EMPIRICAL_ROW,
+          AuditStatus.RAW_TABLE_AUDITED_SUBSET,
+          Map.of("tonnage", "Mt", "pt_grade", "g_per_tonne", "au_grade", "g_per_tonne"),
+          rows);
     }
 
     private static EmpiricalDataset lctPegmatite() {

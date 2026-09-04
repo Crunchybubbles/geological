@@ -551,8 +551,7 @@ class MineralSystemProofTest {
             .allMatch(
                 report ->
                     report.validationStatus()
-                        == MineralSystemValidationReport.ValidationStatus
-                            .PROVISIONAL_SOURCE_ANCHORS));
+                        == MineralSystemValidationReport.ValidationStatus.AUDITED_SUBSET));
     assertEquals(
         MineralSystemValidationReport.ValidationStatus.AUDITED_SUBSET,
         reports.stream()
@@ -566,22 +565,38 @@ class MineralSystemProofTest {
       boolean auditedLct = report.modelId().equals(MineralSystemProofs.LCT_MODEL);
       boolean auditedBif = report.modelId().equals(MineralSystemProofs.BIF_MODEL);
       boolean auditedEvaporite = report.modelId().equals(MineralSystemProofs.EVAPORITE_MODEL);
+      boolean auditedPlacer = report.modelId().equals(MineralSystemProofs.PLACER_MODEL);
       boolean auditedSubset =
-          auditedPorphyry || auditedVms || auditedLct || auditedBif || auditedEvaporite;
+          auditedPorphyry
+              || auditedVms
+              || auditedLct
+              || auditedBif
+              || auditedEvaporite
+              || auditedPlacer;
       assertEquals(
           auditedPorphyry
               ? 14
-              : auditedVms ? 17 : auditedLct ? 16 : auditedBif ? 16 : auditedEvaporite ? 16 : 5,
+              : auditedVms
+                  ? 17
+                  : auditedLct
+                      ? 16
+                      : auditedBif ? 16 : auditedEvaporite ? 16 : auditedPlacer ? 16 : 5,
           report.empiricalDataset().rows().size());
       assertEquals(
           auditedPorphyry
               ? 10
-              : auditedVms ? 12 : auditedLct ? 12 : auditedBif ? 12 : auditedEvaporite ? 12 : 4,
+              : auditedVms
+                  ? 12
+                  : auditedLct
+                      ? 12
+                      : auditedBif ? 12 : auditedEvaporite ? 12 : auditedPlacer ? 12 : 4,
           report.empiricalDataset().calibrationRowCount());
       assertEquals(
           auditedPorphyry
               ? 4
-              : auditedVms ? 5 : auditedLct ? 4 : auditedBif ? 4 : auditedEvaporite ? 4 : 1,
+              : auditedVms
+                  ? 5
+                  : auditedLct ? 4 : auditedBif ? 4 : auditedEvaporite ? 4 : auditedPlacer ? 4 : 1,
           report.empiricalDataset().heldOutRowCount());
       assertEquals(
           auditedSubset
@@ -659,7 +674,10 @@ class MineralSystemProofTest {
                           ? MineralSystemValidationReport.StatisticalStatus.AUDITED_SUBSET
                           : auditedEvaporite
                               ? MineralSystemValidationReport.StatisticalStatus.AUDITED_SUBSET
-                              : MineralSystemValidationReport.StatisticalStatus.PROVISIONAL_ANCHORS,
+                              : auditedPlacer
+                                  ? MineralSystemValidationReport.StatisticalStatus.AUDITED_SUBSET
+                                  : MineralSystemValidationReport.StatisticalStatus
+                                      .PROVISIONAL_ANCHORS,
           statistical.status());
       assertTrue(
           statistical.quantileComparisons().stream()
@@ -708,6 +726,21 @@ class MineralSystemProofTest {
         assertEquals(0.14, tancamichapa.values().get("k2o_grade"), 1.0e-12);
         assertEquals(500.0, tancamichapa.values().get("bed_depth"), 1.0e-12);
         assertTrue(tancamichapa.resourceBasis().contains("K_MINERALS=brine, sylvite, carnallite"));
+      }
+      if (auditedPlacer) {
+        assertEquals(
+            "https://pubs.usgs.gov/of/1993/ofr-93-0280/of93-0280.pdf",
+            report.empiricalDataset().sourceUri());
+        assertEquals("USGS-OFR-1993-0280-v1.0", report.empiricalDataset().sourceVersion());
+        MineralSystemValidationReport.SampleRow phedinan =
+            report.empiricalDataset().rows().stream()
+                .filter(row -> row.sourceRowRef().contains("Name=Phedinan R.-Triok"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(0.0086, phedinan.values().get("tonnage"), 1.0e-12);
+        assertEquals(2.75, phedinan.values().get("pt_grade"), 1.0e-12);
+        assertEquals(2.06, phedinan.values().get("au_grade"), 1.0e-12);
+        assertTrue(phedinan.resourceBasis().contains("Os_ppb=0"));
       }
     }
   }

@@ -156,15 +156,19 @@ rule, converts Fe and P percent grades to mass fractions, and retains blank phos
 missingness. The deterministic four-row held-out split is a subset audit; the historical table's
 mixed deposit/district sampling and the unredistributed full population remain documented limits.
 
+The placer importer reads a 16-row subset of the same report's Placer Pt-Au table. It preserves
+source page/name/country/district references and companion Os/Ir/Pd values, converts Pt ppb to g/t,
+and retains Au in g/t. The deterministic four-row held-out split uses positive tonnage/Pt/Au rows;
+as with the other subsets, it is not a full-population redistribution.
+
 ## Alpha.10 — held-out statistical projection
 
-The remaining placer family still uses `SOURCE_ANCHORS_PROVISIONAL`: those anchors make the import
-and report contract deterministic and reviewable, but do not claim that a handful of anchors
-replace a raw, licensed table. All reports emit deterministic held-out quantile projections (with
-log-space error where values are usable) and calibration covariance/correlation summaries for
-every declared variable pair. These metrics make missing, censored, and insufficient held-out
-coverage explicit; the porphyry, VMS, LCT, evaporite/potash, and BIF metrics are subset-audited,
-while the placer family remains provisional until its raw source rows replace the anchors.
+All six families now use `RAW_TABLE_AUDITED_SUBSET`: the subset status makes the import and report
+contract deterministic and reviewable without claiming that a small checked-in sample is a full,
+unbiased or redistributable population. All reports emit deterministic held-out quantile
+projections (with log-space error where values are usable) and calibration covariance/correlation
+summaries for every declared variable pair. These metrics make missing, censored, and insufficient
+held-out coverage explicit; full-population redistribution and coverage remain outstanding.
 
 Completing the Phase 3 scientific exit still requires cleaning the source tables, preserving their
 row-level bias/censor metadata, auditing redistribution, and promoting the held-out quantile and
