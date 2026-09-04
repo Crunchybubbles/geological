@@ -1,10 +1,10 @@
 # Phase 5 exploration geology — observations and hand samples
 
-Status: completed the fourth bounded exploration slice (`phase5-alpha.4`): deterministic transient
+Status: completed the fifth bounded exploration slice (`phase5-alpha.5`): deterministic transient
 outcrop, float, contact, and structural observations derived from the Phase 4 Overworld column
 trace, stable observation IDs, provenance body references, confidence/scale fields, and the
 read-only `/geology observations` command, plus coarse hand-sample identification and surface
-sediment sampling, and interval-valued geochemical anomaly estimates.
+sediment sampling, interval-valued geochemical anomaly estimates, and bounded drill-core logs.
 
 `OverworldExplorationObservationPlanner` consumes the same immutable
 `OverworldRegolithPlanner` used by generation and debug overlays. An exposed bedrock clue yields an
@@ -58,5 +58,15 @@ queries and traversal order. It is explicitly not a laboratory assay: intervals 
 uncertainty, and values below the detection limit remain censored rather than silently becoming
 zero. The read-only command is `/geology anomaly <soil|stream|heavy>`.
 
-Remaining Phase 5 slices are drill-core/logging and section tools; a discovery notebook/map that
-persists player observations rather than hidden truth; and Phase 5 telemetry/exit review.
+## Alpha.5 drill-core logging
+
+`OverworldDrillCorePlanner` accepts a surface collar plus a bounded depth (or an explicit solid
+Y interval) and resolves the exact compressed Phase 2 material runs in that column. Each transient
+`DrillCoreInterval` reports its stable interval ID, lithology/rock definition, resolved texture,
+coarse visible constituent modes, coarse indicator signals, and body/deposit provenance. The log
+validates contiguous coverage, refuses air or fluid intervals and depths beyond `256` blocks, and
+retains material-evaluation counts for review. `/geology drill <depth>` exposes the log without
+writing a shaft, changing terrain, or persisting hidden geology.
+
+Remaining Phase 5 slices are vertical cross-sections; a discovery notebook/map that persists player
+observations rather than hidden truth; and Phase 5 telemetry/exit review.

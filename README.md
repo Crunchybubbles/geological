@@ -20,11 +20,12 @@ item; the Phase 4 required implementation slices are complete, with the remainin
 the exploration and dimension-native phases described in the status table.
 The bounded non-concentric porphyry footprint is implemented.
 
-Phase 5 alpha.4 now exposes transient, provenance-rich Overworld outcrop/float/contact/structural
-observations, bounded coarse hand-sample and soil/stream/heavy-mineral sampling, and interval-valued
-geochemical anomaly estimates through read-only `/geology observations`, `/geology hand-sample`,
-`/geology soil`, `/geology stream-sediment`, `/geology heavy-mineral`, and `/geology anomaly`
-commands; drilling and notebook persistence remain bounded follow-on slices.
+Phase 5 alpha.5 now exposes transient, provenance-rich Overworld outcrop/float/contact/structural
+observations, bounded coarse hand-sample and soil/stream/heavy-mineral sampling, interval-valued
+geochemical anomaly estimates, and bounded drill-core logs through read-only `/geology observations`,
+`/geology hand-sample`, `/geology soil`, `/geology stream-sediment`, `/geology heavy-mineral`,
+`/geology anomaly`, and `/geology drill` commands; cross-sections and notebook persistence remain
+bounded follow-on slices.
 
 Geological is a causal geology and terrain-generation project for Minecraft Java 1.21.1 on NeoForge 21.1.x. Its selected world preset will eventually own the canonical Overworld, Nether, and End through dimension-specific geological histories rather than add a separate geology dimension.
 
@@ -65,7 +66,7 @@ On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, col
   terrain-control sampler, a bounded base-terrain/lithology planner, a chunk writer with an
   injected material-to-block resolver, a total coarse vanilla block palette, and an Overworld
   generator/preset registration plus explicit surface water/air, bounded regolith/surface-clue
-  projection, read-only `/geology` column/map/section/observation/hand-sample/sampling/anomaly overlays, and the
+  projection, read-only `/geology` column/map/section/observation/hand-sample/sampling/anomaly/drill overlays, and the
   serial/shuffled/seam benchmark harness; dimension-native Nether/End generation is a future
   Phase 8 increment.
 

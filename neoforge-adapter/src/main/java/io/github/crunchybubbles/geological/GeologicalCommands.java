@@ -6,6 +6,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfile;
 import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfiles;
+import io.github.crunchybubbles.geological.worldgen.DrillCoreLog;
 import io.github.crunchybubbles.geological.worldgen.ExplorationSampleKind;
 import io.github.crunchybubbles.geological.worldgen.GeochemicalAnomalyEstimate;
 import io.github.crunchybubbles.geological.worldgen.HandSampleIdentification;
@@ -13,6 +14,7 @@ import io.github.crunchybubbles.geological.worldgen.OverworldAirFluidColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldAirFluidPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldBaseTerrainColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldColumnDebugTrace;
+import io.github.crunchybubbles.geological.worldgen.OverworldDrillCorePlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldExplorationObservation;
 import io.github.crunchybubbles.geological.worldgen.OverworldExplorationObservationPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldGeochemicalAnomalyPlanner;
@@ -87,6 +89,14 @@ public final class GeologicalCommands {
                         .then(
                             Commands.argument("kind", StringArgumentType.word())
                                 .executes(GeologicalCommands::showAnomalyHere)))
+                .then(
+                    Commands.literal("drill")
+                        .then(
+                            Commands.argument(
+                                    "depth",
+                                    IntegerArgumentType.integer(
+                                        1, OverworldDrillCorePlanner.MAX_CORE_DEPTH_BLOCKS))
+                                .executes(GeologicalCommands::showDrillHere)))
                 .then(
                     Commands.literal("column")
                         .then(
@@ -207,6 +217,29 @@ public final class GeologicalCommands {
     } catch (IllegalArgumentException | IllegalStateException exception) {
       source.sendFailure(
           Component.literal("geology anomaly unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static int showDrillHere(CommandContext<CommandSourceStack> context) {
+    BlockPos position = BlockPos.containing(context.getSource().getPosition());
+    CommandSourceStack source = context.getSource();
+    int depth = IntegerArgumentType.getInteger(context, "depth");
+    try {
+      DrillCoreLog log =
+          OverworldDrillCorePlanner.from(
+                  planner(source.getLevel(), position.getX(), position.getZ()))
+              .logSurface(position.getX(), position.getZ(), depth);
+      String summary =
+          log.summary()
+              + " "
+              + log.intervals().stream()
+                  .map(interval -> interval.summary())
+                  .collect(Collectors.joining("; "));
+      source.sendSuccess(() -> Component.literal(summary), false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(Component.literal("geology drill unavailable: " + exception.getMessage()));
       return 0;
     }
   }
