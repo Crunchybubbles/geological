@@ -1,8 +1,9 @@
 # Phase 4 vertical slice — canonical dimension identity
 
 Status: completed platform-neutral identity increment (`phase4-alpha.2`) plus loader adapter lock,
-chunk-writer, and vanilla-palette slices (`phase4-loader-alpha.1`–`phase4-loader-alpha.3`); a
-registered world preset/generator is not introduced yet.
+chunk-writer, vanilla-palette, and Overworld generator/preset slices
+(`phase4-loader-alpha.1`–`phase4-loader-alpha.4`); air/fluid and regolith stages are not introduced
+yet.
 
 `DimensionGeologyProfile` freezes the shared contract that a future Minecraft adapter will consume
 for `minecraft:overworld`, `minecraft:the_nether`, and `minecraft:the_end`. Each profile carries a
@@ -33,8 +34,9 @@ separate `neoforge-adapter` module now pins Minecraft `1.21.1`, NeoForge `21.1.2
 Minecraft `ResourceKey<Level>` and `ChunkPos`, resolves one canonical profile identity, and
 returns the platform-neutral `WorldgenChunkRequest`; null identity inputs are rejected before
 core work. A minimal `@Mod("geological")` entry point and generated `neoforge.mods.toml` prove
-that the packaged loader boundary is real. The adapter has no custom `ChunkGenerator`, world
-preset, custom block registry, or neighbor generation yet. `OverworldTerrainControlSampler` now
+that the packaged loader boundary is real. `GeologicalWorldgenRegistries` now binds the custom
+chunk-generator codec, and the `geological:geological` preset selects it for the Overworld while
+retaining vanilla Nether/End companions; neighbor generation remains forbidden. `OverworldTerrainControlSampler` now
 binds the coarse-terrain stage to the
 platform-supplied immutable snapshot and reconstructs deterministic elevation, uplift, slope,
 weathering, drainage, outcrop, and province/domain provenance for block-column centers. Samples
@@ -48,7 +50,11 @@ applies those solid runs through a platform-neutral block sink, and `GeologicalC
 that sink to the authorized `ChunkAccess` with an injected, memoized material-to-block resolver.
 `GeologicalBlockPalette` supplies a total, coarse mapping from every canonical lithology to an
 existing vanilla block state; it does not encode grade/alteration, register custom blocks, or write
-air/fluid states.
+air/fluid states. `GeologicalWorldgenRegistries` registers the generator codec in the static
+Minecraft chunk-generator registry, and `geological:geological` supplies that generator for the
+Overworld while retaining vanilla Nether/End companions. `GeologicalOverworldChunkGenerator`
+captures the seed supplied to `createState` and invokes the chunk writer from `fillFromNoise`;
+vanilla surface rules are intentionally suppressed until the geological surface stages exist.
 
 `WorldgenSnapshot` freezes the model, scientific, configuration, presentation, and scale identity
 that a generation worker may read. `WorldgenExecutionContext` accepts that snapshot, one authorized
@@ -57,7 +63,7 @@ live server/world handle. Non-writing stages and mismatched snapshots fail befor
 writable work still has to name the authorized target chunk. The review packet records the snapshot
 digests and the `stage_supplied_only`/`liveServerAccess=forbidden` policy.
 
-The next Phase 4 increment should register a custom world preset/generator hook that consumes the
-frozen `WorldgenSnapshot`, request, and column plan and invokes the writer only for the authorized
-`ChunkAccess`. It must preserve the plan's clipping and deterministic seam tests; world-preset
-registration, debug presentation, and compatibility/benchmark coverage remain separate slices.
+The next Phase 4 increment should integrate air/fluids and regolith/surface clues around this
+generator while preserving the plan's clipping and deterministic seam tests. Debug presentation,
+compatibility/benchmark coverage, and dimension-native Nether/End generators remain separate
+slices.

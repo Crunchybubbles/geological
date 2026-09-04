@@ -9,8 +9,8 @@ displayName="${mod_name}"
 authors="CrunchyBubbles"
 description='''
 Geological generates deterministic, causal geology for Minecraft dimensions.
-The initial loader slice freezes the worldgen identity boundary; terrain placement follows in a
-subsequent verified increment.
+The Overworld generator/preset hook now applies the bounded geological terrain plan; fluids,
+regolith, and dimension-native Nether/End generation follow in subsequent verified increments.
 '''
 
 [[dependencies.${mod_id}]]
