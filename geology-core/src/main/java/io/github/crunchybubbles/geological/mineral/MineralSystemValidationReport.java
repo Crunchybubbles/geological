@@ -851,12 +851,12 @@ public record MineralSystemValidationReport(
       String version = "USGS-OFR-1993-0280-v1.0";
       String aggregation = "source_deposit_or_district_as_published";
       String cutoff = "production_plus_reserves_resources_lowest_reported_cutoff";
-      return readPlacerSubset(version, aggregation, cutoff);
+      return readPlacerFull(version, aggregation, cutoff);
     }
 
-    private static EmpiricalDataset readPlacerSubset(
+    private static EmpiricalDataset readPlacerFull(
         String version, String aggregation, String cutoff) {
-      String resourcePath = "/data/geological/empirical/placer_subset.tsv";
+      String resourcePath = "/data/geological/empirical/placer_full.tsv";
       var resource = EmpiricalDataset.class.getResourceAsStream(resourcePath);
       if (resource == null) {
         throw new IllegalStateException("missing empirical source resource " + resourcePath);
@@ -886,8 +886,9 @@ public record MineralSystemValidationReport(
           SampleRole role = SampleRole.valueOf(fields[4].trim());
           double percentile = parseSourceNumber(fields[5], lineNumber, "percentile");
           double tonnage = parseSourceNumber(fields[6], lineNumber, "tonnage_mt");
-          double platinumPpb = parseSourceNumber(fields[7], lineNumber, "pt_grade_ppb");
-          double goldGramsPerTonne = parseSourceNumber(fields[8], lineNumber, "au_grade_gpt");
+          double platinumPpb = parseSourceNonNegativeNumber(fields[7], lineNumber, "pt_grade_ppb");
+          double goldGramsPerTonne =
+              parseSourceNonNegativeNumber(fields[8], lineNumber, "au_grade_gpt");
           String osmiumPpb = fields[9].trim();
           String iridiumPpb = fields[10].trim();
           String palladiumPpb = fields[11].trim();
@@ -937,21 +938,22 @@ public record MineralSystemValidationReport(
                   Set.of()));
         }
       } catch (IOException | IllegalArgumentException exception) {
-        throw new IllegalStateException("invalid placer empirical source subset", exception);
+        throw new IllegalStateException("invalid placer empirical source table", exception);
       }
-      if (rows.size() < 10) {
-        throw new IllegalStateException("placer empirical source subset is unexpectedly small");
+      if (rows.size() != 83) {
+        throw new IllegalStateException(
+            "placer empirical source table must contain the complete 83-row report table");
       }
       return new EmpiricalDataset(
-          "usgs:of93280_placer_pt_au_audited_subset",
+          "usgs:of93280_placer_pt_au_audited_full",
           "https://pubs.usgs.gov/of/1993/ofr-93-0280/of93-0280.pdf",
           version,
-          "placer_pt_au_deposits_positive_tonnage_pt_au_audited_subset",
+          "placer_pt_au_deposits_complete_83_row_table_positive_tonnage_audited",
           aggregation,
           cutoff,
-          "USGS Open-File Report 93-0280 Placer Pt-Au table subset; source page references, country/district labels, and Os/Ir/Pd companion fields are retained in each row's resource basis. Pt ppb is converted to g/t, Au remains g/t, and the subset is not the full population.",
+          "USGS Open-File Report 93-0280 Placer Pt-Au table; all 83 published rows, source page references, country/district labels, and Os/Ir/Pd companion fields are retained in each row's resource basis. Pt ppb is converted to g/t, Au remains g/t, and zero reported grades remain explicit. The complete historical table is audited as a source release, not asserted to be an unbiased natural population.",
           DistributionKind.EMPIRICAL_ROW,
-          AuditStatus.RAW_TABLE_AUDITED_SUBSET,
+          AuditStatus.RAW_TABLE_AUDITED,
           Map.of("tonnage", "Mt", "pt_grade", "g_per_tonne", "au_grade", "g_per_tonne"),
           rows);
     }
@@ -1157,7 +1159,7 @@ public record MineralSystemValidationReport(
         return parsed;
       } catch (NumberFormatException exception) {
         throw new IllegalArgumentException(
-            "invalid " + field + " at BIF source row " + lineNumber, exception);
+            "invalid " + field + " at source row " + lineNumber, exception);
       }
     }
 

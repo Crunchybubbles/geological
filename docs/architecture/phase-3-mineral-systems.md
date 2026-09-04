@@ -158,16 +158,17 @@ converts Fe and P percent grades to mass fractions, and retains blank phosphorus
 missingness. Rows are tonnage-ranked with a deterministic every-fifth-row held-out split; the
 historical table's mixed deposit/district sampling remains a documented population-bias limit.
 
-The placer importer reads a 16-row subset of the same report's Placer Pt-Au table. It preserves
-source page/name/country/district references and companion Os/Ir/Pd values, converts Pt ppb to g/t,
-and retains Au in g/t. The deterministic four-row held-out split uses positive tonnage/Pt/Au rows;
-as with the other subsets, it is not a full-population redistribution.
+The placer importer reads all 83 rows of the same report's Placer Pt-Au table. It preserves source
+page/name/country/district references and companion Os/Ir/Pd values, converts Pt ppb to g/t, and
+retains Au in g/t, including explicitly reported zero grades. Rows are tonnage-ranked with a
+deterministic every-fifth-row held-out split; the historical table remains a documented population-
+bias limit.
 
 ## Alpha.10 — held-out statistical projection
 
-Five families use `RAW_TABLE_AUDITED_SUBSET`, while the complete 66-row BIF table is
-`RAW_TABLE_AUDITED`: these statuses make the import and report contract deterministic and
-reviewable without claiming that any historical table is an unbiased natural population. All
+Four families use `RAW_TABLE_AUDITED_SUBSET`, while the complete 66-row BIF and 83-row placer
+tables are `RAW_TABLE_AUDITED`: these statuses make the import and report contract deterministic
+and reviewable without claiming that any historical table is an unbiased natural population. All
 reports emit deterministic held-out quantile projections (with log-space error where values are
 usable) and calibration covariance/correlation summaries for every declared variable pair. These
 metrics make missing, censored, and insufficient held-out coverage explicit; redistribution and
