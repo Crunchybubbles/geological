@@ -131,6 +131,14 @@ public record PetrologicState(
     return TraceElementVector.from(resolvedComposition);
   }
 
+  /** Returns optional coarse parent-isotope and daughter-potential provenance evidence. */
+  public List<IsotopicProvenanceEvidence.Evidence> isotopicProvenanceEvidence() {
+    StableId sourceReservoirId =
+        magmaLineage.map(MagmaLineageState::systemId).orElse(geology.rockBodyId());
+    return IsotopicProvenanceEvidence.proofFor(
+        resolvedComposition, sourceReservoirId, geology.formationAge());
+  }
+
   /** Returns the optional deterministic transport axes for this state's process fluid. */
   public Optional<FluidTransportState> fluidTransportState() {
     return fluidState.map(FluidTransportState::proofFor);

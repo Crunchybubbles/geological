@@ -1910,6 +1910,10 @@ final class MaterialReviewPacketGenerator {
         elementMap(sample.resolvedComposition().elementMassPpm()),
         "traceElementVector",
         traceElementVectorJson(sample.traceElementVector()),
+        "isotopicProvenance",
+        sample.isotopicProvenanceEvidence().stream()
+            .map(MaterialReviewPacketGenerator::isotopicProvenanceJson)
+            .toList(),
         "density",
         sample.resolvedComposition().density(),
         "porosityFraction",
@@ -2111,6 +2115,37 @@ final class MaterialReviewPacketGenerator {
         elementMap(state.concentrationPpm()),
         "log10PpmMicros",
         elementMap(state.log10PpmMicros()));
+  }
+
+  private static Map<String, Object> isotopicProvenanceJson(
+      io.github.crunchybubbles.geological.petrology.IsotopicProvenanceEvidence.Evidence evidence) {
+    return JsonWriter.object(
+        "parentIsotope",
+        evidence.parentNuclide().isotope(),
+        "parentElement",
+        evidence.parentNuclide().parentElement().symbol(),
+        "daughterProduct",
+        evidence.daughterProduct(),
+        "sourceReservoirId",
+        evidence.sourceReservoirId().toString(),
+        "formationAgeMa",
+        evidence.formationAge().ageMa(),
+        "parentInventoryPpm",
+        evidence.parentInventoryPpm(),
+        "initialIsotopeInventoryPpm",
+        evidence.initialIsotopeInventoryPpm(),
+        "daughterPotentialPpm",
+        evidence.daughterPotentialPpm(),
+        "retainedIsotopePpm",
+        evidence.retainedIsotopePpm(),
+        "decayFractionPpm",
+        evidence.decayFractionPpm(),
+        "naturalAbundancePpm",
+        evidence.parentNuclide().naturalAbundancePpm(),
+        "halfLifeMa",
+        evidence.parentNuclide().halfLifeMa(),
+        "confidencePpm",
+        evidence.confidencePpm());
   }
 
   private static Map<String, Object> elementBehaviorJson(

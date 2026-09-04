@@ -144,6 +144,8 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"phaseRefinements\""));
     assertTrue(firstJson.contains("\"familyId\": \"geological:polymorph_family/serpentine\""));
     assertTrue(firstJson.contains("\"exsolutionClass\": \"CONDITIONAL_LOW_TEMPERATURE\""));
+    assertTrue(firstJson.contains("\"isotopicProvenance\""));
+    assertTrue(firstJson.contains("\"parentIsotope\": \"K-40\""));
     assertTrue(firstJson.contains("\"modelVersion\": \"phase1.0-alpha.2\""));
     assertTrue(firstJson.contains(Phase2World.SCIENTIFIC_DIGEST));
     assertTrue(firstJson.contains("\"materialProcess\""));

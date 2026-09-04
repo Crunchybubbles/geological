@@ -1,6 +1,6 @@
 # Phase 9 comprehensive geochemistry
 
-Status: `phase9-alpha.3` (solid-solution and polymorph refinement).
+Status: `phase9-alpha.4` (isotope and provenance evidence).
 
 ## Alpha.1 — Condition-qualified element behavior
 
@@ -47,8 +47,23 @@ The material-review artifact publishes both refinement groups, including their c
 member ranges, so reviewers can distinguish authored bounds from unresolved activity, ordering,
 solvus, and exsolution behavior.
 
+## Alpha.4 — Isotope and provenance evidence
+
+`IsotopicProvenanceEvidence` lazily derives optional fixed-point parent-isotope evidence from a
+resolved composition, its source reservoir ID, and formation age. The current nuclide set is
+K-40→Ar-40, Rb-87→Sr-87, Th-232→He-4, and U-238→He-4. Each returned record retains the total parent
+inventory, natural-isotope inventory, bounded decay fraction, accumulated daughter-potential, and
+retained isotope with exact closure plus an explicit confidence value. Samples choose the linked
+magma-system ID when available and otherwise their rock-body ID, so the evidence remains tied to
+the existing provenance graph.
+
+The calculation is intentionally a monotonic accumulated-potential proxy using published half-life
+and abundance constants; it does not estimate a rock age, model daughter transport, or simulate
+individual atoms. Empty parent systems stay absent from the sparse result, and the material-review
+artifact exposes the evidence inputs and closure fields for audit.
+
 ## Remaining Phase 9 slices
 
-The next bounded increments are optional isotope/provenance evidence, reviewed response/partition
-datasets, and a processing-facing assay/mineral-liberation API. Each must preserve sparse state,
-explicit uncertainty, source-linked hosts, and exact system-scale ledger closure.
+The next bounded increments are reviewed response/partition datasets and a processing-facing
+assay/mineral-liberation API. Each must preserve sparse state, explicit uncertainty, source-linked
+hosts, and exact system-scale ledger closure.
