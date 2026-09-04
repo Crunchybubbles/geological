@@ -770,6 +770,41 @@ public record MineralSystemValidationReport(
       }
     }
 
+    private static OptionalDouble parseOptionalSourceNumber(
+        String value, int lineNumber, String field) {
+      if (value.trim().isBlank()) {
+        return OptionalDouble.empty();
+      }
+      return OptionalDouble.of(parseSourceNumber(value, lineNumber, field));
+    }
+
+    private static void requireOptionalSourceMatch(
+        OptionalDouble normalized, OptionalDouble source, int lineNumber, String field) {
+      if (normalized.isPresent() != source.isPresent()
+          || normalized.isPresent()
+              && Math.abs(normalized.getAsDouble() - source.getAsDouble()) > 1.0e-9) {
+        throw new IllegalArgumentException(
+            field + " normalized value does not match source text at row " + lineNumber);
+      }
+    }
+
+    private static void addOptionalScaledValue(
+        Map<String, Double> values,
+        Set<String> missingFields,
+        String variable,
+        OptionalDouble sourceValue,
+        double divisor) {
+      if (sourceValue.isPresent()) {
+        values.put(variable, sourceValue.getAsDouble() / divisor);
+      } else {
+        missingFields.add(variable);
+      }
+    }
+
+    private static String metadataValue(String value) {
+      return value.isBlank() ? "<missing>" : value;
+    }
+
     private static EmpiricalDataset vms() {
       String version = "USGS-OF-2009-1034-v1.0";
       String aggregation = "group_records_within_500_m";
@@ -966,13 +1001,12 @@ public record MineralSystemValidationReport(
     private static EmpiricalDataset lctPegmatite() {
       String version = "USGS-2026-LCT-v2.0";
       String aggregation = "reported_deposit_definition_no_cross_body_merge";
-      String cutoff = "lithium_tonnage_grade_resource_basis";
-      return readLctSubset(version, aggregation, cutoff);
+      String cutoff = "positive_ore_tonnage_source_release";
+      return readLctFull(version, aggregation, cutoff);
     }
 
-    private static EmpiricalDataset readLctSubset(
-        String version, String aggregation, String cutoff) {
-      String resourcePath = "/data/geological/empirical/lct_subset.tsv";
+    private static EmpiricalDataset readLctFull(String version, String aggregation, String cutoff) {
+      String resourcePath = "/data/geological/empirical/lct_full.tsv";
       var resource = EmpiricalDataset.class.getResourceAsStream(resourcePath);
       if (resource == null) {
         throw new IllegalStateException("missing empirical source resource " + resourcePath);
@@ -991,43 +1025,119 @@ public record MineralSystemValidationReport(
             continue;
           }
           String[] fields = line.split("\\|", -1);
-          if (fields.length != 9) {
+          if (fields.length != 25) {
             throw new IllegalStateException(
                 "LCT source row " + lineNumber + " has " + fields.length + " fields");
           }
-          String sourceRowRef = fields[0].trim();
+          String sourceId = fields[0].trim();
           String depositName = fields[1].trim();
-          String subtype = fields[2].trim();
-          SampleRole role = SampleRole.valueOf(fields[3].trim());
-          double percentile = parseSourceNumber(fields[4], lineNumber, "percentile");
-          double oreTonnageTonnes = parseSourceNumber(fields[5], lineNumber, "ore_tonnage_tonnes");
-          double lithiumPercent = parseSourceNumber(fields[6], lineNumber, "li2o_pct");
-          String tantalumField = fields[7].trim();
-          String cutoffField = fields[8].trim();
-          if (depositName.isBlank() || percentile <= 0.0 || percentile > 1.0) {
+          String country = fields[2].trim();
+          String subtype = fields[3].trim();
+          SampleRole role = SampleRole.valueOf(fields[4].trim());
+          double percentile = parseSourceNumber(fields[5], lineNumber, "percentile");
+          double oreTonnageTonnes = parseSourceNumber(fields[6], lineNumber, "ore_tonnage_tonnes");
+          OptionalDouble lithiumPercent =
+              parseOptionalSourceNumber(fields[7], lineNumber, "li2o_pct");
+          OptionalDouble cesiumPercent =
+              parseOptionalSourceNumber(fields[8], lineNumber, "cs2o_pct");
+          OptionalDouble rubidiumPercent =
+              parseOptionalSourceNumber(fields[9], lineNumber, "rb2o_pct");
+          OptionalDouble tantalumPpm =
+              parseOptionalSourceNumber(fields[10], lineNumber, "ta2o5_ppm");
+          OptionalDouble tinPpm = parseOptionalSourceNumber(fields[11], lineNumber, "sn_ppm");
+          String cutoffField = fields[12].trim();
+          String cutoffUnit = fields[13].trim();
+          String primaryLithiumMinerals = fields[14].trim();
+          String primaryCesiumMinerals = fields[15].trim();
+          String primaryRubidiumMinerals = fields[16].trim();
+          String reference = fields[17].trim();
+          String comments = fields[18].trim();
+          String oreSourceText = fields[19].trim();
+          String lithiumSourceText = fields[20].trim();
+          String cesiumSourceText = fields[21].trim();
+          String rubidiumSourceText = fields[22].trim();
+          String tantalumSourceText = fields[23].trim();
+          String tinSourceText = fields[24].trim();
+          OptionalDouble sourceOreTonnage =
+              parseOptionalSourceNumber(oreSourceText, lineNumber, "ore_tonnage_source_text");
+          OptionalDouble sourceLithiumPercent =
+              parseOptionalSourceNumber(lithiumSourceText, lineNumber, "li2o_source_text");
+          OptionalDouble sourceCesiumPercent =
+              parseOptionalSourceNumber(cesiumSourceText, lineNumber, "cs2o_source_text");
+          OptionalDouble sourceRubidiumPercent =
+              parseOptionalSourceNumber(rubidiumSourceText, lineNumber, "rb2o_source_text");
+          OptionalDouble sourceTantalumPpm =
+              parseOptionalSourceNumber(tantalumSourceText, lineNumber, "ta2o5_source_text");
+          OptionalDouble sourceTinPpm =
+              parseOptionalSourceNumber(tinSourceText, lineNumber, "sn_source_text");
+          requireOptionalSourceMatch(
+              OptionalDouble.of(oreTonnageTonnes), sourceOreTonnage, lineNumber, "ore_tonnage");
+          requireOptionalSourceMatch(lithiumPercent, sourceLithiumPercent, lineNumber, "li2o_pct");
+          requireOptionalSourceMatch(cesiumPercent, sourceCesiumPercent, lineNumber, "cs2o_pct");
+          requireOptionalSourceMatch(
+              rubidiumPercent, sourceRubidiumPercent, lineNumber, "rb2o_pct");
+          requireOptionalSourceMatch(tantalumPpm, sourceTantalumPpm, lineNumber, "ta2o5_ppm");
+          requireOptionalSourceMatch(tinPpm, sourceTinPpm, lineNumber, "sn_ppm");
+          if (sourceId.isBlank()
+              || depositName.isBlank()
+              || country.isBlank()
+              || subtype.isBlank()
+              || percentile <= 0.0
+              || percentile > 1.0
+              || oreTonnageTonnes <= 0.0) {
             throw new IllegalStateException("invalid LCT source identity at row " + lineNumber);
           }
-          Map<String, Double> values = new TreeMap<>();
+          TreeMap<String, Double> values = new TreeMap<>();
           values.put("tonnage", oreTonnageTonnes / 1_000_000.0);
-          values.put("li2o_grade", lithiumPercent / 100.0);
-          Set<String> missing = Set.of();
-          if (tantalumField.isBlank()) {
-            missing = Set.of("ta2o5_grade");
-          } else {
-            values.put(
-                "ta2o5_grade",
-                parseSourceNumber(tantalumField, lineNumber, "ta2o5_ppm") / 1_000_000.0);
-          }
+          Set<String> missing = new HashSet<>();
+          addOptionalScaledValue(values, missing, "li2o_grade", lithiumPercent, 100.0);
+          addOptionalScaledValue(values, missing, "cs2o_grade", cesiumPercent, 100.0);
+          addOptionalScaledValue(values, missing, "rb2o_grade", rubidiumPercent, 100.0);
+          addOptionalScaledValue(values, missing, "ta2o5_grade", tantalumPpm, 1_000_000.0);
+          addOptionalScaledValue(values, missing, "sn_grade", tinPpm, 1_000_000.0);
+          String sourceRowRef =
+              "LiCsRb_peg_GT_Deposits.csv:ID="
+                  + sourceId
+                  + ";DEPOSIT="
+                  + depositName
+                  + ";COUNTRY="
+                  + country;
           String resourceBasis =
-              "source_resource_row;ore_tonnage_tonnes_to_Mt;Li2O_percent_to_mass_fraction;Ta2O5_ppm_to_mass_fraction;cutoff_percent="
-                  + (cutoffField.isBlank() ? "not_reported" : cutoffField);
+              "source_resource_row;COUNTRY="
+                  + country
+                  + ";ORE_TONNAGE_TONNES_RAW="
+                  + oreSourceText
+                  + ";Li2O_percent_to_mass_fraction;LI2O_RAW="
+                  + metadataValue(lithiumSourceText)
+                  + ";Cs2O_percent_to_mass_fraction;CS2O_RAW="
+                  + metadataValue(cesiumSourceText)
+                  + ";Rb2O_percent_to_mass_fraction;RB2O_RAW="
+                  + metadataValue(rubidiumSourceText)
+                  + ";Ta2O5_ppm_to_mass_fraction;TA2O5_RAW="
+                  + metadataValue(tantalumSourceText)
+                  + ";Sn_ppm_to_mass_fraction;SN_RAW="
+                  + metadataValue(tinSourceText)
+                  + ";CUTOFF_PCT="
+                  + metadataValue(cutoffField)
+                  + ";CUTOFF_UNIT="
+                  + metadataValue(cutoffUnit)
+                  + ";PRIMARY_LI_ORE_MINERALS="
+                  + metadataValue(primaryLithiumMinerals)
+                  + ";PRIMARY_CS_ORE_MINERALS="
+                  + metadataValue(primaryCesiumMinerals)
+                  + ";PRIMARY_RB_ORE_MINERALS="
+                  + metadataValue(primaryRubidiumMinerals)
+                  + ";REFERENCE="
+                  + metadataValue(reference)
+                  + ";COMMENTS="
+                  + metadataValue(comments);
           rows.add(
               new SampleRow(
-                  "lct-deposit-" + sourceRowRef + "-" + depositName,
+                  "lct-deposit-" + sourceId + "-" + depositName,
                   subtype,
                   percentile,
                   role,
-                  "LiCsRb_peg_GT_Deposits.csv:ID=" + sourceRowRef,
+                  sourceRowRef,
                   version,
                   aggregation,
                   cutoff,
@@ -1037,22 +1147,35 @@ public record MineralSystemValidationReport(
                   Set.of()));
         }
       } catch (IOException | IllegalArgumentException exception) {
-        throw new IllegalStateException("invalid LCT empirical source subset", exception);
+        throw new IllegalStateException("invalid LCT empirical source table", exception);
       }
-      if (rows.size() < 10) {
-        throw new IllegalStateException("LCT empirical source subset is unexpectedly small");
+      if (rows.size() != 86) {
+        throw new IllegalStateException(
+            "LCT empirical source table must contain the complete 86-row release");
       }
       return new EmpiricalDataset(
-          "usgs:2026_lct_global_audited_subset",
+          "usgs:2026_lct_global_audited_full",
           "https://data.usgs.gov/datacatalog/data/USGS%3A66db3cb7d34eef5af66d9306",
           version,
-          "lithium_dominated_pegmatite_resources_positive_tonnage_li2o_audited_subset",
+          "lithium_cesium_rubidium_pegmatite_resources_complete_86_row_table_positive_ore_tonnage_audited",
           aggregation,
           cutoff,
-          "USGS 2026 v2.0 Li-Cs-Rb pegmatite data release subset; source IDs, subtype mineral labels, cutoffs, and explicit Ta missingness are checked in for reproducible review. Unit conversions are retained in each row's resource basis; the subset is not the full population.",
+          "USGS 2026 v2.0 Li-Cs-Rb pegmatite data release; all 86 published rows are checked in with country, mineral labels, cutoffs, references, comments, and explicit missingness for unreported Li2O/Cs2O/Rb2O/Ta2O5/Sn. Ore tonnes are converted to Mt, percent grades and ppm concentrations to mass fractions, and the complete release is audited as a source table. The source itself is a selected global release rather than an exhaustive or unbiased natural population.",
           DistributionKind.EMPIRICAL_ROW,
-          AuditStatus.RAW_TABLE_AUDITED_SUBSET,
-          Map.of("tonnage", "Mt", "li2o_grade", "mass_fraction", "ta2o5_grade", "mass_fraction"),
+          AuditStatus.RAW_TABLE_AUDITED,
+          Map.of(
+              "tonnage",
+              "Mt",
+              "li2o_grade",
+              "mass_fraction",
+              "cs2o_grade",
+              "mass_fraction",
+              "rb2o_grade",
+              "mass_fraction",
+              "ta2o5_grade",
+              "mass_fraction",
+              "sn_grade",
+              "mass_fraction"),
           rows);
     }
 

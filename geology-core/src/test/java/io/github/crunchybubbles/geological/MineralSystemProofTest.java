@@ -583,14 +583,14 @@ class MineralSystemProofTest {
       boolean auditedBif = report.modelId().equals(MineralSystemProofs.BIF_MODEL);
       boolean auditedEvaporite = report.modelId().equals(MineralSystemProofs.EVAPORITE_MODEL);
       boolean auditedPlacer = report.modelId().equals(MineralSystemProofs.PLACER_MODEL);
-      boolean auditedSubset = auditedPorphyry || auditedVms || auditedLct;
+      boolean auditedSubset = auditedPorphyry || auditedVms;
       assertEquals(
           auditedPorphyry
               ? 14
               : auditedVms
                   ? 17
                   : auditedLct
-                      ? 16
+                      ? 86
                       : auditedBif ? 66 : auditedEvaporite ? 102 : auditedPlacer ? 83 : 5,
           report.empiricalDataset().rows().size());
       assertEquals(
@@ -599,7 +599,7 @@ class MineralSystemProofTest {
               : auditedVms
                   ? 12
                   : auditedLct
-                      ? 12
+                      ? 69
                       : auditedBif ? 53 : auditedEvaporite ? 82 : auditedPlacer ? 67 : 4,
           report.empiricalDataset().calibrationRowCount());
       assertEquals(
@@ -608,11 +608,11 @@ class MineralSystemProofTest {
               : auditedVms
                   ? 5
                   : auditedLct
-                      ? 4
+                      ? 17
                       : auditedBif ? 13 : auditedEvaporite ? 20 : auditedPlacer ? 16 : 1,
           report.empiricalDataset().heldOutRowCount());
       assertEquals(
-          auditedBif || auditedEvaporite || auditedPlacer
+          auditedBif || auditedLct || auditedEvaporite || auditedPlacer
               ? MineralSystemValidationReport.AuditStatus.RAW_TABLE_AUDITED
               : auditedSubset
                   ? MineralSystemValidationReport.AuditStatus.RAW_TABLE_AUDITED_SUBSET
@@ -652,14 +652,41 @@ class MineralSystemProofTest {
             "https://data.usgs.gov/datacatalog/data/USGS%3A66db3cb7d34eef5af66d9306",
             report.empiricalDataset().sourceUri());
         assertEquals("USGS-2026-LCT-v2.0", report.empiricalDataset().sourceVersion());
+        assertEquals(86, report.empiricalDataset().rows().size());
+        assertEquals(69, report.empiricalDataset().calibrationRowCount());
+        assertEquals(17, report.empiricalDataset().heldOutRowCount());
+        assertTrue(report.empiricalDataset().sourceAuditComplete());
+        List<MineralSystemValidationReport.SampleRow> lctRows = report.empiricalDataset().rows();
+        assertTrue(lctRows.getFirst().sourceRowRef().contains("ID=84;DEPOSIT=Case Lake"));
+        assertTrue(lctRows.getLast().sourceRowRef().contains("ID=39;DEPOSIT=Manono"));
+        for (int index = 0; index < lctRows.size(); index++) {
+          MineralSystemValidationReport.SampleRow row = lctRows.get(index);
+          assertEquals((index + 1) / 86.0, row.percentile(), 1.0e-12);
+          assertEquals(
+              (index + 1) % 5 == 0
+                  ? MineralSystemValidationReport.SampleRole.HELD_OUT
+                  : MineralSystemValidationReport.SampleRole.CALIBRATION,
+              row.role());
+        }
         MineralSystemValidationReport.SampleRow adina =
             report.empiricalDataset().rows().stream()
-                .filter(row -> row.sourceRowRef().equals("LiCsRb_peg_GT_Deposits.csv:ID=1"))
+                .filter(
+                    row ->
+                        row.sourceRowRef()
+                            .contains("LiCsRb_peg_GT_Deposits.csv:ID=1;DEPOSIT=Adina"))
                 .findFirst()
                 .orElseThrow();
         assertEquals(58.5, adina.values().get("tonnage"), 1.0e-12);
         assertEquals(0.0112, adina.values().get("li2o_grade"), 1.0e-12);
         assertTrue(adina.missingFields().contains("ta2o5_grade"));
+        assertTrue(adina.missingFields().contains("cs2o_grade"));
+        MineralSystemValidationReport.SampleRow caseLake =
+            lctRows.stream()
+                .filter(row -> row.sourceRowRef().contains("ID=84;DEPOSIT=Case Lake"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(0.024, caseLake.values().get("cs2o_grade"), 1.0e-12);
+        assertTrue(caseLake.missingFields().contains("li2o_grade"));
       }
       assertTrue(
           report.empiricalDataset().rows().stream()
@@ -679,7 +706,7 @@ class MineralSystemProofTest {
               / 2,
           statistical.covarianceSummaries().size());
       assertEquals(
-          auditedBif || auditedEvaporite || auditedPlacer
+          auditedBif || auditedLct || auditedEvaporite || auditedPlacer
               ? MineralSystemValidationReport.StatisticalStatus.COMPLETE
               : auditedSubset
                   ? MineralSystemValidationReport.StatisticalStatus.AUDITED_SUBSET

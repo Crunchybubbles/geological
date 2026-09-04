@@ -1,0 +1,89 @@
+# USGS Grade and tonnage data for lithium, cesium, and rubidium pegmatite deposits v2.0.
+# Complete 86-row source release from LiCsRb_peg_GT_Deposits.csv; rows sorted by ore tonnage and source ID.
+# Columns: source_id|deposit_name|country|subtype|role|tonnage_percentile|ore_tonnage_tonnes|li2o_grade_pct|cs2o_grade_pct|rb2o_grade_pct|ta2o5_grade_ppm|sn_grade_ppm|cutoff_pct|cutoff_unit|primary_li_ore_minerals|primary_cs_ore_minerals|primary_rb_ore_minerals|reference|comments|ore_tonnage_source_text|li2o_source_text|cs2o_source_text|rb2o_source_text|ta2o5_source_text|sn_source_text
+84|Case Lake (West Joe Dyke)|Canada|pollucite|CALIBRATION|0.0116279069767|13000||2.4||||0.1|% Cs2O||Pollucite||(Havlin and Scogings, 2025)||13000||2.4|||
+56|Pioneer Dome (Sinclair)|Australia|pollucite|CALIBRATION|0.0232558139535|19210||8.295|||||||Pollucite||(Pioneer Resource Ltd., 2020)|Produced + remaining resource in stage 1 pit shell.|19210||8.295|||
+58|Raleigh Lake|Canada|feldspar|CALIBRATION|0.0348837209302|256000|||0.569|||0.44|% Rb2O|||Feldspar|(ERM Consultants Canada Ltd., 2024)||256000|||0.569||
+31|Keliber (Outovesi)|Finland|spodumene|CALIBRATION|0.046511627907|281000|1.43|||||0.5|% Li2O|Spodumene|||(Sibanye Stillwater, 2021), (Sweco Industry Oy, 2016)||281000|1.43||||
+68|Sirmac|Canada|spodumene|HELD_OUT|0.0581395348837|322000|1.33|||61||0.5|% Li2O|Spodumene|||(Duplessis and Dufort, 2023)||322000|1.33|||61|
+36|Lilypad (Pollucite Dyke)|Canada|pollucite|CALIBRATION|0.0697674418605|340000||2.294|||||||Pollucite||(Bodeving and others, 2022)|Resource estimated based on 2001 drill results and is considered historic by NI 43-101 and needs possible revision (non-NI 43-101 compliant resource).|340000||2.294|||
+29|Keliber (Leviäkangas)|Finland|spodumene|CALIBRATION|0.0813953488372|468000|1|||||0.5|% Li2O|Spodumene|||(Sibanye Stillwater, 2021), (Sweco Industry Oy, 2016)||468000|1||||
+78|Zoro 1 (Dyke 1)|Canada|spodumene+pollucite+lepidolite|CALIBRATION|0.093023255814|1075000|0.91|0.021|0.133|43||0.3|% Li2O|Spodumene|Pollucite|Lepidolite|(Fedikow and Zelligan, 2018)||1075000|0.91|0.021|0.133|43|
+28|Keliber (Emmes)|Finland|spodumene|CALIBRATION|0.104651162791|1076000|1.22|||||0.5|% Li2O|Spodumene|||(Sibanye Stillwater, 2021), (Sweco Industry Oy, 2016)||1076000|1.22||||
+30|Keliber (Länttä)|Finland|spodumene|HELD_OUT|0.116279069767|1328000|1.04|||||0.5|% Li2O|Spodumene|||(Sibanye Stillwater, 2021), (Sweco Industry Oy, 2016)||1328000|1.04||||
+16|Georgia Lake (South Spodumene Pegmatite Area)|Canada|spodumene|CALIBRATION|0.127906976744|1903000|1.12|||||0.6|% Li2O|Spodumene|||(Warren and others, 2022)||1903000|1.12||||
+18|Snow Lake (Grass River)|Canada|spodumene|CALIBRATION|0.139534883721|2035000|1|||||0.3|% Li2O|Spodumene|||(ABH Engineering, Inc. and SLR Consulting Ltd., 2023)||2035000|1||||
+86|CV13 (Rigel and Vega Cs Zones, Shaakichiuwaanaan Project, formerly Corvette)|Canada|pollucite|CALIBRATION|0.151162790698|2391000||2.98||||0.5|% Cs2O||Pollucite||(McCracken and Cunningham, 2025)||2391000||2.98|||
+70|Swanson|Namibia|spodumene|CALIBRATION|0.162790697674|2584000|0.15|||408||||Spodumene|||(Arcadia Minerals Ltd., 2023)||2584000|0.15|||408|
+73|Tanco (Bernic Lake)|Canada|feldspar_lepidolite|HELD_OUT|0.174418604651|2860000|||0.44|||||||Feldspar, Lepidolite|(Tanco, 2023)|Only includes tailings grade/tonnage, not in-situ resource.|2860000|||0.44||
+42|Mina do Barroso (Aldeia)|Portugal|spodumene|CALIBRATION|0.186046511628|3500000|1.3|||||0.5|% Li2O|Spodumene|||(Savannah Resources PLC, 2023)||3500000|1.3||||
+22|Itinga (Outro Lado)|Brazil|spodumene|CALIBRATION|0.197674418605|3541000|1.43|||||0|% Li2O|Spodumene|||(Lithium Ionic Corp, 2023)||3541000|1.43||||
+72|Tanco (Bernic Lake)|Canada|pollucite|CALIBRATION|0.209302325581|3802000||1.873|||||||Pollucite||(United Nations Economic Commission of Europe, 2024), (Tanco, 2023), (Tetra Tech, 2013; 2023)|Production during 2011-present estimated based on difference between 2023 in situ resource and 2010 in-situ resource estimates.|3802000||1.873|||
+45|Mt. Edon|Australia|lepidolite|CALIBRATION|0.220930232558|3850000|0.1||0.29|||||Lepidolite||Lepidolite|(Everest Metals Corporation, 2024)|Resource estimate considered an Exploration Target. Tonnages and Rb2O percentages represent median of reported ranges.|3850000|0.1||0.29||
+25|Karibib (Helikon 1 through 5)|Namibia|lepidolite|HELD_OUT|0.232558139535|4030000|0.52|0.034|0.252|46||0.16|% Li2O|Lepidolite|||(Lepidico Ltd., 2020), (Lepidico Ltd., 2023)||4030000|0.52|0.034|0.252|46|
+60|Root Lake (McCombe)|Canada|spodumene|CALIBRATION|0.244186046512|4500000|1.01|||||0.2|% Li2O|Spodumene|||(Green Technology Metals, 2023a)||4500000|1.01||||
+49|Niobe|Australia|lepidolite|CALIBRATION|0.255813953488|4615000|0.07||0.17|||0.05|% Rb2O|Lepidolite||Lepidolite|(Aldoro Resources Ltd., 2022)||4615000|0.07||0.17||
+80|Mina do Barroso  (NOA and Reservatorio)|Portugal|spodumene|CALIBRATION|0.267441860465|4800000|0.96|||||0.5|% Li2O|Spodumene|||(Savannah Resources PLC, 2023)||4800000|0.96||||
+33|King Tamba (Dalgaranga)|Australia|lepidolite|CALIBRATION|0.279069767442|5000000|0.05||0.14|||0.05|% Rb2O|Lepidolite||Lepidolite|(Krakatoa Resources Ltd., 2023)||5000000|0.05||0.14||
+57|Raleigh Lake|Canada|spodumene|HELD_OUT|0.290697674419|6195000|0.6|||||0.3|% Li2O|Spodumene|||(ERM Consultants Canada Ltd., 2024)||6195000|0.6||||
+74|Snow Lake (Thompson Bros)|Canada|spodumene|CALIBRATION|0.302325581395|6384000|1.11|||||0.3|% Li2O|Spodumene|||(ABH Engineering, Inc. and SLR Consulting Ltd., 2023)||6384000|1.11||||
+8|Bougouni (Ngoualana)|Mali|spodumene|CALIBRATION|0.313953488372|6700000|1|||||0.5|% Li2O|Spodumene|||(Kodal Minerals PLC, 2016), (Kodal Minerals PLC, 2023)||6700000|1||||
+71|Tanco (Bernic Lake)|Canada|spodumene|CALIBRATION|0.325581395349|7163000|1.77|||||||Spodumene|||United Nations Economic Commission of Europe (2024), Tetra Tech (2013; 2023)||7163000|1.77||||
+26|Karibib (Rubicon)|Namibia|lepidolite|CALIBRATION|0.337209302326|7620000|0.4|0.027|0.241|39||0.15|% Li2O|Lepidolite|||(Lepidico Ltd., 2020), (Lepidico Ltd., 2023)||7620000|0.4|0.027|0.241|39|
+2|Alvarrões|Portugal|lepidolite|HELD_OUT|0.348837209302|7693000|0.87|0.026|0.164|36|54|0.2|% Li2O|Lepidolite|||(Lepidico Ltd., 2019)||7693000|0.87|0.026|0.164|36|54
+11|Donner Lake|Canada|spodumene|CALIBRATION|0.360465116279|8087000|1.21|||||0|% Li2O|Spodumene|||(Millar and others, 2023)||8087000|1.21||||
+51|Pakeagama Lake (PAK)|Canada|spodumene_lepidolite+pollucite+lepidolite|CALIBRATION|0.372093023256|9987780|1.96|0.035|0.299|75||0.67|% Li2O|Spodumene, Lepidolite|Pollucite|Lepidolite|(McCracken and others, 2023)|Open pit and underground resources combined.|9987780|1.96|0.035|0.299|75|
+13|Finniss (BP33)|Australia|spodumene|CALIBRATION|0.383720930233|10100000|1.48|||||0.5|% Li2O|Spodumene|||(Core Lithium Ltd., 2023)||10100000|1.48||||
+61|Root Lake (Root Bay)|Canada|spodumene|CALIBRATION|0.395348837209|10100000|1.29|||||0.2|% Li2O|Spodumene|||(Green Technology Metals, 2023a)||10100000|1.29||||
+65|Separation Rapids (Big Whopper)|Canada|lepidolite+feldspar|HELD_OUT|0.406976744186|10196000||0.016|0.365||||||Lepidolite|Feldspar|(Gowans and others, 2018)|This mineral resource estimate is outdated for lithium, but included here because it reports Cs and Rb.|10196000||0.016|0.365||
+66|Sepeda|Portugal|petalite|CALIBRATION|0.418604651163|10300000|1||||500|0.3|% Li2O|Petalite|||(Dakota Minerals Ltd., 2017)||10300000|1||||500
+67|Seymour Lake|Canada|spodumene|CALIBRATION|0.43023255814|10300000|1.03|||106||0.2|% Li2O|Spodumene|||(Green Technology Metals, 2023b)||10300000|1.03|||106|
+55|Pioneer Dome|Australia|spodumene|CALIBRATION|0.441860465116|11107110|1.15|||47||0.3|% Li2O|Spodumene|||(Essential Metals Ltd., 2022)||11107110|1.15|||47|
+69|Split Rocks-Rio|Australia|eucryptite+lepidolite|CALIBRATION|0.453488372093|11900000|0.72|0.044||59|217|0.5|% Li2O|Eucryptite|Lepidolite||(Zenith Minerals Ltd., 2023)||11900000|0.72|0.044||59|217
+83|Keliber (Rapasaari and Syväjärvi)|Finland|spodumene|HELD_OUT|0.46511627907|12469000|1.03|||||0.5|% Li2O|Spodumene|||(Sibanye Stillwater, 2021), (Sweco Industry Oy, 2016)||12469000|1.03||||
+14|Finniss (Grants, Hang Gong, and Carlton)|Australia|spodumene|CALIBRATION|0.476744186047|12600000|1.34|||||0.5|% Li2O|Spodumene|||(Core Lithium Ltd., 2023)||12600000|1.34||||
+77|Wolfsberg|Austria|spodumene|CALIBRATION|0.488372093023|12881000|1|||||0|% Li2O|Spodumene|||(European Lithium Ltd., 2023)||12881000|1||||
+64|Separation Rapids (Big Whopper)|Canada|petalite|CALIBRATION|0.5|12890000|1.36|0.015||57||0.62|% Li2O|Petalite|||(Avalon Advanced Materials Inc., 2023), (Gowans and others, 2018)|Mineral resource estimate from 2023 does not include Rb. See record ID 065 for older estimate that includes Rb.|12890000|1.36|0.015||57|
+15|Georgia Lake (North Spodumene Pegmatite Area)|Canada|spodumene|CALIBRATION|0.511627906977|12920000|0.89|||||0.6|% Li2O|Spodumene|||(Warren and others, 2022)||12920000|0.89||||
+59|Reung Kiet|Thailand|lepidolite|HELD_OUT|0.523255813953|14800000|0.45|0.025|0.219|63|391|0.25|% Li2O|Lepidolite|||(Pan Asia Metals Ltd., 2022a), (Pan Asia Metals Ltd., 2022b), (Pan Asia Metals Ltd., 2024)||14800000|0.45|0.025|0.219|63|391
+9|Buldania (Anna deposit)|Australia|spodumene|CALIBRATION|0.53488372093|15300000|0.95|||36||0.3|% Li2O|Spodumene|||(Liontown Resources Ltd., 2019)||15300000|0.95|||36|
+4|Authier|Canada|spodumene|CALIBRATION|0.546511627907|17136000|1.01|||||0.55|% Li2O|Spodumene|||(Sayona Mining Ltd., 2022)||17136000|1.01||||
+82|Mina do Barroso (Grandao and Pinheiro)|Portugal|spodumene|CALIBRATION|0.558139534884|19700000|1.04|||||0.5|% Li2O|Spodumene|||(Savannah Resources PLC, 2023)||19700000|1.04||||
+21|Grota do Cirilo Project (Xuxa)|Brazil|spodumene|CALIBRATION|0.56976744186|21200000|1.55|||||0.3|% Li2O|Spodumene|||(Debloni, Jr. and others, 2023)||21200000|1.55||||
+47|Mt. Cattlin|Australia|spodumene|HELD_OUT|0.581395348837|21797000|1.24|||137||0.3|% Li2O|Spodumene|||(Donald and others, 2023)||21797000|1.24|||137|
+41|Mibra|Brazil|spodumene|CALIBRATION|0.593023255814|24511000|1.05|||276|474|||Spodumene|||(AMG, 2017)||24511000|1.05|||276|474
+79|Zulu|Zimbabwe|spodumene|CALIBRATION|0.604651162791|24750000|0.43|||34||0|% Li2O|Spodumene|||(Premier African Minerals Ltd., 2017), (Premier African Minerals Ltd., 2024)||24750000|0.43|||34|
+7|Bougouni (Boumou and Sogola-Baoule)|Mali|spodumene|CALIBRATION|0.616279069767|25300000|1.07|||||0.63|% Li2O|Spodumene|||(Kodal Minerals PLC, 2016), (Kodal Minerals PLC, 2023)||25300000|1.07||||
+40|Marble Bar|Australia|spodumene|CALIBRATION|0.627906976744|25900000|0.79|||||0.2|% Li2O|Spodumene|||(Global Lithium Resources, 2022)||25900000|0.79||||
+5|Bald Hill|Australia|spodumene|HELD_OUT|0.639534883721|26689000|0.96|||121||0.3|% Li2O|Spodumene|||(Tawana Resources NL and Alliance Mineral Assessts Ltd., 2018)||26689000|0.96|||121|
+62|Rose|Canada|spodumene|CALIBRATION|0.651162790698|32945000|1.02||||97|||Spodumene|||(Pelletier and others, 2023)||32945000|1.02||||97
+20|Grota do Cirilo Project (Nezinho Do Chicao, NDC)|Brazil|spodumene|CALIBRATION|0.662790697674|33600000|1.45|||||0.3|% Li2O|Spodumene|||(Debloni, Jr. and others, 2023)||33600000|1.45||||
+24|Jiajika|China|spodumene|CALIBRATION|0.674418604651|37101000|1.38|||||||Spodumene|||(Jin and others, 2023)||37101000|1.38||||
+53|Piedmont-Carolina|United States|spodumene|CALIBRATION|0.686046511628|44150000|1.08|||||0.4|% Li2O|Spodumene|||(Piedmont Lithium Inc., 2021)||44150000|1.08||||
+12|Ewoyaa|Ghana|spodumene|HELD_OUT|0.697674418605|45308000|1.03|||||0.2|% Li2O|Spodumene|||(Atlantic Lithium Ltd., 2023)||45308000|1.03||||
+52|Pakeagama Lake (Spark)|Canada|spodumene+feldspar|CALIBRATION|0.709302325581|48574000|1.41|0.026|0.26|94|54|0.65|% Li2O|Spodumene|Feldspar|Feldspar|(McCracken and others, 2023)|Feldspar assumed to be main host of Cs and Rb because micas are somewhat less common and pollucite is unmentioned.|48574000|1.41|0.026|0.26|94|54
+48|Nemaska (Whabouchi)|Canada|spodumene|CALIBRATION|0.720930232558|55698000|1.4|||||0.33|% Li2O|Spodumene|||(Maguran and others, 2019)||55698000|1.4||||
+1|Adina|Canada|spodumene|CALIBRATION|0.732558139535|58500000|1.12|||||0.6|% Li2O|Spodumene|||(Winsome Resources Ltd., 2023)||58500000|1.12||||
+81|Grota do Cirilo Project  (Barreiro) and Itinga (Bandeira)|Brazil|spodumene|CALIBRATION|0.744186046512|58910000|1.37|||||0.3|% Li2O|Spodumene|||(Debloni, Jr. and others, 2023), (Dupéré and Sayeed, 2023)||58910000|1.37||||
+50|North American Lithium|Canada|spodumene|HELD_OUT|0.755813953488|59300000|1.23|||||0.6|% Li2O|Spodumene|||(Sayona Mining Ltd., 2023a)||59300000|1.23||||
+35|La Corne|Canada|spodumene|CALIBRATION|0.767441860465|59322000|1.09|||||0.6|% Li2O|Spodumene|||(Blanchet and others, 2012)||59322000|1.09||||
+44|Mount Marion|Australia|spodumene|CALIBRATION|0.779069767442|64800000|1.42|||||0.5|% Li2O|Spodumene|||(Mineral Resources, 2023)||64800000|1.42||||
+37|Manna|Australia|spodumene|CALIBRATION|0.790697674419|64900000|0.8|||||0.25|% Li2O|Spodumene|||(Global Lithium Resources, 2023)||64900000|0.8||||
+63|Salinas (Colina)|Brazil|spodumene|CALIBRATION|0.802325581395|65900000|1.28|||||0.3|% Li2O|Spodumene|||(Latin Resources Ltd., 2023)||65900000|1.28||||
+43|Moblan|Canada|spodumene|HELD_OUT|0.813953488372|70870000|1.15|||||0.25|% Li2O|Spodumene|||(Sayona Mining Ltd., 2023b)||70870000|1.15||||
+3|Arcadia|Zimbabwe|spodumene_petalite|CALIBRATION|0.825581395349|72700000|1.06|||97||||Spodumene, Petalite|||(Prospect Resources Ltd., 2021)||72700000|1.06|||97|
+32|Kenticha|Ethiopia|spodumene|CALIBRATION|0.837209302326|87700000|0.78|||||||Spodumene|||(Abyssinian Metals Ltd., 2023)||87700000|0.78||||
+34|Kings Mountain|United States|spodumene|CALIBRATION|0.848837209302|91010000|1.24|||||||Spodumene|||(Albermarle Corporation, 2024), (Karl and others, 2019)|Added production between 1965 to 1986 from Karl and others (2019).|91010000|1.24||||
+75|Uis|Namibia|petalite+feldspar_lepidolite|CALIBRATION|0.860465116279|98110000|0.73||0.153|90|1500|||Petalite||Feldspar, Lepidolite|(Andrada Mining Ltd., 2023), (Askari Metals Ltd., 2023), (Scholtz and others, 2018)|Material from Uis tailings project added back in by assuming the same Li and Rb concentrations as the in-place Uis resource. Lepidolite/feldspar assumed to be source of Rb.|98110000|0.73||0.153|90|1500
+10|CV5 (Shaakichiuwaanaan Project, formerly Corvette)|Canada|spodumene|HELD_OUT|0.872093023256|109242000|1.42|||131||0.4|% Li2O|Spodumene|||(Patriot Battery Metals, 2023)||109242000|1.42|||131|
+23|James Bay|Canada|spodumene|CALIBRATION|0.883720930233|110200000|1.3|||||0.5|% Li2O|Spodumene|||(SLR Consulting Ltd. and others, 2023)||110200000|1.3||||
+85|CV5 (Shaakichiuwaanaan Project, formerly Corvette)|Canada|pollucite|CALIBRATION|0.895348837209|115726000||0.089||||0.4|% Li2O||Pollucite||(McCracken and Cunningham, 2025)|The Cs2O resource at CV5 was defined with a Li2O cut-off by McCracken and Cunningham (2025).|115726000||0.089|||
+6|Bikita|Zimbabwe|petalite_spodumene+pollucite|CALIBRATION|0.906976744186|119082000|1.04|||186||||Petalite, Spodumene|Pollucite||(Sinomine Resource Group Co. Ltd., 2024)|Cesium has historically been mined from Bikita, but records of pollucite production are unavailable and unreported here.|119082000|1.04|||186|
+27|Kathleen Valley|Australia|spodumene|CALIBRATION|0.918604651163|158000000|1.34|||105||0.4|% Li2O|Spodumene|||(Liontown Resources Ltd., 2021)||158000000|1.34|||105|
+38|Manono (Carriere de l'Este)|Democratic Republic of the Congo|spodumene|HELD_OUT|0.93023255814|175990000|1.58|||82|785|0.5|% Li2O|Spodumene|||(AVZ Minerals Ltd., 2023), (Sedgman Novopro Projects Inc., 2023)||175990000|1.58|||82|785
+46|Mt. Holland (Earl Grey)|Australia|spodumene|CALIBRATION|0.941860465116|186000000|1.53|||49||0.5|% Li2O|Spodumene|||(Sociedad Química y Minera de Chile, 2022)||186000000|1.53|||49|
+17|Goulamina|Mali|spodumene|CALIBRATION|0.953488372093|211000000|1.37|||||0.5|% Li2O|Spodumene|||(Leo Lithium Ltd., 2023)||211000000|1.37||||
+76|Wodgina|Australia|spodumene|CALIBRATION|0.96511627907|220366000|1.15|||||0.5|% Li2O|Spodumene|||(Mineral Resources, 2023)||220366000|1.15||||
+19|Greenbushes|Australia|spodumene|CALIBRATION|0.976744186047|261097000|1.93|||||0.7|% Li2O|Spodumene|||(Albemarle Corporation, 2023)||261097000|1.93||||
+54|Pilgangoora|Australia|spodumene|HELD_OUT|0.988372093023|423396000|1.15|||112||0.2|% Li2O|Spodumene|||(Pilbara Minerals Ltd., 2023)||423396000|1.15|||112|
+39|Manono (Roche Dure, Kitololo)|Democratic Republic of the Congo|spodumene|CALIBRATION|1|677930000|1.61|||33|690|0.5|% Li2O|Spodumene|||(AVZ Minerals Ltd., 2023), (Sedgman Novopro Projects Inc., 2023)||677930000|1.61|||33|690

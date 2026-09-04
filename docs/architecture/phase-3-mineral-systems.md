@@ -139,11 +139,13 @@ The VMS importer follows the same contract against the 17-row subset of `VMS.tab
 source's Felsic, Mafic, and Bimodal-Mafic subtype labels, filters to positive tonnage/Cu/Zn rows,
 converts percent grades to mass fractions, and retains a deterministic five-row held-out split.
 
-The LCT importer reads a 16-row subset of the USGS v2.0 `LiCsRb_peg_GT_Deposits.csv` release. It
-preserves the release IDs, ore-mineral subtype labels, per-row cutoff values, and Ta ppm
-missingness; it converts tonnes to Mt, Li2O percent to mass fraction, and Ta2O5 ppm to mass
-fraction. The deterministic four-row held-out split keeps conditional Ta coverage explicit rather
-than treating unreported Ta as zero.
+The LCT importer reads all 86 rows of the USGS v2.0 `LiCsRb_peg_GT_Deposits.csv` release. It
+preserves release IDs, country and ore-mineral subtype labels, per-row cutoff values/units,
+references, comments, and explicit missingness across Li2O, Cs2O, Rb2O, Ta2O5, and Sn. It converts
+tonnes to Mt, percent grades to mass fraction, and ppm concentrations to mass fraction. The
+deterministic every-fifth-row split keeps Cs/Rb-only rows and conditional trace-element coverage
+explicit rather than treating unreported values as zero; this is a complete audit of the selected
+release, not an exhaustive natural population.
 
 The evaporite/potash importer reads all 102 qualifying rows from the USGS `PotashDeposits.xlsx`
 workbook in the PotashXL package. The population rule keeps every source row with a positive first
@@ -169,8 +171,8 @@ bias limit.
 
 ## Alpha.10 — held-out statistical projection
 
-Three families use `RAW_TABLE_AUDITED_SUBSET`, while the complete 66-row BIF, 102-row potash, and
-83-row placer tables are `RAW_TABLE_AUDITED`: these statuses make the import and report contract deterministic
+Two families use `RAW_TABLE_AUDITED_SUBSET`, while the complete 86-row LCT, 66-row BIF, 102-row
+potash, and 83-row placer tables are `RAW_TABLE_AUDITED`: these statuses make the import and report contract deterministic
 and reviewable without claiming that any historical table is an unbiased natural population. All
 reports emit deterministic held-out quantile projections (with log-space error where values are
 usable) and calibration covariance/correlation summaries for every declared variable pair. These
