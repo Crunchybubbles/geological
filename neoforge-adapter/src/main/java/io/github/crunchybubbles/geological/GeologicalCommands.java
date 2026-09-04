@@ -37,6 +37,9 @@ import io.github.crunchybubbles.geological.worldgen.OverworldHandSamplePlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldLateriteColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldLateriteInterval;
 import io.github.crunchybubbles.geological.worldgen.OverworldLateritePlanner;
+import io.github.crunchybubbles.geological.worldgen.OverworldLayeredIntrusionColumnPlan;
+import io.github.crunchybubbles.geological.worldgen.OverworldLayeredIntrusionInterval;
+import io.github.crunchybubbles.geological.worldgen.OverworldLayeredIntrusionPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldMapDebugTrace;
 import io.github.crunchybubbles.geological.worldgen.OverworldOrogenicGoldColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldOrogenicGoldInterval;
@@ -129,6 +132,9 @@ public final class GeologicalCommands {
                     Commands.literal("basin-hydrothermal")
                         .executes(GeologicalCommands::showBasinHydrothermalHere))
                 .then(Commands.literal("uranium").executes(GeologicalCommands::showUraniumHere))
+                .then(
+                    Commands.literal("layered-intrusion")
+                        .executes(GeologicalCommands::showLayeredIntrusionHere))
                 .then(
                     Commands.literal("hand-sample")
                         .executes(GeologicalCommands::showHandSampleHere))
@@ -577,6 +583,35 @@ public final class GeologicalCommands {
     } catch (IllegalArgumentException | IllegalStateException exception) {
       source.sendFailure(
           Component.literal("geology uranium unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static int showLayeredIntrusionHere(CommandContext<CommandSourceStack> context) {
+    BlockPos position = BlockPos.containing(context.getSource().getPosition());
+    CommandSourceStack source = context.getSource();
+    try {
+      OverworldLayeredIntrusionColumnPlan plan =
+          OverworldLayeredIntrusionPlanner.from(
+                  planner(source.getLevel(), position.getX(), position.getZ()))
+              .plan(position.getX(), position.getZ());
+      OverworldLayeredIntrusionInterval interval = plan.at(position.getY()).orElse(null);
+      String summary =
+          interval == null
+              ? plan.summary()
+                  + " at=("
+                  + position.getX()
+                  + ","
+                  + position.getY()
+                  + ","
+                  + position.getZ()
+                  + ") horizon=none"
+              : plan.summary() + " " + interval.summary();
+      source.sendSuccess(() -> Component.literal(summary), false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(
+          Component.literal("geology layered-intrusion unavailable: " + exception.getMessage()));
       return 0;
     }
   }

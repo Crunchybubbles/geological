@@ -156,3 +156,12 @@ tasks.register<JavaExec>("uranium") {
     args("uranium", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase7/uranium").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("layeredIntrusion") {
+    group = "verification"
+    description = "Writes the deterministic Phase 7 layered-intrusion chromite and Ni-Cu-PGE review."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("layered-intrusion", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase7/layered-intrusion").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}

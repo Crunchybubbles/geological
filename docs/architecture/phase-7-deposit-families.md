@@ -1,7 +1,7 @@
 # Phase 7 deposit families — source-gated deposit projections
 
-Status: `phase7-alpha.6` (greisen, explicit skarn host fixture, epithermal shallow-fluid,
-orogenic-gold metamorphic-fluid, basin/redox, and uranium projections).
+Status: `phase7-alpha.7` (greisen, explicit skarn host fixture, epithermal shallow-fluid,
+orogenic-gold metamorphic-fluid, basin/redox, uranium, and layered-intrusion projections).
 
 ## Alpha.1 — evolved-felsic greisen proof
 
@@ -163,6 +163,34 @@ preservation, horizon, ledger, default-negative, and seam evidence. The determin
 both families, actual source ownership, barren behavior, closed accounting, repeated bytes, and
 chunk seams.
 
-Layered-intrusion, carbonatite/REE and kimberlite/diamond, phosphorite/Mn/coal/brine, and
-geothermal families remain separate future Phase 7 slices; they must not inherit these basin or
-uranium proxies or be inferred from a generic catalog lithology.
+## Alpha.7 — layered-intrusion chromite and Ni-Cu-PGE systems
+
+`LayeredIntrusionSystemState` adds three explicit magmatic chamber branches: stratiform chromitite
+seams, basal/conduit Ni-Cu-PGE sulfide concentration, and cyclic layered PGE reefs. Formation
+requires a layered mafic-ultramafic chamber, a family-specific cumulate interval, chromium or
+sulfide saturation, a recharge/conduit/reef path, the corresponding physical trap, and preserved
+chamber cover. A generic gabbro or any mafic-colored sediment is not sufficient. The finite melt
+proxy ledger closes source budget into released melt, transport loss, and deposit allocation; it is
+not a Cr-Ni-Cu-PGE assay, grade, reserve, or absolute tonnage.
+
+The default `LayeredIntrusionHostPolicy.none()` resolves actual bedrock only and therefore keeps
+the current synthetic atlas barren because it does not author a layered mafic intrusion. The
+review-only `LayeredIntrusionHostPolicy.fixture()` supplies a named chamber, existing magma-lineage
+identity, and cyclic ultramafic/mafic host evidence without weakening that default gate. Each
+branch emits three contiguous horizons (`CHROMITITE_SEAM`/`DISSEMINATED_CHROMITE_HALO`/
+`ALTERED_ULTRAMAFIC_MARGIN`, `BASAL_MASSIVE_SULFIDE`/`NET_TEXTURED_SULFIDE`/
+`PGE_SULFIDE_DISSEMINATION`, or `PGE_REEF_SEAM`/`CHROMITITE_ASSOCIATED_REEF`/
+`SULFIDE_BEARING_CYCLIC_UNIT`) using the existing coarse overprint vocabulary.
+
+`OverworldLayeredIntrusionPlanner` clips the chamber horizons to realized solid terrain, preserves
+stable X-then-Z target-chunk ordering, and checks adjacent-chunk seam equality. The read-only
+`/geology layered-intrusion` command and `layeredIntrusion` task expose the actual-host negative and
+all three review branches. The task writes
+`atlas-cli/build/phase7/layered-intrusion/layered-intrusion.json` with chamber, host, saturation,
+path, trap, preservation, horizon, ledger, policy, default-negative, and seam evidence. Deterministic
+tests cover all three families, actual-host barren behavior, closed accounting, repeated bytes, and
+chunk seams.
+
+Carbonatite/REE and kimberlite/diamond, phosphorite/Mn/coal/brine, and geothermal families remain
+separate future Phase 7 slices; they must not inherit these basin, uranium, or layered-intrusion
+proxies or be inferred from a generic catalog lithology.

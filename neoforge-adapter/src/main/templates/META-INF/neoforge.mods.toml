@@ -31,6 +31,10 @@ the deterministic dolostone fixture is review-only. Its horizons are not metal a
 voxel-grade inventories. The `/geology uranium` view exposes source-gated unconformity-related
 and sandstone roll-front uranium redox/groundwater proxies; its old-basement, aquifer, and
 reducing-trap evidence is not a uranium assay, reserve, grade, or voxel-grade inventory.
+The `/geology layered-intrusion` view exposes source-gated stratiform chromite, basal Ni-Cu-PGE
+sulfide, and layered PGE-reef proxies; the default planner resolves actual hosts only and the
+deterministic layered-chamber fixture is review-only. Its horizons are not metal assays, grades,
+reserves, or voxel-grade inventories.
 '''
 
 [[dependencies.${mod_id}]]

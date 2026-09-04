@@ -28,6 +28,7 @@ class GeologicalCommandsTest {
     assertNotNull(geology.getChild("orogenic-gold"));
     assertNotNull(geology.getChild("basin-hydrothermal"));
     assertNotNull(geology.getChild("uranium"));
+    assertNotNull(geology.getChild("layered-intrusion"));
     assertNotNull(geology.getChild("hand-sample"));
     assertNotNull(geology.getChild("soil"));
     assertNotNull(geology.getChild("stream-sediment"));
