@@ -12,8 +12,8 @@ that contract, exposes deterministic read-only Overworld terrain controls, build
 base-terrain/lithology column plan, provides an injected-palette chunk writer plus a small vanilla
 block palette, registers an Overworld generator/preset hook with explicit surface water/air, and
 applies a bounded Phase 2 regolith/surface-clue projection plus read-only `/geology` column, map,
-and section overlays. The first Phase 8 Nether thermal/cavern compiler slice is now platform-neutral
-and reviewable; dimension-native Nether resources and End generation remain future increments.
+and section overlays. Phase 8 now includes the platform-neutral Nether thermal/cavern and
+material/resource review slices; End generation remains a future increment.
 
 See [implementation-status.md](docs/architecture/implementation-status.md) for the roadmap-aligned
 remaining estimate by phase. Phase 3 redistribution/statistical review remains an external sign-off
@@ -52,12 +52,14 @@ horizons are bounded projections rather than assays or voxel-grade inventories; 
 retain explicit actual-host/source gates, and artifacts record closed proxy ledgers and
 adjacent-chunk seam proofs.
 
-Phase 8 alpha.1 now adds a profile-locked, platform-neutral Nether thermal/magmatic province and
-3-D cavern compiler. It produces bounded floor/roof/lava intervals, optional hanging bridges,
-stable refractory-basement and magma-province identities, four synthetic province families, and
-adjacent-chunk seam evidence through the `netherThermal` review task. The compiler preserves the
-frozen Nether vertical envelope and forbidden-process contract; Nether resource history, End
-parent-body generation, progression, and loader adapters remain separate increments.
+Phase 8 alpha.2 now adds a profile-locked, platform-neutral Nether thermal/magmatic province,
+3-D cavern compiler, ordered material history, and source-linked quartz, gold, glowstone, and
+ancient-debris prototypes. It produces bounded floor/roof/lava intervals, optional hanging
+bridges, stable refractory-basement/magma/resource identities, four synthetic province families,
+closed resource ledgers, and adjacent-chunk seam evidence through the `netherThermal` and
+`netherResources` review tasks. The compiler preserves the frozen Nether vertical envelope and
+forbidden-process contract; End parent-body generation, progression, and loader adapters remain
+separate increments.
 
 Geological is a causal geology and terrain-generation project for Minecraft Java 1.21.1 on NeoForge 21.1.x. Its selected world preset will eventually own the canonical Overworld, Nether, and End through dimension-specific geological histories rather than add a separate geology dimension.
 
@@ -102,10 +104,12 @@ The checked-in Gradle wrapper is the only prerequisite beyond a Java 21 JDK.
 ./gradlew sedimentaryResources
 ./gradlew geothermal
 ./gradlew netherThermal
+./gradlew netherResources
 ```
 
 The Phase 8 Nether thermal review is written below
-`atlas-cli/build/phase8/nether-thermal/`.
+`atlas-cli/build/phase8/nether-thermal/`, and the material/resource review below
+`atlas-cli/build/phase8/nether-resources/`.
 
 On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, column plans, JSON traces, and measurements are written below `atlas-cli/build/phase1/`; the deterministic material/catalog/reservoir review is written below `atlas-cli/build/phase2/`; the Phase 4 worldgen observation is written below `atlas-cli/build/phase4/worldgen/`; the Phase 5 exploration telemetry is written below `atlas-cli/build/phase5/exploration/`; the Phase 6 secondary-weathering review is written below `atlas-cli/build/phase6/secondary/`, the laterite review below `atlas-cli/build/phase6/laterite/`, the secondary-placer review below `atlas-cli/build/phase6/secondary-placers/`, the paleosurface structural review below `atlas-cli/build/phase6/paleosurface/`, the opt-in glacial review below `atlas-cli/build/phase6/glacial/`, the Phase 7 greisen review below `atlas-cli/build/phase7/greisen/`, the skarn review below `atlas-cli/build/phase7/skarn/`, the epithermal review below `atlas-cli/build/phase7/epithermal/`, the orogenic-gold review below `atlas-cli/build/phase7/orogenic-gold/`, the basin/redox review below `atlas-cli/build/phase7/basin-hydrothermal/`, the uranium review below `atlas-cli/build/phase7/uranium/`, and the layered-intrusion review below `atlas-cli/build/phase7/layered-intrusion/`.
 

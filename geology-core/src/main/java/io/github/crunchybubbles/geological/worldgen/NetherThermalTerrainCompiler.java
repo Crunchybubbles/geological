@@ -121,6 +121,11 @@ public final class NetherThermalTerrainCompiler {
     return PROFILE;
   }
 
+  /** Returns the immutable world identity used for every Nether field and descriptor. */
+  public WorldIdentity worldIdentity() {
+    return identity;
+  }
+
   private static int clamp(int value, int minimum, int maximum) {
     return Math.max(minimum, Math.min(maximum, value));
   }

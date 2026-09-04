@@ -1,6 +1,6 @@
 # Phase 8 dimension profiles — Nether and End native histories
 
-Status: `phase8-alpha.1` (Nether thermal/magmatic province and 3-D cavern terrain compiler).
+Status: `phase8-alpha.2` (Nether thermal/magmatic terrain, material history, and resource prototypes).
 
 ## Alpha.1 — Nether thermal cavern boundary
 
@@ -29,9 +29,35 @@ that the fictional Nether represents terrestrial geology.
 access at chunk seams, interval bounds, and province potentials. `NetherThermalPacketGeneratorTest`
 covers byte-repeatable JSON, all four province families, lava and bridge evidence, and seam proof.
 
+## Alpha.2 — Nether material history and resource prototypes
+
+`NetherMaterialHistoryState` carries an ordered, dimension-native chronicle from the thermal
+province through refractory basement formation, mafic lava and pyroclastic packages, layered
+intrusions, dike/sill emplacement, collapse brecciation, cooling contraction, volatile alteration,
+and roof/fissure condensation. The history retains stable province, basement, magma, and event
+identities and closes its bounded retained-material/alteration-loss ledger. Soul-ash accumulation
+and refractory breccia are explicit fictional families; no biome name is treated as a deep cause.
+
+`NetherResourceSystemState` gates one source-linked prototype family per coherent province family:
+Nether quartz from porous volcanic silica segregation, Nether gold from mafic magmatic/volatile
+concentration, glowstone from roof-fissure volatile condensation, and ancient debris from deep
+refractory cumulate/breccia conduit history. Each formed body retains source, pathway, host, and
+trap identities, three contiguous bounded horizons, and a released/loss/deposit ledger. An
+incoherent host returns a named barren gate rather than falling back to independent ore noise.
+Resource intervals are clipped to solid, non-lava terrain in `NetherResourcePlanner` and remain
+equal when queried directly or through adjacent chunk plans.
+
+The standalone `netherResources` task writes
+`atlas-cli/build/phase8/nether-resources/nether-resources.json`, including event/material/resource
+family counts, source/path/trap evidence, the default-negative host proof, closed budgets, and seam
+stability. The packet is review evidence, not an assay, reserve, temperature, or voxel inventory.
+`NetherResourcePlannerTest` and `NetherResourcePacketGeneratorTest` cover identity locking, all
+four families, material-event ordering, closed ledgers, barren host gating, repeatable JSON, and
+chunk seams.
+
 ## Remaining Phase 8 slices
 
-The next bounded increments are Nether material/resource history, an End parent-body/provenance and
-void-bounded terrain compiler, progression contracts, platform adapters and debug views, and a
-cross-dimensional seam/lore review. None of those later slices may weaken the frozen dimension
-profiles or silently reuse Overworld surface assumptions.
+The next bounded increments are an End parent-body/provenance and void-bounded terrain compiler,
+progression contracts, platform adapters and debug views, and a cross-dimensional seam/lore review.
+None of those later slices may weaken the frozen dimension profiles or silently reuse Overworld
+surface assumptions.

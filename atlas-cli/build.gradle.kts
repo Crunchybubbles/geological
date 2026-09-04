@@ -201,3 +201,12 @@ tasks.register<JavaExec>("netherThermal") {
     args("nether-thermal", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase8/nether-thermal").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("netherResources") {
+    group = "verification"
+    description = "Writes the deterministic Phase 8 Nether material-history and resource review."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("nether-resources", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase8/nether-resources").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}

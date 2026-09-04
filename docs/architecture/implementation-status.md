@@ -15,7 +15,7 @@ calendar promise. The current repository is the source of truth for what is actu
 | 5 — exploration geology | Phase 5 alpha.8 provides transient deterministic outcrop/float/contact/structural observations, bounded hand-sample and soil/stream/heavy-mineral sampling, interval-valued geochemical anomaly estimates, contiguous drill-core logs, vertical cross-section traces, world-persistent per-player notebooks/maps containing only player-visible evidence, and bounded clue-sufficiency/travel-burden telemetry. Stable IDs, frozen world identity, provenance, confidence/detection evidence, bounded NBT, deterministic notebook/telemetry digests, the player notebook/map paths, and the standalone `explorationTelemetry` review artifact are covered by deterministic tests. | 0 required implementation slices; external scientific/readability review and contributor-world telemetry reruns remain sign-off work. |
 | 6 — secondary expansion | `phase6-alpha.5` projects the gated Phase 3 gossan/oxidation/supergene Cu profile, source-gated bauxite/Ni-Co laterite profiles, cassiterite/heavy-mineral/diamond placer families, typed present/buried/karst paleosurface refinements, and an opt-in glacial transport prototype into world-column overlays with province-frame transforms, fixed-point source budgets where applicable, barren behavior, chunk seams, `/geology secondary`, `/geology laterite`, `/geology placers`, `/geology paleosurface`, and `/geology glacial` views, and deterministic four-chunk review artifacts. | 0 required implementation slices; glacial positive behavior remains opt-in until a production ice-history compiler is authored. |
 | 7 — deposit-family expansion | `phase7-alpha.10` adds the greisen residual-fluid proxy, a source-gated skarn carbonate-contact fixture, shallow epithermal and deformation/metamorphic-fluid orogenic-gold projections, separate MVT/SEDEX/sediment-hosted-copper basin/redox projections, source-gated unconformity/sandstone uranium projections, layered-intrusion chromite/Ni-Cu-PGE projections, carbonatite/peralkaline REE plus kimberlite/diamond projections, sedimentary phosphorite/manganese/coal/lithium-brine/potash-borate/helium-resource projections, and geothermal heat/reservoir projections around the existing engines. All retain bounded horizons, closed source/release/loss/deposit or reservoir accounting, explicit actual-host/source gates, separate kimberlite cargo evidence, porous-medium fluid/gas/heat semantics, chunk seams, read-only commands, and deterministic review artifacts. | 0 required implementation slices; external scientific calibration and contributor-world review remain sign-off work. |
-| 8 — Nether/End profiles | `phase8-alpha.1` adds the profile-locked, platform-neutral Nether thermal/magmatic province compiler: deterministic 3-D cavern roof/floor/lava intervals, refractory basement and magma-province identities, hanging-bridge solids, four dimension-native province families, chunk seams, and the `netherThermal` review artifact. | 5–8 slices: Nether material/resource history, End parent-body atlas and terrain, progression contracts, platform adapters/debug seams, cross-dimensional review, and expert sign-off. |
+| 8 — Nether/End profiles | `phase8-alpha.2` adds the profile-locked Nether thermal/magmatic province compiler plus dimension-native material history and source-linked quartz, gold, glowstone, and ancient-debris prototypes. Histories retain ordered lava/pyroclastic/intrusive/volatile events; resource bodies retain host/path/trap identities, bounded horizons, closed ledgers, chunk seams, and the `netherThermal`/`netherResources` review artifacts. | 4–7 slices: End parent-body atlas and terrain, progression contracts, platform adapters/debug seams, cross-dimensional review, and expert sign-off. |
 | 9 — comprehensive geochemistry | Current reservoirs and element vectors are bounded proof subsets, not the full all-element/partition system. | 4–6 slices: element expansion, solid-solution/polymorph refinement, isotopic/provenance additions, and reviewed response datasets. |
 | 10 — extraction/processing | Deliberately not started; the roadmap makes this a separate future design after generation is credible. | A new design phase, not an outstanding generation bug. |
 
@@ -47,13 +47,15 @@ chunk seams, and writes `atlas-cli/build/phase4/worldgen/worldgen-benchmark.json
 observations; invariant booleans are separate from non-gating timings. Phase 4's required
 implementation slices are complete without allowing vanilla surface rules to overwrite geology.
 
-The Phase 8 first slice is now complete for the Nether terrain boundary. The compiler consumes the
-existing frozen Nether dimension profile and rejects mismatched world identities; it never imports
-Overworld surface-water, rifting, sedimentation, uplift, or weathering assumptions. Each target
-chunk enumerates exactly 256 columns in stable X-then-Z order, with bounded solid roof/floor runs,
-lava intervals, optional hanging bridges, province IDs, and heat/volatile potentials. The
-`netherThermal` task writes
+The Phase 8 Nether terrain and material/resource boundary is now complete through alpha.2. The
+compiler consumes the existing frozen Nether dimension profile and rejects mismatched world
+identities; it never imports Overworld surface-water, rifting, sedimentation, uplift, or weathering
+assumptions. Each target chunk enumerates exactly 256 columns in stable X-then-Z order, with bounded
+solid roof/floor runs, lava intervals, optional hanging bridges, province IDs, and heat/volatile
+potentials. The `netherThermal` task writes
 `atlas-cli/build/phase8/nether-thermal/nether-thermal.json`, including all four synthetic province
-families, forbidden-process evidence, and adjacent-chunk seam equality. Nether material/resource
-history, End parent-body generation, progression, adapters, and cross-dimensional review remain
-separate slices.
+families, forbidden-process evidence, and adjacent-chunk seam equality. The `netherResources` task
+writes `atlas-cli/build/phase8/nether-resources/nether-resources.json`, retaining ordered
+lava/pyroclastic/intrusive/volatile histories and source-linked quartz, gold, glowstone, and
+ancient-debris prototype ledgers. End parent-body generation, progression, adapters, and
+cross-dimensional review remain separate slices.
