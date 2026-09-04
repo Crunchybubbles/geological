@@ -1,10 +1,10 @@
 # Phase 5 exploration geology — observations and hand samples
 
-Status: completed the third bounded exploration slice (`phase5-alpha.3`): deterministic transient
+Status: completed the fourth bounded exploration slice (`phase5-alpha.4`): deterministic transient
 outcrop, float, contact, and structural observations derived from the Phase 4 Overworld column
 trace, stable observation IDs, provenance body references, confidence/scale fields, and the
 read-only `/geology observations` command, plus coarse hand-sample identification and surface
-sediment sampling.
+sediment sampling, and interval-valued geochemical anomaly estimates.
 
 `OverworldExplorationObservationPlanner` consumes the same immutable
 `OverworldRegolithPlanner` used by generation and debug overlays. An exposed bedrock clue yields an
@@ -48,6 +48,15 @@ The sampler rejects unsupported settings instead of manufacturing a clue, and it
 persists a sample or an upstream sediment inventory. A barren heavy-mineral concentrate is a valid
 result with lower confidence.
 
-Remaining Phase 5 slices are uncertainty and detection-limit handling; drill-core/logging and
-section tools; and a discovery notebook/map that persists player observations rather than hidden
-truth.
+## Alpha.4 geochemical uncertainty and detection limits
+
+`OverworldGeochemicalAnomalyPlanner` consumes only the coarse indicator signals in a transient
+surface sample. For each reported element it derives a method-specific detection limit, a bounded
+interval, a censored/non-detected flag, and a normalized anomaly score using a stable object-keyed
+random stream. The result preserves sample and body provenance and is deterministic across repeated
+queries and traversal order. It is explicitly not a laboratory assay: intervals are observation
+uncertainty, and values below the detection limit remain censored rather than silently becoming
+zero. The read-only command is `/geology anomaly <soil|stream|heavy>`.
+
+Remaining Phase 5 slices are drill-core/logging and section tools; a discovery notebook/map that
+persists player observations rather than hidden truth; and Phase 5 telemetry/exit review.

@@ -7,6 +7,7 @@ import com.mojang.brigadier.context.CommandContext;
 import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfile;
 import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfiles;
 import io.github.crunchybubbles.geological.worldgen.ExplorationSampleKind;
+import io.github.crunchybubbles.geological.worldgen.GeochemicalAnomalyEstimate;
 import io.github.crunchybubbles.geological.worldgen.HandSampleIdentification;
 import io.github.crunchybubbles.geological.worldgen.OverworldAirFluidColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldAirFluidPlanner;
@@ -14,6 +15,7 @@ import io.github.crunchybubbles.geological.worldgen.OverworldBaseTerrainColumnPl
 import io.github.crunchybubbles.geological.worldgen.OverworldColumnDebugTrace;
 import io.github.crunchybubbles.geological.worldgen.OverworldExplorationObservation;
 import io.github.crunchybubbles.geological.worldgen.OverworldExplorationObservationPlanner;
+import io.github.crunchybubbles.geological.worldgen.OverworldGeochemicalAnomalyPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldHandSamplePlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldMapDebugTrace;
 import io.github.crunchybubbles.geological.worldgen.OverworldRegolithColumnPlan;
@@ -80,6 +82,11 @@ public final class GeologicalCommands {
                         .executes(
                             context ->
                                 showSedimentHere(context, ExplorationSampleKind.HEAVY_MINERAL)))
+                .then(
+                    Commands.literal("anomaly")
+                        .then(
+                            Commands.argument("kind", StringArgumentType.word())
+                                .executes(GeologicalCommands::showAnomalyHere)))
                 .then(
                     Commands.literal("column")
                         .then(
@@ -170,6 +177,47 @@ public final class GeologicalCommands {
                   + exception.getMessage()));
       return 0;
     }
+  }
+
+  private static int showAnomalyHere(CommandContext<CommandSourceStack> context) {
+    BlockPos position = BlockPos.containing(context.getSource().getPosition());
+    CommandSourceStack source = context.getSource();
+    ExplorationSampleKind kind;
+    try {
+      kind = parseSampleKind(StringArgumentType.getString(context, "kind"));
+    } catch (IllegalArgumentException exception) {
+      source.sendFailure(
+          Component.literal("geology anomaly unavailable: " + exception.getMessage()));
+      return 0;
+    }
+    try {
+      OverworldGeochemicalAnomalyPlanner anomaly =
+          OverworldGeochemicalAnomalyPlanner.from(
+              OverworldSedimentSampler.from(
+                  planner(source.getLevel(), position.getX(), position.getZ())));
+      GeochemicalAnomalyEstimate estimate =
+          switch (kind) {
+            case SOIL -> anomaly.estimateSoil(position.getX(), position.getZ());
+            case STREAM_SEDIMENT ->
+                anomaly.estimateStreamSediment(position.getX(), position.getZ());
+            case HEAVY_MINERAL -> anomaly.estimateHeavyMineral(position.getX(), position.getZ());
+          };
+      source.sendSuccess(() -> Component.literal(estimate.summary()), false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(
+          Component.literal("geology anomaly unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static ExplorationSampleKind parseSampleKind(String value) {
+    return switch (value.toLowerCase(Locale.ROOT)) {
+      case "soil" -> ExplorationSampleKind.SOIL;
+      case "stream", "stream-sediment", "stream_sediment" -> ExplorationSampleKind.STREAM_SEDIMENT;
+      case "heavy", "heavy-mineral", "heavy_mineral" -> ExplorationSampleKind.HEAVY_MINERAL;
+      default -> throw new IllegalArgumentException("sample kind must be soil, stream, or heavy");
+    };
   }
 
   private static int showColumn(CommandContext<CommandSourceStack> context) {

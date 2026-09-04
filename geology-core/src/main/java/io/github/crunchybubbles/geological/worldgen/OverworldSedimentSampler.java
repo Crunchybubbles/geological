@@ -51,6 +51,10 @@ public final class OverworldSedimentSampler {
     return sample(ExplorationSampleKind.HEAVY_MINERAL, blockX, blockZ);
   }
 
+  public OverworldRegolithPlanner regolith() {
+    return regolith;
+  }
+
   /** Samples the present surface using the rules for the requested field method. */
   public OverworldSedimentSample sample(ExplorationSampleKind kind, long blockX, long blockZ) {
     Objects.requireNonNull(kind, "sample kind");
