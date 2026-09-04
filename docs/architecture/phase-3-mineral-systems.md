@@ -126,14 +126,21 @@ validator rejects undeclared variables, duplicate rows, contradictory flags, and
 calibration/held-out partitions. Primary-system ledgers and derived LCT/BIF/evaporite budgets are
 checked for exact bounded closure, while barren or rejected candidates retain their failed gate.
 
+The porphyry importer now reads a checked-in, 14-row cleaned subset of the USGS
+`PorCuTX2008.txt` table. It preserves source deposit IDs and subtype codes, excludes rows without
+positive tonnage/Cu/Mo values under the declared population rule, converts reported percent grades
+to mass fractions, and splits the rows into deterministic calibration and held-out roles. Its
+`RAW_TABLE_AUDITED_SUBSET` status is intentionally distinct from a full-population audit.
+
 ## Alpha.10 — held-out statistical projection
 
-The current rows are intentionally `SOURCE_ANCHORS_PROVISIONAL`: they make the import and report
-contract deterministic and reviewable, but do not claim that a handful of anchors replace a raw,
-licensed USGS table. The report now also emits deterministic held-out quantile projections (with
+The remaining five families still use `SOURCE_ANCHORS_PROVISIONAL`: those anchors make the import
+and report contract deterministic and reviewable, but do not claim that a handful of anchors
+replace a raw, licensed table. All reports emit deterministic held-out quantile projections (with
 log-space error where values are usable) and calibration covariance/correlation summaries for
 every declared variable pair. These metrics make missing, censored, and insufficient held-out
-coverage explicit; they are still provisional until the raw source rows replace the anchors.
+coverage explicit; the porphyry metrics are subset-audited, while the other families remain
+provisional until their raw source rows replace the anchors.
 
 Completing the Phase 3 scientific exit still requires cleaning the source tables, preserving their
 row-level bias/censor metadata, auditing redistribution, and promoting the held-out quantile and

@@ -2,6 +2,11 @@ package io.github.crunchybubbles.geological.mineral;
 
 import io.github.crunchybubbles.geological.atlas.Province;
 import io.github.crunchybubbles.geological.determinism.StableId;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -178,7 +183,9 @@ public record MineralSystemValidationReport(
             ? ValidationStatus.FAILED
             : dataset.auditStatus() == AuditStatus.RAW_TABLE_AUDITED
                 ? ValidationStatus.PASSED
-                : ValidationStatus.PROVISIONAL_SOURCE_ANCHORS;
+                : dataset.auditStatus() == AuditStatus.RAW_TABLE_AUDITED_SUBSET
+                    ? ValidationStatus.AUDITED_SUBSET
+                    : ValidationStatus.PROVISIONAL_SOURCE_ANCHORS;
     return new MineralSystemValidationReport(
         systemId,
         modelId,
@@ -206,6 +213,7 @@ public record MineralSystemValidationReport(
 
   public enum ValidationStatus {
     PASSED,
+    AUDITED_SUBSET,
     PROVISIONAL_SOURCE_ANCHORS,
     FAILED
   }
@@ -235,6 +243,7 @@ public record MineralSystemValidationReport(
 
   public enum AuditStatus {
     SOURCE_ANCHORS_PROVISIONAL,
+    RAW_TABLE_AUDITED_SUBSET,
     RAW_TABLE_AUDITED
   }
 
@@ -245,6 +254,7 @@ public record MineralSystemValidationReport(
 
   public enum StatisticalStatus {
     COMPLETE,
+    AUDITED_SUBSET,
     PROVISIONAL_ANCHORS,
     INSUFFICIENT_DATA
   }
@@ -319,13 +329,17 @@ public record MineralSystemValidationReport(
       StatisticalStatus status =
           dataset.auditStatus() == AuditStatus.RAW_TABLE_AUDITED
               ? StatisticalStatus.COMPLETE
-              : heldOut.isEmpty() || calibration.isEmpty()
-                  ? StatisticalStatus.INSUFFICIENT_DATA
-                  : StatisticalStatus.PROVISIONAL_ANCHORS;
+              : dataset.auditStatus() == AuditStatus.RAW_TABLE_AUDITED_SUBSET
+                  ? StatisticalStatus.AUDITED_SUBSET
+                  : heldOut.isEmpty() || calibration.isEmpty()
+                      ? StatisticalStatus.INSUFFICIENT_DATA
+                      : StatisticalStatus.PROVISIONAL_ANCHORS;
       String limitation =
           status == StatisticalStatus.COMPLETE
               ? "Source rows are audited; held-out metrics are computed from the declared partitions."
-              : "Anchor metrics are deterministic review evidence only; raw-table audit and redistribution approval remain outstanding.";
+              : status == StatisticalStatus.AUDITED_SUBSET
+                  ? "Metrics are computed from the checked-in audited subset; full-population redistribution and coverage remain outstanding."
+                  : "Anchor metrics are deterministic review evidence only; raw-table audit and redistribution approval remain outstanding.";
       return new StatisticalValidation(quantiles, covariance, status, limitation);
     }
 
@@ -628,6 +642,11 @@ public record MineralSystemValidationReport(
       return auditStatus == AuditStatus.RAW_TABLE_AUDITED;
     }
 
+    public boolean sourceAuditSubsetComplete() {
+      return auditStatus == AuditStatus.RAW_TABLE_AUDITED_SUBSET
+          || auditStatus == AuditStatus.RAW_TABLE_AUDITED;
+    }
+
     /** Returns the source-specific dataset selected by a Phase 3 model ID. */
     public static EmpiricalDataset forModel(String modelId) {
       if (MineralSystemProofs.PORPHYRY_MODEL.equals(modelId)) {
@@ -652,73 +671,98 @@ public record MineralSystemValidationReport(
     }
 
     private static EmpiricalDataset porphyry() {
-      String version = "USGS-SIR-2010-5070-B";
+      String version = "USGS-OFR-2008-1155-v1.0";
       String aggregation = "aggregate_related_mineralization_within_2_km";
       String cutoff = "production_plus_reserves_resources_lowest_reported_cutoff";
-      return dataset(
-          "usgs:sir2010_5070b_cu_mo",
-          "https://pubs.usgs.gov/sir/2010/5070/b/",
+      return readPorphyrySubset(version, aggregation, cutoff);
+    }
+
+    private static EmpiricalDataset readPorphyrySubset(
+        String version, String aggregation, String cutoff) {
+      String resourcePath = "/data/geological/empirical/porphyry_cu_subset.tsv";
+      var resource = EmpiricalDataset.class.getResourceAsStream(resourcePath);
+      if (resource == null) {
+        throw new IllegalStateException("missing empirical source resource " + resourcePath);
+      }
+      List<SampleRow> rows = new ArrayList<>();
+      try (BufferedReader reader =
+          new BufferedReader(new InputStreamReader(resource, StandardCharsets.UTF_8))) {
+        String line;
+        int lineNumber = 0;
+        while ((line = reader.readLine()) != null) {
+          lineNumber++;
+          String trimmed = line.trim();
+          if (trimmed.isEmpty()
+              || trimmed.startsWith("#")
+              || trimmed.startsWith("source_row_ref")) {
+            continue;
+          }
+          String[] fields = line.split("\\|", -1);
+          if (fields.length != 7) {
+            throw new IllegalStateException(
+                "porphyry source row " + lineNumber + " has " + fields.length + " fields");
+          }
+          String sourceRowRef = fields[0].trim();
+          String rowId = "porphyry-deposit-" + sourceRowRef;
+          String subtype = fields[1].trim();
+          SampleRole role = SampleRole.valueOf(fields[2].trim());
+          double percentile = parseSourceNumber(fields[3], lineNumber, "percentile");
+          double tonnage = parseSourceNumber(fields[4], lineNumber, "tonnage");
+          double copperPercent = parseSourceNumber(fields[5], lineNumber, "cu_grade_pct");
+          double molybdenumPercent = parseSourceNumber(fields[6], lineNumber, "mo_grade_pct");
+          if (percentile <= 0.0 || percentile > 1.0) {
+            throw new IllegalStateException(
+                "porphyry percentile is outside (0,1] at row " + lineNumber);
+          }
+          rows.add(
+              new SampleRow(
+                  rowId,
+                  subtype,
+                  percentile,
+                  role,
+                  "DepositID=" + sourceRowRef,
+                  version,
+                  aggregation,
+                  cutoff,
+                  "production_plus_reserves_resources_source_row;percent_grades_converted_to_mass_fraction",
+                  Map.of(
+                      "tonnage", tonnage,
+                      "cu_grade", copperPercent / 100.0,
+                      "mo_grade", molybdenumPercent / 100.0),
+                  Set.of(),
+                  Set.of()));
+        }
+      } catch (IOException | IllegalArgumentException exception) {
+        throw new IllegalStateException("invalid porphyry empirical source subset", exception);
+      }
+      if (rows.size() < 10) {
+        throw new IllegalStateException("porphyry empirical source subset is unexpectedly small");
+      }
+      return new EmpiricalDataset(
+          "usgs:ofr20081155_porphyry_cu_audited_subset",
+          "https://pubs.usgs.gov/of/2008/1155/data/",
           version,
-          "porphyry_cu_calc_alkaline_deposits",
+          "porphyry_cu_calc_alkaline_deposits_complete_tonnage_cu_mo_audited_subset",
           aggregation,
           cutoff,
+          "USGS Open-File Report 2008-1155 source subset; source rows are checked in for reproducible review. Cu/Mo percentages are converted to mass fractions; the subset is not the full redistributable population.",
+          DistributionKind.EMPIRICAL_ROW,
+          AuditStatus.RAW_TABLE_AUDITED_SUBSET,
           Map.of("tonnage", "Mt", "cu_grade", "mass_fraction", "mo_grade", "mass_fraction"),
-          List.of(
-              row(
-                  "porphyry-q10",
-                  "calc_alkaline",
-                  0.10,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 100.0, "cu_grade", 0.0022, "mo_grade", 0.00002),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "porphyry-q25",
-                  "calc_alkaline",
-                  0.25,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 250.0, "cu_grade", 0.0032, "mo_grade", 0.000035),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "porphyry-q50",
-                  "calc_alkaline",
-                  0.50,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 500.0, "cu_grade", 0.0044, "mo_grade", 0.00006),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "porphyry-q75",
-                  "calc_alkaline",
-                  0.75,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 1000.0, "cu_grade", 0.0060, "mo_grade", 0.00010),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "porphyry-q90",
-                  "calc_alkaline",
-                  0.90,
-                  SampleRole.HELD_OUT,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 2000.0, "cu_grade", 0.0090, "mo_grade", 0.00018),
-                  Set.of(),
-                  Set.of("mo_grade"))));
+          rows);
+    }
+
+    private static double parseSourceNumber(String value, int lineNumber, String field) {
+      try {
+        double parsed = Double.parseDouble(value.trim());
+        if (!Double.isFinite(parsed) || parsed <= 0.0) {
+          throw new IllegalArgumentException(field + " must be positive");
+        }
+        return parsed;
+      } catch (NumberFormatException exception) {
+        throw new IllegalArgumentException(
+            "invalid " + field + " at porphyry source row " + lineNumber, exception);
+      }
     }
 
     private static EmpiricalDataset vms() {

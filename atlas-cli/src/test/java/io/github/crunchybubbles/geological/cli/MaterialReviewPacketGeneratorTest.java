@@ -93,8 +93,12 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"mineralSystemValidationReports\""));
     assertTrue(firstJson.contains("\"empiricalDataset\""));
     assertTrue(firstJson.contains("\"SOURCE_ANCHORS_PROVISIONAL\""));
+    assertTrue(firstJson.contains("\"RAW_TABLE_AUDITED_SUBSET\""));
+    assertTrue(firstJson.contains("\"AUDITED_SUBSET\""));
     assertTrue(firstJson.contains("\"calibrationRowCount\": 4"));
     assertTrue(firstJson.contains("\"heldOutRowCount\": 1"));
+    assertTrue(firstJson.contains("\"calibrationRowCount\": 10"));
+    assertTrue(firstJson.contains("\"heldOutRowCount\": 4"));
     assertTrue(firstJson.contains("\"missing_and_censor_flags\""));
     assertTrue(firstJson.contains("\"statisticalValidation\""));
     assertTrue(firstJson.contains("\"quantileComparisons\""));
