@@ -4,6 +4,7 @@ import io.github.crunchybubbles.geological.atlas.Province;
 import io.github.crunchybubbles.geological.atlas.ProvinceGrammar;
 import io.github.crunchybubbles.geological.atlas.RiftArcGeometry;
 import io.github.crunchybubbles.geological.determinism.StableId;
+import io.github.crunchybubbles.geological.mineral.BifSystemState;
 import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
 import io.github.crunchybubbles.geological.mineral.VmsSystemState;
@@ -548,6 +549,8 @@ final class MaterialReviewPacketGenerator {
             vmsSystemStateJson(query.vmsSystemState(province)),
             "lctPegmatiteState",
             lctPegmatiteStateJson(query.lctPegmatiteState(province)),
+            "bifSystemState",
+            bifSystemStateJson(query.bifSystemState(province)),
             "metamorphicPathVocabulary",
             Arrays.stream(MetamorphicPath.values()).map(Enum::name).toList(),
             "referenceProvince",
@@ -2334,6 +2337,42 @@ final class MaterialReviewPacketGenerator {
         state.sourceBudgetFixedUnits(),
         "childAllocationFixedUnits",
         state.childAllocationFixedUnits(),
+        "failedGate",
+        state.failedGate().orElse(null));
+  }
+
+  private static Map<String, Object> bifSystemStateJson(BifSystemState state) {
+    return JsonWriter.object(
+        "sheetId",
+        state.sheetId().toString(),
+        "status",
+        state.status().name(),
+        "type",
+        state.type().name(),
+        "basinId",
+        state.basinId().toString(),
+        "ironSourceId",
+        state.ironSourceId().toString(),
+        "formationAgeMa",
+        state.formationAge().ageMa(),
+        "formationAgeOrdinal",
+        state.formationAge().ordinal(),
+        "oceanRedoxClass",
+        state.oceanRedoxClass().name(),
+        "geometryClass",
+        state.geometryClass().name(),
+        "localCenter",
+        pointJson(state.localCenter()),
+        "strikeLengthBlocks",
+        state.strikeLengthBlocks(),
+        "halfWidthBlocks",
+        state.halfWidthBlocks(),
+        "thicknessBlocks",
+        state.thicknessBlocks(),
+        "sourceBudgetFixedUnits",
+        state.sourceBudgetFixedUnits(),
+        "sheetAllocationFixedUnits",
+        state.sheetAllocationFixedUnits(),
         "failedGate",
         state.failedGate().orElse(null));
   }

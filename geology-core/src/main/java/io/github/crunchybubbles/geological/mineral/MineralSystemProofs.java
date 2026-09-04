@@ -66,6 +66,15 @@ public final class MineralSystemProofs {
     return LctPegmatiteState.proofFor(province, identity);
   }
 
+  /** Returns the basin-bound BIF sheet state for this province. */
+  public BifSystemState bifState(
+      Province province, io.github.crunchybubbles.geological.determinism.WorldIdentity identity) {
+    if (province == null || identity == null) {
+      throw new IllegalArgumentException("province and world identity are required");
+    }
+    return BifSystemState.proofFor(province, identity);
+  }
+
   private MineralSystemDecision barrenPrimaryPorphyry(Province province) {
     ProvinceProofIds ids = province.proofIds();
     return new MineralSystemDecision(

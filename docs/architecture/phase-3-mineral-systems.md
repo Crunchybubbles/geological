@@ -1,6 +1,6 @@
 # Phase 3 mineral-system increment
 
-Status: third Phase 3 architecture-proving slice; porphyry, VMS, and LCT pegmatite topologies are explicit, while three deposit families are still open
+Status: fourth Phase 3 architecture-proving slice; porphyry, VMS, LCT pegmatite, and BIF topologies are explicit, while two deposit families are still open
 
 ## Alpha.1 — linked porphyry topology
 
@@ -50,9 +50,22 @@ than empirical grade-tonnage data.
 Tests cover parent/child identity, differentiation progress, fertility and emplacement gates,
 internal-zone point classification, budget bounds, barren-lineage rejection, and artifact exposure.
 
+## Alpha.4 — BIF sheet
+
+`BifSystemState` adds a basin-bound chemical-sedimentary sheet proof. The current branch models the
+Algoma-style volcano-sedimentary path: a formed candidate carries a stable sheet ID, basin and
+iron-source IDs, an ancient formation age, reducing ocean-redox class, and a bounded banded
+stratiform footprint with an exact source/sheet allocation. Provinces without the required
+volcano-sedimentary context remain barren and publish no sheet or ancient-ocean chemistry. The
+state does not select Superior versus Algoma universally, upgrade iron by supergene leaching, or
+claim an economic grade.
+
+Tests cover age/redox/sheet evidence, basin and source linkage, footprint bounds, budget bounds,
+barren gating, and deterministic review JSON exposure.
+
 ## Remaining Phase 3 slices
 
 The next bounded slices should add richer porphyry fluid/metal distributions and supergene gating,
-then the BIF age/ocean-redox sheet, restricted-basin evaporite/potash sequence, and the full
-source-linked placer budget. Each family must retain barren outcomes, explicit source budgets, and
-deterministic provenance before Minecraft presentation is attempted.
+then the restricted-basin evaporite/potash sequence and the full source-linked placer budget. Each
+family must retain barren outcomes, explicit source budgets, and deterministic provenance before
+Minecraft presentation is attempted.

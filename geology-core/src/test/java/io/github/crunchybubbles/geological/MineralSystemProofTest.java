@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.crunchybubbles.geological.atlas.Province;
 import io.github.crunchybubbles.geological.atlas.ProvinceGrammar;
+import io.github.crunchybubbles.geological.mineral.BifSystemState;
 import io.github.crunchybubbles.geological.mineral.FormationStatus;
 import io.github.crunchybubbles.geological.mineral.GateStatus;
 import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
@@ -186,6 +187,37 @@ class MineralSystemProofTest {
     assertEquals("lineage", state.failedGate().orElseThrow());
     assertTrue(state.internalZones().isEmpty());
     assertEquals(0L, state.childAllocationFixedUnits());
+  }
+
+  @Test
+  void formedBifPublishesAncientRedoxBoundedStratiformSheet() {
+    GeologyQueryEngine query = Phase0World.create(8_675_309L);
+    Province province = query.atlas().provinceAt(new Point2(0.0, 0.0));
+    BifSystemState state = query.bifSystemState(province);
+
+    assertEquals(FormationStatus.FORMED, state.status());
+    assertEquals(BifSystemState.BifType.ALGOMA_TYPE, state.type());
+    assertEquals(BifSystemState.GeometryClass.BANDED_STRATIFORM_SHEET, state.geometryClass());
+    assertEquals(2_500.0, state.formationAge().ageMa());
+    assertEquals(
+        io.github.crunchybubbles.geological.petrology.RedoxClass.REDUCING, state.oceanRedoxClass());
+    assertTrue(state.contains(state.localCenter()));
+    assertTrue(state.sheetAllocationFixedUnits() <= state.sourceBudgetFixedUnits());
+    assertTrue(state.failedGate().isEmpty());
+  }
+
+  @Test
+  void barrenBifRetainsCandidateIdentityWithoutInventingAgedOceanChemistry() {
+    GeologyQueryEngine query = Phase1World.create(8_675_309L);
+    Province province =
+        Phase1TestSupport.provinceWithGrammar(query, ProvinceGrammar.BARREN_DRY_RIFT_TO_ARC);
+    BifSystemState state = query.bifSystemState(province);
+
+    assertEquals(FormationStatus.BARREN_SYSTEM, state.status());
+    assertEquals(BifSystemState.BifType.UNRESOLVED, state.type());
+    assertEquals(BifSystemState.GeometryClass.NO_SHEET, state.geometryClass());
+    assertEquals("volcano_sedimentary_basin", state.failedGate().orElseThrow());
+    assertFalse(state.contains(state.localCenter()));
   }
 
   private static MineralSystemDecision formed(

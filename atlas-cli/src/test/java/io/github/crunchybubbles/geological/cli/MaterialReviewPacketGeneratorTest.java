@@ -67,6 +67,10 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"lctPegmatiteState\""));
     assertTrue(firstJson.contains("\"LCT_RARE_ELEMENT\""));
     assertTrue(firstJson.contains("\"QUARTZ_CORE\""));
+    assertTrue(firstJson.contains("\"bifSystemState\""));
+    assertTrue(firstJson.contains("\"ALGOMA_TYPE\""));
+    assertTrue(firstJson.contains("\"BANDED_STRATIFORM_SHEET\""));
+    assertTrue(firstJson.contains("\"oceanRedoxClass\""));
     assertTrue(firstJson.contains("\"diagenesisState\""));
     assertTrue(firstJson.contains("\"phase1Geology\""));
     assertTrue(firstJson.contains("\"phase2Material\""));

@@ -6,6 +6,7 @@ import io.github.crunchybubbles.geological.atlas.Province;
 import io.github.crunchybubbles.geological.atlas.RiftArcGeometry;
 import io.github.crunchybubbles.geological.determinism.StableId;
 import io.github.crunchybubbles.geological.determinism.WorldIdentity;
+import io.github.crunchybubbles.geological.mineral.BifSystemState;
 import io.github.crunchybubbles.geological.mineral.DepositType;
 import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
 import io.github.crunchybubbles.geological.mineral.MineralSystemDecision;
@@ -147,6 +148,11 @@ public final class MaterialQueryEngine {
   /** Returns the linked Phase 3 LCT pegmatite child-body lineage. */
   public LctPegmatiteState lctPegmatiteState(Province province) {
     return geology.lctPegmatiteState(province);
+  }
+
+  /** Returns the linked Phase 3 BIF sheet, age, and ocean-redox state. */
+  public BifSystemState bifSystemState(Province province) {
+    return geology.bifSystemState(province);
   }
 
   /** Builds a deterministic finite-query audit of source claims across colluvial parcels. */
