@@ -62,6 +62,9 @@ import io.github.crunchybubbles.geological.worldgen.OverworldSectionDebugTrace;
 import io.github.crunchybubbles.geological.worldgen.OverworldSectionDebugTrace.Axis;
 import io.github.crunchybubbles.geological.worldgen.OverworldSedimentSample;
 import io.github.crunchybubbles.geological.worldgen.OverworldSedimentSampler;
+import io.github.crunchybubbles.geological.worldgen.OverworldSedimentaryResourceColumnPlan;
+import io.github.crunchybubbles.geological.worldgen.OverworldSedimentaryResourceInterval;
+import io.github.crunchybubbles.geological.worldgen.OverworldSedimentaryResourcePlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldSkarnColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldSkarnInterval;
 import io.github.crunchybubbles.geological.worldgen.OverworldSkarnPlanner;
@@ -141,6 +144,9 @@ public final class GeologicalCommands {
                 .then(
                     Commands.literal("carbonatite-kimberlite")
                         .executes(GeologicalCommands::showCarbonatiteKimberliteHere))
+                .then(
+                    Commands.literal("sedimentary-resources")
+                        .executes(GeologicalCommands::showSedimentaryResourcesHere))
                 .then(
                     Commands.literal("hand-sample")
                         .executes(GeologicalCommands::showHandSampleHere))
@@ -648,6 +654,36 @@ public final class GeologicalCommands {
       source.sendFailure(
           Component.literal(
               "geology carbonatite-kimberlite unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static int showSedimentaryResourcesHere(CommandContext<CommandSourceStack> context) {
+    BlockPos position = BlockPos.containing(context.getSource().getPosition());
+    CommandSourceStack source = context.getSource();
+    try {
+      OverworldSedimentaryResourceColumnPlan plan =
+          OverworldSedimentaryResourcePlanner.from(
+                  planner(source.getLevel(), position.getX(), position.getZ()))
+              .plan(position.getX(), position.getZ());
+      OverworldSedimentaryResourceInterval interval = plan.at(position.getY()).orElse(null);
+      String summary =
+          interval == null
+              ? plan.summary()
+                  + " at=("
+                  + position.getX()
+                  + ","
+                  + position.getY()
+                  + ","
+                  + position.getZ()
+                  + ") horizon=none"
+              : plan.summary() + " " + interval.summary();
+      source.sendSuccess(() -> Component.literal(summary), false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(
+          Component.literal(
+              "geology sedimentary-resources unavailable: " + exception.getMessage()));
       return 0;
     }
   }

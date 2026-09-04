@@ -1,8 +1,8 @@
 # Phase 7 deposit families — source-gated deposit projections
 
-Status: `phase7-alpha.8` (greisen, explicit skarn host fixture, epithermal shallow-fluid,
-orogenic-gold metamorphic-fluid, basin/redox, uranium, layered-intrusion, and
-carbonatite/peralkaline-REE plus kimberlite/diamond projections).
+Status: `phase7-alpha.9` (greisen, explicit skarn host fixture, epithermal shallow-fluid,
+orogenic-gold metamorphic-fluid, basin/redox, uranium, layered-intrusion,
+carbonatite/peralkaline-REE plus kimberlite/diamond, and sedimentary-resource projections).
 
 ## Alpha.1 — evolved-felsic greisen proof
 
@@ -218,5 +218,31 @@ pathway, trap, horizon, ledger, policy, default-negative, and seam evidence.
 all three families, cargo/carrier separation, barren behavior, closed accounting, repeated bytes,
 and chunk seams. The review fixture is not a production host fallback.
 
-Phosphorite/Mn/coal/brine and geothermal families remain separate future Phase 7 slices; they must
-not inherit these alkaline or kimberlite proxies or be inferred from a generic catalog lithology.
+## Alpha.9 — phosphorite, manganese, coal, brine, and helium-bearing gas systems
+
+`SedimentaryResourceSystemState` adds six source-gated sedimentary and closed-basin branches:
+marine phosphorite, condensed-section sedimentary manganese, buried peat-derived coal, lithium
+brine, late potash/borate brine, and helium-bearing gas. The proofs use the existing typed basin,
+reservoir, water, organic, salinity, redox, permeability, and diagenesis state. Phosphorite needs
+marine productivity/upwelling and limited dilution; manganese needs a marine redox interface and
+condensation; coal needs peat facies, strong reducing preservation, and organic input; brines need
+closed/hypersaline water balance and a reservoir; helium keeps a radiogenic-source/carrier/trap
+proxy separate from solid geology. Fixed-point resource budgets close release into transport loss
+and allocation, and are not P/Mn/coal/Li/K/B/He assays, grades, reserves, or voxel inventories.
+
+The default `SedimentaryResourceHostPolicy.none()` resolves actual bedrock only. The review-only
+`SedimentaryResourceHostPolicy.fixture()` supplies a deterministic six-facies fixture so every
+branch can be exercised without making a generic catalog lithology sufficient. Fluids and gas are
+reported as porous-medium/resource state rather than replacement blocks. The
+`OverworldSedimentaryResourcePlanner` clips all horizons to realized solid terrain, preserves
+stable X-then-Z target-chunk ordering, and checks adjacent seams. The read-only
+`/geology sedimentary-resources` command and `sedimentaryResources` task write
+`atlas-cli/build/phase7/sedimentary-resources/sedimentary-resources.json` with family, facies,
+salinity/redox, pathway, trap, horizon, ledger, policy, default-negative, and seam evidence.
+
+`OverworldSedimentaryResourcePlannerTest` and `SedimentaryResourcePacketGeneratorTest` cover all
+six families, actual-host barren behavior, closed accounting, repeated bytes, and chunk seams.
+The fixture is review-only and is not a production host fallback.
+
+Geothermal resources remain the next separate Phase 7 slice; they must not inherit sedimentary
+brine or helium proxies or be inferred from lava proximity alone.

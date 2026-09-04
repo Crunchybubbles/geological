@@ -90,6 +90,10 @@ public final class AtlasCli {
         Path report = new CarbonatiteKimberlitePacketGenerator(seed).generate(output);
         System.out.println("Wrote Phase 7 carbonatite-kimberlite review to " + report);
       }
+      case "sedimentary-resources" -> {
+        Path report = new SedimentaryResourcePacketGenerator(seed).generate(output);
+        System.out.println("Wrote Phase 7 sedimentary-resource review to " + report);
+      }
       default -> throw new IllegalArgumentException("Unknown command: " + command);
     }
   }
@@ -117,6 +121,6 @@ public final class AtlasCli {
 
   private static void printUsage() {
     System.out.println(
-        "Usage: atlas-cli <generate|measure|materials|worldgen-benchmark|exploration-telemetry|secondary-weathering|laterite|secondary-placers|paleosurface|glacial|greisen|skarn|epithermal|orogenic-gold|basin-hydrothermal|uranium|layered-intrusion|carbonatite-kimberlite> [--seed <long>] [--output <directory>]");
+        "Usage: atlas-cli <generate|measure|materials|worldgen-benchmark|exploration-telemetry|secondary-weathering|laterite|secondary-placers|paleosurface|glacial|greisen|skarn|epithermal|orogenic-gold|basin-hydrothermal|uranium|layered-intrusion|carbonatite-kimberlite|sedimentary-resources> [--seed <long>] [--output <directory>]");
   }
 }

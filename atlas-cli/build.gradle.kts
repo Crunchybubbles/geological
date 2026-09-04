@@ -174,3 +174,12 @@ tasks.register<JavaExec>("carbonatiteKimberlite") {
     args("carbonatite-kimberlite", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase7/carbonatite-kimberlite").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("sedimentaryResources") {
+    group = "verification"
+    description = "Writes the deterministic Phase 7 phosphorite, manganese, coal, brine, and helium review."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("sedimentary-resources", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase7/sedimentary-resources").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}

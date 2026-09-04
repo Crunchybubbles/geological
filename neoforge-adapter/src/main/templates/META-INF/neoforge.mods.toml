@@ -39,6 +39,10 @@ The `/geology carbonatite-kimberlite` view exposes source-gated carbonatite and 
 and kimberlite diamond-carrier proxies; mantle cargo is kept separate from the carrier pipe, and
 the deterministic alkaline-complex fixture is review-only. Its horizons are not assays, grades,
 reserves, or voxel-grade inventories.
+The `/geology sedimentary-resources` view exposes source-gated phosphorite, sedimentary manganese,
+coal, lithium/potash/borate brine, and helium-bearing gas proxies; fluids remain porous-medium
+state and the deterministic facies fixture is review-only. Its horizons are not assays, grades,
+reserves, or voxel-grade inventories.
 '''
 
 [[dependencies.${mod_id}]]
