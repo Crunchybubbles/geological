@@ -113,6 +113,13 @@ public record PetrologicSample(
                 resolvedComposition, lineage.differentiationState()));
   }
 
+  /** Returns the deterministic temperature-pressure-depth class for this magma pulse. */
+  public Optional<MagmaThermalState> magmaThermalState() {
+    return magmaLineage.map(
+        lineage ->
+            MagmaThermalState.proofFor(lineage.pulseOrder(), lineage.differentiationState()));
+  }
+
   private static void requireUnit(double value, String name) {
     if (!Double.isFinite(value) || value < 0.0 || value > 1.0) {
       throw new IllegalArgumentException(name + " must lie in [0, 1]");

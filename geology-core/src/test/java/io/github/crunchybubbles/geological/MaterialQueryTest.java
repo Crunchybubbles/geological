@@ -46,6 +46,7 @@ import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.FluidMedium;
 import io.github.crunchybubbles.geological.petrology.GeneticFamily;
 import io.github.crunchybubbles.geological.petrology.MagmaDifferentiationState;
+import io.github.crunchybubbles.geological.petrology.MagmaThermalState;
 import io.github.crunchybubbles.geological.petrology.MantleCargoState;
 import io.github.crunchybubbles.geological.petrology.MantleCargoStatus;
 import io.github.crunchybubbles.geological.petrology.MaterialAssemblage;
@@ -84,7 +85,7 @@ import org.junit.jupiter.api.Test;
 class MaterialQueryTest {
   @Test
   void phase2IdentityComposesFrozenPhase1ScienceWithMaterialContent() {
-    assertEquals("phase2.0-alpha.93", Phase2World.MODEL_VERSION);
+    assertEquals("phase2.0-alpha.94", Phase2World.MODEL_VERSION);
     assertEquals(
         "sha256:3404480eb62c77f249bd91f66fe4ac399cae742541e9736b36316e42cf9235f4",
         Phase1World.SCIENTIFIC_DIGEST);
@@ -101,6 +102,36 @@ class MaterialQueryTest {
     assertEquals(
         Phase1World.SCIENTIFIC_DIGEST, query.geology().atlas().identity().scientificDigest());
     assertEquals(Phase2World.SCIENTIFIC_DIGEST, query.materialIdentity().scientificDigest());
+  }
+
+  @Test
+  void phase2MaterialExitContractCoversEveryLithologyAndOverprint() {
+    var catalog = Phase2World.materialCatalog();
+
+    assertEquals(Lithology.values().length, catalog.rocks().size());
+    assertEquals(Overprint.values().length, catalog.alterations().size());
+    for (var rock : catalog.rocks()) {
+      assertEquals(
+          MaterialAssemblage.SCALE,
+          rock.primaryAssemblage().modesPpm().values().stream().mapToLong(Long::longValue).sum());
+      assertEquals(
+          MaterialAssemblage.SCALE,
+          catalog.composition(rock.primaryAssemblage()).elementMassPpm().values().stream()
+              .mapToLong(Long::longValue)
+              .sum());
+    }
+    for (var alteration : catalog.alterations()) {
+      if (alteration.replacementPpm() > 0L) {
+        for (GeneticFamily family : GeneticFamily.values()) {
+          assertEquals(
+              MaterialAssemblage.SCALE,
+              alteration.targetAssemblage(family).modesPpm().values().stream()
+                  .mapToLong(Long::longValue)
+                  .sum(),
+              alteration.overprint() + " / " + family);
+        }
+      }
+    }
   }
 
   @Test
@@ -317,6 +348,19 @@ class MaterialQueryTest {
                   ? MagmaDifferentiationState.ResidualFluidPotential.HIGH
                   : MagmaDifferentiationState.ResidualFluidPotential.VERY_HIGH,
           differentiation.residualFluidPotential());
+      MagmaThermalState thermal = material.magmaThermalState().orElseThrow();
+      assertEquals(
+          index == 0
+              ? MagmaThermalState.TemperatureClass.ULTRA_HOT
+              : MagmaThermalState.TemperatureClass.HOT,
+          thermal.temperatureClass());
+      assertEquals(
+          index == 0
+              ? MagmaThermalState.DepthClass.DEEP_CRUSTAL
+              : index == 1
+                  ? MagmaThermalState.DepthClass.MID_CRUSTAL
+                  : MagmaThermalState.DepthClass.SHALLOW_CRUSTAL,
+          thermal.depthClass());
       assertFalse(differentiation.fertilityTags().isEmpty());
       previousProgress = material.magmaLineage().orElseThrow().differentiationProgress();
     }

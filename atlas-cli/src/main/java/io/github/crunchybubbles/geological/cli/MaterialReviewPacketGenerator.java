@@ -43,6 +43,7 @@ import io.github.crunchybubbles.geological.petrology.FluidTransportState;
 import io.github.crunchybubbles.geological.petrology.FractureTensorState;
 import io.github.crunchybubbles.geological.petrology.MagmaLineageState;
 import io.github.crunchybubbles.geological.petrology.MagmaResidualInventoryState;
+import io.github.crunchybubbles.geological.petrology.MagmaThermalState;
 import io.github.crunchybubbles.geological.petrology.MantleCargoState;
 import io.github.crunchybubbles.geological.petrology.MaterialBufferState;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessLedger;
@@ -1864,6 +1865,8 @@ final class MaterialReviewPacketGenerator {
             .magmaResidualInventoryState()
             .map(this::magmaResidualInventoryStateJson)
             .orElse(null),
+        "magmaThermalState",
+        sample.magmaThermalState().map(this::magmaThermalStateJson).orElse(null),
         "mantleCargo",
         sample.mantleCargo().map(this::mantleCargoJson).orElse(null),
         "sedimentaryState",
@@ -2170,6 +2173,18 @@ final class MaterialReviewPacketGenerator {
         elementMap(state.residualMeltInventoryPpm()),
         "residualFluidInventoryPpm",
         elementMap(state.residualFluidInventoryPpm()));
+  }
+
+  private Map<String, Object> magmaThermalStateJson(MagmaThermalState state) {
+    return JsonWriter.object(
+        "temperatureClass",
+        state.temperatureClass().name(),
+        "pressureClass",
+        state.pressureClass().name(),
+        "depthClass",
+        state.depthClass().name(),
+        "thermalPotentialPpm",
+        state.thermalPotentialPpm());
   }
 
   private Map<String, Object> mantleCargoJson(MantleCargoState state) {

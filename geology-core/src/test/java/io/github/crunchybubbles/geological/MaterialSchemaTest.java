@@ -50,6 +50,7 @@ import io.github.crunchybubbles.geological.petrology.GeneticFamily;
 import io.github.crunchybubbles.geological.petrology.LigandCapacities;
 import io.github.crunchybubbles.geological.petrology.MagmaDifferentiationState;
 import io.github.crunchybubbles.geological.petrology.MagmaResidualInventoryState;
+import io.github.crunchybubbles.geological.petrology.MagmaThermalState;
 import io.github.crunchybubbles.geological.petrology.MaterialAssemblage;
 import io.github.crunchybubbles.geological.petrology.MaterialBufferState;
 import io.github.crunchybubbles.geological.petrology.MaterialProcessClass;
@@ -254,6 +255,26 @@ class MaterialSchemaTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> MagmaResidualInventoryState.proofFor(composition, null));
+  }
+
+  @Test
+  void magmaThermalStateTracksDifferentiationPulseContext() {
+    StableId source = StableId.parse("00000000000000000000000000000023");
+    MagmaThermalState early =
+        MagmaThermalState.proofFor(0, MagmaDifferentiationState.arcProofFor(0, List.of(source)));
+    MagmaThermalState late =
+        MagmaThermalState.proofFor(2, MagmaDifferentiationState.arcProofFor(2, List.of(source)));
+
+    assertEquals(MagmaThermalState.TemperatureClass.ULTRA_HOT, early.temperatureClass());
+    assertEquals(MagmaThermalState.DepthClass.DEEP_CRUSTAL, early.depthClass());
+    assertEquals(MagmaThermalState.DepthClass.SHALLOW_CRUSTAL, late.depthClass());
+    assertEquals(MagmaThermalState.PressureClass.LOW_TO_MODERATE, late.pressureClass());
+    assertTrue(early.thermalPotentialPpm() > late.thermalPotentialPpm());
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            MagmaThermalState.proofFor(
+                -1, MagmaDifferentiationState.arcProofFor(0, List.of(source))));
   }
 
   @Test
