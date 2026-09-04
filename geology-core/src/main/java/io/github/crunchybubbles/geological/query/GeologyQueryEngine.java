@@ -11,6 +11,7 @@ import io.github.crunchybubbles.geological.mineral.EvaporitePotashState;
 import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
 import io.github.crunchybubbles.geological.mineral.MineralSystemDecision;
 import io.github.crunchybubbles.geological.mineral.MineralSystemProofs;
+import io.github.crunchybubbles.geological.mineral.PlacerSystemState;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
 import io.github.crunchybubbles.geological.mineral.VmsSystemState;
 import io.github.crunchybubbles.geological.model.AgeKey;
@@ -250,6 +251,11 @@ public final class GeologyQueryEngine {
   /** Returns the linked Phase 3 restricted-basin evaporite and potash sequence. */
   public EvaporitePotashState evaporitePotashState(Province province) {
     return mineralProofs.evaporitePotashState(province, atlas.identity());
+  }
+
+  /** Returns the linked Phase 3 source, transport, and hydraulic-trap placer state. */
+  public PlacerSystemState placerSystemState(Province province) {
+    return mineralProofs.placerState(province);
   }
 
   private ProvinceSpatialIndex spatialIndex(Province province) {

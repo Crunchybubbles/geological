@@ -13,6 +13,7 @@ import io.github.crunchybubbles.geological.mineral.GateStatus;
 import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
 import io.github.crunchybubbles.geological.mineral.MineralSystemDecision;
 import io.github.crunchybubbles.geological.mineral.MineralSystemProofs;
+import io.github.crunchybubbles.geological.mineral.PlacerSystemState;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
 import io.github.crunchybubbles.geological.mineral.VmsSystemState;
 import io.github.crunchybubbles.geological.model.Point2;
@@ -299,6 +300,64 @@ class MineralSystemProofTest {
     assertTrue(state.brineSequence().isEmpty());
     assertEquals(0L, state.soluteSourceBudgetFixedUnits());
     assertTrue(state.zoneAt(state.localCenter()).isEmpty());
+  }
+
+  @Test
+  void formedPlacerPublishesExposedSourceDrainageAndSortingBudget() {
+    GeologyQueryEngine query = Phase0World.create(8_675_309L);
+    Province province = query.atlas().provinceAt(new Point2(0.0, 0.0));
+    PlacerSystemState state = query.placerSystemState(province);
+
+    assertEquals(FormationStatus.FORMED, state.status());
+    assertEquals(province.proofIds().porphyryDepositId(), state.sourceDepositId());
+    assertEquals(province.proofIds().weatheringId(), state.weatheringProcessId());
+    assertEquals(province.proofIds().placerDepositId(), state.trapId());
+    assertEquals(
+        PlacerSystemState.SourceExposureClass.PARTLY_EXPOSED_PRIMARY, state.sourceExposureClass());
+    assertEquals(
+        PlacerSystemState.TransportClass.CONNECTED_WATER_CATCHMENT, state.transportClass());
+    assertEquals(PlacerSystemState.TrapClass.HYDRAULIC_GRADIENT_BREAK, state.trapClass());
+    assertEquals(
+        PlacerSystemState.SortingClass.DENSE_MINERAL_HYDRAULIC_SORTING, state.sortingClass());
+    assertEquals(1.0, state.hydraulicTrapScore());
+    assertTrue(state.sourceDistanceBlocks() > 0.0);
+    assertTrue(state.contains(state.trapCenter()));
+    assertEquals(
+        PlacerSystemState.PlacerZone.HYDRAULIC_TRAP,
+        state.zoneAt(state.trapCenter()).orElseThrow());
+    assertTrue(
+        state
+            .zoneAt(
+                new Point2(
+                    state.trapCenter().x() + 1.1 * state.trapHalfWidthBlocks(),
+                    state.trapCenter().z()))
+            .isEmpty());
+    assertEquals(100_000L, state.sourceBudgetFixedUnits());
+    assertEquals(28_000L, state.releasedSourceBudgetFixedUnits());
+    assertEquals(8_000L, state.transportLossFixedUnits());
+    assertEquals(20_000L, state.depositAllocationFixedUnits());
+    assertEquals(72_000L, state.retainedSourceBudgetFixedUnits());
+    assertTrue(state.failedGate().isEmpty());
+  }
+
+  @Test
+  void barrenPlacerRetainsHydraulicCandidateWithoutAnUpstreamSource() {
+    GeologyQueryEngine query = Phase1World.create(8_675_309L);
+    Province province =
+        Phase1TestSupport.provinceWithGrammar(query, ProvinceGrammar.BARREN_DRY_RIFT_TO_ARC);
+    PlacerSystemState state = query.placerSystemState(province);
+
+    assertEquals(FormationStatus.REJECTED, state.status());
+    assertEquals(
+        PlacerSystemState.SourceExposureClass.NO_EXPOSED_SOURCE, state.sourceExposureClass());
+    assertEquals(
+        PlacerSystemState.TransportClass.NO_SOURCE_LINKED_TRANSPORT, state.transportClass());
+    assertEquals(PlacerSystemState.TrapClass.NO_ALLOWABLE_TRAP, state.trapClass());
+    assertEquals(PlacerSystemState.SortingClass.UNRESOLVED_SORTING, state.sortingClass());
+    assertEquals("upstream_source", state.failedGate().orElseThrow());
+    assertEquals(0L, state.sourceBudgetFixedUnits());
+    assertEquals(0.0, state.hydraulicTrapScore());
+    assertTrue(state.zoneAt(state.trapCenter()).isEmpty());
   }
 
   private static MineralSystemDecision formed(

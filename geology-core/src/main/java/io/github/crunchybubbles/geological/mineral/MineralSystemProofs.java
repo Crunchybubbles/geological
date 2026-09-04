@@ -84,6 +84,19 @@ public final class MineralSystemProofs {
     return EvaporitePotashState.proofFor(province, identity);
   }
 
+  /** Returns the source-linked placer transport and trap state for this province. */
+  public PlacerSystemState placerState(Province province) {
+    if (province == null) {
+      throw new IllegalArgumentException("province is required");
+    }
+    MineralSystemDecision primary =
+        compile(province).stream()
+            .filter(decision -> decision.candidateId().equals(province.proofIds().placerSystemId()))
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("placer proof is missing"));
+    return PlacerSystemState.proofFor(province, primary);
+  }
+
   private MineralSystemDecision barrenPrimaryPorphyry(Province province) {
     ProvinceProofIds ids = province.proofIds();
     return new MineralSystemDecision(

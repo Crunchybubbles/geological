@@ -7,6 +7,7 @@ import io.github.crunchybubbles.geological.determinism.StableId;
 import io.github.crunchybubbles.geological.mineral.BifSystemState;
 import io.github.crunchybubbles.geological.mineral.EvaporitePotashState;
 import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
+import io.github.crunchybubbles.geological.mineral.PlacerSystemState;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
 import io.github.crunchybubbles.geological.mineral.VmsSystemState;
 import io.github.crunchybubbles.geological.model.AgeKey;
@@ -554,6 +555,8 @@ final class MaterialReviewPacketGenerator {
             bifSystemStateJson(query.bifSystemState(province)),
             "evaporitePotashState",
             evaporitePotashStateJson(query.evaporitePotashState(province)),
+            "placerSystemState",
+            placerSystemStateJson(query.placerSystemState(province)),
             "metamorphicPathVocabulary",
             Arrays.stream(MetamorphicPath.values()).map(Enum::name).toList(),
             "referenceProvince",
@@ -2450,6 +2453,58 @@ final class MaterialReviewPacketGenerator {
         state.haliteAllocationFixedUnits(),
         "potashAllocationFixedUnits",
         state.potashAllocationFixedUnits(),
+        "failedGate",
+        state.failedGate().orElse(null));
+  }
+
+  private static Map<String, Object> placerSystemStateJson(PlacerSystemState state) {
+    return JsonWriter.object(
+        "systemId",
+        state.systemId().toString(),
+        "status",
+        state.status().name(),
+        "sourceDepositId",
+        state.sourceDepositId().toString(),
+        "weatheringProcessId",
+        state.weatheringProcessId().toString(),
+        "trapId",
+        state.trapId().toString(),
+        "formationAgeMa",
+        state.formationAge().ageMa(),
+        "formationAgeOrdinal",
+        state.formationAge().ordinal(),
+        "sourceExposureClass",
+        state.sourceExposureClass().name(),
+        "transportClass",
+        state.transportClass().name(),
+        "trapClass",
+        state.trapClass().name(),
+        "sortingClass",
+        state.sortingClass().name(),
+        "sourceCenter",
+        pointJson(state.sourceCenter()),
+        "trapCenter",
+        pointJson(state.trapCenter()),
+        "sourceDistanceBlocks",
+        state.sourceDistanceBlocks(),
+        "trapHalfLengthBlocks",
+        state.trapHalfLengthBlocks(),
+        "trapHalfWidthBlocks",
+        state.trapHalfWidthBlocks(),
+        "hydraulicTrapScore",
+        state.hydraulicTrapScore(),
+        "zoneVocabulary",
+        Arrays.stream(PlacerSystemState.PlacerZone.values()).map(Enum::name).toList(),
+        "sourceBudgetFixedUnits",
+        state.sourceBudgetFixedUnits(),
+        "releasedSourceBudgetFixedUnits",
+        state.releasedSourceBudgetFixedUnits(),
+        "retainedSourceBudgetFixedUnits",
+        state.retainedSourceBudgetFixedUnits(),
+        "transportLossFixedUnits",
+        state.transportLossFixedUnits(),
+        "depositAllocationFixedUnits",
+        state.depositAllocationFixedUnits(),
         "failedGate",
         state.failedGate().orElse(null));
   }

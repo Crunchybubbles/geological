@@ -75,6 +75,11 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"REFLOODING_HALITE_TO_POTASH\""));
     assertTrue(firstJson.contains("\"MARGINAL_SULFATE\""));
     assertTrue(firstJson.contains("\"potashAllocationFixedUnits\""));
+    assertTrue(firstJson.contains("\"placerSystemState\""));
+    assertTrue(firstJson.contains("\"PARTLY_EXPOSED_PRIMARY\""));
+    assertTrue(firstJson.contains("\"DENSE_MINERAL_HYDRAULIC_SORTING\""));
+    assertTrue(firstJson.contains("\"releasedSourceBudgetFixedUnits\""));
+    assertTrue(firstJson.contains("\"retainedSourceBudgetFixedUnits\""));
     assertTrue(firstJson.contains("\"diagenesisState\""));
     assertTrue(firstJson.contains("\"phase1Geology\""));
     assertTrue(firstJson.contains("\"phase2Material\""));
