@@ -165,3 +165,12 @@ tasks.register<JavaExec>("layeredIntrusion") {
     args("layered-intrusion", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase7/layered-intrusion").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("carbonatiteKimberlite") {
+    group = "verification"
+    description = "Writes the deterministic Phase 7 carbonatite/peralkaline REE and kimberlite/diamond review."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("carbonatite-kimberlite", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase7/carbonatite-kimberlite").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}

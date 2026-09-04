@@ -35,6 +35,10 @@ The `/geology layered-intrusion` view exposes source-gated stratiform chromite, 
 sulfide, and layered PGE-reef proxies; the default planner resolves actual hosts only and the
 deterministic layered-chamber fixture is review-only. Its horizons are not metal assays, grades,
 reserves, or voxel-grade inventories.
+The `/geology carbonatite-kimberlite` view exposes source-gated carbonatite and peralkaline REE/Nb/P
+and kimberlite diamond-carrier proxies; mantle cargo is kept separate from the carrier pipe, and
+the deterministic alkaline-complex fixture is review-only. Its horizons are not assays, grades,
+reserves, or voxel-grade inventories.
 '''
 
 [[dependencies.${mod_id}]]

@@ -19,6 +19,9 @@ import io.github.crunchybubbles.geological.worldgen.OverworldBaseTerrainColumnPl
 import io.github.crunchybubbles.geological.worldgen.OverworldBasinHydrothermalColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldBasinHydrothermalInterval;
 import io.github.crunchybubbles.geological.worldgen.OverworldBasinHydrothermalPlanner;
+import io.github.crunchybubbles.geological.worldgen.OverworldCarbonatiteKimberliteColumnPlan;
+import io.github.crunchybubbles.geological.worldgen.OverworldCarbonatiteKimberliteInterval;
+import io.github.crunchybubbles.geological.worldgen.OverworldCarbonatiteKimberlitePlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldColumnDebugTrace;
 import io.github.crunchybubbles.geological.worldgen.OverworldDrillCorePlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldEpithermalColumnPlan;
@@ -135,6 +138,9 @@ public final class GeologicalCommands {
                 .then(
                     Commands.literal("layered-intrusion")
                         .executes(GeologicalCommands::showLayeredIntrusionHere))
+                .then(
+                    Commands.literal("carbonatite-kimberlite")
+                        .executes(GeologicalCommands::showCarbonatiteKimberliteHere))
                 .then(
                     Commands.literal("hand-sample")
                         .executes(GeologicalCommands::showHandSampleHere))
@@ -612,6 +618,36 @@ public final class GeologicalCommands {
     } catch (IllegalArgumentException | IllegalStateException exception) {
       source.sendFailure(
           Component.literal("geology layered-intrusion unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static int showCarbonatiteKimberliteHere(CommandContext<CommandSourceStack> context) {
+    BlockPos position = BlockPos.containing(context.getSource().getPosition());
+    CommandSourceStack source = context.getSource();
+    try {
+      OverworldCarbonatiteKimberliteColumnPlan plan =
+          OverworldCarbonatiteKimberlitePlanner.from(
+                  planner(source.getLevel(), position.getX(), position.getZ()))
+              .plan(position.getX(), position.getZ());
+      OverworldCarbonatiteKimberliteInterval interval = plan.at(position.getY()).orElse(null);
+      String summary =
+          interval == null
+              ? plan.summary()
+                  + " at=("
+                  + position.getX()
+                  + ","
+                  + position.getY()
+                  + ","
+                  + position.getZ()
+                  + ") horizon=none"
+              : plan.summary() + " " + interval.summary();
+      source.sendSuccess(() -> Component.literal(summary), false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(
+          Component.literal(
+              "geology carbonatite-kimberlite unavailable: " + exception.getMessage()));
       return 0;
     }
   }

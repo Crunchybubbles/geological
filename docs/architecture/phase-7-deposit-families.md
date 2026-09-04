@@ -1,7 +1,8 @@
 # Phase 7 deposit families — source-gated deposit projections
 
-Status: `phase7-alpha.7` (greisen, explicit skarn host fixture, epithermal shallow-fluid,
-orogenic-gold metamorphic-fluid, basin/redox, uranium, and layered-intrusion projections).
+Status: `phase7-alpha.8` (greisen, explicit skarn host fixture, epithermal shallow-fluid,
+orogenic-gold metamorphic-fluid, basin/redox, uranium, layered-intrusion, and
+carbonatite/peralkaline-REE plus kimberlite/diamond projections).
 
 ## Alpha.1 — evolved-felsic greisen proof
 
@@ -191,6 +192,31 @@ path, trap, preservation, horizon, ledger, policy, default-negative, and seam ev
 tests cover all three families, actual-host barren behavior, closed accounting, repeated bytes, and
 chunk seams.
 
-Carbonatite/REE and kimberlite/diamond, phosphorite/Mn/coal/brine, and geothermal families remain
-separate future Phase 7 slices; they must not inherit these basin, uranium, or layered-intrusion
-proxies or be inferred from a generic catalog lithology.
+## Alpha.8 — carbonatite/peralkaline REE and kimberlite/diamond systems
+
+`CarbonatiteKimberliteSystemState` adds source-gated alkaline-complex branches for carbonatite
+REE/Nb/P, peralkaline REE/Nb/P, and kimberlite diamond-carrier pipes. Carbonatite requires an
+enriched alkaline-mantle proxy, a carbonatitic plug/breccia host, a rift/fault pathway, and a
+preserved complex; peralkaline requires a residual incompatible-element source, an alkaline
+intrusion, and a late alkaline pathway. Kimberlite is modeled as a rapid carrier ascent through
+deep structure: the optional `MantleCargoState` keeps diamond-bearing mantle cargo separate from
+the kimberlite carrier and requires an explicit source-reservoir identity. These are bounded
+proxy budgets, not REE/Nb/P/diamond assays, grades, reserves, or voxel inventories.
+
+The default `CarbonatiteKimberliteHostPolicy.none()` resolves actual bedrock only, so the current
+synthetic atlas remains barren without an authored alkaline or kimberlitic body. The review-only
+`CarbonatiteKimberliteHostPolicy.fixture()` supplies a deterministic three-unit alkaline complex
+covering all families. Each formed branch emits three contiguous horizons with existing coarse
+overprint vocabulary. `OverworldCarbonatiteKimberlitePlanner` clips those horizons to solid
+terrain, preserves stable X-then-Z target-chunk ordering, and checks adjacent seams. The read-only
+`/geology carbonatite-kimberlite` command and `carbonatiteKimberlite` task expose actual-negative
+and fixture evidence. The task writes
+`atlas-cli/build/phase7/carbonatite-kimberlite/carbonatite-kimberlite.json` with family, cargo,
+pathway, trap, horizon, ledger, policy, default-negative, and seam evidence.
+
+`OverworldCarbonatiteKimberlitePlannerTest` and `CarbonatiteKimberlitePacketGeneratorTest` cover
+all three families, cargo/carrier separation, barren behavior, closed accounting, repeated bytes,
+and chunk seams. The review fixture is not a production host fallback.
+
+Phosphorite/Mn/coal/brine and geothermal families remain separate future Phase 7 slices; they must
+not inherit these alkaline or kimberlite proxies or be inferred from a generic catalog lithology.
