@@ -56,6 +56,16 @@ public record DimensionProfile(
         EnumSet.allOf(ProcessFamily.class));
   }
 
+  /** Phase 4 Overworld profile used by the worldgen adapter's terrain-control boundary. */
+  public static DimensionProfile overworldPhase4() {
+    return new DimensionProfile(
+        "geological:overworld_phase4",
+        "earth_analogue",
+        SurfaceTopology.SINGLE_VALUED_SURFACE,
+        "geological:varied_rift_to_arc_grammar_v1",
+        EnumSet.allOf(ProcessFamily.class));
+  }
+
   public enum SurfaceTopology {
     SINGLE_VALUED_SURFACE,
     CAVERN_VOLUME,

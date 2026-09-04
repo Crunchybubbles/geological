@@ -3,6 +3,9 @@ package io.github.crunchybubbles.geological;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfiles;
+import io.github.crunchybubbles.geological.worldgen.OverworldTerrainControlSample;
+import io.github.crunchybubbles.geological.worldgen.WorldgenSnapshot;
 import io.github.crunchybubbles.geological.worldgen.WorldgenStage;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -49,5 +52,25 @@ class GeologicalWorldgenAdapterTest {
         () ->
             GeologicalWorldgenAdapter.request(
                 8_675_309L, Level.OVERWORLD, new ChunkPos(0, 0), null));
+  }
+
+  @Test
+  void bindsCoarseTerrainCallbackToSnapshotAndSuppliedExecutor() {
+    var overworld = DimensionGeologyProfiles.require("minecraft:overworld");
+    var context =
+        GeologicalWorldgenAdapter.coarseTerrainContext(
+            8_675_309L,
+            Level.OVERWORLD,
+            new ChunkPos(-11, 17),
+            WorldgenSnapshot.forProfile(overworld),
+            Runnable::run);
+
+    OverworldTerrainControlSample sample =
+        GeologicalWorldgenAdapter.coarseTerrainControls(context).sample(-161, 273);
+
+    assertEquals(WorldgenStage.COARSE_TERRAIN_CONTROLS, context.stage());
+    assertEquals(-161, sample.blockX());
+    assertEquals(273, sample.blockZ());
+    assertEquals(overworld.profileId(), context.request().profile().profileId());
   }
 }

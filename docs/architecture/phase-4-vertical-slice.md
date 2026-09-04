@@ -34,7 +34,11 @@ returns the platform-neutral `WorldgenChunkRequest`; null identity inputs are re
 core work. A minimal `@Mod("geological")` entry point and generated `neoforge.mods.toml` prove
 that the packaged loader boundary is real. The adapter has no custom `ChunkGenerator`, world
 preset, terrain writes, block registrations, or neighbor generation yet, so it cannot change a
-world by itself.
+world by itself. `OverworldTerrainControlSampler` now binds the coarse-terrain stage to the
+platform-supplied immutable snapshot and reconstructs deterministic elevation, uplift, slope,
+weathering, drainage, outcrop, and province/domain provenance for block-column centers. Samples
+from adjacent chunk contexts agree at the same world coordinate, and cache eviction does not alter
+the result; this slice remains read-only.
 
 `WorldgenSnapshot` freezes the model, scientific, configuration, presentation, and scale identity
 that a generation worker may read. `WorldgenExecutionContext` accepts that snapshot, one authorized
@@ -44,6 +48,6 @@ writable work still has to name the authorized target chunk. The review packet r
 digests and the `stage_supplied_only`/`liveServerAccess=forbidden` policy.
 
 The next Phase 4 increment should implement a custom world preset/generator hook that consumes a
-frozen `WorldgenSnapshot` and request for Overworld coarse terrain controls. It should remain
-read-only until deterministic chunk-local bounds, stage authorization, and seed/profile identity
-tests pass; palette writes belong to a later slice.
+frozen `WorldgenSnapshot` and request to turn these controls into bounded base-terrain density and
+lithology writes. It must clip writes to the authorized chunk and retain deterministic seam tests;
+palette writes belong to a later slice.
