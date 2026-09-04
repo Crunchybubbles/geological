@@ -83,6 +83,7 @@ import io.github.crunchybubbles.geological.query.Phase2World;
 import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfile;
 import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfiles;
 import io.github.crunchybubbles.geological.worldgen.WorldgenChunkRequest;
+import io.github.crunchybubbles.geological.worldgen.WorldgenSnapshot;
 import io.github.crunchybubbles.geological.worldgen.WorldgenStage;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -2819,6 +2820,7 @@ final class MaterialReviewPacketGenerator {
   private Map<String, Object> worldgenContractJson() {
     DimensionGeologyProfile overworld = DimensionGeologyProfiles.require("minecraft:overworld");
     WorldgenChunkRequest request = WorldgenChunkRequest.forChunk(seed, overworld, -7, 11);
+    WorldgenSnapshot snapshot = WorldgenSnapshot.forProfile(overworld);
     return JsonWriter.object(
         "contractVersion",
         overworld.version(),
@@ -2828,6 +2830,12 @@ final class MaterialReviewPacketGenerator {
         true,
         "neighborGeneration",
         "forbidden",
+        "workerExecutor",
+        "stage_supplied_only",
+        "liveServerAccess",
+        "forbidden",
+        "snapshot",
+        worldgenSnapshotJson(snapshot),
         "sampleChunk",
         JsonWriter.object(
             "dimensionKey",
@@ -2858,6 +2866,20 @@ final class MaterialReviewPacketGenerator {
                         "writesChunk",
                         stage.writesChunk()))
             .toList());
+  }
+
+  private static Map<String, Object> worldgenSnapshotJson(WorldgenSnapshot snapshot) {
+    return JsonWriter.object(
+        "modelVersion",
+        snapshot.modelVersion(),
+        "scientificDigest",
+        snapshot.scientificDigest(),
+        "configurationDigest",
+        snapshot.configurationDigest(),
+        "presentationDigest",
+        snapshot.presentationDigest(),
+        "scaleProfileId",
+        snapshot.scaleProfileId());
   }
 
   private static Map<String, Object> chunkBoundsJson(

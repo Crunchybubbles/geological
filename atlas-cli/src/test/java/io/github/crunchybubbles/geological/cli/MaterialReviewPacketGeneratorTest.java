@@ -129,6 +129,10 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"contractVersion\": \"phase4-alpha.2\""));
     assertTrue(firstJson.contains("\"targetChunkOnly\": true"));
     assertTrue(firstJson.contains("\"neighborGeneration\": \"forbidden\""));
+    assertTrue(firstJson.contains("\"workerExecutor\": \"stage_supplied_only\""));
+    assertTrue(firstJson.contains("\"liveServerAccess\": \"forbidden\""));
+    assertTrue(firstJson.contains("\"configurationDigest\": \"sha256:"));
+    assertTrue(firstJson.contains("\"presentationDigest\": \"sha256:"));
     assertTrue(firstJson.contains("\"authorizedThrough\": \"validate_metrics\""));
     assertTrue(firstJson.contains("\"coarse_terrain_controls\""));
     assertTrue(firstJson.contains("\"maxYExclusive\": 320"));

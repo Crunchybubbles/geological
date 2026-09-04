@@ -5,8 +5,8 @@ Current Phase 2 checkpoint: `phase2.0-alpha.94`, with compact metamorphic P-T-t 
 Current Phase 3 checkpoint: porphyry, VMS, LCT, BIF, restricted-basin evaporite/potash, and source-linked placer slices link intrusion/fluid/stockwork/alteration, basin/lens/feeder, evolved-lineage child bodies, age/redox-bounded sheets, brine succession, and drainage budgets; porphyry fluid/metal phase zoning, a gated primary-Cu supergene profile, and source-specific distribution/validation reports are also explicit, each with barren outcomes. All six reports now read complete qualifying source tables of 228, 608, 86, 66, 102, and 83 rows respectively; each publishes structured release/qualifying coverage plus deterministic held-out quantile projections and calibration covariance summaries.
 
 The current Phase 4 identity increments freeze platform-neutral canonical dimension profiles for
-the Overworld, Nether, and End, plus deterministic seed/profile/chunk identity and logical stage
-contracts before a NeoForge adapter is introduced.
+the Overworld, Nether, and End, plus deterministic seed/profile/chunk identity, immutable
+worldgen snapshots, and logical stage contracts before a NeoForge adapter is introduced.
 
 See [implementation-status.md](docs/architecture/implementation-status.md) for the roadmap-aligned
 remaining estimate by phase. Phase 3 redistribution/statistical review remains an external sign-off

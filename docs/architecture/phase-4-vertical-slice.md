@@ -30,5 +30,12 @@ Negative chunk coordinates and profile/identity mismatch are covered by determin
 is an adapter-facing contract, not a NeoForge implementation: no platform classes, terrain writes,
 or neighbor generation are present yet.
 
+`WorldgenSnapshot` freezes the model, scientific, configuration, presentation, and scale identity
+that a generation worker may read. `WorldgenExecutionContext` accepts that snapshot, one authorized
+stage, and the executor supplied by the platform callback; it never creates an executor or exposes a
+live server/world handle. Non-writing stages and mismatched snapshots fail before work starts, and
+writable work still has to name the authorized target chunk. The review packet records the snapshot
+digests and the `stage_supplied_only`/`liveServerAccess=forbidden` policy.
+
 The next Phase 4 increment should lock the exact NeoForge 21.1.x patch/build plugin and implement
 the adapter boundary against this frozen identity contract before adding terrain or palette writes.
