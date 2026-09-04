@@ -2,6 +2,7 @@ package io.github.crunchybubbles.geological;
 
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +14,7 @@ public final class GeologicalMod {
 
   public GeologicalMod(IEventBus modBus) {
     GeologicalWorldgenRegistries.register(modBus);
+    NeoForge.EVENT_BUS.register(GeologicalCommands.class);
     LOGGER.info("Geological Overworld worldgen adapter initialized");
   }
 }

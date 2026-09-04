@@ -1,8 +1,9 @@
 # Phase 4 vertical slice — canonical dimension identity
 
 Status: completed platform-neutral identity increment (`phase4-alpha.2`) plus loader adapter lock,
-chunk-writer, vanilla-palette, Overworld generator/preset, explicit air/surface-water, and bounded
-regolith/surface-clue slices (`phase4-loader-alpha.1`–`phase4-loader-alpha.6`).
+chunk-writer, vanilla-palette, Overworld generator/preset, explicit air/surface-water, bounded
+regolith/surface-clue, and read-only debug-command slices
+(`phase4-loader-alpha.1`–`phase4-loader-alpha.7`).
 
 `DimensionGeologyProfile` freezes the shared contract that a future Minecraft adapter will consume
 for `minecraft:overworld`, `minecraft:the_nether`, and `minecraft:the_end`. Each profile carries a
@@ -61,6 +62,12 @@ captures the seed supplied to `createState` and invokes the chunk writer from `f
 vanilla surface rules are intentionally suppressed; `buildSurface` now applies the geological
 regolith projection instead of allowing vanilla surface rules to overwrite it.
 
+`OverworldColumnDebugTrace` joins the base, air/fluid, and regolith plans without storing blocks or
+granting write authority. The NeoForge `/geology here` and `/geology column <x> <z>` commands emit
+that deterministic trace, including surface intervals, lithology, clue kind, source/deposit counts,
+weathering, slope, flow, and channel-distance values; non-Overworld commands fail without doing
+geological work.
+
 `WorldgenSnapshot` freezes the model, scientific, configuration, presentation, and scale identity
 that a generation worker may read. `WorldgenExecutionContext` accepts that snapshot, one authorized
 stage, and the executor supplied by the platform callback; it never creates an executor or exposes a
@@ -68,6 +75,7 @@ live server/world handle. Non-writing stages and mismatched snapshots fail befor
 writable work still has to name the authorized target chunk. The review packet records the snapshot
 digests and the `stage_supplied_only`/`liveServerAccess=forbidden` policy.
 
-The next Phase 4 increment should add commands/debug traces for the generated material and clue
-provenance while preserving the plan's clipping and deterministic seam tests. Compatibility/
-benchmark coverage and dimension-native Nether/End generators remain separate slices.
+The next Phase 4 increment should add map/section debug overlays plus compatibility/benchmark
+coverage for shuffled generation, structures, and other terrain authorities while preserving the
+plan's clipping and deterministic seam tests. Dimension-native Nether/End generators remain
+separate slices.
