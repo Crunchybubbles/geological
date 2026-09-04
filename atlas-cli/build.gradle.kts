@@ -75,3 +75,12 @@ tasks.register<JavaExec>("laterite") {
     args("laterite", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase6/laterite").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("secondaryPlacers") {
+    group = "verification"
+    description = "Writes the deterministic Phase 6 source-budgeted secondary-placer review."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("secondary-placers", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase6/secondary-placers").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}

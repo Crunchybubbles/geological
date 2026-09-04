@@ -28,6 +28,9 @@ import io.github.crunchybubbles.geological.worldgen.OverworldLateritePlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldMapDebugTrace;
 import io.github.crunchybubbles.geological.worldgen.OverworldRegolithColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldRegolithPlanner;
+import io.github.crunchybubbles.geological.worldgen.OverworldSecondaryPlacerColumnPlan;
+import io.github.crunchybubbles.geological.worldgen.OverworldSecondaryPlacerInterval;
+import io.github.crunchybubbles.geological.worldgen.OverworldSecondaryPlacerPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldSecondaryWeatheringColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldSecondaryWeatheringInterval;
 import io.github.crunchybubbles.geological.worldgen.OverworldSecondaryWeatheringPlanner;
@@ -86,6 +89,7 @@ public final class GeologicalCommands {
                     Commands.literal("secondary")
                         .executes(GeologicalCommands::showSecondaryWeatheringHere))
                 .then(Commands.literal("laterite").executes(GeologicalCommands::showLateriteHere))
+                .then(Commands.literal("placers").executes(GeologicalCommands::showPlacersHere))
                 .then(
                     Commands.literal("hand-sample")
                         .executes(GeologicalCommands::showHandSampleHere))
@@ -267,6 +271,42 @@ public final class GeologicalCommands {
     } catch (IllegalArgumentException | IllegalStateException exception) {
       source.sendFailure(
           Component.literal("geology laterite unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static int showPlacersHere(CommandContext<CommandSourceStack> context) {
+    BlockPos position = BlockPos.containing(context.getSource().getPosition());
+    CommandSourceStack source = context.getSource();
+    try {
+      OverworldSecondaryPlacerColumnPlan plan =
+          OverworldSecondaryPlacerPlanner.from(
+                  planner(source.getLevel(), position.getX(), position.getZ()))
+              .plan(position.getX(), position.getZ());
+      String atY =
+          plan.intervals().stream()
+              .filter(
+                  interval ->
+                      position.getY() >= interval.minYInclusive()
+                          && position.getY() < interval.maxYExclusive())
+              .map(OverworldSecondaryPlacerInterval::summary)
+              .collect(Collectors.joining("; "));
+      String summary =
+          atY.isBlank()
+              ? plan.summary()
+                  + " at=("
+                  + position.getX()
+                  + ","
+                  + position.getY()
+                  + ","
+                  + position.getZ()
+                  + ") intervals=none"
+              : plan.summary() + " " + atY;
+      source.sendSuccess(() -> Component.literal(summary), false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(
+          Component.literal("geology placers unavailable: " + exception.getMessage()));
       return 0;
     }
   }

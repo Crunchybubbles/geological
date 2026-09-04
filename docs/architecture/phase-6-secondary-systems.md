@@ -1,6 +1,6 @@
 # Phase 6 secondary systems — source-budgeted weathering projection
 
-Status: `phase6-alpha.2` (gossan/oxidation/supergene copper plus source-gated laterite projection).
+Status: `phase6-alpha.3` (gossan/oxidation/supergene copper, laterite, and secondary placers).
 
 ## Alpha.1 — world-column supergene projection
 
@@ -50,8 +50,33 @@ stable X-then-Z ordered, and seam-equal across adjacent contexts. The NeoForge `
 view reports the current interval, while the `laterite` CLI task writes a deterministic four-chunk
 artifact to `atlas-cli/build/phase6/laterite/laterite.json`.
 
-This slice still does not generate cassiterite/heavy-mineral/diamond placers, karst or paleosurface
-refinements, or optional glacial transport. Those remain separate bounded Phase 6 slices.
+The laterite slice still does not generate cassiterite/heavy-mineral/diamond placers, karst or
+paleosurface refinements, or optional glacial transport. Those remain separate bounded Phase 6
+slices.
+
+## Alpha.3 — cassiterite, heavy-mineral, and diamond placer projections
+
+`SecondaryPlacerState` adds three mechanical source-to-sink families over the existing channel and
+hydraulic-trap proof. Cassiterite requires a formed, fertile LCT child body; because the Phase 2
+catalog intentionally has no Sn/cassiterite definition yet, its source ledger is explicitly named
+an LCT residual cassiterite proxy. Heavy-mineral sand uses the resolved upstream source parent and
+only durable dense catalog phases (ilmenite, magnetite, hematite, chromite, garnet proxies,
+diamond, and perovskite) as an indicator vector. Diamond requires a `DIAMOND_BEARING`
+`MantleCargoState`; the current kimberlite cargo remains source-context-unresolved, so it cannot
+produce a diamond placer.
+
+Each family requires a connected fluvial channel, a hydraulic gradient-break trap, and preserved
+alluvial-bar context. Released, transport-loss, and trapped budgets close exactly against the
+source proxy, and three contiguous basal/bar/rework horizons carry the allocation without turning
+it into per-voxel inventory. `OverworldSecondaryPlacerPlanner` resolves a separate upstream parent
+near the province source before classifying a downstream channel parcel, preserving provenance
+across basin cover. It emits all three family states in bounded 16×16 X-then-Z order and compares
+equal at adjacent chunk seams. `/geology placers` reports all family intervals at the caller's Y;
+`secondaryPlacers` writes a deterministic four-chunk artifact to
+`atlas-cli/build/phase6/secondary-placers/secondary-placers.json`.
+
+This slice does not yet generate karst/regolith/paleosurface refinements or optional glacial
+transport. Those remain the final bounded Phase 6 slices.
 
 ## Exit evidence
 
@@ -60,5 +85,7 @@ projection, source-budget retention, bounded target-chunk order, and adjacent-co
 agreement. `OverworldLateritePlannerTest` covers formed bauxite ledger closure, bounded target
 chunks, ultramafic-only Ni-Co eligibility, and adjacent-context seam agreement. The two packet
 generator tests check byte-for-byte deterministic JSON, budget closure, horizon presence, and seam
-stability for the fixed seed fixture. The artifacts are review aids, not save formats or voxel-grade
-predictions.
+stability for the fixed seed fixture. `OverworldSecondaryPlacerPlannerTest` covers LCT/heavy-source
+provenance, diamond-fertility gating, bounded target chunks, and seam equality; its packet test
+checks the three-family artifact and zero unresolved diamond placement. The artifacts are review
+aids, not save formats or voxel-grade predictions.
