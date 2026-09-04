@@ -918,73 +918,96 @@ public record MineralSystemValidationReport(
     }
 
     private static EmpiricalDataset lctPegmatite() {
-      String version = "USGS-2026-LCT-global";
+      String version = "USGS-2026-LCT-v2.0";
       String aggregation = "reported_deposit_definition_no_cross_body_merge";
       String cutoff = "lithium_tonnage_grade_resource_basis";
-      return dataset(
-          "usgs:2026_lct_global",
-          "https://pubs.usgs.gov/publication/70276446",
+      return readLctSubset(version, aggregation, cutoff);
+    }
+
+    private static EmpiricalDataset readLctSubset(
+        String version, String aggregation, String cutoff) {
+      String resourcePath = "/data/geological/empirical/lct_subset.tsv";
+      var resource = EmpiricalDataset.class.getResourceAsStream(resourcePath);
+      if (resource == null) {
+        throw new IllegalStateException("missing empirical source resource " + resourcePath);
+      }
+      List<SampleRow> rows = new ArrayList<>();
+      try (BufferedReader reader =
+          new BufferedReader(new InputStreamReader(resource, StandardCharsets.UTF_8))) {
+        String line;
+        int lineNumber = 0;
+        while ((line = reader.readLine()) != null) {
+          lineNumber++;
+          String trimmed = line.trim();
+          if (trimmed.isEmpty()
+              || trimmed.startsWith("#")
+              || trimmed.startsWith("source_row_ref")) {
+            continue;
+          }
+          String[] fields = line.split("\\|", -1);
+          if (fields.length != 9) {
+            throw new IllegalStateException(
+                "LCT source row " + lineNumber + " has " + fields.length + " fields");
+          }
+          String sourceRowRef = fields[0].trim();
+          String depositName = fields[1].trim();
+          String subtype = fields[2].trim();
+          SampleRole role = SampleRole.valueOf(fields[3].trim());
+          double percentile = parseSourceNumber(fields[4], lineNumber, "percentile");
+          double oreTonnageTonnes = parseSourceNumber(fields[5], lineNumber, "ore_tonnage_tonnes");
+          double lithiumPercent = parseSourceNumber(fields[6], lineNumber, "li2o_pct");
+          String tantalumField = fields[7].trim();
+          String cutoffField = fields[8].trim();
+          if (depositName.isBlank() || percentile <= 0.0 || percentile > 1.0) {
+            throw new IllegalStateException("invalid LCT source identity at row " + lineNumber);
+          }
+          Map<String, Double> values = new TreeMap<>();
+          values.put("tonnage", oreTonnageTonnes / 1_000_000.0);
+          values.put("li2o_grade", lithiumPercent / 100.0);
+          Set<String> missing = Set.of();
+          if (tantalumField.isBlank()) {
+            missing = Set.of("ta2o5_grade");
+          } else {
+            values.put(
+                "ta2o5_grade",
+                parseSourceNumber(tantalumField, lineNumber, "ta2o5_ppm") / 1_000_000.0);
+          }
+          String resourceBasis =
+              "source_resource_row;ore_tonnage_tonnes_to_Mt;Li2O_percent_to_mass_fraction;Ta2O5_ppm_to_mass_fraction;cutoff_percent="
+                  + (cutoffField.isBlank() ? "not_reported" : cutoffField);
+          rows.add(
+              new SampleRow(
+                  "lct-deposit-" + sourceRowRef + "-" + depositName,
+                  subtype,
+                  percentile,
+                  role,
+                  "LiCsRb_peg_GT_Deposits.csv:ID=" + sourceRowRef,
+                  version,
+                  aggregation,
+                  cutoff,
+                  resourceBasis,
+                  values,
+                  missing,
+                  Set.of()));
+        }
+      } catch (IOException | IllegalArgumentException exception) {
+        throw new IllegalStateException("invalid LCT empirical source subset", exception);
+      }
+      if (rows.size() < 10) {
+        throw new IllegalStateException("LCT empirical source subset is unexpectedly small");
+      }
+      return new EmpiricalDataset(
+          "usgs:2026_lct_global_audited_subset",
+          "https://data.usgs.gov/datacatalog/data/USGS%3A66db3cb7d34eef5af66d9306",
           version,
-          "lithium_cesium_tantalum_pegmatites_global",
+          "lithium_dominated_pegmatite_resources_positive_tonnage_li2o_audited_subset",
           aggregation,
           cutoff,
+          "USGS 2026 v2.0 Li-Cs-Rb pegmatite data release subset; source IDs, subtype mineral labels, cutoffs, and explicit Ta missingness are checked in for reproducible review. Unit conversions are retained in each row's resource basis; the subset is not the full population.",
+          DistributionKind.EMPIRICAL_ROW,
+          AuditStatus.RAW_TABLE_AUDITED_SUBSET,
           Map.of("tonnage", "Mt", "li2o_grade", "mass_fraction", "ta2o5_grade", "mass_fraction"),
-          List.of(
-              row(
-                  "lct-q10",
-                  "lct_rare_element",
-                  0.10,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 0.02, "li2o_grade", 0.015, "ta2o5_grade", 0.0001),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "lct-q25",
-                  "lct_rare_element",
-                  0.25,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 0.08, "li2o_grade", 0.025, "ta2o5_grade", 0.0003),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "lct-q50",
-                  "lct_rare_element",
-                  0.50,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 0.30, "li2o_grade", 0.040, "ta2o5_grade", 0.0007),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "lct-q75",
-                  "lct_rare_element",
-                  0.75,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 1.20, "li2o_grade", 0.065, "ta2o5_grade", 0.0015),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "lct-q90",
-                  "lct_rare_element",
-                  0.90,
-                  SampleRole.HELD_OUT,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 4.0, "li2o_grade", 0.100),
-                  Set.of("ta2o5_grade"),
-                  Set.of())));
+          rows);
     }
 
     private static EmpiricalDataset bif() {

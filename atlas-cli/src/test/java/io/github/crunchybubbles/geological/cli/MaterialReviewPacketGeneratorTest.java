@@ -99,6 +99,8 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"heldOutRowCount\": 1"));
     assertTrue(firstJson.contains("\"calibrationRowCount\": 10"));
     assertTrue(firstJson.contains("\"heldOutRowCount\": 4"));
+    assertTrue(firstJson.contains("\"usgs:of20091034_vms_cu_zn_audited_subset\""));
+    assertTrue(firstJson.contains("\"usgs:2026_lct_global_audited_subset\""));
     assertTrue(firstJson.contains("\"missing_and_censor_flags\""));
     assertTrue(firstJson.contains("\"statisticalValidation\""));
     assertTrue(firstJson.contains("\"quantileComparisons\""));
@@ -106,7 +108,7 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"covarianceSummaries\""));
     assertTrue(firstJson.contains("\"INSUFFICIENT_ROWS\""));
     assertTrue(firstJson.contains("\"mineralSystemValidationReports\""));
-    assertTrue(firstJson.contains("\"usgs:2026_lct_global\""));
+    assertTrue(firstJson.contains("\"usgs:2026_lct_global_audited_subset\""));
     assertTrue(firstJson.contains("\"usgs:bif_superior_algoma\""));
     assertTrue(firstJson.contains("\"usgs:sir2010_5090s_global_potash\""));
     assertTrue(firstJson.contains("\"diagenesisState\""));

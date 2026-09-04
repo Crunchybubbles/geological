@@ -137,15 +137,21 @@ The VMS importer follows the same contract against the 17-row subset of `VMS.tab
 source's Felsic, Mafic, and Bimodal-Mafic subtype labels, filters to positive tonnage/Cu/Zn rows,
 converts percent grades to mass fractions, and retains a deterministic five-row held-out split.
 
+The LCT importer reads a 16-row subset of the USGS v2.0 `LiCsRb_peg_GT_Deposits.csv` release. It
+preserves the release IDs, ore-mineral subtype labels, per-row cutoff values, and Ta ppm
+missingness; it converts tonnes to Mt, Li2O percent to mass fraction, and Ta2O5 ppm to mass
+fraction. The deterministic four-row held-out split keeps conditional Ta coverage explicit rather
+than treating unreported Ta as zero.
+
 ## Alpha.10 — held-out statistical projection
 
-The remaining four families still use `SOURCE_ANCHORS_PROVISIONAL`: those anchors make the import
+The remaining two families still use `SOURCE_ANCHORS_PROVISIONAL`: those anchors make the import
 and report contract deterministic and reviewable, but do not claim that a handful of anchors
 replace a raw, licensed table. All reports emit deterministic held-out quantile projections (with
 log-space error where values are usable) and calibration covariance/correlation summaries for
 every declared variable pair. These metrics make missing, censored, and insufficient held-out
-coverage explicit; the porphyry and VMS metrics are subset-audited, while the other families
-remain provisional until their raw source rows replace the anchors.
+coverage explicit; the porphyry, VMS, and LCT metrics are subset-audited, while the BIF and
+evaporite/potash families remain provisional until their raw source rows replace the anchors.
 
 Completing the Phase 3 scientific exit still requires cleaning the source tables, preserving their
 row-level bias/censor metadata, auditing redistribution, and promoting the held-out quantile and

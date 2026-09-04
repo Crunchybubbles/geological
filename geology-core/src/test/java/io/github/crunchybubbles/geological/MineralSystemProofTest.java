@@ -549,8 +549,7 @@ class MineralSystemProofTest {
         reports.stream()
             .filter(
                 report ->
-                    report.modelId().equals(MineralSystemProofs.LCT_MODEL)
-                        || report.modelId().equals(MineralSystemProofs.BIF_MODEL)
+                    report.modelId().equals(MineralSystemProofs.BIF_MODEL)
                         || report.modelId().equals(MineralSystemProofs.EVAPORITE_MODEL)
                         || report.modelId().equals(MineralSystemProofs.PLACER_MODEL))
             .allMatch(
@@ -568,14 +567,17 @@ class MineralSystemProofTest {
     for (MineralSystemValidationReport report : reports) {
       boolean auditedPorphyry = report.modelId().equals(MineralSystemProofs.PORPHYRY_MODEL);
       boolean auditedVms = report.modelId().equals(MineralSystemProofs.VMS_MODEL);
-      boolean auditedSubset = auditedPorphyry || auditedVms;
+      boolean auditedLct = report.modelId().equals(MineralSystemProofs.LCT_MODEL);
+      boolean auditedSubset = auditedPorphyry || auditedVms || auditedLct;
       assertEquals(
-          auditedPorphyry ? 14 : auditedVms ? 17 : 5, report.empiricalDataset().rows().size());
+          auditedPorphyry ? 14 : auditedVms ? 17 : auditedLct ? 16 : 5,
+          report.empiricalDataset().rows().size());
       assertEquals(
-          auditedPorphyry ? 10 : auditedVms ? 12 : 4,
+          auditedPorphyry ? 10 : auditedVms ? 12 : auditedLct ? 12 : 4,
           report.empiricalDataset().calibrationRowCount());
       assertEquals(
-          auditedPorphyry ? 4 : auditedVms ? 5 : 1, report.empiricalDataset().heldOutRowCount());
+          auditedPorphyry ? 4 : auditedVms ? 5 : auditedLct ? 4 : 1,
+          report.empiricalDataset().heldOutRowCount());
       assertEquals(
           auditedSubset
               ? MineralSystemValidationReport.AuditStatus.RAW_TABLE_AUDITED_SUBSET
@@ -610,6 +612,20 @@ class MineralSystemProofTest {
         assertEquals(0.013, beatriz.values().get("cu_grade"), 1.0e-12);
         assertEquals(0.02, beatriz.values().get("zn_grade"), 1.0e-12);
       }
+      if (auditedLct) {
+        assertEquals(
+            "https://data.usgs.gov/datacatalog/data/USGS%3A66db3cb7d34eef5af66d9306",
+            report.empiricalDataset().sourceUri());
+        assertEquals("USGS-2026-LCT-v2.0", report.empiricalDataset().sourceVersion());
+        MineralSystemValidationReport.SampleRow adina =
+            report.empiricalDataset().rows().stream()
+                .filter(row -> row.sourceRowRef().equals("LiCsRb_peg_GT_Deposits.csv:ID=1"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(58.5, adina.values().get("tonnage"), 1.0e-12);
+        assertEquals(0.0112, adina.values().get("li2o_grade"), 1.0e-12);
+        assertTrue(adina.missingFields().contains("ta2o5_grade"));
+      }
       assertTrue(
           report.empiricalDataset().rows().stream()
               .allMatch(row -> !row.sourceRowRef().isBlank() && !row.sourceVersion().isBlank()));
@@ -632,7 +648,9 @@ class MineralSystemProofTest {
               ? MineralSystemValidationReport.StatisticalStatus.AUDITED_SUBSET
               : auditedVms
                   ? MineralSystemValidationReport.StatisticalStatus.AUDITED_SUBSET
-                  : MineralSystemValidationReport.StatisticalStatus.PROVISIONAL_ANCHORS,
+                  : auditedLct
+                      ? MineralSystemValidationReport.StatisticalStatus.AUDITED_SUBSET
+                      : MineralSystemValidationReport.StatisticalStatus.PROVISIONAL_ANCHORS,
           statistical.status());
       assertTrue(
           statistical.quantileComparisons().stream()
