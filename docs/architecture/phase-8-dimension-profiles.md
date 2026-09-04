@@ -81,6 +81,24 @@ save format. `EndFragmentTerrainCompilerTest` and `EndFragmentPacketGeneratorTes
 gateway, outer, void, all parent families, impact/regolith bounds, identity locking, repeatable
 JSON, and chunk seams.
 
+## Alpha.4 — End progression and protected structure contract
+
+`EndProgressionContract` freezes the canonical central-island, void-gap, gateway-ring, and
+outer-island references produced by the fragment compiler. It assigns stable protected slots for
+the exit portal, dragon arena, four gateways, outer End cities, and chorus habitats. The contract
+retains anchor body IDs, coordinates, radii, the profile's progression-contract identity, and
+explicit safety flags. `EndProgressionPlanner` exposes read-only structure lookup and denies geology
+terrain writes inside protected slots while allowing the open void gap to remain available to the
+platform structure system.
+
+The standalone `endProgression` task writes
+`atlas-cli/build/phase8/end-progression/end-progression.json`, including all anchor IDs, protected
+slot counts, topology validation, portal/dragon safety, forbidden-process evidence, and seam
+stability. `EndProgressionPlannerTest` and `EndProgressionPacketGeneratorTest` cover deterministic
+anchors, role ownership, protected-write behavior, central/void topology, repeatable JSON, and
+adjacent chunk seams. The contract does not implement Minecraft structure placement; it is the
+geology-owned boundary that prevents terrain generation from overwriting progression structures.
+
 ## Remaining Phase 8 slices
 
 The next bounded increments are an End parent-body/provenance and void-bounded terrain compiler,

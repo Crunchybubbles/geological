@@ -219,3 +219,12 @@ tasks.register<JavaExec>("endFragments") {
     args("end-fragments", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase8/end-fragments").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("endProgression") {
+    group = "verification"
+    description = "Writes the deterministic Phase 8 End progression and structure-protection review."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("end-progression", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase8/end-progression").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}

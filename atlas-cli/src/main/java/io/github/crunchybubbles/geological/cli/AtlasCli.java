@@ -110,6 +110,10 @@ public final class AtlasCli {
         Path report = new EndFragmentPacketGenerator(seed).generate(output);
         System.out.println("Wrote Phase 8 End parent-fragment review to " + report);
       }
+      case "end-progression" -> {
+        Path report = new EndProgressionPacketGenerator(seed).generate(output);
+        System.out.println("Wrote Phase 8 End progression review to " + report);
+      }
       default -> throw new IllegalArgumentException("Unknown command: " + command);
     }
   }
@@ -137,6 +141,6 @@ public final class AtlasCli {
 
   private static void printUsage() {
     System.out.println(
-        "Usage: atlas-cli <generate|measure|materials|worldgen-benchmark|exploration-telemetry|secondary-weathering|laterite|secondary-placers|paleosurface|glacial|greisen|skarn|epithermal|orogenic-gold|basin-hydrothermal|uranium|layered-intrusion|carbonatite-kimberlite|sedimentary-resources|geothermal|nether-thermal|nether-resources|end-fragments> [--seed <long>] [--output <directory>]");
+        "Usage: atlas-cli <generate|measure|materials|worldgen-benchmark|exploration-telemetry|secondary-weathering|laterite|secondary-placers|paleosurface|glacial|greisen|skarn|epithermal|orogenic-gold|basin-hydrothermal|uranium|layered-intrusion|carbonatite-kimberlite|sedimentary-resources|geothermal|nether-thermal|nether-resources|end-fragments|end-progression> [--seed <long>] [--output <directory>]");
   }
 }
