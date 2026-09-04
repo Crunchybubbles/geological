@@ -145,12 +145,15 @@ missingness; it converts tonnes to Mt, Li2O percent to mass fraction, and Ta2O5 
 fraction. The deterministic four-row held-out split keeps conditional Ta coverage explicit rather
 than treating unreported Ta as zero.
 
-The evaporite/potash importer reads a 16-row subset of the USGS `PotashDeposits.xlsx` workbook
-from the PotashXL package. It preserves deposit IDs, basin and member metadata, K-mineral labels,
-resource status, and the raw depth text; the population rule keeps rows with positive reported
-`RR_ORE_MT` and `RR_K2O_PCT`, converts K2O percent to mass fraction, and uses the first numeric
-bound of ranged bed-depth text as the modeled depth. The deterministic four-row held-out split is
-explicitly a subset audit, not a full 981-site population release.
+The evaporite/potash importer reads all 102 qualifying rows from the USGS `PotashDeposits.xlsx`
+workbook in the PotashXL package. The population rule keeps every source row with a positive first
+numeric `RR_ORE_MT` and `RR_K2O_PCT` bound (ordinal labels such as `1)` are skipped), preserves
+deposit IDs, country/basin/member metadata, K-mineral labels, resource status, raw resource/depth
+text, and references, converts K2O percent to mass fraction, and uses the first numeric bound of
+ranged bed-depth text as the modeled depth. Qualified/ranged resource values are explicitly marked
+censored and missing depths remain missing. The deterministic every-fifth-row split is a complete
+audit of this qualifying source release, not a claim that the historical workbook is an unbiased
+981-site natural population.
 
 The BIF importer reads all 66 rows of the combined Superior-Algoma Fe table in USGS Open-File
 Report 93-0280. It preserves the source page/name/country references and combined-model rule,
@@ -166,8 +169,8 @@ bias limit.
 
 ## Alpha.10 — held-out statistical projection
 
-Four families use `RAW_TABLE_AUDITED_SUBSET`, while the complete 66-row BIF and 83-row placer
-tables are `RAW_TABLE_AUDITED`: these statuses make the import and report contract deterministic
+Three families use `RAW_TABLE_AUDITED_SUBSET`, while the complete 66-row BIF, 102-row potash, and
+83-row placer tables are `RAW_TABLE_AUDITED`: these statuses make the import and report contract deterministic
 and reviewable without claiming that any historical table is an unbiased natural population. All
 reports emit deterministic held-out quantile projections (with log-space error where values are
 usable) and calibration covariance/correlation summaries for every declared variable pair. These

@@ -583,7 +583,7 @@ class MineralSystemProofTest {
       boolean auditedBif = report.modelId().equals(MineralSystemProofs.BIF_MODEL);
       boolean auditedEvaporite = report.modelId().equals(MineralSystemProofs.EVAPORITE_MODEL);
       boolean auditedPlacer = report.modelId().equals(MineralSystemProofs.PLACER_MODEL);
-      boolean auditedSubset = auditedPorphyry || auditedVms || auditedLct || auditedEvaporite;
+      boolean auditedSubset = auditedPorphyry || auditedVms || auditedLct;
       assertEquals(
           auditedPorphyry
               ? 14
@@ -591,7 +591,7 @@ class MineralSystemProofTest {
                   ? 17
                   : auditedLct
                       ? 16
-                      : auditedBif ? 66 : auditedEvaporite ? 16 : auditedPlacer ? 83 : 5,
+                      : auditedBif ? 66 : auditedEvaporite ? 102 : auditedPlacer ? 83 : 5,
           report.empiricalDataset().rows().size());
       assertEquals(
           auditedPorphyry
@@ -600,7 +600,7 @@ class MineralSystemProofTest {
                   ? 12
                   : auditedLct
                       ? 12
-                      : auditedBif ? 53 : auditedEvaporite ? 12 : auditedPlacer ? 67 : 4,
+                      : auditedBif ? 53 : auditedEvaporite ? 82 : auditedPlacer ? 67 : 4,
           report.empiricalDataset().calibrationRowCount());
       assertEquals(
           auditedPorphyry
@@ -609,10 +609,10 @@ class MineralSystemProofTest {
                   ? 5
                   : auditedLct
                       ? 4
-                      : auditedBif ? 13 : auditedEvaporite ? 4 : auditedPlacer ? 16 : 1,
+                      : auditedBif ? 13 : auditedEvaporite ? 20 : auditedPlacer ? 16 : 1,
           report.empiricalDataset().heldOutRowCount());
       assertEquals(
-          auditedBif || auditedPlacer
+          auditedBif || auditedEvaporite || auditedPlacer
               ? MineralSystemValidationReport.AuditStatus.RAW_TABLE_AUDITED
               : auditedSubset
                   ? MineralSystemValidationReport.AuditStatus.RAW_TABLE_AUDITED_SUBSET
@@ -679,7 +679,7 @@ class MineralSystemProofTest {
               / 2,
           statistical.covarianceSummaries().size());
       assertEquals(
-          auditedBif || auditedPlacer
+          auditedBif || auditedEvaporite || auditedPlacer
               ? MineralSystemValidationReport.StatisticalStatus.COMPLETE
               : auditedSubset
                   ? MineralSystemValidationReport.StatisticalStatus.AUDITED_SUBSET
@@ -735,19 +735,57 @@ class MineralSystemProofTest {
             "https://pubs.usgs.gov/sir/2010/5090/s/PotashXL.zip",
             report.empiricalDataset().sourceUri());
         assertEquals("USGS-SIR-2010-5090-S-v1.0", report.empiricalDataset().sourceVersion());
+        assertEquals(102, report.empiricalDataset().rows().size());
+        assertEquals(82, report.empiricalDataset().calibrationRowCount());
+        assertEquals(20, report.empiricalDataset().heldOutRowCount());
+        assertTrue(report.empiricalDataset().sourceAuditComplete());
+        List<MineralSystemValidationReport.SampleRow> potashRows = report.empiricalDataset().rows();
+        assertTrue(potashRows.getFirst().sourceRowRef().contains("ID=725;SITE=Llobregat"));
+        assertTrue(potashRows.getLast().sourceRowRef().contains("ID=114;SITE=Legacy"));
+        for (int index = 0; index < potashRows.size(); index++) {
+          MineralSystemValidationReport.SampleRow row = potashRows.get(index);
+          assertEquals((index + 1) / 102.0, row.percentile(), 1.0e-12);
+          assertEquals(
+              (index + 1) % 5 == 0
+                  ? MineralSystemValidationReport.SampleRole.HELD_OUT
+                  : MineralSystemValidationReport.SampleRole.CALIBRATION,
+              row.role());
+        }
         MineralSystemValidationReport.SampleRow tancamichapa =
             report.empiricalDataset().rows().stream()
                 .filter(
                     row ->
                         row.sourceRowRef()
-                            .equals(
-                                "PotashDeposits.xlsx:ID=519;SITE=Tancamichapa;BASIN=Gulf of Mexico;UNIT=Salina Fm"))
+                            .contains(
+                                "PotashDeposits.xlsx:ID=519;SITE=Tancamichapa;COUNTRY=Mexico"))
                 .findFirst()
                 .orElseThrow();
         assertEquals(12.0, tancamichapa.values().get("tonnage"), 1.0e-12);
         assertEquals(0.14, tancamichapa.values().get("k2o_grade"), 1.0e-12);
         assertEquals(500.0, tancamichapa.values().get("bed_depth"), 1.0e-12);
         assertTrue(tancamichapa.resourceBasis().contains("K_MINERALS=brine, sylvite, carnallite"));
+        MineralSystemValidationReport.SampleRow rioColorado =
+            report.empiricalDataset().rows().stream()
+                .filter(row -> row.sourceRowRef().contains("ID=21;SITE=Rio Colorado"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(1500.0, rioColorado.values().get("tonnage"), 1.0e-12);
+        assertEquals(0.2728, rioColorado.values().get("k2o_grade"), 1.0e-12);
+        assertTrue(rioColorado.censoredFields().contains("tonnage"));
+        assertTrue(rioColorado.censoredFields().contains("k2o_grade"));
+        MineralSystemValidationReport.SampleRow burr =
+            report.empiricalDataset().rows().stream()
+                .filter(row -> row.sourceRowRef().contains("ID=105;SITE=Burr"))
+                .findFirst()
+                .orElseThrow();
+        assertTrue(burr.missingFields().contains("bed_depth"));
+        assertTrue(burr.resourceBasis().contains("K_MINERALS=<missing>"));
+        MineralSystemValidationReport.SampleRow llobregat =
+            report.empiricalDataset().rows().stream()
+                .filter(row -> row.sourceRowRef().contains("ID=725;SITE=Llobregat"))
+                .findFirst()
+                .orElseThrow();
+        assertTrue(llobregat.censoredFields().contains("bed_depth"));
       }
       if (auditedPlacer) {
         assertEquals(

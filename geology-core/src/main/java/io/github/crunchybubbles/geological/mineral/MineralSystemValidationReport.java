@@ -15,6 +15,8 @@ import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Phase 3 empirical-distribution and validation evidence for one primary mineral-system model.
@@ -33,6 +35,9 @@ public record MineralSystemValidationReport(
     long sourceBudgetFixedUnits,
     long depositAllocationFixedUnits,
     Optional<String> failedGate) {
+  private static final Pattern FIRST_SOURCE_NUMBER_PATTERN =
+      Pattern.compile("(?<![A-Za-z])(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?!\\s*\\))");
+
   public MineralSystemValidationReport {
     if (systemId == null
         || modelId == null
@@ -1166,13 +1171,13 @@ public record MineralSystemValidationReport(
     private static EmpiricalDataset evaporitePotash() {
       String version = "USGS-SIR-2010-5090-S-v1.0";
       String aggregation = "deposit_row_definition_preserved";
-      String cutoff = "positive_rr_ore_and_rr_k2o_resource_basis";
-      return readPotashSubset(version, aggregation, cutoff);
+      String cutoff = "positive_first_numeric_rr_ore_and_rr_k2o_resource_basis";
+      return readPotashFull(version, aggregation, cutoff);
     }
 
-    private static EmpiricalDataset readPotashSubset(
+    private static EmpiricalDataset readPotashFull(
         String version, String aggregation, String cutoff) {
-      String resourcePath = "/data/geological/empirical/potash_subset.tsv";
+      String resourcePath = "/data/geological/empirical/potash_full.tsv";
       var resource = EmpiricalDataset.class.getResourceAsStream(resourcePath);
       if (resource == null) {
         throw new IllegalStateException("missing empirical source resource " + resourcePath);
@@ -1189,7 +1194,7 @@ public record MineralSystemValidationReport(
             continue;
           }
           String[] fields = line.split("\\|", -1);
-          if (fields.length != 13) {
+          if (fields.length != 18) {
             throw new IllegalStateException(
                 "potash source row " + lineNumber + " has " + fields.length + " fields");
           }
@@ -1200,22 +1205,43 @@ public record MineralSystemValidationReport(
           double percentile = parseSourceNumber(fields[4], lineNumber, "percentile");
           double tonnage = parseSourceNumber(fields[5], lineNumber, "rr_ore_mt");
           double k2oPercent = parseSourceNumber(fields[6], lineNumber, "rr_k2o_pct");
-          double bedDepth = parseSourceNumber(fields[7], lineNumber, "bed_depth_m");
+          String bedDepthText = fields[7].trim();
+          OptionalDouble bedDepth = parseFirstSourceNumber(bedDepthText, lineNumber, "bed_depth_m");
           String basin = fields[8].trim();
           String minerals = fields[9].trim();
           String unit = fields[10].trim();
           String depthSourceText = fields[11].trim();
           String resourceStatus = fields[12].trim();
+          String country = fields[13].trim();
+          String typeRecord = fields[14].trim();
+          String rrOreSourceText = fields[15].trim();
+          String rrK2oSourceText = fields[16].trim();
+          String resourceReferences = fields[17].trim();
+          OptionalDouble sourceTonnage =
+              parseFirstSourceNumber(rrOreSourceText, lineNumber, "rr_ore_mt_source_text");
+          OptionalDouble sourceK2oPercent =
+              parseFirstSourceNumber(rrK2oSourceText, lineNumber, "rr_k2o_pct_source_text");
+          OptionalDouble sourceBedDepth =
+              parseFirstSourceNumber(depthSourceText, lineNumber, "bed_depth_source_text");
           if (sourceId.isBlank()
               || depositName.isBlank()
               || subtype.isBlank()
               || basin.isBlank()
-              || minerals.isBlank()
-              || unit.isBlank()
-              || depthSourceText.isBlank()
-              || resourceStatus.isBlank()
+              || country.isBlank()
+              || typeRecord.isBlank()
+              || rrOreSourceText.isBlank()
+              || rrK2oSourceText.isBlank()
               || percentile <= 0.0
-              || percentile > 1.0) {
+              || percentile > 1.0
+              || tonnage <= 0.0
+              || k2oPercent <= 0.0
+              || sourceTonnage.isEmpty()
+              || sourceK2oPercent.isEmpty()
+              || sourceTonnage.getAsDouble() != tonnage
+              || sourceK2oPercent.getAsDouble() != k2oPercent
+              || sourceBedDepth.isPresent() != bedDepth.isPresent()
+              || sourceBedDepth.isPresent()
+                  && Math.abs(sourceBedDepth.getAsDouble() - bedDepth.getAsDouble()) > 1.0e-9) {
             throw new IllegalStateException("invalid potash source identity at row " + lineNumber);
           }
           String sourceRowRef =
@@ -1223,17 +1249,50 @@ public record MineralSystemValidationReport(
                   + sourceId
                   + ";SITE="
                   + depositName
+                  + ";COUNTRY="
+                  + country
                   + ";BASIN="
                   + basin
                   + ";UNIT="
-                  + unit;
+                  + (unit.isBlank() ? "<missing>" : unit);
           String resourceBasis =
-              "RR_ORE_MT_to_Mt;RR_K2O_PCT_to_mass_fraction;K_DEPTH_M_first_numeric_bound="
-                  + depthSourceText
+              "TYPE_REC="
+                  + typeRecord
+                  + ";COUNTRY="
+                  + country
+                  + ";RR_ORE_MT_RAW="
+                  + rrOreSourceText
+                  + ";RR_K2O_PCT_RAW="
+                  + rrK2oSourceText
+                  + ";RR_ORE_MT_to_Mt;RR_K2O_PCT_to_mass_fraction;K_DEPTH_M_first_numeric_bound="
+                  + (depthSourceText.isBlank() ? "<missing>" : depthSourceText)
                   + ";K_MINERALS="
-                  + minerals
+                  + (minerals.isBlank() ? "<missing>" : minerals)
+                  + ";UNIT="
+                  + (unit.isBlank() ? "<missing>" : unit)
                   + ";P_STATUS="
-                  + resourceStatus;
+                  + (resourceStatus.isBlank() ? "<missing>" : resourceStatus)
+                  + ";RR_REFS="
+                  + (resourceReferences.isBlank() ? "<missing>" : resourceReferences);
+          Map<String, Double> values = new TreeMap<>();
+          values.put("tonnage", tonnage);
+          values.put("k2o_grade", k2oPercent / 100.0);
+          Set<String> missingFields = new HashSet<>();
+          Set<String> censoredFields = new HashSet<>();
+          if (bedDepth.isPresent()) {
+            values.put("bed_depth", bedDepth.getAsDouble());
+            if (sourceValueIsCensored(depthSourceText)) {
+              censoredFields.add("bed_depth");
+            }
+          } else {
+            missingFields.add("bed_depth");
+          }
+          if (sourceValueIsCensored(rrOreSourceText)) {
+            censoredFields.add("tonnage");
+          }
+          if (sourceValueIsCensored(rrK2oSourceText)) {
+            censoredFields.add("k2o_grade");
+          }
           rows.add(
               new SampleRow(
                   "potash-deposit-" + sourceId + "-" + depositName,
@@ -1245,31 +1304,56 @@ public record MineralSystemValidationReport(
                   aggregation,
                   cutoff,
                   resourceBasis,
-                  Map.of(
-                      "tonnage", tonnage,
-                      "k2o_grade", k2oPercent / 100.0,
-                      "bed_depth", bedDepth),
-                  Set.of(),
-                  Set.of()));
+                  values,
+                  missingFields,
+                  censoredFields));
         }
       } catch (IOException | IllegalArgumentException exception) {
-        throw new IllegalStateException("invalid potash empirical source subset", exception);
+        throw new IllegalStateException("invalid potash empirical source table", exception);
       }
-      if (rows.size() < 10) {
-        throw new IllegalStateException("potash empirical source subset is unexpectedly small");
+      if (rows.size() != 102) {
+        throw new IllegalStateException(
+            "potash empirical source table must contain 102 qualifying rows, found " + rows.size());
       }
       return new EmpiricalDataset(
-          "usgs:sir20105090s_global_potash_audited_subset",
+          "usgs:sir20105090s_global_potash_audited_full",
           "https://pubs.usgs.gov/sir/2010/5090/s/PotashXL.zip",
           version,
-          "global_potash_deposits_positive_rr_ore_k2o_audited_subset",
+          "global_potash_deposits_complete_102_row_table_positive_first_numeric_rr_ore_k2o_audited",
           aggregation,
           cutoff,
-          "USGS Scientific Investigations Report 2010-5090-S PotashXL deposit subset; source IDs, deposit names, basin/member metadata, resource statuses, and raw depth text are checked in for reproducible review. K2O percentages are converted to mass fractions and ranged depth text uses its first numeric bound; the subset is not the full population.",
+          "USGS Scientific Investigations Report 2010-5090-S PotashXL workbook; all 102 rows with positive first numeric RR_ORE_MT and RR_K2O_PCT bounds are checked in from the 981-site source table. Ordinal labels such as 1) are skipped when extracting the first numeric bound; K2O percentages are converted to mass fractions, qualified/ranged values retain raw text and are marked censored, and missing bed depth remains explicit. This complete qualifying release is audited as a source table, not asserted to be an unbiased natural population.",
           DistributionKind.EMPIRICAL_ROW,
-          AuditStatus.RAW_TABLE_AUDITED_SUBSET,
+          AuditStatus.RAW_TABLE_AUDITED,
           Map.of("tonnage", "Mt", "k2o_grade", "mass_fraction", "bed_depth", "m"),
           rows);
+    }
+
+    private static OptionalDouble parseFirstSourceNumber(
+        String value, int lineNumber, String field) {
+      String trimmed = value.trim();
+      if (trimmed.isBlank()) {
+        return OptionalDouble.empty();
+      }
+      Matcher matcher = FIRST_SOURCE_NUMBER_PATTERN.matcher(trimmed);
+      if (!matcher.find()) {
+        throw new IllegalArgumentException(
+            "invalid " + field + " at source row " + lineNumber + ": " + value);
+      }
+      try {
+        double parsed = Double.parseDouble(matcher.group());
+        if (!Double.isFinite(parsed) || parsed < 0.0) {
+          throw new IllegalArgumentException(field + " must be non-negative");
+        }
+        return OptionalDouble.of(parsed);
+      } catch (NumberFormatException exception) {
+        throw new IllegalArgumentException(
+            "invalid " + field + " at source row " + lineNumber, exception);
+      }
+    }
+
+    private static boolean sourceValueIsCensored(String value) {
+      return !value.trim().matches("(?:\\d+(?:\\.\\d*)?|\\.\\d+)");
     }
 
     private static EmpiricalDataset dataset(
