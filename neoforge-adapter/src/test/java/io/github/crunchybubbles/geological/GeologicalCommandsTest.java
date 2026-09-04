@@ -21,6 +21,7 @@ class GeologicalCommandsTest {
     assertNotNull(geology.getChild("laterite"));
     assertNotNull(geology.getChild("placers"));
     assertNotNull(geology.getChild("paleosurface"));
+    assertNotNull(geology.getChild("glacial"));
     assertNotNull(geology.getChild("hand-sample"));
     assertNotNull(geology.getChild("soil"));
     assertNotNull(geology.getChild("stream-sediment"));

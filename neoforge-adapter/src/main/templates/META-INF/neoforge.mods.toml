@@ -15,8 +15,9 @@ columns, maps, sections, vertical cross-sections, transient surface observations
 generation and seam observations are available through the standalone benchmark task, while
 dimension-native Nether/End generation follows in subsequent verified increments; the standalone
 exploration telemetry task records bounded clue-sufficiency and travel-burden observations, and
-the read-only `/geology secondary`, `/geology laterite`, `/geology placers`, and `/geology
-paleosurface` views expose source-budgeted or structural Phase 6 secondary overlays.
+the read-only `/geology secondary`, `/geology laterite`, `/geology placers`, `/geology
+paleosurface`, and `/geology glacial` views expose source-budgeted or structural Phase 6
+secondary overlays; glacial behavior remains opt-in behind explicit ice-history evidence.
 '''
 
 [[dependencies.${mod_id}]]

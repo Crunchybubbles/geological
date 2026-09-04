@@ -1,7 +1,7 @@
 # Phase 6 secondary systems — source-budgeted weathering projection
 
-Status: `phase6-alpha.4` (gossan/oxidation/supergene copper, laterite, secondary placers, and
-structural paleosurface refinements).
+Status: `phase6-alpha.5` (gossan/oxidation/supergene copper, laterite, secondary placers,
+structural paleosurface refinements, and opt-in glacial transport).
 
 ## Alpha.1 — world-column supergene projection
 
@@ -29,9 +29,8 @@ shows the interval at the caller's current block, while the standalone
 `atlas-cli/build/phase6/secondary/secondary-weathering.json`.
 
 The alpha.1 slice did not generate bauxite/Ni-Co laterite, cassiterite/heavy-mineral/diamond
-placers, karst or paleosurface refinements, or optional glacial transport; alpha.2 adds the
-laterite family below, while the remaining families stay separate bounded source-to-sink
-transformations.
+placers, karst or paleosurface refinements, or optional glacial transport; alpha.2 through alpha.5
+add those families as separate bounded source-to-sink transformations.
 
 ## Alpha.2 — bauxite and Ni-Co laterite profiles
 
@@ -51,9 +50,8 @@ stable X-then-Z ordered, and seam-equal across adjacent contexts. The NeoForge `
 view reports the current interval, while the `laterite` CLI task writes a deterministic four-chunk
 artifact to `atlas-cli/build/phase6/laterite/laterite.json`.
 
-The laterite slice still does not generate cassiterite/heavy-mineral/diamond placers, karst or
-paleosurface refinements, or optional glacial transport. Those remain separate bounded Phase 6
-slices.
+The laterite slice remains independently queryable and source-budgeted; the later alpha increments
+add placer, paleosurface, and opt-in glacial overlays without changing its parent/source contract.
 
 ## Alpha.3 — cassiterite, heavy-mineral, and diamond placer projections
 
@@ -101,16 +99,32 @@ CLI task writes a deterministic structural review to
 `atlas-cli/build/phase6/paleosurface/paleosurface.json`; the artifact is marked
 `structural_refinement_no_ore_inventory` and carries no grade or voxel inventory.
 
-The remaining optional Phase 6 slice is glacial transport. It should only be added once an
-explicit ice-history/source contract exists; the current Overworld fixture intentionally has no
-such cargo state.
+## Alpha.5 — opt-in glacial transport prototype
+
+`GlacialTransportState` and `GlacialHistoryPolicy` establish the missing event-local contract for
+glacial transport: an explicit ice class, unit flow direction, connected flow, ice thickness,
+entrainment, deposition efficiency, formation age, and finite source inventory. The formed proof
+closes released material into transport loss plus deposited till/outwash and exposes basal till,
+melt-outwash, and indicator-train horizons. `OverworldGlacialTransportPlanner` clips those
+horizons to realized solid columns and remains seam-stable.
+
+The default Overworld policy is `none`, so no glacial profile can appear without an authored
+ice-history descriptor. The deterministic review fixture uses an explicit opt-in policy only to
+exercise the positive ledger and seam paths; `/geology glacial` in the adapter uses the safe
+default and reports the `ice_history` barren gate. This preserves the specification's rule that
+glacial transport is not inferred from present terrain or a random climate flag.
+
+The `glacial` CLI task writes the opt-in prototype review to
+`atlas-cli/build/phase6/glacial/glacial.json`, including the default no-ice negative proof,
+source/release/loss/deposit closure, and seam stability. It is a prototype contract rather than a
+claim that the current Overworld has a reconstructed Pleistocene ice sheet.
 
 ## Exit evidence
 
 `OverworldSecondaryWeatheringPlannerTest` covers formed and barren behavior, world/local frame
 projection, source-budget retention, bounded target-chunk order, and adjacent-context seam
 agreement. `OverworldLateritePlannerTest` covers formed bauxite ledger closure, bounded target
-chunks, ultramafic-only Ni-Co eligibility, and adjacent-context seam agreement. The two packet
+chunks, ultramafic-only Ni-Co eligibility, and adjacent-context seam agreement. The packet
 generator tests check byte-for-byte deterministic JSON, budget closure, horizon presence, and seam
 stability for the fixed seed fixture. `OverworldSecondaryPlacerPlannerTest` covers LCT/heavy-source
 provenance, diamond-fertility gating, bounded target chunks, and seam equality; its packet test
@@ -118,4 +132,6 @@ checks the three-family artifact and zero unresolved diamond placement. The arti
 aids, not save formats or voxel-grade predictions. `OverworldPaleosurfacePlannerTest` covers
 present and buried formation ages/horizons, carbonate-only karst rejection, bounded intervals, and
 seam equality; its packet test checks deterministic JSON, explicit structural-inventory labeling,
-and seam stability.
+and seam stability. `OverworldGlacialTransportPlannerTest` covers the explicit no-ice gate, closed
+fixture till budget, bounded intervals, and seam equality; its packet test checks deterministic
+positive/negative prototype evidence and seam stability.
