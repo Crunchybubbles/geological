@@ -22,6 +22,9 @@ import io.github.crunchybubbles.geological.worldgen.OverworldExplorationObservat
 import io.github.crunchybubbles.geological.worldgen.OverworldExplorationObservationPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldGeochemicalAnomalyPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldHandSamplePlanner;
+import io.github.crunchybubbles.geological.worldgen.OverworldLateriteColumnPlan;
+import io.github.crunchybubbles.geological.worldgen.OverworldLateriteInterval;
+import io.github.crunchybubbles.geological.worldgen.OverworldLateritePlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldMapDebugTrace;
 import io.github.crunchybubbles.geological.worldgen.OverworldRegolithColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldRegolithPlanner;
@@ -82,6 +85,7 @@ public final class GeologicalCommands {
                 .then(
                     Commands.literal("secondary")
                         .executes(GeologicalCommands::showSecondaryWeatheringHere))
+                .then(Commands.literal("laterite").executes(GeologicalCommands::showLateriteHere))
                 .then(
                     Commands.literal("hand-sample")
                         .executes(GeologicalCommands::showHandSampleHere))
@@ -234,6 +238,35 @@ public final class GeologicalCommands {
     } catch (IllegalArgumentException | IllegalStateException exception) {
       source.sendFailure(
           Component.literal("geology secondary weathering unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static int showLateriteHere(CommandContext<CommandSourceStack> context) {
+    BlockPos position = BlockPos.containing(context.getSource().getPosition());
+    CommandSourceStack source = context.getSource();
+    try {
+      OverworldLateriteColumnPlan plan =
+          OverworldLateritePlanner.from(
+                  planner(source.getLevel(), position.getX(), position.getZ()))
+              .plan(position.getX(), position.getZ());
+      OverworldLateriteInterval interval = plan.at(position.getY()).orElse(null);
+      String summary =
+          interval == null
+              ? plan.summary()
+                  + " at=("
+                  + position.getX()
+                  + ","
+                  + position.getY()
+                  + ","
+                  + position.getZ()
+                  + ") horizon=none"
+              : plan.summary() + " " + interval.summary();
+      source.sendSuccess(() -> Component.literal(summary), false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(
+          Component.literal("geology laterite unavailable: " + exception.getMessage()));
       return 0;
     }
   }

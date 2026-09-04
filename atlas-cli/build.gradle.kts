@@ -66,3 +66,12 @@ tasks.register<JavaExec>("secondaryWeathering") {
     args("secondary-weathering", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase6/secondary").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("laterite") {
+    group = "verification"
+    description = "Writes the deterministic Phase 6 source-budgeted bauxite/Ni-Co laterite review."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("laterite", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase6/laterite").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}

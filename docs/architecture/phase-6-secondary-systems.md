@@ -1,6 +1,6 @@
 # Phase 6 secondary systems — source-budgeted weathering projection
 
-Status: `phase6-alpha.1` (gossan/oxidation/supergene copper projection).
+Status: `phase6-alpha.2` (gossan/oxidation/supergene copper plus source-gated laterite projection).
 
 ## Alpha.1 — world-column supergene projection
 
@@ -27,14 +27,38 @@ shows the interval at the caller's current block, while the standalone
 `secondaryWeathering` task writes a deterministic four-chunk seam/budget review artifact to
 `atlas-cli/build/phase6/secondary/secondary-weathering.json`.
 
-This slice does not yet generate bauxite/Ni-Co laterite, cassiterite/heavy-mineral/diamond placers,
-karst or paleosurface refinements, or optional glacial transport. Those are separate bounded
-source-to-sink transformations and remain future Phase 6 slices.
+The alpha.1 slice did not generate bauxite/Ni-Co laterite, cassiterite/heavy-mineral/diamond
+placers, karst or paleosurface refinements, or optional glacial transport; alpha.2 adds the
+laterite family below, while the remaining families stay separate bounded source-to-sink
+transformations.
+
+## Alpha.2 — bauxite and Ni-Co laterite profiles
+
+`LateriteProfileState` adds a second source-budgeted weathering family. Aluminous silicate parents
+can form a warm-humid, percolating, preserved bauxite profile when the resolved parent composition
+contains enough aluminum. Komatiitic ultramafic or serpentinite parents are the only eligible
+Ni-Co sources; the current Phase 2 element vocabulary has no Ni/Co entries, so those ledgers are
+explicitly labeled ultramafic proxies rather than silently inventing catalog elements. Climate,
+drainage, and low-relief preservation gates produce a typed barren state when any required proof
+is missing.
+
+`OverworldLateritePlanner` projects each formed profile through the owning province frame into a
+bounded column overlay with ferricrete, pisolitic bauxite/kaolinitic transition, or Ni-Co limonite,
+smectite, and saprolite horizons. Fixed-point source, retained, and dissolved-loss budgets close
+per commodity, and no horizon is multiplied into a voxel inventory. The planner is chunk-local,
+stable X-then-Z ordered, and seam-equal across adjacent contexts. The NeoForge `/geology laterite`
+view reports the current interval, while the `laterite` CLI task writes a deterministic four-chunk
+artifact to `atlas-cli/build/phase6/laterite/laterite.json`.
+
+This slice still does not generate cassiterite/heavy-mineral/diamond placers, karst or paleosurface
+refinements, or optional glacial transport. Those remain separate bounded Phase 6 slices.
 
 ## Exit evidence
 
 `OverworldSecondaryWeatheringPlannerTest` covers formed and barren behavior, world/local frame
 projection, source-budget retention, bounded target-chunk order, and adjacent-context seam
-agreement. `SecondaryWeatheringPacketGeneratorTest` checks byte-for-byte deterministic JSON,
-budget closure, horizon presence, and seam stability for the fixed seed fixture. The artifact is a
-review aid, not a save format or a voxel-grade prediction.
+agreement. `OverworldLateritePlannerTest` covers formed bauxite ledger closure, bounded target
+chunks, ultramafic-only Ni-Co eligibility, and adjacent-context seam agreement. The two packet
+generator tests check byte-for-byte deterministic JSON, budget closure, horizon presence, and seam
+stability for the fixed seed fixture. The artifacts are review aids, not save formats or voxel-grade
+predictions.
