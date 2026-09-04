@@ -56,6 +56,10 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"magmaThermalState\""));
     assertTrue(firstJson.contains("\"thermalPotentialPpm\""));
     assertTrue(firstJson.contains("\"depthClass\""));
+    assertTrue(firstJson.contains("\"porphyrySystemState\""));
+    assertTrue(firstJson.contains("\"MAGMATIC_HYDROTHERMAL\""));
+    assertTrue(firstJson.contains("\"alterationZones\""));
+    assertTrue(firstJson.contains("\"POTASSIC_CORE\""));
     assertTrue(firstJson.contains("\"diagenesisState\""));
     assertTrue(firstJson.contains("\"phase1Geology\""));
     assertTrue(firstJson.contains("\"phase2Material\""));

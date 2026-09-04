@@ -4,6 +4,7 @@ import io.github.crunchybubbles.geological.atlas.Province;
 import io.github.crunchybubbles.geological.atlas.ProvinceGrammar;
 import io.github.crunchybubbles.geological.atlas.RiftArcGeometry;
 import io.github.crunchybubbles.geological.determinism.StableId;
+import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
 import io.github.crunchybubbles.geological.model.AgeKey;
 import io.github.crunchybubbles.geological.model.Lithology;
 import io.github.crunchybubbles.geological.model.Overprint;
@@ -539,6 +540,8 @@ final class MaterialReviewPacketGenerator {
                     .toList(),
                 "overprints",
                 query.catalog().alterations().stream().map(this::alterationJson).toList()),
+            "porphyrySystemState",
+            porphyrySystemStateJson(query.porphyrySystemState(province)),
             "metamorphicPathVocabulary",
             Arrays.stream(MetamorphicPath.values()).map(Enum::name).toList(),
             "referenceProvince",
@@ -2187,6 +2190,56 @@ final class MaterialReviewPacketGenerator {
         state.thermalPotentialPpm());
   }
 
+  private static Map<String, Object> porphyrySystemStateJson(PorphyrySystemState state) {
+    return JsonWriter.object(
+        "systemId",
+        state.systemId().toString(),
+        "status",
+        state.status().name(),
+        "intrusionId",
+        state.intrusionId().toString(),
+        "fluidSystemId",
+        state.fluidSystemId().toString(),
+        "stockworkPathId",
+        state.stockworkPathId().toString(),
+        "intrusionClass",
+        state.intrusionClass().name(),
+        "fluidSourceClass",
+        state.fluidSourceClass().name(),
+        "stockworkClass",
+        state.stockworkClass().name(),
+        "localCenter",
+        pointJson(state.localCenter()),
+        "lateralExtentBlocks",
+        state.lateralExtentBlocks(),
+        "verticalExtentBlocks",
+        state.verticalExtentBlocks(),
+        "alterationZones",
+        state.alterationZones().stream()
+            .map(
+                zone ->
+                    JsonWriter.object(
+                        "kind",
+                        zone.kind().name(),
+                        "overprint",
+                        zone.overprint().name(),
+                        "innerRadiusBlocks",
+                        zone.innerRadiusBlocks(),
+                        "outerRadiusBlocks",
+                        zone.outerRadiusBlocks(),
+                        "intensityPpm",
+                        zone.intensityPpm(),
+                        "anchorId",
+                        zone.anchorId().toString()))
+            .toList(),
+        "sourceBudgetFixedUnits",
+        state.sourceBudgetFixedUnits(),
+        "depositAllocationFixedUnits",
+        state.depositAllocationFixedUnits(),
+        "failedGate",
+        state.failedGate().orElse(null));
+  }
+
   private Map<String, Object> mantleCargoJson(MantleCargoState state) {
     return JsonWriter.object(
         "carrierBodyId",
@@ -2486,5 +2539,9 @@ final class MaterialReviewPacketGenerator {
 
   private static Map<String, Object> pointJson(Point2 point) {
     return JsonWriter.object("x", point.x(), "z", point.z());
+  }
+
+  private static Map<String, Object> pointJson(Point3 point) {
+    return JsonWriter.object("x", point.x(), "y", point.y(), "z", point.z());
   }
 }

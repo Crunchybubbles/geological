@@ -30,6 +30,20 @@ public final class MineralSystemProofs {
         rejectedPlacer(province));
   }
 
+  /** Returns the linked porphyry topology for the province's primary candidate. */
+  public PorphyrySystemState porphyryState(Province province) {
+    if (province == null) {
+      throw new IllegalArgumentException("province is required");
+    }
+    MineralSystemDecision primary =
+        compile(province).stream()
+            .filter(
+                decision -> decision.candidateId().equals(province.proofIds().porphyrySystemId()))
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("porphyry proof is missing"));
+    return PorphyrySystemState.proofFor(province, primary);
+  }
+
   private MineralSystemDecision barrenPrimaryPorphyry(Province province) {
     ProvinceProofIds ids = province.proofIds();
     return new MineralSystemDecision(

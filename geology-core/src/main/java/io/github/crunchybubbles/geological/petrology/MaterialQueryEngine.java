@@ -8,6 +8,7 @@ import io.github.crunchybubbles.geological.determinism.StableId;
 import io.github.crunchybubbles.geological.determinism.WorldIdentity;
 import io.github.crunchybubbles.geological.mineral.DepositType;
 import io.github.crunchybubbles.geological.mineral.MineralSystemDecision;
+import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
 import io.github.crunchybubbles.geological.model.AgeKey;
 import io.github.crunchybubbles.geological.model.EventType;
 import io.github.crunchybubbles.geological.model.GeologicalEvent;
@@ -129,6 +130,11 @@ public final class MaterialQueryEngine {
 
   public List<ElementReservoirLedger> elementReservoirLedgers(Province province) {
     return reservoirLedgerCache.get(province.id(), ignored -> compileReservoirLedgers(province));
+  }
+
+  /** Returns the linked Phase 3 porphyry intrusion/fluid/stockwork topology. */
+  public PorphyrySystemState porphyrySystemState(Province province) {
+    return geology.porphyrySystemState(province);
   }
 
   /** Builds a deterministic finite-query audit of source claims across colluvial parcels. */
