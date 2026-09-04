@@ -147,3 +147,12 @@ tasks.register<JavaExec>("basinHydrothermal") {
     args("basin-hydrothermal", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase7/basin-hydrothermal").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("uranium") {
+    group = "verification"
+    description = "Writes the deterministic Phase 7 unconformity and sandstone uranium review."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("uranium", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase7/uranium").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}

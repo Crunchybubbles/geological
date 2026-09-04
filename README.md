@@ -36,15 +36,16 @@ view; `secondaryWeathering`, `laterite`, `secondaryPlacers`, `paleosurface`, and
 source-budget or structural proof and adjacent-chunk seam stability in deterministic review
 artifacts.
 
-Phase 7 alpha.5 now adds a source-gated greisen residual-fluid proxy around an evolved felsic pulse,
-an explicit carbonate-contact skarn fixture, a shallow epithermal fluid-path projection, a
-deformation/metamorphic-fluid orogenic-gold projection, and separate MVT/SEDEX/sediment-hosted
-copper basin/redox projections through `/geology greisen`, `/geology skarn`, `/geology epithermal`,
-`/geology orogenic-gold`, `/geology basin-hydrothermal`, and the matching review tasks. These
-quartz-muscovite, tourmaline-proxy, calc-silicate, retrograde, silica, argillic, quartz-carbonate,
-dolomite-replacement, exhalative, and redox horizons are bounded projections rather than assays or
-voxel-grade inventories; skarn and basin MVT default planners remain actual-host-only, and
-artifacts record closed proxy ledgers and adjacent-chunk seam proofs.
+Phase 7 alpha.6 now adds a source-gated greisen residual-fluid proxy around an evolved felsic pulse,
+an explicit carbonate-contact skarn fixture, shallow epithermal and deformation/metamorphic-fluid
+orogenic-gold projections, separate MVT/SEDEX/sediment-hosted copper basin/redox projections, and
+unconformity/sandstone uranium redox-groundwater projections through `/geology greisen`,
+`/geology skarn`, `/geology epithermal`, `/geology orogenic-gold`, `/geology basin-hydrothermal`,
+`/geology uranium`, and the matching review tasks. These quartz-muscovite, tourmaline-proxy,
+calc-silicate, retrograde, silica, argillic, quartz-carbonate, dolomite-replacement, exhalative,
+redox, and uranium-system horizons are bounded projections rather than assays or voxel-grade
+inventories; default planners retain explicit actual-host/source gates, and artifacts record closed
+proxy ledgers and adjacent-chunk seam proofs.
 
 Geological is a causal geology and terrain-generation project for Minecraft Java 1.21.1 on NeoForge 21.1.x. Its selected world preset will eventually own the canonical Overworld, Nether, and End through dimension-specific geological histories rather than add a separate geology dimension.
 
@@ -83,9 +84,10 @@ The checked-in Gradle wrapper is the only prerequisite beyond a Java 21 JDK.
 ./gradlew epithermal
 ./gradlew orogenicGold
 ./gradlew basinHydrothermal
+./gradlew uranium
 ```
 
-On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, column plans, JSON traces, and measurements are written below `atlas-cli/build/phase1/`; the deterministic material/catalog/reservoir review is written below `atlas-cli/build/phase2/`; the Phase 4 worldgen observation is written below `atlas-cli/build/phase4/worldgen/`; the Phase 5 exploration telemetry is written below `atlas-cli/build/phase5/exploration/`; the Phase 6 secondary-weathering review is written below `atlas-cli/build/phase6/secondary/`, the laterite review below `atlas-cli/build/phase6/laterite/`, the secondary-placer review below `atlas-cli/build/phase6/secondary-placers/`, the paleosurface structural review below `atlas-cli/build/phase6/paleosurface/`, the opt-in glacial review below `atlas-cli/build/phase6/glacial/`, the Phase 7 greisen review below `atlas-cli/build/phase7/greisen/`, the skarn review below `atlas-cli/build/phase7/skarn/`, the epithermal review below `atlas-cli/build/phase7/epithermal/`, the orogenic-gold review below `atlas-cli/build/phase7/orogenic-gold/`, and the basin/redox review below `atlas-cli/build/phase7/basin-hydrothermal/`.
+On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, column plans, JSON traces, and measurements are written below `atlas-cli/build/phase1/`; the deterministic material/catalog/reservoir review is written below `atlas-cli/build/phase2/`; the Phase 4 worldgen observation is written below `atlas-cli/build/phase4/worldgen/`; the Phase 5 exploration telemetry is written below `atlas-cli/build/phase5/exploration/`; the Phase 6 secondary-weathering review is written below `atlas-cli/build/phase6/secondary/`, the laterite review below `atlas-cli/build/phase6/laterite/`, the secondary-placer review below `atlas-cli/build/phase6/secondary-placers/`, the paleosurface structural review below `atlas-cli/build/phase6/paleosurface/`, the opt-in glacial review below `atlas-cli/build/phase6/glacial/`, the Phase 7 greisen review below `atlas-cli/build/phase7/greisen/`, the skarn review below `atlas-cli/build/phase7/skarn/`, the epithermal review below `atlas-cli/build/phase7/epithermal/`, the orogenic-gold review below `atlas-cli/build/phase7/orogenic-gold/`, the basin/redox review below `atlas-cli/build/phase7/basin-hydrothermal/`, and the uranium review below `atlas-cli/build/phase7/uranium/`.
 
 ## Modules
 
@@ -96,7 +98,7 @@ On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, col
   terrain-control sampler, a bounded base-terrain/lithology planner, a chunk writer with an
   injected material-to-block resolver, a total coarse vanilla block palette, and an Overworld
   generator/preset registration plus explicit surface water/air, bounded regolith/surface-clue
-  projection, bounded Phase 6 secondary-weathering, laterite, secondary-placer, paleosurface, and opt-in glacial overlays, the Phase 7 greisen residual-fluid proxy, actual-host-only skarn and basin MVT fixture, shallow epithermal, metamorphic-fluid orogenic-gold, and basin/redox overlays, read-only `/geology` column/map/section/vertical-section/observation/hand-sample/sampling/anomaly/drill overlays, and the
+  projection, bounded Phase 6 secondary-weathering, laterite, secondary-placer, paleosurface, and opt-in glacial overlays, the Phase 7 greisen residual-fluid proxy, actual-host-only skarn and basin MVT fixture, shallow epithermal, metamorphic-fluid orogenic-gold, basin/redox, and unconformity/sandstone uranium overlays, read-only `/geology` column/map/section/vertical-section/observation/hand-sample/sampling/anomaly/drill overlays, and the
   serial/shuffled/seam benchmark harness, and a bounded per-player discovery notebook/map saved-data
   bridge; dimension-native Nether/End generation is a future
   Phase 8 increment.

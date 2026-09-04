@@ -59,6 +59,9 @@ import io.github.crunchybubbles.geological.worldgen.OverworldSedimentSampler;
 import io.github.crunchybubbles.geological.worldgen.OverworldSkarnColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldSkarnInterval;
 import io.github.crunchybubbles.geological.worldgen.OverworldSkarnPlanner;
+import io.github.crunchybubbles.geological.worldgen.OverworldUraniumColumnPlan;
+import io.github.crunchybubbles.geological.worldgen.OverworldUraniumInterval;
+import io.github.crunchybubbles.geological.worldgen.OverworldUraniumPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldVerticalSectionPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldVerticalSectionTrace;
 import io.github.crunchybubbles.geological.worldgen.WorldgenExecutionContext;
@@ -125,6 +128,7 @@ public final class GeologicalCommands {
                 .then(
                     Commands.literal("basin-hydrothermal")
                         .executes(GeologicalCommands::showBasinHydrothermalHere))
+                .then(Commands.literal("uranium").executes(GeologicalCommands::showUraniumHere))
                 .then(
                     Commands.literal("hand-sample")
                         .executes(GeologicalCommands::showHandSampleHere))
@@ -545,6 +549,34 @@ public final class GeologicalCommands {
     } catch (IllegalArgumentException | IllegalStateException exception) {
       source.sendFailure(
           Component.literal("geology basin-hydrothermal unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static int showUraniumHere(CommandContext<CommandSourceStack> context) {
+    BlockPos position = BlockPos.containing(context.getSource().getPosition());
+    CommandSourceStack source = context.getSource();
+    try {
+      OverworldUraniumColumnPlan plan =
+          OverworldUraniumPlanner.from(planner(source.getLevel(), position.getX(), position.getZ()))
+              .plan(position.getX(), position.getZ());
+      OverworldUraniumInterval interval = plan.at(position.getY()).orElse(null);
+      String summary =
+          interval == null
+              ? plan.summary()
+                  + " at=("
+                  + position.getX()
+                  + ","
+                  + position.getY()
+                  + ","
+                  + position.getZ()
+                  + ") horizon=none"
+              : plan.summary() + " " + interval.summary();
+      source.sendSuccess(() -> Component.literal(summary), false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(
+          Component.literal("geology uranium unavailable: " + exception.getMessage()));
       return 0;
     }
   }

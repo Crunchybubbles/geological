@@ -78,6 +78,10 @@ public final class AtlasCli {
         Path report = new BasinHydrothermalPacketGenerator(seed).generate(output);
         System.out.println("Wrote Phase 7 basin-hydrothermal review to " + report);
       }
+      case "uranium" -> {
+        Path report = new UraniumPacketGenerator(seed).generate(output);
+        System.out.println("Wrote Phase 7 uranium review to " + report);
+      }
       default -> throw new IllegalArgumentException("Unknown command: " + command);
     }
   }
@@ -105,6 +109,6 @@ public final class AtlasCli {
 
   private static void printUsage() {
     System.out.println(
-        "Usage: atlas-cli <generate|measure|materials|worldgen-benchmark|exploration-telemetry|secondary-weathering|laterite|secondary-placers|paleosurface|glacial|greisen|skarn|epithermal|orogenic-gold|basin-hydrothermal> [--seed <long>] [--output <directory>]");
+        "Usage: atlas-cli <generate|measure|materials|worldgen-benchmark|exploration-telemetry|secondary-weathering|laterite|secondary-placers|paleosurface|glacial|greisen|skarn|epithermal|orogenic-gold|basin-hydrothermal|uranium> [--seed <long>] [--output <directory>]");
   }
 }

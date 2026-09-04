@@ -28,7 +28,9 @@ its quartz-carbonate/sulfide horizons are not Au assays or voxel-grade inventori
 `/geology basin-hydrothermal` view exposes separate MVT Pb-Zn, SEDEX Zn-Pb-Ag, and
 sediment-hosted copper basin/redox proxies; the default planner resolves actual hosts only and
 the deterministic dolostone fixture is review-only. Its horizons are not metal assays or
-voxel-grade inventories.
+voxel-grade inventories. The `/geology uranium` view exposes source-gated unconformity-related
+and sandstone roll-front uranium redox/groundwater proxies; its old-basement, aquifer, and
+reducing-trap evidence is not a uranium assay, reserve, grade, or voxel-grade inventory.
 '''
 
 [[dependencies.${mod_id}]]

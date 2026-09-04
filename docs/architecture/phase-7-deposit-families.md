@@ -1,7 +1,7 @@
 # Phase 7 deposit families — source-gated deposit projections
 
-Status: `phase7-alpha.5` (greisen, explicit skarn host fixture, epithermal shallow-fluid,
-orogenic-gold metamorphic-fluid, and basin/redox projections).
+Status: `phase7-alpha.6` (greisen, explicit skarn host fixture, epithermal shallow-fluid,
+orogenic-gold metamorphic-fluid, basin/redox, and uranium projections).
 
 ## Alpha.1 — evolved-felsic greisen proof
 
@@ -138,6 +138,31 @@ barren gate retention, closed ledgers, and seam equality. `BasinHydrothermalPack
 checks byte-repeatable JSON, explicit redox-proxy labeling, family/horizon evidence, budget
 closure, the default negative proof, and seam stability.
 
-Uranium, layered-intrusion, carbonatite/REE,
-phosphorite/coal/brine, and geothermal families remain separate future Phase 7 slices; they must
-not inherit these basin proxies or be inferred from a generic catalog lithology.
+## Alpha.6 — unconformity and sandstone uranium systems
+
+`UraniumSystemState` adds source-gated unconformity-related and sandstone roll-front uranium
+proxies. The unconformity family requires the authored old U-fertile granite-gneiss basement,
+the major weathering unconformity, younger permeable basin sandstone, oxidized saline groundwater,
+an actual fault or connected aquifer path, a reducing basement reaction, and preserved low-relief
+cover. The roll-front family uses a permeable continental sandstone aquifer, oxidized carbonate-
+bearing groundwater, a connected recharge/redox path, and a reducing front or reductant halo. A
+generic uranium-bearing lithology does not form a system.
+
+Each formed profile retains the basement, fluid, structure, host, and unconformity identities and
+emits three contiguous family-specific horizons. The fixed-point groundwater ledger closes source
+budget into released fluid, transport loss, and deposit allocation; all values are explanatory
+formation proxies, not uranium assays, grades, reserves, or voxel inventories. Existing
+weathered/phyllic/propylitic overprints carry the coarse response until a future Phase 2 catalog
+increment adds uranium minerals and explicit alteration vocabulary.
+
+`OverworldUraniumPlanner` clips horizons to realized solid terrain, preserves stable X-then-Z
+target-chunk ordering, and checks adjacent-chunk seam equality. The read-only `/geology uranium`
+command and `uranium` task expose both family branches and a default barren source gate. The task
+writes `atlas-cli/build/phase7/uranium/uranium.json` with source, groundwater, path, trap,
+preservation, horizon, ledger, default-negative, and seam evidence. The deterministic tests cover
+both families, actual source ownership, barren behavior, closed accounting, repeated bytes, and
+chunk seams.
+
+Layered-intrusion, carbonatite/REE and kimberlite/diamond, phosphorite/Mn/coal/brine, and
+geothermal families remain separate future Phase 7 slices; they must not inherit these basin or
+uranium proxies or be inferred from a generic catalog lithology.
