@@ -54,19 +54,26 @@ class OverworldTerrainControlSamplerTest {
   }
 
   @Test
-  void samplerIsReadOnlyAndBoundToCoarseOverworldStage() {
+  void samplerIsReadOnlyAndAvailableAfterCoarseStage() {
     WorldgenExecutionContext context = context(0, 0);
     OverworldTerrainControlSampler sampler = OverworldTerrainControlSampler.from(context);
 
     assertFalse(context.canWriteTarget());
+    WorldgenExecutionContext base =
+        new WorldgenExecutionContext(
+            WorldgenChunkRequest.forStage(8_675_309L, OVERWORLD, 0, 0, WorldgenStage.BASE_TERRAIN),
+            WorldgenStage.BASE_TERRAIN,
+            WorldgenSnapshot.forProfile(OVERWORLD),
+            Runnable::run);
+    assertTrue(OverworldTerrainControlSampler.from(base).sample(0, 0).elevation() > 0.0);
     assertThrows(
         IllegalArgumentException.class,
         () ->
             OverworldTerrainControlSampler.from(
                 new WorldgenExecutionContext(
                     WorldgenChunkRequest.forStage(
-                        8_675_309L, OVERWORLD, 0, 0, WorldgenStage.BASE_TERRAIN),
-                    WorldgenStage.BASE_TERRAIN,
+                        8_675_309L, OVERWORLD, 0, 0, WorldgenStage.ACQUIRE_CONTEXT),
+                    WorldgenStage.ACQUIRE_CONTEXT,
                     WorldgenSnapshot.forProfile(OVERWORLD),
                     Runnable::run)));
     assertEquals(context, sampler.context());

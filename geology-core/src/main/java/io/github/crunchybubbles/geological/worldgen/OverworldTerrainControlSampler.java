@@ -30,12 +30,12 @@ public final class OverworldTerrainControlSampler {
     this.surface = new OverworldSurfaceModel(context.request().worldIdentity());
   }
 
-  /** Creates a sampler only for the read-only coarse-terrain stage of the canonical Overworld. */
+  /** Creates a sampler after the read-only coarse-terrain stage of the canonical Overworld. */
   public static OverworldTerrainControlSampler from(WorldgenExecutionContext context) {
     Objects.requireNonNull(context, "worldgen execution context");
-    if (context.stage() != WorldgenStage.COARSE_TERRAIN_CONTROLS) {
+    if (!WorldgenStage.COARSE_TERRAIN_CONTROLS.isAtOrBefore(context.stage())) {
       throw new IllegalArgumentException(
-          "terrain controls require the coarse_terrain_controls stage");
+          "terrain controls require the coarse_terrain_controls stage or a later stage");
     }
     if (!OVERWORLD_DIMENSION.equals(context.request().dimensionKey())) {
       throw new IllegalArgumentException("terrain controls are only defined for the Overworld");

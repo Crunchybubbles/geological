@@ -38,7 +38,11 @@ world by itself. `OverworldTerrainControlSampler` now binds the coarse-terrain s
 platform-supplied immutable snapshot and reconstructs deterministic elevation, uplift, slope,
 weathering, drainage, outcrop, and province/domain provenance for block-column centers. Samples
 from adjacent chunk contexts agree at the same world coordinate, and cache eviction does not alter
-the result; this slice remains read-only.
+the result; this slice remains read-only. `OverworldBaseTerrainPlanner` then derives a bounded
+column plan at the writable base-terrain stage: the continuous surface is clamped to the profile
+envelope, the existing geological material runs are clipped to the solid interval, and the
+terrain/lithology province owner is checked for agreement. Its target-chunk plan enumerates all
+256 columns in stable order without touching a Minecraft `ChunkAccess`.
 
 `WorldgenSnapshot` freezes the model, scientific, configuration, presentation, and scale identity
 that a generation worker may read. `WorldgenExecutionContext` accepts that snapshot, one authorized
@@ -47,7 +51,7 @@ live server/world handle. Non-writing stages and mismatched snapshots fail befor
 writable work still has to name the authorized target chunk. The review packet records the snapshot
 digests and the `stage_supplied_only`/`liveServerAccess=forbidden` policy.
 
-The next Phase 4 increment should implement a custom world preset/generator hook that consumes a
-frozen `WorldgenSnapshot` and request to turn these controls into bounded base-terrain density and
-lithology writes. It must clip writes to the authorized chunk and retain deterministic seam tests;
-palette writes belong to a later slice.
+The next Phase 4 increment should implement a custom world preset/generator hook that consumes the
+frozen `WorldgenSnapshot`, request, and column plan to write only the authorized `ChunkAccess`.
+It must preserve the plan's clipping and deterministic seam tests; palette mapping and world-preset
+registration remain separate slices.

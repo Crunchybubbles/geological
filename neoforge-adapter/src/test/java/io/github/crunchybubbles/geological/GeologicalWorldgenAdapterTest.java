@@ -2,8 +2,11 @@ package io.github.crunchybubbles.geological;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfiles;
+import io.github.crunchybubbles.geological.worldgen.OverworldBaseTerrainColumnPlan;
+import io.github.crunchybubbles.geological.worldgen.OverworldBaseTerrainPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldTerrainControlSample;
 import io.github.crunchybubbles.geological.worldgen.WorldgenSnapshot;
 import io.github.crunchybubbles.geological.worldgen.WorldgenStage;
@@ -72,5 +75,26 @@ class GeologicalWorldgenAdapterTest {
     assertEquals(-161, sample.blockX());
     assertEquals(273, sample.blockZ());
     assertEquals(overworld.profileId(), context.request().profile().profileId());
+  }
+
+  @Test
+  void bindsBaseTerrainCallbackToChunkLocalPlanWithoutWritingAChunk() {
+    var overworld = DimensionGeologyProfiles.require("minecraft:overworld");
+    var context =
+        GeologicalWorldgenAdapter.baseTerrainContext(
+            8_675_309L,
+            Level.OVERWORLD,
+            new ChunkPos(-11, 17),
+            WorldgenSnapshot.forProfile(overworld),
+            Runnable::run);
+
+    OverworldBaseTerrainPlanner planner = GeologicalWorldgenAdapter.baseTerrainPlanner(context);
+    OverworldBaseTerrainColumnPlan plan = planner.plan(-161, 273);
+
+    assertEquals(WorldgenStage.BASE_TERRAIN, context.stage());
+    assertTrue(context.canWriteTarget());
+    assertTrue(context.targetBounds().contains(plan.blockX(), plan.minYInclusive(), plan.blockZ()));
+    assertTrue(plan.solidMaxYExclusive() >= plan.minYInclusive());
+    assertTrue(plan.solidMaxYExclusive() <= plan.maxYExclusive());
   }
 }
