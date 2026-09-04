@@ -1,6 +1,7 @@
 # Phase 6 secondary systems — source-budgeted weathering projection
 
-Status: `phase6-alpha.3` (gossan/oxidation/supergene copper, laterite, and secondary placers).
+Status: `phase6-alpha.4` (gossan/oxidation/supergene copper, laterite, secondary placers, and
+structural paleosurface refinements).
 
 ## Alpha.1 — world-column supergene projection
 
@@ -75,8 +76,34 @@ equal at adjacent chunk seams. `/geology placers` reports all family intervals a
 `secondaryPlacers` writes a deterministic four-chunk artifact to
 `atlas-cli/build/phase6/secondary-placers/secondary-placers.json`.
 
-This slice does not yet generate karst/regolith/paleosurface refinements or optional glacial
-transport. Those remain the final bounded Phase 6 slices.
+## Alpha.4 — regolith, buried paleosurfaces, and karst gates
+
+`PaleosurfaceState` adds three typed structural refinements over the existing surface, parent, and
+unconformity evidence: present exposed residual regolith, a preserved buried unconformity
+weathering profile, and a karst-bauxite pocket candidate. The first two are explicitly structural
+profiles with no commodity ledger. Present residual regolith requires an in-situ weathered surface,
+no active channel/outcrop, and low relief; buried profiles require a point inside the authored
+unconformity footprint with enough present cover to preserve the ancient weathering thickness.
+Formation ages remain distinct (`0.02 Ma` for present weathering versus the unconformity age), and
+horizons retain their process overprint and stable body identity.
+
+Karst bauxite is deliberately stricter: the parent must be limestone or dolostone, the point must
+be inside the paleokarst footprint, and an external source body must be present in the surface
+material context. Carbonate alone therefore produces a typed barren state with a
+`carbonate_parent`, `paleokarst`, or `aluminum_source` gate rather than an ore pocket. The current
+fixture has no formed karst pockets; this is an explicit negative proof, not an implicit catalog
+fallback.
+
+`OverworldPaleosurfacePlanner` emits all three profiles in bounded 16×16 X-then-Z order, clips
+horizon intervals to realized solid terrain, and compares equal at adjacent chunk seams. The
+NeoForge `/geology paleosurface` view reports all horizons at the caller's Y. The `paleosurface`
+CLI task writes a deterministic structural review to
+`atlas-cli/build/phase6/paleosurface/paleosurface.json`; the artifact is marked
+`structural_refinement_no_ore_inventory` and carries no grade or voxel inventory.
+
+The remaining optional Phase 6 slice is glacial transport. It should only be added once an
+explicit ice-history/source contract exists; the current Overworld fixture intentionally has no
+such cargo state.
 
 ## Exit evidence
 
@@ -88,4 +115,7 @@ generator tests check byte-for-byte deterministic JSON, budget closure, horizon 
 stability for the fixed seed fixture. `OverworldSecondaryPlacerPlannerTest` covers LCT/heavy-source
 provenance, diamond-fertility gating, bounded target chunks, and seam equality; its packet test
 checks the three-family artifact and zero unresolved diamond placement. The artifacts are review
-aids, not save formats or voxel-grade predictions.
+aids, not save formats or voxel-grade predictions. `OverworldPaleosurfacePlannerTest` covers
+present and buried formation ages/horizons, carbonate-only karst rejection, bounded intervals, and
+seam equality; its packet test checks deterministic JSON, explicit structural-inventory labeling,
+and seam stability.

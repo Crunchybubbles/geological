@@ -26,6 +26,9 @@ import io.github.crunchybubbles.geological.worldgen.OverworldLateriteColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldLateriteInterval;
 import io.github.crunchybubbles.geological.worldgen.OverworldLateritePlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldMapDebugTrace;
+import io.github.crunchybubbles.geological.worldgen.OverworldPaleosurfaceColumnPlan;
+import io.github.crunchybubbles.geological.worldgen.OverworldPaleosurfaceInterval;
+import io.github.crunchybubbles.geological.worldgen.OverworldPaleosurfacePlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldRegolithColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldRegolithPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldSecondaryPlacerColumnPlan;
@@ -90,6 +93,9 @@ public final class GeologicalCommands {
                         .executes(GeologicalCommands::showSecondaryWeatheringHere))
                 .then(Commands.literal("laterite").executes(GeologicalCommands::showLateriteHere))
                 .then(Commands.literal("placers").executes(GeologicalCommands::showPlacersHere))
+                .then(
+                    Commands.literal("paleosurface")
+                        .executes(GeologicalCommands::showPaleosurfaceHere))
                 .then(
                     Commands.literal("hand-sample")
                         .executes(GeologicalCommands::showHandSampleHere))
@@ -307,6 +313,38 @@ public final class GeologicalCommands {
     } catch (IllegalArgumentException | IllegalStateException exception) {
       source.sendFailure(
           Component.literal("geology placers unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static int showPaleosurfaceHere(CommandContext<CommandSourceStack> context) {
+    BlockPos position = BlockPos.containing(context.getSource().getPosition());
+    CommandSourceStack source = context.getSource();
+    try {
+      OverworldPaleosurfaceColumnPlan plan =
+          OverworldPaleosurfacePlanner.from(
+                  planner(source.getLevel(), position.getX(), position.getZ()))
+              .plan(position.getX(), position.getZ());
+      String atY =
+          plan.at(position.getY()).stream()
+              .map(OverworldPaleosurfaceInterval::summary)
+              .collect(Collectors.joining("; "));
+      String summary =
+          atY.isBlank()
+              ? plan.summary()
+                  + " at=("
+                  + position.getX()
+                  + ","
+                  + position.getY()
+                  + ","
+                  + position.getZ()
+                  + ") horizons=none"
+              : plan.summary() + " " + atY;
+      source.sendSuccess(() -> Component.literal(summary), false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(
+          Component.literal("geology paleosurface unavailable: " + exception.getMessage()));
       return 0;
     }
   }

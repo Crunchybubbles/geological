@@ -50,6 +50,10 @@ public final class AtlasCli {
         Path report = new SecondaryPlacerPacketGenerator(seed).generate(output);
         System.out.println("Wrote Phase 6 secondary-placer review to " + report);
       }
+      case "paleosurface" -> {
+        Path report = new PaleosurfacePacketGenerator(seed).generate(output);
+        System.out.println("Wrote Phase 6 paleosurface review to " + report);
+      }
       default -> throw new IllegalArgumentException("Unknown command: " + command);
     }
   }
@@ -77,6 +81,6 @@ public final class AtlasCli {
 
   private static void printUsage() {
     System.out.println(
-        "Usage: atlas-cli <generate|measure|materials|worldgen-benchmark|exploration-telemetry|secondary-weathering|laterite|secondary-placers> [--seed <long>] [--output <directory>]");
+        "Usage: atlas-cli <generate|measure|materials|worldgen-benchmark|exploration-telemetry|secondary-weathering|laterite|secondary-placers|paleosurface> [--seed <long>] [--output <directory>]");
   }
 }

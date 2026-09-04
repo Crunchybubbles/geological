@@ -28,12 +28,12 @@ player-visible notebook/map evidence through `/geology observations`,
 `/geology anomaly`, `/geology drill`, `/geology vertical-section`, and `/geology notebook` commands;
 the bounded `explorationTelemetry` review task measures clue sufficiency and travel burden.
 
-Phase 6 alpha.3 now projects the gated primary-Cu gossan/oxidation/supergene profile,
+Phase 6 alpha.4 now projects the gated primary-Cu gossan/oxidation/supergene profile,
 source-gated bauxite/Ni-Co laterite profiles, and source-linked cassiterite/heavy-mineral/diamond
 placer families into bounded world-column overlays through `/geology secondary`,
-`/geology laterite`, and `/geology placers`; `secondaryWeathering`, `laterite`, and
-`secondaryPlacers` record source-budget closure and adjacent-chunk seam stability in deterministic
-review artifacts.
+`/geology laterite`, `/geology placers`, and the structural `/geology paleosurface` view;
+`secondaryWeathering`, `laterite`, `secondaryPlacers`, and `paleosurface` record source-budget or
+structural proof and adjacent-chunk seam stability in deterministic review artifacts.
 
 Geological is a causal geology and terrain-generation project for Minecraft Java 1.21.1 on NeoForge 21.1.x. Its selected world preset will eventually own the canonical Overworld, Nether, and End through dimension-specific geological histories rather than add a separate geology dimension.
 
@@ -65,9 +65,10 @@ The checked-in Gradle wrapper is the only prerequisite beyond a Java 21 JDK.
 ./gradlew secondaryWeathering
 ./gradlew laterite
 ./gradlew secondaryPlacers
+./gradlew paleosurface
 ```
 
-On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, column plans, JSON traces, and measurements are written below `atlas-cli/build/phase1/`; the deterministic material/catalog/reservoir review is written below `atlas-cli/build/phase2/`; the Phase 4 worldgen observation is written below `atlas-cli/build/phase4/worldgen/`; the Phase 5 exploration telemetry is written below `atlas-cli/build/phase5/exploration/`; the Phase 6 secondary-weathering review is written below `atlas-cli/build/phase6/secondary/`, the laterite review below `atlas-cli/build/phase6/laterite/`, and the secondary-placer review below `atlas-cli/build/phase6/secondary-placers/`.
+On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, column plans, JSON traces, and measurements are written below `atlas-cli/build/phase1/`; the deterministic material/catalog/reservoir review is written below `atlas-cli/build/phase2/`; the Phase 4 worldgen observation is written below `atlas-cli/build/phase4/worldgen/`; the Phase 5 exploration telemetry is written below `atlas-cli/build/phase5/exploration/`; the Phase 6 secondary-weathering review is written below `atlas-cli/build/phase6/secondary/`, the laterite review below `atlas-cli/build/phase6/laterite/`, the secondary-placer review below `atlas-cli/build/phase6/secondary-placers/`, and the paleosurface structural review below `atlas-cli/build/phase6/paleosurface/`.
 
 ## Modules
 
@@ -78,7 +79,7 @@ On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, col
   terrain-control sampler, a bounded base-terrain/lithology planner, a chunk writer with an
   injected material-to-block resolver, a total coarse vanilla block palette, and an Overworld
   generator/preset registration plus explicit surface water/air, bounded regolith/surface-clue
-  projection, bounded Phase 6 secondary-weathering, laterite, and secondary-placer overlays, read-only `/geology` column/map/section/vertical-section/observation/hand-sample/sampling/anomaly/drill overlays, and the
+  projection, bounded Phase 6 secondary-weathering, laterite, secondary-placer, and paleosurface overlays, read-only `/geology` column/map/section/vertical-section/observation/hand-sample/sampling/anomaly/drill overlays, and the
   serial/shuffled/seam benchmark harness, and a bounded per-player discovery notebook/map saved-data
   bridge; dimension-native Nether/End generation is a future
   Phase 8 increment.

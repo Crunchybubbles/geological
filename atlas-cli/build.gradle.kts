@@ -84,3 +84,12 @@ tasks.register<JavaExec>("secondaryPlacers") {
     args("secondary-placers", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase6/secondary-placers").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("paleosurface") {
+    group = "verification"
+    description = "Writes the deterministic Phase 6 structural paleosurface review."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("paleosurface", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase6/paleosurface").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}
