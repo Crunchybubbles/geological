@@ -2,8 +2,8 @@
 
 Status: completed platform-neutral identity increment (`phase4-alpha.2`) plus loader adapter lock,
 chunk-writer, vanilla-palette, Overworld generator/preset, explicit air/surface-water, bounded
-regolith/surface-clue, and read-only debug-command slices
-(`phase4-loader-alpha.1`–`phase4-loader-alpha.7`).
+regolith/surface-clue, read-only debug-command, and bounded map/section-overlay slices
+(`phase4-loader-alpha.1`–`phase4-loader-alpha.8`).
 
 `DimensionGeologyProfile` freezes the shared contract that a future Minecraft adapter will consume
 for `minecraft:overworld`, `minecraft:the_nether`, and `minecraft:the_end`. Each profile carries a
@@ -65,8 +65,9 @@ regolith projection instead of allowing vanilla surface rules to overwrite it.
 `OverworldColumnDebugTrace` joins the base, air/fluid, and regolith plans without storing blocks or
 granting write authority. The NeoForge `/geology here` and `/geology column <x> <z>` commands emit
 that deterministic trace, including surface intervals, lithology, clue kind, source/deposit counts,
-weathering, slope, flow, and channel-distance values; non-Overworld commands fail without doing
-geological work.
+weathering, slope, flow, and channel-distance values. `/geology map <radius>` and
+`/geology section <x|z> <length>` add bounded deterministic histogram overlays over the same
+column traces; non-Overworld commands fail without doing geological work.
 
 `WorldgenSnapshot` freezes the model, scientific, configuration, presentation, and scale identity
 that a generation worker may read. `WorldgenExecutionContext` accepts that snapshot, one authorized
@@ -75,7 +76,6 @@ live server/world handle. Non-writing stages and mismatched snapshots fail befor
 writable work still has to name the authorized target chunk. The review packet records the snapshot
 digests and the `stage_supplied_only`/`liveServerAccess=forbidden` policy.
 
-The next Phase 4 increment should add map/section debug overlays plus compatibility/benchmark
-coverage for shuffled generation, structures, and other terrain authorities while preserving the
-plan's clipping and deterministic seam tests. Dimension-native Nether/End generators remain
-separate slices.
+The next Phase 4 increment should add compatibility/benchmark coverage for shuffled generation,
+structures, and other terrain authorities while preserving the plan's clipping and deterministic
+seam tests. Dimension-native Nether/End generators remain separate slices.

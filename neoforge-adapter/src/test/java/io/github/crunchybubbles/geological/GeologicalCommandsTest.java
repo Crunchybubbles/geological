@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 class GeologicalCommandsTest {
   @Test
-  void registersReadOnlyHereAndColumnDebugPaths() {
+  void registersReadOnlyColumnMapAndSectionDebugPaths() {
     CommandDispatcher<CommandSourceStack> dispatcher = new CommandDispatcher<>();
 
     GeologicalCommands.register(dispatcher);
@@ -19,5 +19,10 @@ class GeologicalCommandsTest {
     assertNotNull(geology.getChild("column"));
     assertNotNull(geology.getChild("column").getChild("x"));
     assertNotNull(geology.getChild("column").getChild("x").getChild("z"));
+    assertNotNull(geology.getChild("map"));
+    assertNotNull(geology.getChild("map").getChild("radius"));
+    assertNotNull(geology.getChild("section"));
+    assertNotNull(geology.getChild("section").getChild("axis"));
+    assertNotNull(geology.getChild("section").getChild("axis").getChild("length"));
   }
 }
