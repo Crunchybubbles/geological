@@ -149,6 +149,12 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"partitionResponseCatalog\""));
     assertTrue(firstJson.contains("phase9-alpha.5-proxy-v1"));
     assertTrue(firstJson.contains("\"crystalCapturePpm\": 700000"));
+    assertTrue(firstJson.contains("\"processingAssayContract\""));
+    assertTrue(firstJson.contains("phase9-alpha.6-host-assay-v1"));
+    assertTrue(firstJson.contains("CONSTITUENT_IDEAL_UPPER_BOUND"));
+    assertTrue(firstJson.contains("AUTHORED_DERIVATION"));
+    assertTrue(firstJson.contains("\"processingAssay\""));
+    assertTrue(firstJson.contains("\"idealLiberatedElementPpm\""));
     assertTrue(firstJson.contains("\"modelVersion\": \"phase1.0-alpha.2\""));
     assertTrue(firstJson.contains(Phase2World.SCIENTIFIC_DIGEST));
     assertTrue(firstJson.contains("\"materialProcess\""));

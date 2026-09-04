@@ -1,6 +1,6 @@
 # Phase 9 comprehensive geochemistry
 
-Status: `phase9-alpha.5` (sparse partition response catalog).
+Status: `phase9-alpha.6` (sparse partition response catalog and processing-facing host assay).
 
 ## Alpha.1 — Condition-qualified element behavior
 
@@ -72,8 +72,21 @@ confidence, version, and review status are visible. The current rows are explici
 `AUTHORED_PROXY`; they are a review-ready schema and bounded routing data, not externally reviewed
 partition coefficients. The material-review artifact includes every row and its status.
 
+## Alpha.6 — Processing-facing assay and host allocation
+
+`ProcessingAssay` exposes the resolved normalized element inventory together with deterministic
+allocations back to the authored modal constituents. Host contributions use the same
+density-weighted formula fractions and largest-remainder rounding as `MaterialCatalogSnapshot`,
+so every sparse element entry closes exactly to the resolved bulk composition and retains
+non-crystalline hosts such as organic matter or glass. Each host also carries an ideal
+constituent-separation upper bound; this is deliberately equal to the hosted inventory because
+grain size, intergrowth, comminution, dilution, recovery, and market assumptions are not modeled.
+The API therefore supplies Phase 10 with auditable natural inventory and host provenance without
+claiming a measured assay, process recovery, economic grade, or reserve. Its confidence and
+`AUTHORED_DERIVATION` status remain visible in the material-review artifact.
+
 ## Remaining Phase 9 slices
 
-The next bounded increment is external scientific/license review of the response data, followed by
-a processing-facing assay/mineral-liberation API. Both must preserve sparse state, explicit
-uncertainty, source-linked hosts, and exact system-scale ledger closure.
+The implementation slices are complete. External scientific/license review of the response data
+and host-allocation assumptions remains required before a stable release; review must preserve
+sparse state, explicit uncertainty, source-linked hosts, and exact system-scale ledger closure.

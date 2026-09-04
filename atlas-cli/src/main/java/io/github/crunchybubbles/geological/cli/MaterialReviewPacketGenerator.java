@@ -68,6 +68,7 @@ import io.github.crunchybubbles.geological.petrology.NonCrystallineConstituentDe
 import io.github.crunchybubbles.geological.petrology.PetrologicSample;
 import io.github.crunchybubbles.geological.petrology.PrimaryMetamorphicDefinition;
 import io.github.crunchybubbles.geological.petrology.ProcessFluidState;
+import io.github.crunchybubbles.geological.petrology.ProcessingAssay;
 import io.github.crunchybubbles.geological.petrology.RegionalMetamorphicState;
 import io.github.crunchybubbles.geological.petrology.ReservoirTransfer;
 import io.github.crunchybubbles.geological.petrology.RockDefinition;
@@ -596,6 +597,20 @@ final class MaterialReviewPacketGenerator {
                 ElementPartitionResponseCatalog.all().stream()
                     .map(MaterialReviewPacketGenerator::partitionResponseJson)
                     .toList()),
+            "processingAssayContract",
+            JsonWriter.object(
+                "version",
+                ProcessingAssay.VERSION,
+                "basis",
+                ProcessingAssay.BASIS,
+                "liberationModel",
+                ProcessingAssay.LiberationModel.CONSTITUENT_IDEAL_UPPER_BOUND.name(),
+                "reviewStatus",
+                ProcessingAssay.ReviewStatus.AUTHORED_DERIVATION.name(),
+                "confidencePpm",
+                ProcessingAssay.CONFIDENCE_PPM,
+                "notes",
+                "ideal constituent-separation upper bound; grain texture, comminution, recovery, and economics remain unresolved"),
             "porphyrySystemState",
             porphyrySystemStateJson(query.porphyrySystemState(province)),
             "vmsSystemState",
@@ -1927,6 +1942,8 @@ final class MaterialReviewPacketGenerator {
         elementMap(sample.resolvedComposition().elementMassPpm()),
         "traceElementVector",
         traceElementVectorJson(sample.traceElementVector()),
+        "processingAssay",
+        processingAssayJson(query.processingAssay(sample)),
         "isotopicProvenance",
         sample.isotopicProvenanceEvidence().stream()
             .map(MaterialReviewPacketGenerator::isotopicProvenanceJson)
@@ -2256,6 +2273,48 @@ final class MaterialReviewPacketGenerator {
         response.reviewStatus().name(),
         "provenance",
         response.provenance());
+  }
+
+  private static Map<String, Object> processingAssayJson(ProcessingAssay assay) {
+    return JsonWriter.object(
+        "version",
+        assay.version(),
+        "basis",
+        assay.basis(),
+        "liberationModel",
+        assay.liberationModel().name(),
+        "reviewStatus",
+        assay.reviewStatus().name(),
+        "confidencePpm",
+        assay.confidencePpm(),
+        "bulkDensity",
+        assay.bulkDensity(),
+        "elements",
+        assay.elements().stream()
+            .map(
+                element ->
+                    JsonWriter.object(
+                        "element",
+                        element.element().symbol(),
+                        "totalPpm",
+                        element.totalPpm(),
+                        "hostAllocations",
+                        element.hostAllocations().stream()
+                            .map(
+                                host ->
+                                    JsonWriter.object(
+                                        "constituentId",
+                                        host.constituentId(),
+                                        "constituentKind",
+                                        host.constituentKind().name(),
+                                        "hostModePpm",
+                                        host.hostModePpm(),
+                                        "hostedElementPpm",
+                                        host.hostedElementPpm(),
+                                        "idealLiberatedElementPpm",
+                                        host.idealLiberatedElementPpm()))
+                            .toList()))
+            .toList());
   }
 
   private Map<String, Object> regionalMetamorphicStateJson(RegionalMetamorphicState state) {

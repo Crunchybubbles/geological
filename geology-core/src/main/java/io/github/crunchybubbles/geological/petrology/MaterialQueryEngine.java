@@ -116,6 +116,14 @@ public final class MaterialQueryEngine {
     return catalog;
   }
 
+  /** Returns a deterministic normalized assay and authored constituent-host allocation. */
+  public ProcessingAssay processingAssay(PetrologicSample sample) {
+    if (sample == null) {
+      throw new IllegalArgumentException("petrologic sample is required");
+    }
+    return sample.processingAssay(catalog);
+  }
+
   public WorldIdentity materialIdentity() {
     return materialIdentity;
   }

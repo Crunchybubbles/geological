@@ -66,6 +66,13 @@ Metamorphic process state carries `strainIntensityPpm` alongside its categorical
 
 The metamorphic path enum is also canonical and review-visible. Burial heating, cold subduction, decompression exhumation, and polymetamorphic reworking map to distinct burial-curve and retrogression responses with bounded strain evidence; their regional reaction proof remains fluid-free until a future calibrated reaction model is authorized.
 
+`ProcessingAssay` is a pure projection of a resolved assemblage and matching catalog composition.
+It recomputes the same density-weighted constituent element terms, allocates each sparse element by
+largest remainder with constituent-ID tie breaks, and requires exact per-element closure. The
+`CONSTITUENT_IDEAL_UPPER_BOUND` field is intentionally an inventory ceiling rather than a grain,
+comminution, recovery, or economic model; all such processing assumptions remain outside the
+generation identity and are deferred to Phase 10.
+
 Each metamorphic process also carries a canonical principal-axis frame. Active frames expose normalized shortening/flattening/stretching shares that close exactly, plus bounded foliation azimuth and lineation trend/plunge; inactive state is all zero. Path and fabric classes select the frame deterministically, so orientation evidence does not consume random state or become cache-dependent.
 
 The normalized colluvial production/transport response has its own immutable policy for availability floors, path/roughness/grade response floors, grain attenuation distances, bypass response, and bounded process-specific mobilization factors. The policy is carried in each budget and input balance and is included in transported-body identity. A finite `ColluvialSourceClaimLedger` canonicalizes claims from multiple queried parcels and aggregates each source body with exact partition closure; its `ColluvialSourceCapacityLedger` companion can then consume an explicit, non-negative mobilized-inventory capacity per source body, apportion constrained claims by canonical largest-remainder shares, and return unallocated mobilized material to retained inventory with exact bulk and grain-stage closure. Grain-resolved constrained allocations are derived from each claim's exact three-bin spectrum and retain the scalar stage totals; they do not imply a measured source grain inventory. Both are deliberately read-only finite-query audits and never introduce mutable global depletion into random-access queries. Active sink allocations similarly retain exact representative Phase1 receiving-surface/bedrock evidence while leaving downstream sediment placement unresolved.

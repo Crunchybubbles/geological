@@ -100,6 +100,11 @@ public record PetrologicSample(
     return TraceElementVector.from(resolvedComposition);
   }
 
+  /** Returns the processing-facing assay using an explicit immutable material catalog. */
+  public ProcessingAssay processingAssay(MaterialCatalogSnapshot catalog) {
+    return ProcessingAssay.proofFor(catalog, this);
+  }
+
   /** Returns optional coarse parent-isotope and daughter-potential provenance evidence. */
   public List<IsotopicProvenanceEvidence.Evidence> isotopicProvenanceEvidence() {
     StableId sourceReservoirId =
