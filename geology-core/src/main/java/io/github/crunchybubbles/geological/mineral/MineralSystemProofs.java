@@ -18,6 +18,9 @@ public final class MineralSystemProofs {
   public static final String PORPHYRY_MODEL = "geological:porphyry_cu_au_phase0";
   public static final String VMS_MODEL = "geological:vms_phase0";
   public static final String PLACER_MODEL = "geological:alluvial_placer_au_phase0";
+  public static final String LCT_MODEL = "geological:lct_pegmatite_phase3";
+  public static final String BIF_MODEL = "geological:bif_phase3";
+  public static final String EVAPORITE_MODEL = "geological:evaporite_potash_phase3";
 
   public List<MineralSystemDecision> compile(Province province) {
     return List.of(
@@ -124,6 +127,59 @@ public final class MineralSystemProofs {
             .findFirst()
             .orElseThrow(() -> new IllegalStateException("porphyry proof is missing"));
     return SupergeneCopperState.proofFor(province, primary, identity);
+  }
+
+  /**
+   * Returns source-specific empirical-distribution and invariant reports for the six primary
+   * models.
+   */
+  public List<MineralSystemValidationReport> validationReports(
+      Province province, WorldIdentity identity) {
+    if (province == null || identity == null) {
+      throw new IllegalArgumentException("province and world identity are required");
+    }
+    List<MineralSystemValidationReport> reports =
+        new java.util.ArrayList<>(
+            compile(province).stream()
+                .filter(
+                    decision ->
+                        decision.candidateId().equals(province.proofIds().porphyrySystemId())
+                            || decision.candidateId().equals(province.proofIds().vmsSystemId())
+                            || decision.candidateId().equals(province.proofIds().placerSystemId()))
+                .map(decision -> MineralSystemValidationReport.from(province, decision))
+                .toList());
+    LctPegmatiteState lct = lctPegmatiteState(province, identity);
+    BifSystemState bif = bifState(province, identity);
+    EvaporitePotashState evaporite = evaporitePotashState(province, identity);
+    reports.add(
+        MineralSystemValidationReport.fromState(
+            lct.childBodyId(),
+            LCT_MODEL,
+            lct.status(),
+            lct.sourceBudgetFixedUnits(),
+            lct.childAllocationFixedUnits(),
+            lct.failedGate()));
+    reports.add(
+        MineralSystemValidationReport.fromState(
+            bif.sheetId(),
+            BIF_MODEL,
+            bif.status(),
+            bif.sourceBudgetFixedUnits(),
+            bif.sheetAllocationFixedUnits(),
+            bif.failedGate()));
+    reports.add(
+        MineralSystemValidationReport.fromState(
+            evaporite.systemId(),
+            EVAPORITE_MODEL,
+            evaporite.status(),
+            evaporite.soluteSourceBudgetFixedUnits(),
+            Math.addExact(
+                Math.addExact(
+                    evaporite.sulfateAllocationFixedUnits(),
+                    evaporite.haliteAllocationFixedUnits()),
+                evaporite.potashAllocationFixedUnits()),
+            evaporite.failedGate()));
+    return List.copyOf(reports);
   }
 
   private MineralSystemDecision barrenPrimaryPorphyry(Province province) {

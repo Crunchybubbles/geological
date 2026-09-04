@@ -11,6 +11,7 @@ import io.github.crunchybubbles.geological.mineral.EvaporitePotashState;
 import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
 import io.github.crunchybubbles.geological.mineral.MineralSystemDecision;
 import io.github.crunchybubbles.geological.mineral.MineralSystemProofs;
+import io.github.crunchybubbles.geological.mineral.MineralSystemValidationReport;
 import io.github.crunchybubbles.geological.mineral.PlacerSystemState;
 import io.github.crunchybubbles.geological.mineral.PorphyryFluidMetalState;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
@@ -268,6 +269,11 @@ public final class GeologyQueryEngine {
   /** Returns the primary-Cu-dependent oxidation and supergene profile state. */
   public SupergeneCopperState supergeneCopperState(Province province) {
     return mineralProofs.supergeneCopperState(province, atlas.identity());
+  }
+
+  /** Returns empirical-distribution and invariant reports for the six primary mineral models. */
+  public List<MineralSystemValidationReport> mineralSystemValidationReports(Province province) {
+    return mineralProofs.validationReports(province, atlas.identity());
   }
 
   private ProvinceSpatialIndex spatialIndex(Province province) {

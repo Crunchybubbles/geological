@@ -1,6 +1,6 @@
 # Phase 3 mineral-system increment
 
-Status: eighth Phase 3 architecture-proving slice; all six architecture-proving families plus the gated porphyry supergene refinement are explicit
+Status: ninth Phase 3 architecture-proving slice; all six architecture-proving families, the gated porphyry supergene refinement, and a source-audit report contract are explicit
 
 ## Alpha.1 — linked porphyry topology
 
@@ -114,9 +114,27 @@ subhorizontal blanket envelope and each horizon's radial truncation. Tests cover
 oxidation, water-table, trap, preservation, profile ordering, point classification, budget
 closure, barren behavior, and deterministic review JSON exposure.
 
+## Alpha.9 — empirical distribution and validation evidence
+
+`MineralSystemValidationReport` gives each of the six architecture-proving families a
+source-specific distribution definition and an immutable validation projection. Dataset metadata
+retains the external source URI/version, population, grouping/aggregation rule, cutoff/resource
+basis, variable units, redistribution/licensing note, sampling method, and explicit calibration
+versus held-out partition. Every checked-in row or quantile anchor retains subtype, source-row
+reference, source version, grouping, cutoff basis, resource basis, and missing/censor flags; the
+validator rejects undeclared variables, duplicate rows, contradictory flags, and missing
+calibration/held-out partitions. Primary-system ledgers and derived LCT/BIF/evaporite budgets are
+checked for exact bounded closure, while barren or rejected candidates retain their failed gate.
+
+The current rows are intentionally `SOURCE_ANCHORS_PROVISIONAL`: they make the import and report
+contract deterministic and reviewable, but do not claim that a handful of anchors replace a raw,
+licensed USGS table. Completing the Phase 3 scientific exit still requires cleaning the source
+tables, preserving their row-level bias/censor metadata, and adding held-out quantile/covariance
+comparison results.
+
 ## Remaining Phase 3 slices
 
-The architecture-proving families are now represented. Further Phase 3 refinement can improve
-non-concentric topology and empirical/statistical parameter imports, but each new family must
-retain barren outcomes, explicit source budgets, and deterministic provenance before Minecraft
-presentation is attempted.
+The six architecture families and their deterministic evidence contracts are represented. Remaining
+Phase 3 work is the raw-table audit/redistribution review and held-out statistical comparison, plus
+non-concentric topology refinement. Each new family must retain barren outcomes, explicit source
+budgets, and deterministic provenance before Minecraft presentation is attempted.

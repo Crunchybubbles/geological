@@ -7,6 +7,7 @@ import io.github.crunchybubbles.geological.determinism.StableId;
 import io.github.crunchybubbles.geological.mineral.BifSystemState;
 import io.github.crunchybubbles.geological.mineral.EvaporitePotashState;
 import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
+import io.github.crunchybubbles.geological.mineral.MineralSystemValidationReport;
 import io.github.crunchybubbles.geological.mineral.PlacerSystemState;
 import io.github.crunchybubbles.geological.mineral.PorphyryFluidMetalState;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
@@ -563,6 +564,10 @@ final class MaterialReviewPacketGenerator {
             porphyryFluidMetalStateJson(query.porphyryFluidMetalState(province)),
             "supergeneCopperState",
             supergeneCopperStateJson(query.supergeneCopperState(province)),
+            "mineralSystemValidationReports",
+            query.mineralSystemValidationReports(province).stream()
+                .map(MaterialReviewPacketGenerator::mineralSystemValidationReportJson)
+                .toList(),
             "metamorphicPathVocabulary",
             Arrays.stream(MetamorphicPath.values()).map(Enum::name).toList(),
             "referenceProvince",
@@ -2645,6 +2650,96 @@ final class MaterialReviewPacketGenerator {
         state.retainedHypogeneFixedUnits(),
         "failedGate",
         state.failedGate().orElse(null));
+  }
+
+  private static Map<String, Object> mineralSystemValidationReportJson(
+      MineralSystemValidationReport report) {
+    MineralSystemValidationReport.EmpiricalDataset dataset = report.empiricalDataset();
+    return JsonWriter.object(
+        "systemId",
+        report.systemId().toString(),
+        "modelId",
+        report.modelId(),
+        "formationStatus",
+        report.formationStatus().name(),
+        "validationStatus",
+        report.validationStatus().name(),
+        "hardInvariantsPass",
+        report.hardInvariantsPass(),
+        "sourceBudgetFixedUnits",
+        report.sourceBudgetFixedUnits(),
+        "depositAllocationFixedUnits",
+        report.depositAllocationFixedUnits(),
+        "failedGate",
+        report.failedGate().orElse(null),
+        "empiricalDataset",
+        JsonWriter.object(
+            "id",
+            dataset.id(),
+            "sourceUri",
+            dataset.sourceUri(),
+            "sourceVersion",
+            dataset.sourceVersion(),
+            "population",
+            dataset.population(),
+            "aggregationRule",
+            dataset.aggregationRule(),
+            "cutoffBasis",
+            dataset.cutoffBasis(),
+            "licenseNote",
+            dataset.licenseNote(),
+            "distributionKind",
+            dataset.distributionKind().name(),
+            "auditStatus",
+            dataset.auditStatus().name(),
+            "calibrationRowCount",
+            dataset.calibrationRowCount(),
+            "heldOutRowCount",
+            dataset.heldOutRowCount(),
+            "variableUnits",
+            dataset.variableUnits(),
+            "rows",
+            dataset.rows().stream()
+                .map(
+                    row ->
+                        JsonWriter.object(
+                            "rowId",
+                            row.rowId(),
+                            "subtype",
+                            row.subtype(),
+                            "percentile",
+                            row.percentile(),
+                            "role",
+                            row.role().name(),
+                            "sourceRowRef",
+                            row.sourceRowRef(),
+                            "sourceVersion",
+                            row.sourceVersion(),
+                            "aggregationRule",
+                            row.aggregationRule(),
+                            "cutoffBasis",
+                            row.cutoffBasis(),
+                            "resourceBasis",
+                            row.resourceBasis(),
+                            "values",
+                            row.values(),
+                            "missingFields",
+                            row.missingFields(),
+                            "censoredFields",
+                            row.censoredFields()))
+                .toList()),
+        "invariantChecks",
+        report.invariantChecks().stream()
+            .map(
+                check ->
+                    JsonWriter.object(
+                        "name",
+                        check.name(),
+                        "status",
+                        check.status().name(),
+                        "explanation",
+                        check.explanation()))
+            .toList());
   }
 
   private Map<String, Object> mantleCargoJson(MantleCargoState state) {

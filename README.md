@@ -2,7 +2,11 @@
 
 Current Phase 2 checkpoint: `phase2.0-alpha.94`, with compact metamorphic P-T-t paths and bounded principal-axis strain-frame, material-buffer, fracture-tensor, and sparse trace-element and typed sedimentary-reservoir, fluid-transport, magma residual-inventory, and magma thermal-context evidence.
 
-Current Phase 3 checkpoint: porphyry, VMS, LCT, BIF, restricted-basin evaporite/potash, and source-linked placer slices link intrusion/fluid/stockwork/alteration, basin/lens/feeder, evolved-lineage child bodies, age/redox-bounded sheets, brine succession, and drainage budgets; porphyry fluid/metal phase zoning and a gated primary-Cu supergene profile are also explicit, each with barren outcomes.
+Current Phase 3 checkpoint: porphyry, VMS, LCT, BIF, restricted-basin evaporite/potash, and source-linked placer slices link intrusion/fluid/stockwork/alteration, basin/lens/feeder, evolved-lineage child bodies, age/redox-bounded sheets, brine succession, and drainage budgets; porphyry fluid/metal phase zoning, a gated primary-Cu supergene profile, and source-specific provisional distribution/validation reports are also explicit, each with barren outcomes.
+
+See [implementation-status.md](docs/architecture/implementation-status.md) for the roadmap-aligned
+remaining estimate by phase. The next engineering slice is the Phase 3 raw-table audit and
+held-out validation report; the current six-dataset rows are explicitly provisional source anchors.
 
 Geological is a causal geology and terrain-generation project for Minecraft Java 1.21.1 on NeoForge 21.1.x. Its selected world preset will eventually own the canonical Overworld, Nether, and End through dimension-specific geological histories rather than add a separate geology dimension.
 

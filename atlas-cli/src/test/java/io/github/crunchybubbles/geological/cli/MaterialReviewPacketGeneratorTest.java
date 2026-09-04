@@ -90,6 +90,16 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"SUPERGENE_SULFIDE\""));
     assertTrue(firstJson.contains("\"leachableCopperFixedUnits\""));
     assertTrue(firstJson.contains("\"retainedHypogeneFixedUnits\""));
+    assertTrue(firstJson.contains("\"mineralSystemValidationReports\""));
+    assertTrue(firstJson.contains("\"empiricalDataset\""));
+    assertTrue(firstJson.contains("\"SOURCE_ANCHORS_PROVISIONAL\""));
+    assertTrue(firstJson.contains("\"calibrationRowCount\": 4"));
+    assertTrue(firstJson.contains("\"heldOutRowCount\": 1"));
+    assertTrue(firstJson.contains("\"missing_and_censor_flags\""));
+    assertTrue(firstJson.contains("\"mineralSystemValidationReports\""));
+    assertTrue(firstJson.contains("\"usgs:2026_lct_global\""));
+    assertTrue(firstJson.contains("\"usgs:bif_superior_algoma\""));
+    assertTrue(firstJson.contains("\"usgs:sir2010_5090s_global_potash\""));
     assertTrue(firstJson.contains("\"diagenesisState\""));
     assertTrue(firstJson.contains("\"phase1Geology\""));
     assertTrue(firstJson.contains("\"phase2Material\""));

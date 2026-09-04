@@ -13,6 +13,7 @@ import io.github.crunchybubbles.geological.mineral.GateStatus;
 import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
 import io.github.crunchybubbles.geological.mineral.MineralSystemDecision;
 import io.github.crunchybubbles.geological.mineral.MineralSystemProofs;
+import io.github.crunchybubbles.geological.mineral.MineralSystemValidationReport;
 import io.github.crunchybubbles.geological.mineral.PlacerSystemState;
 import io.github.crunchybubbles.geological.mineral.PorphyryFluidMetalState;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
@@ -518,6 +519,61 @@ class MineralSystemProofTest {
     assertEquals("primary_cu_source", state.failedGate().orElseThrow());
     assertEquals(SupergeneCopperState.SourceClass.NO_PRIMARY_CU_SULFIDE, state.sourceClass());
     assertEquals(0L, state.supergeneAllocationFixedUnits());
+  }
+
+  @Test
+  void primaryMineralModelsPublishSourceAuditedDistributionAndHeldOutReports() {
+    GeologyQueryEngine query = Phase0World.create(8_675_309L);
+    Province province = query.atlas().provinceAt(new Point2(0.0, 0.0));
+    List<MineralSystemValidationReport> reports = query.mineralSystemValidationReports(province);
+
+    assertEquals(6, reports.size());
+    assertEquals(
+        List.of(
+            MineralSystemProofs.PORPHYRY_MODEL,
+            MineralSystemProofs.VMS_MODEL,
+            MineralSystemProofs.PLACER_MODEL,
+            MineralSystemProofs.LCT_MODEL,
+            MineralSystemProofs.BIF_MODEL,
+            MineralSystemProofs.EVAPORITE_MODEL),
+        reports.stream().map(MineralSystemValidationReport::modelId).toList());
+    assertTrue(reports.stream().allMatch(MineralSystemValidationReport::hardInvariantsPass));
+    assertTrue(
+        reports.stream()
+            .allMatch(
+                report ->
+                    report.validationStatus()
+                        == MineralSystemValidationReport.ValidationStatus
+                            .PROVISIONAL_SOURCE_ANCHORS));
+    for (MineralSystemValidationReport report : reports) {
+      assertEquals(5, report.empiricalDataset().rows().size());
+      assertEquals(4, report.empiricalDataset().calibrationRowCount());
+      assertEquals(1, report.empiricalDataset().heldOutRowCount());
+      assertEquals(
+          MineralSystemValidationReport.AuditStatus.SOURCE_ANCHORS_PROVISIONAL,
+          report.empiricalDataset().auditStatus());
+      assertTrue(
+          report.empiricalDataset().rows().stream()
+              .allMatch(row -> !row.sourceRowRef().isBlank() && !row.sourceVersion().isBlank()));
+      assertTrue(
+          report.invariantChecks().stream()
+              .anyMatch(check -> check.name().equals("missing_and_censor_flags")));
+    }
+  }
+
+  @Test
+  void barrenPrimaryReportsRetainFailedGatesWithoutAllocatingEmpiricalMass() {
+    GeologyQueryEngine query = Phase1World.create(8_675_309L);
+    Province province =
+        Phase1TestSupport.provinceWithGrammar(query, ProvinceGrammar.BARREN_DRY_RIFT_TO_ARC);
+    List<MineralSystemValidationReport> reports = query.mineralSystemValidationReports(province);
+
+    assertEquals(6, reports.size());
+    assertTrue(
+        reports.stream().allMatch(report -> report.formationStatus() != FormationStatus.FORMED));
+    assertTrue(reports.stream().allMatch(report -> report.failedGate().isPresent()));
+    assertTrue(reports.stream().allMatch(report -> report.sourceBudgetFixedUnits() == 0L));
+    assertTrue(reports.stream().allMatch(MineralSystemValidationReport::hardInvariantsPass));
   }
 
   private static MineralSystemDecision formed(

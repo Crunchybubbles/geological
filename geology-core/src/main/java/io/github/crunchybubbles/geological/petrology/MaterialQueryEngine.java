@@ -11,6 +11,7 @@ import io.github.crunchybubbles.geological.mineral.DepositType;
 import io.github.crunchybubbles.geological.mineral.EvaporitePotashState;
 import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
 import io.github.crunchybubbles.geological.mineral.MineralSystemDecision;
+import io.github.crunchybubbles.geological.mineral.MineralSystemValidationReport;
 import io.github.crunchybubbles.geological.mineral.PlacerSystemState;
 import io.github.crunchybubbles.geological.mineral.PorphyryFluidMetalState;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
@@ -177,6 +178,11 @@ public final class MaterialQueryEngine {
   /** Returns the primary-Cu-dependent oxidation and supergene profile state. */
   public SupergeneCopperState supergeneCopperState(Province province) {
     return geology.supergeneCopperState(province);
+  }
+
+  /** Returns empirical-distribution and invariant reports for the six primary mineral models. */
+  public List<MineralSystemValidationReport> mineralSystemValidationReports(Province province) {
+    return geology.mineralSystemValidationReports(province);
   }
 
   /** Builds a deterministic finite-query audit of source claims across colluvial parcels. */
