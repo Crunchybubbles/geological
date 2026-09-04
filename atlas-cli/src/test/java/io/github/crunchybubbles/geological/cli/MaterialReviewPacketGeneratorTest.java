@@ -125,6 +125,13 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"minecraft:the_end\""));
     assertTrue(firstJson.contains("\"CAVERN_VOLUME\""));
     assertTrue(firstJson.contains("\"BOUNDED_BODIES_IN_VOID\""));
+    assertTrue(firstJson.contains("\"worldgenContract\""));
+    assertTrue(firstJson.contains("\"contractVersion\": \"phase4-alpha.2\""));
+    assertTrue(firstJson.contains("\"targetChunkOnly\": true"));
+    assertTrue(firstJson.contains("\"neighborGeneration\": \"forbidden\""));
+    assertTrue(firstJson.contains("\"authorizedThrough\": \"validate_metrics\""));
+    assertTrue(firstJson.contains("\"coarse_terrain_controls\""));
+    assertTrue(firstJson.contains("\"maxYExclusive\": 320"));
     assertTrue(firstJson.contains("\"modelVersion\": \"phase1.0-alpha.2\""));
     assertTrue(firstJson.contains(Phase2World.SCIENTIFIC_DIGEST));
     assertTrue(firstJson.contains("\"materialProcess\""));

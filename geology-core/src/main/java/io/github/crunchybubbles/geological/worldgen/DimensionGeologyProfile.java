@@ -84,7 +84,7 @@ public record DimensionGeologyProfile(
     return new DimensionGeologyProfile(
         "minecraft:overworld",
         "geological:overworld_phase4",
-        "phase4-alpha.1",
+        "phase4-alpha.2",
         "earth_analogue",
         ConfidencePolicy.EARTH_ANALOGUE_WITH_TUNABLE_PROXIES,
         DimensionProfile.SurfaceTopology.SINGLE_VALUED_SURFACE,
@@ -113,7 +113,7 @@ public record DimensionGeologyProfile(
     return new DimensionGeologyProfile(
         "minecraft:the_nether",
         "geological:nether_phase4",
-        "phase4-alpha.1",
+        "phase4-alpha.2",
         "fictional_high_temperature_magmatic_cavern",
         ConfidencePolicy.FICTIONAL_PREMISE_CONSTRAINED,
         DimensionProfile.SurfaceTopology.CAVERN_VOLUME,
@@ -142,7 +142,7 @@ public record DimensionGeologyProfile(
         "minecraft:nether_fortress_bastion_portal_progression_v1",
         "geological:nether_scale_v1",
         digest(
-            "geological:nether_phase4|phase4-alpha.1|fictional_high_temperature_magmatic_cavern"));
+            "geological:nether_phase4|phase4-alpha.2|fictional_high_temperature_magmatic_cavern"));
   }
 
   /** Initial End profile: bounded parent fragments and impact/regolith fields in the void. */
@@ -150,7 +150,7 @@ public record DimensionGeologyProfile(
     return new DimensionGeologyProfile(
         "minecraft:the_end",
         "geological:end_phase4",
-        "phase4-alpha.1",
+        "phase4-alpha.2",
         "fictional_fragmented_parent_bodies_in_void",
         ConfidencePolicy.FICTIONAL_PREMISE_CONSTRAINED,
         DimensionProfile.SurfaceTopology.BOUNDED_BODIES_IN_VOID,
@@ -179,7 +179,7 @@ public record DimensionGeologyProfile(
         "geological:end_fragment_provenance_bridge",
         "minecraft:end_central_island_gateway_outer_island_progression_v1",
         "geological:end_scale_v1",
-        digest("geological:end_phase4|phase4-alpha.1|fictional_fragmented_parent_bodies_in_void"));
+        digest("geological:end_phase4|phase4-alpha.2|fictional_fragmented_parent_bodies_in_void"));
   }
 
   private static Set<String> canonicalIds(Set<String> ids, String label) {

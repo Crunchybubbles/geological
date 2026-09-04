@@ -24,6 +24,11 @@ class DimensionGeologyProfileTest {
         profiles.stream().map(DimensionGeologyProfile::dimensionKey).toList());
     assertEquals(3, profiles.stream().map(DimensionGeologyProfile::profileId).distinct().count());
     assertEquals(
+        Set.of("phase4-alpha.2"),
+        profiles.stream()
+            .map(DimensionGeologyProfile::version)
+            .collect(java.util.stream.Collectors.toSet()));
+    assertEquals(
         3, profiles.stream().map(DimensionGeologyProfile::scientificDigest).distinct().count());
     assertTrue(
         profiles.stream()
@@ -31,6 +36,12 @@ class DimensionGeologyProfileTest {
     assertEquals(
         "sha256:984be8310f9abc9a7188efb43632c46bcdca3fc1cabc6f49e1853be80da52625",
         DimensionGeologyProfiles.require("minecraft:overworld").scientificDigest());
+    assertEquals(
+        "sha256:ce670647aa18391b1631bbfe7aca8ba30429e4b09c076890ee0da29f7f318dec",
+        DimensionGeologyProfiles.require("minecraft:the_nether").scientificDigest());
+    assertEquals(
+        "sha256:ab2a07dbbd7b509d875a2635b0430c3f56a4b28b13f107f2981f62e437c4000e",
+        DimensionGeologyProfiles.require("minecraft:the_end").scientificDigest());
     assertEquals(
         DimensionProfile.SurfaceTopology.SINGLE_VALUED_SURFACE,
         DimensionGeologyProfiles.require("minecraft:overworld").atlasTopology());

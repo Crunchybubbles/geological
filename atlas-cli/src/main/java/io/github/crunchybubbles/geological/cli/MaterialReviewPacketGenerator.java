@@ -82,6 +82,8 @@ import io.github.crunchybubbles.geological.query.Phase1World;
 import io.github.crunchybubbles.geological.query.Phase2World;
 import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfile;
 import io.github.crunchybubbles.geological.worldgen.DimensionGeologyProfiles;
+import io.github.crunchybubbles.geological.worldgen.WorldgenChunkRequest;
+import io.github.crunchybubbles.geological.worldgen.WorldgenStage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -527,7 +529,9 @@ final class MaterialReviewPacketGenerator {
                 "dimensionProfiles",
                 DimensionGeologyProfiles.all().stream()
                     .map(MaterialReviewPacketGenerator::dimensionGeologyProfileJson)
-                    .toList()),
+                    .toList(),
+                "worldgenContract",
+                worldgenContractJson()),
             "catalog",
             JsonWriter.object(
                 "mineralCount",
@@ -2810,6 +2814,67 @@ final class MaterialReviewPacketGenerator {
         profile.scaleProfileId(),
         "scientificDigest",
         profile.scientificDigest());
+  }
+
+  private Map<String, Object> worldgenContractJson() {
+    DimensionGeologyProfile overworld = DimensionGeologyProfiles.require("minecraft:overworld");
+    WorldgenChunkRequest request = WorldgenChunkRequest.forChunk(seed, overworld, -7, 11);
+    return JsonWriter.object(
+        "contractVersion",
+        overworld.version(),
+        "chunkSizeBlocks",
+        16,
+        "targetChunkOnly",
+        true,
+        "neighborGeneration",
+        "forbidden",
+        "sampleChunk",
+        JsonWriter.object(
+            "dimensionKey",
+            request.dimensionKey(),
+            "profileId",
+            request.profile().profileId(),
+            "worldSeed",
+            request.worldIdentity().worldSeed(),
+            "chunkX",
+            request.chunkX(),
+            "chunkZ",
+            request.chunkZ(),
+            "chunkId",
+            request.chunkId().toString(),
+            "authorizedThrough",
+            request.authorizedThrough().id(),
+            "targetBounds",
+            chunkBoundsJson(request.targetBounds())),
+        "stages",
+        Arrays.stream(WorldgenStage.values())
+            .map(
+                stage ->
+                    JsonWriter.object(
+                        "ordinal",
+                        stage.ordinal(),
+                        "id",
+                        stage.id(),
+                        "writesChunk",
+                        stage.writesChunk()))
+            .toList());
+  }
+
+  private static Map<String, Object> chunkBoundsJson(
+      io.github.crunchybubbles.geological.worldgen.ChunkBlockBounds bounds) {
+    return JsonWriter.object(
+        "minX",
+        bounds.minX(),
+        "minY",
+        bounds.minY(),
+        "minZ",
+        bounds.minZ(),
+        "maxXExclusive",
+        bounds.maxXExclusive(),
+        "maxYExclusive",
+        bounds.maxYExclusive(),
+        "maxZExclusive",
+        bounds.maxZExclusive());
   }
 
   private static Map<String, Object> statisticalValidationJson(
