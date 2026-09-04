@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.github.crunchybubbles.geological.atlas.Province;
 import io.github.crunchybubbles.geological.atlas.ProvinceGrammar;
 import io.github.crunchybubbles.geological.mineral.BifSystemState;
+import io.github.crunchybubbles.geological.mineral.EvaporitePotashState;
 import io.github.crunchybubbles.geological.mineral.FormationStatus;
 import io.github.crunchybubbles.geological.mineral.GateStatus;
 import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
@@ -218,6 +219,86 @@ class MineralSystemProofTest {
     assertEquals(BifSystemState.GeometryClass.NO_SHEET, state.geometryClass());
     assertEquals("volcano_sedimentary_basin", state.failedGate().orElseThrow());
     assertFalse(state.contains(state.localCenter()));
+  }
+
+  @Test
+  void formedEvaporitePublishesRestrictedRefloodedBrineSequence() {
+    GeologyQueryEngine query = Phase0World.create(8_675_309L);
+    Province province = query.atlas().provinceAt(new Point2(0.0, 0.0));
+    EvaporitePotashState state = query.evaporitePotashState(province);
+
+    assertEquals(FormationStatus.FORMED, state.status());
+    assertEquals(province.geometry().basin().id(), state.basinId());
+    assertEquals(
+        EvaporitePotashState.BasinSetting.RESTRICTED_MARINE_EMBAYMENT, state.basinSetting());
+    assertEquals(EvaporitePotashState.RestrictionClass.LIMITED_OUTFLOW, state.restrictionClass());
+    assertEquals(
+        EvaporitePotashState.SoluteSourceClass.REPLENISHED_SEAWATER, state.soluteSourceClass());
+    assertEquals(
+        EvaporitePotashState.BrineEvolutionClass.REFLOODING_HALITE_TO_POTASH,
+        state.brineEvolutionClass());
+    assertEquals(248.0, state.formationAge().ageMa());
+    assertEquals(3, state.concentrationEpisodes());
+    assertEquals(3, state.brineSequence().size());
+    assertEquals(
+        List.of(
+            EvaporitePotashState.StageKind.MARGINAL_SULFATE,
+            EvaporitePotashState.StageKind.BASIN_CENTER_HALITE,
+            EvaporitePotashState.StageKind.LATE_POTASH),
+        state.brineSequence().stream().map(EvaporitePotashState.BrineStage::kind).toList());
+
+    Point3 center = state.localCenter();
+    assertTrue(state.contains(center));
+    assertEquals(
+        EvaporitePotashState.StageKind.BASIN_CENTER_HALITE,
+        state.zoneAt(center).orElseThrow().kind());
+    assertEquals(
+        EvaporitePotashState.StageKind.LATE_POTASH,
+        state
+            .zoneAt(
+                new Point3(
+                    center.x(), center.y() + 0.42 * state.sequenceThicknessBlocks(), center.z()))
+            .orElseThrow()
+            .kind());
+    assertEquals(
+        EvaporitePotashState.StageKind.MARGINAL_SULFATE,
+        state
+            .zoneAt(
+                new Point3(
+                    center.x() + 0.9 * state.halfLengthBlocks(),
+                    center.y() - 0.4 * state.sequenceThicknessBlocks(),
+                    center.z()))
+            .orElseThrow()
+            .kind());
+    assertTrue(
+        state
+            .zoneAt(new Point3(center.x() + 1.1 * state.halfLengthBlocks(), center.y(), center.z()))
+            .isEmpty());
+    assertTrue(
+        state.sulfateAllocationFixedUnits()
+                + state.haliteAllocationFixedUnits()
+                + state.potashAllocationFixedUnits()
+            <= state.soluteSourceBudgetFixedUnits());
+    assertTrue(state.failedGate().isEmpty());
+  }
+
+  @Test
+  void barrenProvinceCannotManufactureRestrictedEvaporiteSequence() {
+    GeologyQueryEngine query = Phase1World.create(8_675_309L);
+    Province province =
+        Phase1TestSupport.provinceWithGrammar(query, ProvinceGrammar.BARREN_DRY_RIFT_TO_ARC);
+    EvaporitePotashState state = query.evaporitePotashState(province);
+
+    assertEquals(FormationStatus.BARREN_SYSTEM, state.status());
+    assertEquals(EvaporitePotashState.BasinSetting.NO_RESTRICTED_BASIN, state.basinSetting());
+    assertEquals(EvaporitePotashState.RestrictionClass.OPEN_OUTFLOW, state.restrictionClass());
+    assertEquals(
+        EvaporitePotashState.SoluteSourceClass.NO_SOLUTE_REPLENISHMENT, state.soluteSourceClass());
+    assertEquals(EvaporitePotashState.BrineEvolutionClass.UNRESOLVED, state.brineEvolutionClass());
+    assertEquals("restriction", state.failedGate().orElseThrow());
+    assertTrue(state.brineSequence().isEmpty());
+    assertEquals(0L, state.soluteSourceBudgetFixedUnits());
+    assertTrue(state.zoneAt(state.localCenter()).isEmpty());
   }
 
   private static MineralSystemDecision formed(

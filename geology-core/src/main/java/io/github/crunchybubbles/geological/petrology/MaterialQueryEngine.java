@@ -8,6 +8,7 @@ import io.github.crunchybubbles.geological.determinism.StableId;
 import io.github.crunchybubbles.geological.determinism.WorldIdentity;
 import io.github.crunchybubbles.geological.mineral.BifSystemState;
 import io.github.crunchybubbles.geological.mineral.DepositType;
+import io.github.crunchybubbles.geological.mineral.EvaporitePotashState;
 import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
 import io.github.crunchybubbles.geological.mineral.MineralSystemDecision;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
@@ -153,6 +154,11 @@ public final class MaterialQueryEngine {
   /** Returns the linked Phase 3 BIF sheet, age, and ocean-redox state. */
   public BifSystemState bifSystemState(Province province) {
     return geology.bifSystemState(province);
+  }
+
+  /** Returns the linked Phase 3 restricted-basin evaporite and potash sequence. */
+  public EvaporitePotashState evaporitePotashState(Province province) {
+    return geology.evaporitePotashState(province);
   }
 
   /** Builds a deterministic finite-query audit of source claims across colluvial parcels. */

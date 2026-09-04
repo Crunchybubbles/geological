@@ -7,6 +7,7 @@ import io.github.crunchybubbles.geological.atlas.Province;
 import io.github.crunchybubbles.geological.atlas.RiftArcGeometry;
 import io.github.crunchybubbles.geological.determinism.StableId;
 import io.github.crunchybubbles.geological.mineral.BifSystemState;
+import io.github.crunchybubbles.geological.mineral.EvaporitePotashState;
 import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
 import io.github.crunchybubbles.geological.mineral.MineralSystemDecision;
 import io.github.crunchybubbles.geological.mineral.MineralSystemProofs;
@@ -244,6 +245,11 @@ public final class GeologyQueryEngine {
   /** Returns the linked Phase 3 BIF sheet, age, and ocean-redox state. */
   public BifSystemState bifSystemState(Province province) {
     return mineralProofs.bifState(province, atlas.identity());
+  }
+
+  /** Returns the linked Phase 3 restricted-basin evaporite and potash sequence. */
+  public EvaporitePotashState evaporitePotashState(Province province) {
+    return mineralProofs.evaporitePotashState(province, atlas.identity());
   }
 
   private ProvinceSpatialIndex spatialIndex(Province province) {

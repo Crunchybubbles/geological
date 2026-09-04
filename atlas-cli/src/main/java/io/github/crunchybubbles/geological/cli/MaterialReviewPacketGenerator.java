@@ -5,6 +5,7 @@ import io.github.crunchybubbles.geological.atlas.ProvinceGrammar;
 import io.github.crunchybubbles.geological.atlas.RiftArcGeometry;
 import io.github.crunchybubbles.geological.determinism.StableId;
 import io.github.crunchybubbles.geological.mineral.BifSystemState;
+import io.github.crunchybubbles.geological.mineral.EvaporitePotashState;
 import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
 import io.github.crunchybubbles.geological.mineral.VmsSystemState;
@@ -551,6 +552,8 @@ final class MaterialReviewPacketGenerator {
             lctPegmatiteStateJson(query.lctPegmatiteState(province)),
             "bifSystemState",
             bifSystemStateJson(query.bifSystemState(province)),
+            "evaporitePotashState",
+            evaporitePotashStateJson(query.evaporitePotashState(province)),
             "metamorphicPathVocabulary",
             Arrays.stream(MetamorphicPath.values()).map(Enum::name).toList(),
             "referenceProvince",
@@ -2373,6 +2376,80 @@ final class MaterialReviewPacketGenerator {
         state.sourceBudgetFixedUnits(),
         "sheetAllocationFixedUnits",
         state.sheetAllocationFixedUnits(),
+        "failedGate",
+        state.failedGate().orElse(null));
+  }
+
+  private static Map<String, Object> evaporitePotashStateJson(EvaporitePotashState state) {
+    return JsonWriter.object(
+        "systemId",
+        state.systemId().toString(),
+        "status",
+        state.status().name(),
+        "basinId",
+        state.basinId().toString(),
+        "brineSourceId",
+        state.brineSourceId().toString(),
+        "sulfateBodyId",
+        state.sulfateBodyId().toString(),
+        "haliteBodyId",
+        state.haliteBodyId().toString(),
+        "potashBodyId",
+        state.potashBodyId().toString(),
+        "formationAgeMa",
+        state.formationAge().ageMa(),
+        "formationAgeOrdinal",
+        state.formationAge().ordinal(),
+        "basinSetting",
+        state.basinSetting().name(),
+        "restrictionClass",
+        state.restrictionClass().name(),
+        "soluteSourceClass",
+        state.soluteSourceClass().name(),
+        "brineEvolutionClass",
+        state.brineEvolutionClass().name(),
+        "localCenter",
+        pointJson(state.localCenter()),
+        "halfLengthBlocks",
+        state.halfLengthBlocks(),
+        "halfWidthBlocks",
+        state.halfWidthBlocks(),
+        "sequenceThicknessBlocks",
+        state.sequenceThicknessBlocks(),
+        "concentrationEpisodes",
+        state.concentrationEpisodes(),
+        "stageVocabulary",
+        Arrays.stream(EvaporitePotashState.StageKind.values()).map(Enum::name).toList(),
+        "brineSequence",
+        state.brineSequence().stream()
+            .map(
+                stage ->
+                    JsonWriter.object(
+                        "kind",
+                        stage.kind().name(),
+                        "ageMa",
+                        stage.age().ageMa(),
+                        "ageOrdinal",
+                        stage.age().ordinal(),
+                        "lowerDepthFraction",
+                        stage.lowerDepthFraction(),
+                        "upperDepthFraction",
+                        stage.upperDepthFraction(),
+                        "maximumRadiusFraction",
+                        stage.maximumRadiusFraction(),
+                        "allocationFixedUnits",
+                        stage.allocationFixedUnits(),
+                        "bodyId",
+                        stage.bodyId().toString()))
+            .toList(),
+        "soluteSourceBudgetFixedUnits",
+        state.soluteSourceBudgetFixedUnits(),
+        "sulfateAllocationFixedUnits",
+        state.sulfateAllocationFixedUnits(),
+        "haliteAllocationFixedUnits",
+        state.haliteAllocationFixedUnits(),
+        "potashAllocationFixedUnits",
+        state.potashAllocationFixedUnits(),
         "failedGate",
         state.failedGate().orElse(null));
   }

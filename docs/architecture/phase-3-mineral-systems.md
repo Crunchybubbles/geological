@@ -1,6 +1,6 @@
 # Phase 3 mineral-system increment
 
-Status: fourth Phase 3 architecture-proving slice; porphyry, VMS, LCT pegmatite, and BIF topologies are explicit, while two deposit families are still open
+Status: fifth Phase 3 architecture-proving slice; porphyry, VMS, LCT pegmatite, BIF, and evaporite/potash topologies are explicit, while placer remains open
 
 ## Alpha.1 — linked porphyry topology
 
@@ -63,9 +63,21 @@ claim an economic grade.
 Tests cover age/redox/sheet evidence, basin and source linkage, footprint bounds, budget bounds,
 barren gating, and deterministic review JSON exposure.
 
+## Alpha.5 — restricted-basin evaporite and potash sequence
+
+`EvaporitePotashState` adds a basin-bound chemical-sedimentary proof to the existing sulfate,
+halite, and potash material vocabulary. A formed state requires marine basin accommodation,
+limited outflow, replenished seawater solute, and repeated concentration/reflooding episodes. It
+publishes deterministic sulfate-margin, basin-center halite, and late potash bodies with explicit
+formation ages, vertical/radial stage geometry, and a shared fixed-unit source ledger. Provinces
+without the marine/restricted-basin branch remain barren and expose the failed restriction or
+solute-budget gate; present-day biome or aridity is not used as a shortcut.
+
+Tests cover the restricted-basin gates, younger-upward brine succession, basin-bound point
+classification, source-budget closure, barren behavior, and deterministic review JSON exposure.
+
 ## Remaining Phase 3 slices
 
 The next bounded slices should add richer porphyry fluid/metal distributions and supergene gating,
-then the restricted-basin evaporite/potash sequence and the full source-linked placer budget. Each
-family must retain barren outcomes, explicit source budgets, and deterministic provenance before
-Minecraft presentation is attempted.
+then the full source-linked placer budget. Each family must retain barren outcomes, explicit source
+budgets, and deterministic provenance before Minecraft presentation is attempted.

@@ -75,6 +75,15 @@ public final class MineralSystemProofs {
     return BifSystemState.proofFor(province, identity);
   }
 
+  /** Returns the restricted-basin evaporite and potash sequence for this province. */
+  public EvaporitePotashState evaporitePotashState(
+      Province province, io.github.crunchybubbles.geological.determinism.WorldIdentity identity) {
+    if (province == null || identity == null) {
+      throw new IllegalArgumentException("province and world identity are required");
+    }
+    return EvaporitePotashState.proofFor(province, identity);
+  }
+
   private MineralSystemDecision barrenPrimaryPorphyry(Province province) {
     ProvinceProofIds ids = province.proofIds();
     return new MineralSystemDecision(

@@ -71,6 +71,10 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"ALGOMA_TYPE\""));
     assertTrue(firstJson.contains("\"BANDED_STRATIFORM_SHEET\""));
     assertTrue(firstJson.contains("\"oceanRedoxClass\""));
+    assertTrue(firstJson.contains("\"evaporitePotashState\""));
+    assertTrue(firstJson.contains("\"REFLOODING_HALITE_TO_POTASH\""));
+    assertTrue(firstJson.contains("\"MARGINAL_SULFATE\""));
+    assertTrue(firstJson.contains("\"potashAllocationFixedUnits\""));
     assertTrue(firstJson.contains("\"diagenesisState\""));
     assertTrue(firstJson.contains("\"phase1Geology\""));
     assertTrue(firstJson.contains("\"phase2Material\""));
