@@ -47,6 +47,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcess;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessMix;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessStageMix;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessUsage;
+import io.github.crunchybubbles.geological.petrology.ElementBehaviorCatalog;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.FluidTransportState;
 import io.github.crunchybubbles.geological.petrology.FractureTensorState;
@@ -559,6 +560,14 @@ final class MaterialReviewPacketGenerator {
                     .toList(),
                 "overprints",
                 query.catalog().alterations().stream().map(this::alterationJson).toList()),
+            "elementBehaviorCatalog",
+            JsonWriter.object(
+                "elementCount",
+                ElementBehaviorCatalog.all().size(),
+                "profiles",
+                ElementBehaviorCatalog.all().stream()
+                    .map(MaterialReviewPacketGenerator::elementBehaviorJson)
+                    .toList()),
             "porphyrySystemState",
             porphyrySystemStateJson(query.porphyrySystemState(province)),
             "vmsSystemState",
@@ -2091,6 +2100,28 @@ final class MaterialReviewPacketGenerator {
         elementMap(state.concentrationPpm()),
         "log10PpmMicros",
         elementMap(state.log10PpmMicros()));
+  }
+
+  private static Map<String, Object> elementBehaviorJson(
+      ElementBehaviorCatalog.ElementBehavior profile) {
+    return JsonWriter.object(
+        "element",
+        profile.element().symbol(),
+        "affinities",
+        profile.affinities().stream()
+            .map(
+                affinity ->
+                    JsonWriter.object(
+                        "class", affinity.affinity().name(), "condition", affinity.condition()))
+            .toList(),
+        "mobility",
+        profile.mobility().name(),
+        "hostClasses",
+        profile.hostClasses().stream().map(Enum::name).toList(),
+        "volatileElement",
+        profile.volatileElement(),
+        "radiogenic",
+        profile.radiogenic());
   }
 
   private Map<String, Object> regionalMetamorphicStateJson(RegionalMetamorphicState state) {

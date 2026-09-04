@@ -136,6 +136,9 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"authorizedThrough\": \"validate_metrics\""));
     assertTrue(firstJson.contains("\"coarse_terrain_controls\""));
     assertTrue(firstJson.contains("\"maxYExclusive\": 320"));
+    assertTrue(firstJson.contains("\"elementBehaviorCatalog\""));
+    assertTrue(
+        firstJson.contains("\"condition\": \"sulfide-bearing magmatic or hydrothermal fluid\""));
     assertTrue(firstJson.contains("\"modelVersion\": \"phase1.0-alpha.2\""));
     assertTrue(firstJson.contains(Phase2World.SCIENTIFIC_DIGEST));
     assertTrue(firstJson.contains("\"materialProcess\""));
