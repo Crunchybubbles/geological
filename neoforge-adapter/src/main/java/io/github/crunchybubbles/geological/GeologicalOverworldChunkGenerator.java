@@ -25,8 +25,8 @@ import net.minecraft.world.level.levelgen.structure.StructureSet;
  * Overworld generator hook that replaces vanilla base terrain with the frozen geological plan.
  *
  * <p>Vanilla's biome source and noise settings remain codec inputs so biome/structure contracts can
- * be preserved. The first hook slice writes only solid geological runs; fluids, regolith,
- * decoration, and Nether/End generators are separate increments.
+ * be preserved. This hook writes solid geological runs plus explicit surface water and air;
+ * groundwater, caves, regolith, decoration, and Nether/End generators are separate increments.
  */
 public final class GeologicalOverworldChunkGenerator extends NoiseBasedChunkGenerator {
   public static final MapCodec<GeologicalOverworldChunkGenerator> CODEC =
@@ -83,6 +83,7 @@ public final class GeologicalOverworldChunkGenerator extends NoiseBasedChunkGene
         GeologicalWorldgenAdapter.baseTerrainContext(
             seed, Level.OVERWORLD, chunk.getPos(), SNAPSHOT, Runnable::run);
     GeologicalChunkWriter.writeBaseTerrain(chunk, context, GeologicalBlockPalette::overworld);
+    GeologicalChunkWriter.writeAirAndSurfaceWater(chunk, context);
     return CompletableFuture.completedFuture(chunk);
   }
 
@@ -93,7 +94,7 @@ public final class GeologicalOverworldChunkGenerator extends NoiseBasedChunkGene
       RandomState randomState,
       ChunkAccess chunk) {
     // Vanilla surface rules would overwrite the geology-owned base/lithology palette. Regolith,
-    // soil, fluids, and surface clues are intentionally separate logical stages.
+    // soil, cave/groundwater fluids, and surface clues are intentionally separate logical stages.
   }
 
   private long requireWorldSeed() {

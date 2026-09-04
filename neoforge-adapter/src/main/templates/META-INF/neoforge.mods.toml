@@ -9,8 +9,9 @@ displayName="${mod_name}"
 authors="CrunchyBubbles"
 description='''
 Geological generates deterministic, causal geology for Minecraft dimensions.
-The Overworld generator/preset hook now applies the bounded geological terrain plan; fluids,
-regolith, and dimension-native Nether/End generation follow in subsequent verified increments.
+The Overworld generator/preset hook now applies the bounded geological terrain plan and explicit
+surface water/air; regolith and dimension-native Nether/End generation follow in subsequent
+verified increments.
 '''
 
 [[dependencies.${mod_id}]]
