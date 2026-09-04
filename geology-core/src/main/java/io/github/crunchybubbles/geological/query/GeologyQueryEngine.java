@@ -9,6 +9,7 @@ import io.github.crunchybubbles.geological.determinism.StableId;
 import io.github.crunchybubbles.geological.mineral.MineralSystemDecision;
 import io.github.crunchybubbles.geological.mineral.MineralSystemProofs;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
+import io.github.crunchybubbles.geological.mineral.VmsSystemState;
 import io.github.crunchybubbles.geological.model.AgeKey;
 import io.github.crunchybubbles.geological.model.Bounds2D;
 import io.github.crunchybubbles.geological.model.DimensionProfile;
@@ -226,6 +227,11 @@ public final class GeologyQueryEngine {
   /** Returns the linked Phase 3 porphyry intrusion/fluid/stockwork topology. */
   public PorphyrySystemState porphyrySystemState(Province province) {
     return mineralProofs.porphyryState(province);
+  }
+
+  /** Returns the linked Phase 3 VMS basin, stratiform lens, and feeder topology. */
+  public VmsSystemState vmsSystemState(Province province) {
+    return mineralProofs.vmsState(province);
   }
 
   private ProvinceSpatialIndex spatialIndex(Province province) {

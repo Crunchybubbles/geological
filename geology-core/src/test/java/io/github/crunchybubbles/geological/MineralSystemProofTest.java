@@ -11,6 +11,7 @@ import io.github.crunchybubbles.geological.mineral.GateStatus;
 import io.github.crunchybubbles.geological.mineral.MineralSystemDecision;
 import io.github.crunchybubbles.geological.mineral.MineralSystemProofs;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
+import io.github.crunchybubbles.geological.mineral.VmsSystemState;
 import io.github.crunchybubbles.geological.model.Point2;
 import io.github.crunchybubbles.geological.model.Point3;
 import io.github.crunchybubbles.geological.query.GeologyQueryEngine;
@@ -103,6 +104,44 @@ class MineralSystemProofTest {
     assertTrue(state.alterationZones().isEmpty());
     assertEquals("source", state.failedGate().orElseThrow());
     assertEquals(0L, state.depositAllocationFixedUnits());
+  }
+
+  @Test
+  void formedVmsPublishesSynvolcanicLensAndFeederGeometry() {
+    GeologyQueryEngine query = Phase0World.create(8_675_309L);
+    Province province = query.atlas().provinceAt(new Point2(0.0, 0.0));
+    VmsSystemState state = query.vmsSystemState(province);
+
+    assertEquals(FormationStatus.FORMED, state.status());
+    assertEquals(province.geometry().basin().id(), state.basinId());
+    assertEquals(
+        VmsSystemState.FluidSourceClass.SEAWATER_DOMINATED_HYDROTHERMAL, state.fluidSourceClass());
+    assertEquals(VmsSystemState.GeometryClass.STRATIFORM_LENS_WITH_FEEDER, state.geometryClass());
+    assertEquals(241.0, state.seafloorAge().ageMa());
+    Point3 center = state.localCenter();
+    assertEquals(
+        VmsSystemState.VmsZone.STRATIFORM_MASSIVE_SULFIDE_LENS, state.zoneAt(center).orElseThrow());
+    assertEquals(
+        VmsSystemState.VmsZone.CHLORITIC_FEEDER,
+        state.zoneAt(new Point3(center.x(), center.y() - 50.0, center.z())).orElseThrow());
+    assertTrue(state.zoneAt(new Point3(center.x() + 150.0, center.y(), center.z())).isEmpty());
+    assertEquals(800_000L, state.sourceBudgetFixedUnits());
+    assertEquals(92_000L, state.depositAllocationFixedUnits());
+    assertTrue(state.failedGate().isEmpty());
+  }
+
+  @Test
+  void barrenVmsRetainsBasinContextButRejectsMissingSynvolcanicDriver() {
+    GeologyQueryEngine query = Phase1World.create(8_675_309L);
+    Province province =
+        Phase1TestSupport.provinceWithGrammar(query, ProvinceGrammar.BARREN_DRY_RIFT_TO_ARC);
+    VmsSystemState state = query.vmsSystemState(province);
+
+    assertEquals(FormationStatus.BARREN_SYSTEM, state.status());
+    assertEquals(VmsSystemState.GeometryClass.NO_LENS, state.geometryClass());
+    assertEquals(VmsSystemState.FluidSourceClass.NO_COEVAL_FLUID, state.fluidSourceClass());
+    assertEquals("driver", state.failedGate().orElseThrow());
+    assertTrue(state.zoneAt(state.localCenter()).isEmpty());
   }
 
   private static MineralSystemDecision formed(

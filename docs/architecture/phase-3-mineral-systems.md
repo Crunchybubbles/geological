@@ -1,6 +1,6 @@
 # Phase 3 mineral-system increment
 
-Status: first Phase 3 architecture-proving slice; porphyry topology is explicit, while the remaining five deposit families are still open
+Status: second Phase 3 architecture-proving slice; porphyry and VMS topologies are explicit, while four deposit families are still open
 
 ## Alpha.1 — linked porphyry topology
 
@@ -24,10 +24,23 @@ The focused mineral-system tests verify formed and barren outcomes, source/depos
 intrusion/fluid/stockwork linkage, zone ordering and point classification, failed-gate semantics,
 and deterministic review-artifact exposure.
 
+## Alpha.2 — synvolcanic VMS topology
+
+`VmsSystemState` records the basin, coeval heat source, inherited feeder path, and seafloor age for
+the primary VMS candidate. A formed state exposes a stratiform massive-sulfide lens and a deeper
+chloritic feeder through deterministic local-point classification, with the exact source/deposit
+fixed-unit budgets copied from the decision ledger. A barren state retains the basin and candidate
+context but reports no coeval hydrothermal fluid or lens and names the failed driver gate. The
+bounded ellipsoid/feeder dimensions mirror the existing Phase 1 proof geometry; they are not an
+empirical grade or vent-temperature distribution.
+
+Tests cover the lens/feeder split, synvolcanic age, basin and pathway linkage, source-budget
+closure, barren-driver rejection, and review JSON exposure.
+
 ## Remaining Phase 3 slices
 
-The next bounded slices should add, in order, richer porphyry fluid/metal distributions and
-supergene gating, then the VMS stratiform lens/feeder state, LCT pegmatite child-body lineage, BIF
-age/ocean-redox sheet, restricted-basin evaporite/potash sequence, and the full source-linked
-placer budget. Each family must retain barren outcomes, explicit source budgets, and deterministic
-provenance before Minecraft presentation is attempted.
+The next bounded slices should add richer porphyry fluid/metal distributions and supergene gating,
+then the LCT pegmatite child-body lineage, BIF age/ocean-redox sheet, restricted-basin
+evaporite/potash sequence, and the full source-linked placer budget. Each family must retain barren
+outcomes, explicit source budgets, and deterministic provenance before Minecraft presentation is
+attempted.

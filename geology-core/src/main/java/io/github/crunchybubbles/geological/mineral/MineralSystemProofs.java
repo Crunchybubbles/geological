@@ -44,6 +44,19 @@ public final class MineralSystemProofs {
     return PorphyrySystemState.proofFor(province, primary);
   }
 
+  /** Returns the linked VMS basin/lens/feeder topology for the province's primary candidate. */
+  public VmsSystemState vmsState(Province province) {
+    if (province == null) {
+      throw new IllegalArgumentException("province is required");
+    }
+    MineralSystemDecision primary =
+        compile(province).stream()
+            .filter(decision -> decision.candidateId().equals(province.proofIds().vmsSystemId()))
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("VMS proof is missing"));
+    return VmsSystemState.proofFor(province, primary);
+  }
+
   private MineralSystemDecision barrenPrimaryPorphyry(Province province) {
     ProvinceProofIds ids = province.proofIds();
     return new MineralSystemDecision(

@@ -5,6 +5,7 @@ import io.github.crunchybubbles.geological.atlas.ProvinceGrammar;
 import io.github.crunchybubbles.geological.atlas.RiftArcGeometry;
 import io.github.crunchybubbles.geological.determinism.StableId;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
+import io.github.crunchybubbles.geological.mineral.VmsSystemState;
 import io.github.crunchybubbles.geological.model.AgeKey;
 import io.github.crunchybubbles.geological.model.Lithology;
 import io.github.crunchybubbles.geological.model.Overprint;
@@ -542,6 +543,8 @@ final class MaterialReviewPacketGenerator {
                 query.catalog().alterations().stream().map(this::alterationJson).toList()),
             "porphyrySystemState",
             porphyrySystemStateJson(query.porphyrySystemState(province)),
+            "vmsSystemState",
+            vmsSystemStateJson(query.vmsSystemState(province)),
             "metamorphicPathVocabulary",
             Arrays.stream(MetamorphicPath.values()).map(Enum::name).toList(),
             "referenceProvince",
@@ -2232,6 +2235,50 @@ final class MaterialReviewPacketGenerator {
                         "anchorId",
                         zone.anchorId().toString()))
             .toList(),
+        "sourceBudgetFixedUnits",
+        state.sourceBudgetFixedUnits(),
+        "depositAllocationFixedUnits",
+        state.depositAllocationFixedUnits(),
+        "failedGate",
+        state.failedGate().orElse(null));
+  }
+
+  private static Map<String, Object> vmsSystemStateJson(VmsSystemState state) {
+    return JsonWriter.object(
+        "systemId",
+        state.systemId().toString(),
+        "status",
+        state.status().name(),
+        "basinId",
+        state.basinId().toString(),
+        "heatSourceId",
+        state.heatSourceId().toString(),
+        "feederPathId",
+        state.feederPathId().toString(),
+        "seafloorAgeMa",
+        state.seafloorAge().ageMa(),
+        "seafloorAgeOrdinal",
+        state.seafloorAge().ordinal(),
+        "fluidSourceClass",
+        state.fluidSourceClass().name(),
+        "geometryClass",
+        state.geometryClass().name(),
+        "zoneVocabulary",
+        java.util.Arrays.stream(VmsSystemState.VmsZone.values()).map(Enum::name).toList(),
+        "localCenter",
+        pointJson(state.localCenter()),
+        "lensHalfWidthBlocks",
+        state.lensHalfWidthBlocks(),
+        "lensHalfHeightBlocks",
+        state.lensHalfHeightBlocks(),
+        "lensHalfLengthBlocks",
+        state.lensHalfLengthBlocks(),
+        "feederHalfWidthBlocks",
+        state.feederHalfWidthBlocks(),
+        "feederHalfLengthBlocks",
+        state.feederHalfLengthBlocks(),
+        "feederDepthBlocks",
+        state.feederDepthBlocks(),
         "sourceBudgetFixedUnits",
         state.sourceBudgetFixedUnits(),
         "depositAllocationFixedUnits",
