@@ -766,73 +766,85 @@ public record MineralSystemValidationReport(
     }
 
     private static EmpiricalDataset vms() {
-      String version = "USGS-OF-2009-1034";
+      String version = "USGS-OF-2009-1034-v1.0";
       String aggregation = "group_records_within_500_m";
       String cutoff = "source_model_resource_basis";
-      return dataset(
-          "usgs:vms_subtype_selected",
-          "https://pubs.usgs.gov/of/2009/1034/",
+      return readVmsSubset(version, aggregation, cutoff);
+    }
+
+    private static EmpiricalDataset readVmsSubset(
+        String version, String aggregation, String cutoff) {
+      String resourcePath = "/data/geological/empirical/vms_subset.tsv";
+      var resource = EmpiricalDataset.class.getResourceAsStream(resourcePath);
+      if (resource == null) {
+        throw new IllegalStateException("missing empirical source resource " + resourcePath);
+      }
+      List<SampleRow> rows = new ArrayList<>();
+      try (BufferedReader reader =
+          new BufferedReader(new InputStreamReader(resource, StandardCharsets.UTF_8))) {
+        String line;
+        int lineNumber = 0;
+        while ((line = reader.readLine()) != null) {
+          lineNumber++;
+          String trimmed = line.trim();
+          if (trimmed.isEmpty()
+              || trimmed.startsWith("#")
+              || trimmed.startsWith("source_row_ref")) {
+            continue;
+          }
+          String[] fields = line.split("\\|", -1);
+          if (fields.length != 8) {
+            throw new IllegalStateException(
+                "VMS source row " + lineNumber + " has " + fields.length + " fields");
+          }
+          String sourceRowRef = fields[0].trim();
+          String depositName = fields[1].trim();
+          String rowId = "vms-deposit-" + sourceRowRef.replace(':', '-') + "-" + depositName;
+          String subtype = fields[2].trim();
+          SampleRole role = SampleRole.valueOf(fields[3].trim());
+          double percentile = parseSourceNumber(fields[4], lineNumber, "percentile");
+          double tonnage = parseSourceNumber(fields[5], lineNumber, "tonnage");
+          double copperPercent = parseSourceNumber(fields[6], lineNumber, "cu_grade_pct");
+          double zincPercent = parseSourceNumber(fields[7], lineNumber, "zn_grade_pct");
+          if (percentile <= 0.0 || percentile > 1.0 || depositName.isBlank()) {
+            throw new IllegalStateException("invalid VMS source identity at row " + lineNumber);
+          }
+          rows.add(
+              new SampleRow(
+                  rowId,
+                  subtype,
+                  percentile,
+                  role,
+                  sourceRowRef,
+                  version,
+                  aggregation,
+                  cutoff,
+                  "source_model_resource_row;percent_grades_converted_to_mass_fraction",
+                  Map.of(
+                      "tonnage", tonnage,
+                      "cu_grade", copperPercent / 100.0,
+                      "zn_grade", zincPercent / 100.0),
+                  Set.of(),
+                  Set.of()));
+        }
+      } catch (IOException | IllegalArgumentException exception) {
+        throw new IllegalStateException("invalid VMS empirical source subset", exception);
+      }
+      if (rows.size() < 10) {
+        throw new IllegalStateException("VMS empirical source subset is unexpectedly small");
+      }
+      return new EmpiricalDataset(
+          "usgs:of20091034_vms_cu_zn_audited_subset",
+          "https://pubs.usgs.gov/of/2009/1034/of2009-1034_data.zip",
           version,
-          "vms_subtype_selected",
+          "vms_global_deposits_positive_tonnage_cu_zn_audited_subset",
           aggregation,
           cutoff,
+          "USGS Open-File Report 2009-1034 VMS data-package subset; source row references and subtype names are checked in for reproducible review. Cu/Zn percentages are converted to mass fractions; zero/unknown source rows are excluded under the declared population rule.",
+          DistributionKind.EMPIRICAL_ROW,
+          AuditStatus.RAW_TABLE_AUDITED_SUBSET,
           Map.of("tonnage", "Mt", "cu_grade", "mass_fraction", "zn_grade", "mass_fraction"),
-          List.of(
-              row(
-                  "vms-q10",
-                  "mafic_bimodal",
-                  0.10,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 0.2, "cu_grade", 0.006, "zn_grade", 0.015),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "vms-q25",
-                  "mafic_bimodal",
-                  0.25,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 0.8, "cu_grade", 0.010, "zn_grade", 0.025),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "vms-q50",
-                  "mafic_bimodal",
-                  0.50,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 2.5, "cu_grade", 0.015, "zn_grade", 0.045),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "vms-q75",
-                  "mafic_bimodal",
-                  0.75,
-                  SampleRole.CALIBRATION,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 8.0, "cu_grade", 0.022, "zn_grade", 0.070),
-                  Set.of(),
-                  Set.of()),
-              row(
-                  "vms-q90",
-                  "mafic_bimodal",
-                  0.90,
-                  SampleRole.HELD_OUT,
-                  version,
-                  aggregation,
-                  cutoff,
-                  Map.of("tonnage", 20.0, "cu_grade", 0.035, "zn_grade", 0.110),
-                  Set.of(),
-                  Set.of("tonnage"))));
+          rows);
     }
 
     private static EmpiricalDataset placer() {

@@ -1,0 +1,20 @@
+# USGS Open-File Report 2009-1034 VMS.tab cleaned review subset.
+# Columns: source_row_ref|deposit_name|deposit_type|role|tonnage_percentile|tonnage_Mt|cu_grade_pct|zn_grade_pct
+# Source row references are VMS.tab one-based rows; the importer converts Cu/Zn percent to mass_fraction.
+VMS.tab:1|Beatriz|Felsic|CALIBRATION|0.4411764705882353|1.5|1.3|2.0
+VMS.tab:9|Captains Flat|Felsic|CALIBRATION|0.5588235294117647|4.5|0.67|10.0
+VMS.tab:10|Cowley Hills|Felsic|CALIBRATION|0.2058823529411765|0.3|2.2|3.9
+VMS.tab:11|Currawang East|Felsic|CALIBRATION|0.3823529411764706|1.0|1.6|13.1
+VMS.tab:14|Kangiara|Felsic|CALIBRATION|0.0294117647058824|0.04|3.0|1.19
+VMS.tab:15|Khans Creek|Felsic|CALIBRATION|0.0882352941176471|0.05|1.0|25.1
+VMS.tab:18|Mount Bulga|Felsic|CALIBRATION|0.2647058823529412|0.47|0.79|5.0
+VMS.tab:22|Balcooma|Felsic|CALIBRATION|0.6176470588235294|4.9|3.1|1.9
+VMS.tab:52|Mons Cupri|Bimodal-Mafic|CALIBRATION|0.8529411764705882|30.9|0.8|0.17
+VMS.tab:70|Ashele|Bimodal-Mafic|CALIBRATION|0.9117647058823529|45.0|2.7|3.5
+VMS.tab:108|Guadalupe|Mafic|CALIBRATION|0.7941176470588235|28.0|1.8|0.4
+VMS.tab:115|Chu Chua|Mafic|CALIBRATION|0.6764705882352941|7.0|2.0|0.4
+VMS.tab:21|Woodlawn|Felsic|HELD_OUT|0.7352941176470588|17.7|1.7|9.9
+VMS.tab:48|Freddie Wells|Bimodal-Mafic|HELD_OUT|0.3235294117647059|0.8|0.2|8.9
+VMS.tab:60|Teutonic Bore|Bimodal-Mafic|HELD_OUT|0.5|2.51|3.5|9.6
+VMS.tab:53|Mount Mulcahy|Mafic|HELD_OUT|0.1470588235294118|0.25|3.77|2.75
+VMS.tab:74|Deerni|Mafic|HELD_OUT|0.9705882352941176|54.0|1.27|1.05

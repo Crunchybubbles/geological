@@ -132,15 +132,20 @@ positive tonnage/Cu/Mo values under the declared population rule, converts repor
 to mass fractions, and splits the rows into deterministic calibration and held-out roles. Its
 `RAW_TABLE_AUDITED_SUBSET` status is intentionally distinct from a full-population audit.
 
+The VMS importer follows the same contract against the 17-row subset of `VMS.tab` from the USGS
+2009-1034 data package. It preserves one-based source-row references, deposit names, and the
+source's Felsic, Mafic, and Bimodal-Mafic subtype labels, filters to positive tonnage/Cu/Zn rows,
+converts percent grades to mass fractions, and retains a deterministic five-row held-out split.
+
 ## Alpha.10 — held-out statistical projection
 
-The remaining five families still use `SOURCE_ANCHORS_PROVISIONAL`: those anchors make the import
+The remaining four families still use `SOURCE_ANCHORS_PROVISIONAL`: those anchors make the import
 and report contract deterministic and reviewable, but do not claim that a handful of anchors
 replace a raw, licensed table. All reports emit deterministic held-out quantile projections (with
 log-space error where values are usable) and calibration covariance/correlation summaries for
 every declared variable pair. These metrics make missing, censored, and insufficient held-out
-coverage explicit; the porphyry metrics are subset-audited, while the other families remain
-provisional until their raw source rows replace the anchors.
+coverage explicit; the porphyry and VMS metrics are subset-audited, while the other families
+remain provisional until their raw source rows replace the anchors.
 
 Completing the Phase 3 scientific exit still requires cleaning the source tables, preserving their
 row-level bias/censor metadata, auditing redistribution, and promoting the held-out quantile and
