@@ -19,9 +19,9 @@ import java.util.TreeMap;
 /**
  * Phase 3 empirical-distribution and validation evidence for one primary mineral-system model.
  *
- * <p>Checked-in raw-table subsets are explicitly distinguished from provisional source anchors;
- * neither claims to be a complete or redistributable natural population. Every row retains the
- * provenance and limitation metadata needed for deterministic review.
+ * <p>Checked-in raw-table imports distinguish complete source releases from audited subsets;
+ * neither claims to be an unbiased natural population. Every row retains the provenance and
+ * limitation metadata needed for deterministic review.
  */
 public record MineralSystemValidationReport(
     StableId systemId,
@@ -1053,12 +1053,11 @@ public record MineralSystemValidationReport(
       String version = "USGS-OFR-1993-0280-v1.0";
       String aggregation = "source_deposit_unit_as_published";
       String cutoff = "production_plus_reserves_resources_lowest_reported_cutoff";
-      return readBifSubset(version, aggregation, cutoff);
+      return readBifFull(version, aggregation, cutoff);
     }
 
-    private static EmpiricalDataset readBifSubset(
-        String version, String aggregation, String cutoff) {
-      String resourcePath = "/data/geological/empirical/bif_subset.tsv";
+    private static EmpiricalDataset readBifFull(String version, String aggregation, String cutoff) {
+      String resourcePath = "/data/geological/empirical/bif_full.tsv";
       var resource = EmpiricalDataset.class.getResourceAsStream(resourcePath);
       if (resource == null) {
         throw new IllegalStateException("missing empirical source resource " + resourcePath);
@@ -1129,21 +1128,22 @@ public record MineralSystemValidationReport(
                   Set.of()));
         }
       } catch (IOException | IllegalArgumentException exception) {
-        throw new IllegalStateException("invalid BIF empirical source subset", exception);
+        throw new IllegalStateException("invalid BIF empirical source table", exception);
       }
-      if (rows.size() < 10) {
-        throw new IllegalStateException("BIF empirical source subset is unexpectedly small");
+      if (rows.size() != 66) {
+        throw new IllegalStateException(
+            "BIF empirical source table must contain the complete 66-row report table");
       }
       return new EmpiricalDataset(
-          "usgs:of93280_superior_algoma_fe_audited_subset",
+          "usgs:of93280_superior_algoma_fe_audited_full",
           "https://pubs.usgs.gov/of/1993/ofr-93-0280/of93-0280.pdf",
           version,
-          "superior_algoma_bif_deposits_positive_tonnage_fe_audited_subset",
+          "superior_algoma_bif_deposits_complete_66_row_table_positive_tonnage_fe_audited",
           aggregation,
           cutoff,
-          "USGS Open-File Report 93-0280 Superior-Algoma Fe table subset; source page references, country codes, Fe/P grades, and the combined-model rule are checked in for reproducible review. Fe/P percentages are converted to mass fractions; blank P values remain missing and the subset is not the full population.",
+          "USGS Open-File Report 93-0280 Superior-Algoma Fe table; all 66 published rows, source page references, country codes, Fe/P grades, and the combined-model rule are checked in for reproducible review. Fe/P percentages are converted to mass fractions; blank P values remain missing. The complete historical table is audited as a source release, not asserted to be an unbiased natural population.",
           DistributionKind.EMPIRICAL_ROW,
-          AuditStatus.RAW_TABLE_AUDITED_SUBSET,
+          AuditStatus.RAW_TABLE_AUDITED,
           Map.of("tonnage", "Mt", "fe_grade", "mass_fraction", "p_grade", "mass_fraction"),
           rows);
     }

@@ -152,11 +152,11 @@ resource status, and the raw depth text; the population rule keeps rows with pos
 bound of ranged bed-depth text as the modeled depth. The deterministic four-row held-out split is
 explicitly a subset audit, not a full 981-site population release.
 
-The BIF importer reads a 16-row subset of the combined Superior-Algoma Fe table in USGS
-Open-File Report 93-0280. It preserves the source page/name/country references and combined-model
-rule, converts Fe and P percent grades to mass fractions, and retains blank phosphorus as explicit
-missingness. The deterministic four-row held-out split is a subset audit; the historical table's
-mixed deposit/district sampling and the unredistributed full population remain documented limits.
+The BIF importer reads all 66 rows of the combined Superior-Algoma Fe table in USGS Open-File
+Report 93-0280. It preserves the source page/name/country references and combined-model rule,
+converts Fe and P percent grades to mass fractions, and retains blank phosphorus as explicit
+missingness. Rows are tonnage-ranked with a deterministic every-fifth-row held-out split; the
+historical table's mixed deposit/district sampling remains a documented population-bias limit.
 
 The placer importer reads a 16-row subset of the same report's Placer Pt-Au table. It preserves
 source page/name/country/district references and companion Os/Ir/Pd values, converts Pt ppb to g/t,
@@ -165,12 +165,13 @@ as with the other subsets, it is not a full-population redistribution.
 
 ## Alpha.10 — held-out statistical projection
 
-All six families now use `RAW_TABLE_AUDITED_SUBSET`: the subset status makes the import and report
-contract deterministic and reviewable without claiming that a small checked-in sample is a full,
-unbiased or redistributable population. All reports emit deterministic held-out quantile
-projections (with log-space error where values are usable) and calibration covariance/correlation
-summaries for every declared variable pair. These metrics make missing, censored, and insufficient
-held-out coverage explicit; full-population redistribution and coverage remain outstanding.
+Five families use `RAW_TABLE_AUDITED_SUBSET`, while the complete 66-row BIF table is
+`RAW_TABLE_AUDITED`: these statuses make the import and report contract deterministic and
+reviewable without claiming that any historical table is an unbiased natural population. All
+reports emit deterministic held-out quantile projections (with log-space error where values are
+usable) and calibration covariance/correlation summaries for every declared variable pair. These
+metrics make missing, censored, and insufficient held-out coverage explicit; redistribution and
+coverage review remains outstanding for the subset families.
 
 Completing the Phase 3 scientific exit still requires cleaning the source tables, preserving their
 row-level bias/censor metadata, auditing redistribution, and promoting the held-out quantile and
@@ -188,6 +189,6 @@ east/west classification, and the review packet preserves the geometry parameter
 ## Remaining Phase 3 slices
 
 The six architecture families and their deterministic evidence contracts are represented. Remaining
-Phase 3 work is the raw-table redistribution review and held-out statistical comparison. Each new
-family must retain barren outcomes, explicit source budgets, and deterministic provenance before
-Minecraft presentation is attempted.
+Phase 3 work is the raw-table redistribution review and held-out statistical comparison for the
+remaining subset families. Each new family must retain barren outcomes, explicit source budgets,
+and deterministic provenance before Minecraft presentation is attempted.
