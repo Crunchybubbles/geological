@@ -1,6 +1,6 @@
 # Phase 9 comprehensive geochemistry
 
-Status: `phase9-alpha.4` (isotope and provenance evidence).
+Status: `phase9-alpha.5` (sparse partition response catalog).
 
 ## Alpha.1 — Condition-qualified element behavior
 
@@ -62,8 +62,18 @@ and abundance constants; it does not estimate a rock age, model daughter transpo
 individual atoms. Empty parent systems stay absent from the sparse result, and the material-review
 artifact exposes the evidence inputs and closure fields for audit.
 
+## Alpha.5 — Sparse partition response catalog
+
+`ElementPartitionResponseCatalog` extracts the residual-melt crystal-capture coefficients into a
+single deterministic table for the 23 tracked element/sulfur-saturation pairs (69 sparse rows).
+`MagmaResidualInventoryState` now reads this table instead of a parallel switch, so the exact
+crystallized + residual-melt + residual-fluid closure is unchanged while response provenance,
+confidence, version, and review status are visible. The current rows are explicitly marked
+`AUTHORED_PROXY`; they are a review-ready schema and bounded routing data, not externally reviewed
+partition coefficients. The material-review artifact includes every row and its status.
+
 ## Remaining Phase 9 slices
 
-The next bounded increments are reviewed response/partition datasets and a processing-facing
-assay/mineral-liberation API. Each must preserve sparse state, explicit uncertainty, source-linked
-hosts, and exact system-scale ledger closure.
+The next bounded increment is external scientific/license review of the response data, followed by
+a processing-facing assay/mineral-liberation API. Both must preserve sparse state, explicit
+uncertainty, source-linked hosts, and exact system-scale ledger closure.

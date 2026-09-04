@@ -146,6 +146,9 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"exsolutionClass\": \"CONDITIONAL_LOW_TEMPERATURE\""));
     assertTrue(firstJson.contains("\"isotopicProvenance\""));
     assertTrue(firstJson.contains("\"parentIsotope\": \"K-40\""));
+    assertTrue(firstJson.contains("\"partitionResponseCatalog\""));
+    assertTrue(firstJson.contains("phase9-alpha.5-proxy-v1"));
+    assertTrue(firstJson.contains("\"crystalCapturePpm\": 700000"));
     assertTrue(firstJson.contains("\"modelVersion\": \"phase1.0-alpha.2\""));
     assertTrue(firstJson.contains(Phase2World.SCIENTIFIC_DIGEST));
     assertTrue(firstJson.contains("\"materialProcess\""));

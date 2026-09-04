@@ -48,6 +48,7 @@ import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessMi
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessStageMix;
 import io.github.crunchybubbles.geological.petrology.ColluvialTransportProcessUsage;
 import io.github.crunchybubbles.geological.petrology.ElementBehaviorCatalog;
+import io.github.crunchybubbles.geological.petrology.ElementPartitionResponseCatalog;
 import io.github.crunchybubbles.geological.petrology.ElementReservoirLedger;
 import io.github.crunchybubbles.geological.petrology.FluidTransportState;
 import io.github.crunchybubbles.geological.petrology.FractureTensorState;
@@ -578,6 +579,22 @@ final class MaterialReviewPacketGenerator {
                 "polymorphs",
                 MineralPhaseRefinementCatalog.polymorphs().stream()
                     .map(MaterialReviewPacketGenerator::polymorphFamilyJson)
+                    .toList()),
+            "partitionResponseCatalog",
+            JsonWriter.object(
+                "version",
+                ElementPartitionResponseCatalog.VERSION,
+                "responseCount",
+                ElementPartitionResponseCatalog.all().size(),
+                "reviewStatuses",
+                ElementPartitionResponseCatalog.all().stream()
+                    .map(response -> response.reviewStatus().name())
+                    .distinct()
+                    .sorted()
+                    .toList(),
+                "responses",
+                ElementPartitionResponseCatalog.all().stream()
+                    .map(MaterialReviewPacketGenerator::partitionResponseJson)
                     .toList()),
             "porphyrySystemState",
             porphyrySystemStateJson(query.porphyrySystemState(province)),
@@ -2222,6 +2239,23 @@ final class MaterialReviewPacketGenerator {
                       stability.hydrationRequirement().name());
                 })
             .toList());
+  }
+
+  private static Map<String, Object> partitionResponseJson(
+      ElementPartitionResponseCatalog.Response response) {
+    return JsonWriter.object(
+        "element",
+        response.element().symbol(),
+        "sulfurSaturation",
+        response.sulfurSaturation().name(),
+        "crystalCapturePpm",
+        response.crystalCapturePpm(),
+        "confidencePpm",
+        response.confidencePpm(),
+        "reviewStatus",
+        response.reviewStatus().name(),
+        "provenance",
+        response.provenance());
   }
 
   private Map<String, Object> regionalMetamorphicStateJson(RegionalMetamorphicState state) {
