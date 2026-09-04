@@ -61,6 +61,7 @@ import io.github.crunchybubbles.geological.petrology.MaterialQueryEngine;
 import io.github.crunchybubbles.geological.petrology.MetamorphicEventTiming;
 import io.github.crunchybubbles.geological.petrology.MetamorphicPath;
 import io.github.crunchybubbles.geological.petrology.MetamorphicStrainState;
+import io.github.crunchybubbles.geological.petrology.MineralPhaseRefinementCatalog;
 import io.github.crunchybubbles.geological.petrology.ModalVariationAxis;
 import io.github.crunchybubbles.geological.petrology.NonCrystallineConstituentDefinition;
 import io.github.crunchybubbles.geological.petrology.PetrologicSample;
@@ -567,6 +568,16 @@ final class MaterialReviewPacketGenerator {
                 "profiles",
                 ElementBehaviorCatalog.all().stream()
                     .map(MaterialReviewPacketGenerator::elementBehaviorJson)
+                    .toList()),
+            "phaseRefinements",
+            JsonWriter.object(
+                "solidSolutions",
+                MineralPhaseRefinementCatalog.solidSolutions().stream()
+                    .map(MaterialReviewPacketGenerator::solidSolutionRefinementJson)
+                    .toList(),
+                "polymorphs",
+                MineralPhaseRefinementCatalog.polymorphs().stream()
+                    .map(MaterialReviewPacketGenerator::polymorphFamilyJson)
                     .toList()),
             "porphyrySystemState",
             porphyrySystemStateJson(query.porphyrySystemState(province)),
@@ -2122,6 +2133,60 @@ final class MaterialReviewPacketGenerator {
         profile.volatileElement(),
         "radiogenic",
         profile.radiogenic());
+  }
+
+  private static Map<String, Object> solidSolutionRefinementJson(
+      MineralPhaseRefinementCatalog.SolidSolutionRefinement refinement) {
+    return JsonWriter.object(
+        "definitionId",
+        refinement.definitionId(),
+        "mixingModel",
+        refinement.mixingModel().name(),
+        "exsolutionClass",
+        refinement.exsolutionClass().name(),
+        "condition",
+        refinement.condition(),
+        "endmemberRanges",
+        refinement.endmemberRanges().stream()
+            .map(
+                range ->
+                    JsonWriter.object(
+                        "endmemberId",
+                        range.endmemberId(),
+                        "minimumFractionPpm",
+                        range.minimumFractionPpm(),
+                        "maximumFractionPpm",
+                        range.maximumFractionPpm(),
+                        "condition",
+                        range.condition()))
+            .toList());
+  }
+
+  private static Map<String, Object> polymorphFamilyJson(
+      MineralPhaseRefinementCatalog.PolymorphFamily family) {
+    return JsonWriter.object(
+        "familyId",
+        family.familyId(),
+        "condition",
+        family.condition(),
+        "variants",
+        family.variants().stream()
+            .map(
+                variant -> {
+                  MineralPhaseRefinementCatalog.StabilityWindow stability = variant.stability();
+                  return JsonWriter.object(
+                      "mineralId",
+                      variant.mineralId(),
+                      "priority",
+                      variant.priority(),
+                      "temperatureBand",
+                      stability.temperatureBand().name(),
+                      "pressureBand",
+                      stability.pressureBand().name(),
+                      "hydrationRequirement",
+                      stability.hydrationRequirement().name());
+                })
+            .toList());
   }
 
   private Map<String, Object> regionalMetamorphicStateJson(RegionalMetamorphicState state) {

@@ -141,6 +141,9 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"element\": \"U\""));
     assertTrue(
         firstJson.contains("\"condition\": \"sulfide-bearing magmatic or hydrothermal fluid\""));
+    assertTrue(firstJson.contains("\"phaseRefinements\""));
+    assertTrue(firstJson.contains("\"familyId\": \"geological:polymorph_family/serpentine\""));
+    assertTrue(firstJson.contains("\"exsolutionClass\": \"CONDITIONAL_LOW_TEMPERATURE\""));
     assertTrue(firstJson.contains("\"modelVersion\": \"phase1.0-alpha.2\""));
     assertTrue(firstJson.contains(Phase2World.SCIENTIFIC_DIGEST));
     assertTrue(firstJson.contains("\"materialProcess\""));

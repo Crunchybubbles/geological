@@ -1,6 +1,6 @@
 # Phase 9 comprehensive geochemistry
 
-Status: `phase9-alpha.2` (expanded element/source vocabulary).
+Status: `phase9-alpha.3` (solid-solution and polymorph refinement).
 
 ## Alpha.1 — Condition-qualified element behavior
 
@@ -33,9 +33,22 @@ closure. Existing authored mineral recipes remain sparse and do not acquire inve
 the composition-rounding path now allocates residue only among elements actually present in the
 authored constituents.
 
+## Alpha.3 — Solid-solution and polymorph refinement
+
+`MineralPhaseRefinementCatalog` adds an explicit envelope for each of the eight existing ideal
+solid-solution definitions. Endmember fraction ranges, interpolation model, and a conditional
+cooling/exsolution marker are reviewable without changing the Phase 2 ideal interpolation result;
+the range API rejects mixes that do not close to one million fixed units. The catalog also records
+the lizardite–chrysotile–antigorite serpentine family with bounded coarse temperature, pressure,
+and hydration windows. Variant selection is deterministic and returns no result when the authored
+conditions do not justify a variant; it is not a thermodynamic stability solver.
+
+The material-review artifact publishes both refinement groups, including their conditions and
+member ranges, so reviewers can distinguish authored bounds from unresolved activity, ordering,
+solvus, and exsolution behavior.
+
 ## Remaining Phase 9 slices
 
-The next bounded increments are solid-solution/polymorph refinement, optional isotope/provenance
-evidence, reviewed response/partition datasets, and a processing-facing assay/mineral-liberation
-API. Each must preserve sparse state, explicit uncertainty, source-linked hosts, and exact
-system-scale ledger closure.
+The next bounded increments are optional isotope/provenance evidence, reviewed response/partition
+datasets, and a processing-facing assay/mineral-liberation API. Each must preserve sparse state,
+explicit uncertainty, source-linked hosts, and exact system-scale ledger closure.
