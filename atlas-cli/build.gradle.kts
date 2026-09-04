@@ -192,3 +192,12 @@ tasks.register<JavaExec>("geothermal") {
     args("geothermal", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase7/geothermal").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("netherThermal") {
+    group = "verification"
+    description = "Writes the deterministic Phase 8 Nether thermal/cavern terrain review."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("nether-thermal", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase8/nether-thermal").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}

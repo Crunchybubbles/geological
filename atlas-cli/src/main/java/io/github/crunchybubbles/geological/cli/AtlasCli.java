@@ -98,6 +98,10 @@ public final class AtlasCli {
         Path report = new GeothermalPacketGenerator(seed).generate(output);
         System.out.println("Wrote Phase 7 geothermal review to " + report);
       }
+      case "nether-thermal" -> {
+        Path report = new NetherThermalPacketGenerator(seed).generate(output);
+        System.out.println("Wrote Phase 8 Nether thermal review to " + report);
+      }
       default -> throw new IllegalArgumentException("Unknown command: " + command);
     }
   }
@@ -125,6 +129,6 @@ public final class AtlasCli {
 
   private static void printUsage() {
     System.out.println(
-        "Usage: atlas-cli <generate|measure|materials|worldgen-benchmark|exploration-telemetry|secondary-weathering|laterite|secondary-placers|paleosurface|glacial|greisen|skarn|epithermal|orogenic-gold|basin-hydrothermal|uranium|layered-intrusion|carbonatite-kimberlite|sedimentary-resources|geothermal> [--seed <long>] [--output <directory>]");
+        "Usage: atlas-cli <generate|measure|materials|worldgen-benchmark|exploration-telemetry|secondary-weathering|laterite|secondary-placers|paleosurface|glacial|greisen|skarn|epithermal|orogenic-gold|basin-hydrothermal|uranium|layered-intrusion|carbonatite-kimberlite|sedimentary-resources|geothermal|nether-thermal> [--seed <long>] [--output <directory>]");
   }
 }
