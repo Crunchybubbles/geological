@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 class ElementBehaviorCatalogTest {
   @Test
   void coversEveryElementWithConditionQualifiedHostsAndMobility() {
+    assertEquals(50, ChemicalElement.values().length);
     assertEquals(ChemicalElement.values().length, ElementBehaviorCatalog.all().size());
     assertEquals(
         ChemicalElement.values().length,
@@ -26,6 +27,7 @@ class ElementBehaviorCatalogTest {
             .allMatch(
                 profile -> !profile.affinities().isEmpty() && !profile.hostClasses().isEmpty()));
     assertEquals(MobilityClass.HIGH, ElementBehaviorCatalog.require(ChemicalElement.S).mobility());
+    assertEquals(MobilityClass.HIGH, ElementBehaviorCatalog.require(ChemicalElement.HE).mobility());
     assertTrue(
         ElementBehaviorCatalog.require(ChemicalElement.CU).affinities().stream()
             .anyMatch(affinity -> affinity.affinity() == AffinityClass.CHALCOPHILE));
@@ -33,6 +35,25 @@ class ElementBehaviorCatalogTest {
         ElementBehaviorCatalog.require(ChemicalElement.CU)
             .hostClasses()
             .contains(HostClass.SULFIDE));
+    assertTrue(ElementBehaviorCatalog.require(ChemicalElement.K).radiogenic());
+    assertTrue(ElementBehaviorCatalog.require(ChemicalElement.RB).radiogenic());
+    assertTrue(ElementBehaviorCatalog.require(ChemicalElement.TH).radiogenic());
+    assertTrue(ElementBehaviorCatalog.require(ChemicalElement.U).radiogenic());
+  }
+
+  @Test
+  void expandedSymbolsAndTracePathfindersRemainAddressable() {
+    assertEquals(ChemicalElement.HE, ChemicalElement.fromSymbol("He"));
+    assertEquals(ChemicalElement.NI, ChemicalElement.fromSymbol("Ni"));
+    assertEquals(ChemicalElement.NB, ChemicalElement.fromSymbol("Nb"));
+    assertEquals(ChemicalElement.U, ChemicalElement.fromSymbol("U"));
+    assertTrue(
+        ElementBehaviorCatalog.require(ChemicalElement.NI)
+            .hostClasses()
+            .contains(HostClass.SULFIDE));
+    assertTrue(
+        ElementBehaviorCatalog.require(ChemicalElement.U).affinities().stream()
+            .anyMatch(affinity -> affinity.affinity() == AffinityClass.ATMOPHILE));
   }
 
   @Test

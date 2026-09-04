@@ -173,7 +173,10 @@ public final class MaterialCatalogSnapshot {
     EnumMap<ChemicalElement, Long> rounded = new EnumMap<>(ChemicalElement.class);
     List<ElementRemainder> remainders = new ArrayList<>();
     long allocated = 0;
-    for (ChemicalElement element : ChemicalElement.values()) {
+    // Only authored constituent elements can receive mass. Iterating the complete Phase 9
+    // vocabulary would allow a newly added, currently absent element to receive a rounding unit
+    // and silently change an older catalog's composition.
+    for (ChemicalElement element : unrounded.keySet()) {
       double exact = unrounded.getOrDefault(element, 0.0) / bulkDensity * MaterialAssemblage.SCALE;
       long whole = (long) StrictMath.floor(exact);
       if (whole > 0) {

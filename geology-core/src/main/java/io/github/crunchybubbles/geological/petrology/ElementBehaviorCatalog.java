@@ -66,7 +66,7 @@ public final class ElementBehaviorCatalog {
         profile(
             ChemicalElement.O,
             MobilityClass.CONDITIONAL,
-            true,
+            false,
             false,
             Set.of(HostClass.SILICATE, HostClass.OXIDE, HostClass.CARBONATE, HostClass.VOLATILE),
             affinity(AffinityClass.LITHOPHILE, "silicate/oxide/carbonate phase")));
@@ -150,7 +150,7 @@ public final class ElementBehaviorCatalog {
             ChemicalElement.K,
             MobilityClass.CONDITIONAL,
             false,
-            false,
+            true,
             Set.of(HostClass.SILICATE, HostClass.VOLATILE),
             affinity(AffinityClass.LITHOPHILE, "feldspar/mica or evolved melt")));
     profiles.put(
@@ -220,6 +220,290 @@ public final class ElementBehaviorCatalog {
             Set.of(HostClass.SULFIDE, HostClass.SILICATE),
             affinity(AffinityClass.CHALCOPHILE, "reduced-sulfur hydrothermal or sulfide phase"),
             affinity(AffinityClass.SIDEROPHILE, "metal/alloy or mafic-ultramafic phase")));
+    profiles.put(
+        ChemicalElement.HE,
+        profile(
+            ChemicalElement.HE,
+            MobilityClass.HIGH,
+            true,
+            false,
+            Set.of(HostClass.VOLATILE),
+            affinity(AffinityClass.ATMOPHILE, "radiogenic or carrier-gas reservoir")));
+    profiles.put(
+        ChemicalElement.LI,
+        profile(
+            ChemicalElement.LI,
+            MobilityClass.CONDITIONAL,
+            false,
+            false,
+            Set.of(HostClass.SILICATE, HostClass.CARBONATE, HostClass.VOLATILE),
+            affinity(AffinityClass.LITHOPHILE, "mica, clay, or evolved silicate host"),
+            affinity(AffinityClass.ATMOPHILE, "saline brine or volatile-rich fluid")));
+    profiles.put(
+        ChemicalElement.BE,
+        profile(
+            ChemicalElement.BE,
+            MobilityClass.CONDITIONAL,
+            false,
+            false,
+            Set.of(HostClass.SILICATE, HostClass.OXIDE),
+            affinity(AffinityClass.LITHOPHILE, "beryl/bertrandite or evolved silicate host")));
+    profiles.put(
+        ChemicalElement.B,
+        profile(
+            ChemicalElement.B,
+            MobilityClass.HIGH,
+            true,
+            false,
+            Set.of(HostClass.SILICATE, HostClass.ORGANIC, HostClass.VOLATILE),
+            affinity(AffinityClass.LITHOPHILE, "borosilicate or tourmaline host"),
+            affinity(AffinityClass.ATMOPHILE, "borate or volatile-bearing fluid")));
+    profiles.put(
+        ChemicalElement.V,
+        profile(
+            ChemicalElement.V,
+            MobilityClass.CONDITIONAL,
+            false,
+            false,
+            Set.of(HostClass.OXIDE, HostClass.SILICATE, HostClass.SULFIDE),
+            affinity(AffinityClass.LITHOPHILE, "oxidized oxide or mafic silicate phase"),
+            affinity(AffinityClass.SIDEROPHILE, "reduced mafic-ultramafic phase")));
+    profiles.put(
+        ChemicalElement.MN,
+        profile(
+            ChemicalElement.MN,
+            MobilityClass.CONDITIONAL,
+            false,
+            false,
+            Set.of(HostClass.OXIDE, HostClass.CARBONATE, HostClass.SILICATE),
+            affinity(AffinityClass.LITHOPHILE, "oxide, carbonate, or silicate host")));
+    profiles.put(
+        ChemicalElement.CO,
+        profile(
+            ChemicalElement.CO,
+            MobilityClass.CONDITIONAL,
+            false,
+            false,
+            Set.of(HostClass.SULFIDE, HostClass.SILICATE, HostClass.OXIDE),
+            affinity(AffinityClass.CHALCOPHILE, "sulfide-saturated system"),
+            affinity(AffinityClass.SIDEROPHILE, "mafic-ultramafic metal or sulfide phase")));
+    profiles.put(
+        ChemicalElement.NI,
+        profile(
+            ChemicalElement.NI,
+            MobilityClass.CONDITIONAL,
+            false,
+            false,
+            Set.of(HostClass.SULFIDE, HostClass.SILICATE),
+            affinity(AffinityClass.CHALCOPHILE, "sulfide-saturated system"),
+            affinity(AffinityClass.SIDEROPHILE, "mafic-ultramafic metal or sulfide phase")));
+    profiles.put(
+        ChemicalElement.GA,
+        profile(
+            ChemicalElement.GA,
+            MobilityClass.CONDITIONAL,
+            false,
+            false,
+            Set.of(HostClass.SILICATE, HostClass.OXIDE, HostClass.SULFIDE),
+            affinity(AffinityClass.CHALCOPHILE, "sulfide host or chloride-bearing fluid"),
+            affinity(AffinityClass.LITHOPHILE, "feldspar, mica, or clay host")));
+    profiles.put(
+        ChemicalElement.RB,
+        profile(
+            ChemicalElement.RB,
+            MobilityClass.CONDITIONAL,
+            false,
+            true,
+            Set.of(HostClass.SILICATE, HostClass.VOLATILE),
+            affinity(AffinityClass.LITHOPHILE, "mica, feldspar, or evolved melt"),
+            affinity(AffinityClass.ATMOPHILE, "saline or volatile-bearing fluid")));
+    profiles.put(
+        ChemicalElement.SR,
+        profile(
+            ChemicalElement.SR,
+            MobilityClass.CONDITIONAL,
+            false,
+            false,
+            Set.of(HostClass.CARBONATE, HostClass.SILICATE, HostClass.PHOSPHATE),
+            affinity(AffinityClass.LITHOPHILE, "carbonate, plagioclase, or apatite host")));
+    profiles.put(
+        ChemicalElement.Y,
+        profile(
+            ChemicalElement.Y,
+            MobilityClass.CONDITIONAL,
+            false,
+            false,
+            Set.of(HostClass.PHOSPHATE, HostClass.OXIDE, HostClass.SILICATE),
+            affinity(AffinityClass.LITHOPHILE, "phosphate, oxide, or accessory silicate host")));
+    profiles.put(
+        ChemicalElement.ZR,
+        profile(
+            ChemicalElement.ZR,
+            MobilityClass.LOW,
+            false,
+            false,
+            Set.of(HostClass.SILICATE, HostClass.OXIDE),
+            affinity(AffinityClass.LITHOPHILE, "zircon or refractory silicate host")));
+    profiles.put(
+        ChemicalElement.NB,
+        profile(
+            ChemicalElement.NB,
+            MobilityClass.CONDITIONAL,
+            false,
+            false,
+            Set.of(HostClass.OXIDE, HostClass.SILICATE),
+            affinity(AffinityClass.LITHOPHILE, "oxide, carbonatite, or peralkaline host")));
+    profiles.put(
+        ChemicalElement.MO,
+        profile(
+            ChemicalElement.MO,
+            MobilityClass.CONDITIONAL,
+            false,
+            false,
+            Set.of(HostClass.SULFIDE, HostClass.OXIDE, HostClass.SILICATE),
+            affinity(AffinityClass.CHALCOPHILE, "molybdenite or reduced-sulfur phase"),
+            affinity(AffinityClass.LITHOPHILE, "oxidized molybdate or oxide phase")));
+    profiles.put(
+        ChemicalElement.CD,
+        profile(
+            ChemicalElement.CD,
+            MobilityClass.HIGH,
+            false,
+            false,
+            Set.of(HostClass.SULFIDE, HostClass.CARBONATE, HostClass.VOLATILE),
+            affinity(AffinityClass.CHALCOPHILE, "sphalerite or sulfide-bearing fluid")));
+    profiles.put(
+        ChemicalElement.IN,
+        profile(
+            ChemicalElement.IN,
+            MobilityClass.CONDITIONAL,
+            false,
+            false,
+            Set.of(HostClass.SULFIDE, HostClass.OXIDE, HostClass.SILICATE),
+            affinity(AffinityClass.CHALCOPHILE, "sulfide host or chloride-bearing fluid")));
+    profiles.put(
+        ChemicalElement.AG,
+        profile(
+            ChemicalElement.AG,
+            MobilityClass.CONDITIONAL,
+            false,
+            false,
+            Set.of(HostClass.SULFIDE, HostClass.SILICATE, HostClass.CARBONATE),
+            affinity(AffinityClass.CHALCOPHILE, "sulfide, carbonate, or hydrothermal host"),
+            affinity(AffinityClass.SIDEROPHILE, "native-metal or alloy phase")));
+    profiles.put(
+        ChemicalElement.SN,
+        profile(
+            ChemicalElement.SN,
+            MobilityClass.CONDITIONAL,
+            false,
+            false,
+            Set.of(HostClass.OXIDE, HostClass.SULFIDE, HostClass.SILICATE),
+            affinity(AffinityClass.CHALCOPHILE, "stannite or sulfide-bearing fluid"),
+            affinity(AffinityClass.LITHOPHILE, "cassiterite or evolved silicate host")));
+    profiles.put(
+        ChemicalElement.CS,
+        profile(
+            ChemicalElement.CS,
+            MobilityClass.HIGH,
+            false,
+            false,
+            Set.of(HostClass.SILICATE, HostClass.VOLATILE),
+            affinity(AffinityClass.LITHOPHILE, "mica, feldspar, or highly evolved melt"),
+            affinity(AffinityClass.ATMOPHILE, "saline brine or volatile-bearing fluid")));
+    profiles.put(
+        ChemicalElement.LA,
+        profile(
+            ChemicalElement.LA,
+            MobilityClass.CONDITIONAL,
+            false,
+            false,
+            Set.of(HostClass.PHOSPHATE, HostClass.OXIDE, HostClass.CARBONATE, HostClass.SILICATE),
+            affinity(AffinityClass.LITHOPHILE, "phosphate, carbonatite, oxide, or silicate host")));
+    profiles.put(
+        ChemicalElement.CE,
+        profile(
+            ChemicalElement.CE,
+            MobilityClass.CONDITIONAL,
+            false,
+            false,
+            Set.of(HostClass.PHOSPHATE, HostClass.OXIDE, HostClass.CARBONATE, HostClass.SILICATE),
+            affinity(AffinityClass.LITHOPHILE, "phosphate, carbonatite, oxide, or silicate host")));
+    profiles.put(
+        ChemicalElement.ND,
+        profile(
+            ChemicalElement.ND,
+            MobilityClass.CONDITIONAL,
+            false,
+            false,
+            Set.of(HostClass.PHOSPHATE, HostClass.OXIDE, HostClass.CARBONATE, HostClass.SILICATE),
+            affinity(AffinityClass.LITHOPHILE, "phosphate, carbonatite, oxide, or silicate host")));
+    profiles.put(
+        ChemicalElement.HF,
+        profile(
+            ChemicalElement.HF,
+            MobilityClass.LOW,
+            false,
+            false,
+            Set.of(HostClass.SILICATE, HostClass.OXIDE),
+            affinity(AffinityClass.LITHOPHILE, "zircon, hafnon, or refractory silicate host")));
+    profiles.put(
+        ChemicalElement.TA,
+        profile(
+            ChemicalElement.TA,
+            MobilityClass.CONDITIONAL,
+            false,
+            false,
+            Set.of(HostClass.OXIDE, HostClass.SILICATE),
+            affinity(AffinityClass.LITHOPHILE, "columbite-tantalite or evolved oxide host")));
+    profiles.put(
+        ChemicalElement.W,
+        profile(
+            ChemicalElement.W,
+            MobilityClass.CONDITIONAL,
+            false,
+            false,
+            Set.of(HostClass.OXIDE, HostClass.SULFIDE, HostClass.SILICATE),
+            affinity(AffinityClass.CHALCOPHILE, "reduced-sulfur hydrothermal phase"),
+            affinity(AffinityClass.LITHOPHILE, "scheelite, wolframite, or evolved silicate host")));
+    profiles.put(
+        ChemicalElement.RE,
+        profile(
+            ChemicalElement.RE,
+            MobilityClass.CONDITIONAL,
+            false,
+            false,
+            Set.of(HostClass.SULFIDE, HostClass.OXIDE, HostClass.SILICATE),
+            affinity(AffinityClass.CHALCOPHILE, "molybdenite or sulfide phase"),
+            affinity(AffinityClass.LITHOPHILE, "oxidized oxide or evolved silicate host")));
+    profiles.put(
+        ChemicalElement.PB,
+        profile(
+            ChemicalElement.PB,
+            MobilityClass.CONDITIONAL,
+            false,
+            false,
+            Set.of(HostClass.SULFIDE, HostClass.CARBONATE, HostClass.OXIDE),
+            affinity(AffinityClass.CHALCOPHILE, "galena, carbonate, or chloride/sulfide fluid")));
+    profiles.put(
+        ChemicalElement.TH,
+        profile(
+            ChemicalElement.TH,
+            MobilityClass.LOW,
+            false,
+            true,
+            Set.of(HostClass.SILICATE, HostClass.PHOSPHATE, HostClass.OXIDE),
+            affinity(AffinityClass.LITHOPHILE, "monazite, zircon, or refractory oxide host")));
+    profiles.put(
+        ChemicalElement.U,
+        profile(
+            ChemicalElement.U,
+            MobilityClass.CONDITIONAL,
+            false,
+            true,
+            Set.of(HostClass.OXIDE, HostClass.PHOSPHATE, HostClass.VOLATILE),
+            affinity(AffinityClass.LITHOPHILE, "uraninite, phosphate, or oxide host"),
+            affinity(AffinityClass.ATMOPHILE, "oxidized carbonate-bearing groundwater")));
     if (profiles.size() != ChemicalElement.values().length) {
       throw new IllegalStateException("element behavior catalog does not cover the vocabulary");
     }

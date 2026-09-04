@@ -31,7 +31,22 @@ public record MagmaResidualInventoryState(
               ChemicalElement.K,
               ChemicalElement.CU,
               ChemicalElement.ZN,
-              ChemicalElement.AU));
+              ChemicalElement.AU,
+              ChemicalElement.LI,
+              ChemicalElement.BE,
+              ChemicalElement.B,
+              ChemicalElement.RB,
+              ChemicalElement.CS,
+              ChemicalElement.NB,
+              ChemicalElement.MO,
+              ChemicalElement.AG,
+              ChemicalElement.SN,
+              ChemicalElement.TA,
+              ChemicalElement.W,
+              ChemicalElement.RE,
+              ChemicalElement.PB,
+              ChemicalElement.TH,
+              ChemicalElement.U));
 
   public MagmaResidualInventoryState {
     requireFraction(cumulativeCrystalFractionPpm, "cumulative crystal fraction");
@@ -141,6 +156,51 @@ public record MagmaResidualInventoryState(
             case APPROACHING_SATURATION -> 500_000L;
             case SATURATED -> 750_000L;
           };
+      case LI -> 30_000L;
+      case BE -> 50_000L;
+      case B -> 50_000L;
+      case RB -> 100_000L;
+      case CS -> 80_000L;
+      case NB -> 70_000L;
+      case MO ->
+          switch (sulfurHistory) {
+            case UNDERSATURATED -> 180_000L;
+            case APPROACHING_SATURATION -> 420_000L;
+            case SATURATED -> 650_000L;
+          };
+      case AG ->
+          switch (sulfurHistory) {
+            case UNDERSATURATED -> 100_000L;
+            case APPROACHING_SATURATION -> 350_000L;
+            case SATURATED -> 600_000L;
+          };
+      case SN ->
+          switch (sulfurHistory) {
+            case UNDERSATURATED -> 100_000L;
+            case APPROACHING_SATURATION -> 300_000L;
+            case SATURATED -> 500_000L;
+          };
+      case TA -> 70_000L;
+      case W ->
+          switch (sulfurHistory) {
+            case UNDERSATURATED -> 120_000L;
+            case APPROACHING_SATURATION -> 350_000L;
+            case SATURATED -> 550_000L;
+          };
+      case RE ->
+          switch (sulfurHistory) {
+            case UNDERSATURATED -> 120_000L;
+            case APPROACHING_SATURATION -> 350_000L;
+            case SATURATED -> 600_000L;
+          };
+      case PB ->
+          switch (sulfurHistory) {
+            case UNDERSATURATED -> 100_000L;
+            case APPROACHING_SATURATION -> 350_000L;
+            case SATURATED -> 600_000L;
+          };
+      case TH -> 30_000L;
+      case U -> 50_000L;
       default -> throw new IllegalArgumentException("unsupported tracked magma element " + element);
     };
   }
