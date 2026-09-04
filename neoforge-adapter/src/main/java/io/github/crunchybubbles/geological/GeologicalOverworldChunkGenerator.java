@@ -26,7 +26,7 @@ import net.minecraft.world.level.levelgen.structure.StructureSet;
  *
  * <p>Vanilla's biome source and noise settings remain codec inputs so biome/structure contracts can
  * be preserved. This hook writes solid geological runs plus explicit surface water and air;
- * groundwater, caves, regolith, decoration, and Nether/End generators are separate increments.
+ * groundwater, caves, decoration, and Nether/End generators are separate increments.
  */
 public final class GeologicalOverworldChunkGenerator extends NoiseBasedChunkGenerator {
   public static final MapCodec<GeologicalOverworldChunkGenerator> CODEC =
@@ -93,8 +93,13 @@ public final class GeologicalOverworldChunkGenerator extends NoiseBasedChunkGene
       StructureManager structureManager,
       RandomState randomState,
       ChunkAccess chunk) {
-    // Vanilla surface rules would overwrite the geology-owned base/lithology palette. Regolith,
-    // soil, cave/groundwater fluids, and surface clues are intentionally separate logical stages.
+    // Vanilla surface rules would overwrite the geology-owned base/lithology palette. Apply the
+    // bounded geological regolith projection instead; cave/groundwater fluids remain separate.
+    long seed = requireWorldSeed();
+    WorldgenExecutionContext context =
+        GeologicalWorldgenAdapter.regolithSurfaceContext(
+            seed, Level.OVERWORLD, chunk.getPos(), SNAPSHOT, Runnable::run);
+    GeologicalChunkWriter.writeRegolithSurface(chunk, context, GeologicalBlockPalette::regolith);
   }
 
   private long requireWorldSeed() {

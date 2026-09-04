@@ -1,8 +1,8 @@
 # Phase 4 vertical slice — canonical dimension identity
 
 Status: completed platform-neutral identity increment (`phase4-alpha.2`) plus loader adapter lock,
-chunk-writer, vanilla-palette, Overworld generator/preset, and explicit air/surface-water slices
-(`phase4-loader-alpha.1`–`phase4-loader-alpha.5`); regolith/surface clues are not introduced yet.
+chunk-writer, vanilla-palette, Overworld generator/preset, explicit air/surface-water, and bounded
+regolith/surface-clue slices (`phase4-loader-alpha.1`–`phase4-loader-alpha.6`).
 
 `DimensionGeologyProfile` freezes the shared contract that a future Minecraft adapter will consume
 for `minecraft:overworld`, `minecraft:the_nether`, and `minecraft:the_end`. Each profile carries a
@@ -51,12 +51,15 @@ that sink to the authorized `ChunkAccess` with an injected, memoized material-to
 existing vanilla block state; it does not encode grade/alteration or register custom blocks.
 `OverworldAirFluidPlanner` and `OverworldAirFluidWriter` now derive and emit explicit air above the
 solid surface plus surface water up to the bounded sea level, while leaving groundwater and caves
-to their logical stage. `GeologicalWorldgenRegistries` registers the generator codec in the static
+to their logical stage. `OverworldRegolithPlanner` resolves the Phase 2 surface material at the
+same frozen identity, clips weathered/colluvial/alluvial material to the top of solid terrain, and
+retains source bodies, material body, deposit IDs, drainage, slope, and clue kind. Its writer applies
+only that interval and passes the clue provenance through the sink. `GeologicalWorldgenRegistries` registers the generator codec in the static
 Minecraft chunk-generator registry, and `geological:geological` supplies that generator for the
 Overworld while retaining vanilla Nether/End companions. `GeologicalOverworldChunkGenerator`
 captures the seed supplied to `createState` and invokes the chunk writer from `fillFromNoise`;
-vanilla surface rules are intentionally suppressed until the geological regolith/surface stages
-exist.
+vanilla surface rules are intentionally suppressed; `buildSurface` now applies the geological
+regolith projection instead of allowing vanilla surface rules to overwrite it.
 
 `WorldgenSnapshot` freezes the model, scientific, configuration, presentation, and scale identity
 that a generation worker may read. `WorldgenExecutionContext` accepts that snapshot, one authorized
@@ -65,7 +68,6 @@ live server/world handle. Non-writing stages and mismatched snapshots fail befor
 writable work still has to name the authorized target chunk. The review packet records the snapshot
 digests and the `stage_supplied_only`/`liveServerAccess=forbidden` policy.
 
-The next Phase 4 increment should integrate regolith/surface clues around this generator while
-preserving the plan's clipping and deterministic seam tests. Debug presentation,
-compatibility/benchmark coverage, and dimension-native Nether/End generators remain separate
-slices.
+The next Phase 4 increment should add commands/debug traces for the generated material and clue
+provenance while preserving the plan's clipping and deterministic seam tests. Compatibility/
+benchmark coverage and dimension-native Nether/End generators remain separate slices.

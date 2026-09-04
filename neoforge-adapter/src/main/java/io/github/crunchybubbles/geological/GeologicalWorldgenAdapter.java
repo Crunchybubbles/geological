@@ -59,6 +59,21 @@ public final class GeologicalWorldgenAdapter {
     return new WorldgenExecutionContext(request, WorldgenStage.BASE_TERRAIN, snapshot, executor);
   }
 
+  /** Binds a platform-supplied executor and frozen snapshot to the regolith/clue stage. */
+  public static WorldgenExecutionContext regolithSurfaceContext(
+      long worldSeed,
+      ResourceKey<Level> dimension,
+      ChunkPos chunk,
+      WorldgenSnapshot snapshot,
+      Executor executor) {
+    Objects.requireNonNull(snapshot, "worldgen snapshot");
+    Objects.requireNonNull(executor, "stage-supplied executor");
+    WorldgenChunkRequest request =
+        request(worldSeed, dimension, chunk, WorldgenStage.REGOLITH_SURFACE_CLUES);
+    return new WorldgenExecutionContext(
+        request, WorldgenStage.REGOLITH_SURFACE_CLUES, snapshot, executor);
+  }
+
   /** Exposes the platform-neutral read-only sampler for a validated coarse-terrain callback. */
   public static OverworldTerrainControlSampler coarseTerrainControls(
       WorldgenExecutionContext context) {

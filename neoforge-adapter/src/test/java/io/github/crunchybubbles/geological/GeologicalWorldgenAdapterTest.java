@@ -97,4 +97,20 @@ class GeologicalWorldgenAdapterTest {
     assertTrue(plan.solidMaxYExclusive() >= plan.minYInclusive());
     assertTrue(plan.solidMaxYExclusive() <= plan.maxYExclusive());
   }
+
+  @Test
+  void bindsRegolithCallbackToTheSurfaceClueStage() {
+    var overworld = DimensionGeologyProfiles.require("minecraft:overworld");
+    var context =
+        GeologicalWorldgenAdapter.regolithSurfaceContext(
+            8_675_309L,
+            Level.OVERWORLD,
+            new ChunkPos(-11, 17),
+            WorldgenSnapshot.forProfile(overworld),
+            Runnable::run);
+
+    assertEquals(WorldgenStage.REGOLITH_SURFACE_CLUES, context.stage());
+    assertTrue(context.canWriteTarget());
+    assertTrue(context.request().includes(WorldgenStage.BASE_TERRAIN));
+  }
 }

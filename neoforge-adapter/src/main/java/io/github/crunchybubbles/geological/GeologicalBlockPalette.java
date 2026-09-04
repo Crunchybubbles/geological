@@ -1,5 +1,6 @@
 package io.github.crunchybubbles.geological;
 
+import io.github.crunchybubbles.geological.model.Lithology;
 import io.github.crunchybubbles.geological.query.MaterialState;
 import java.util.Objects;
 import net.minecraft.world.level.block.Blocks;
@@ -47,6 +48,32 @@ public final class GeologicalBlockPalette {
       case LATERITE_BAUXITE -> Blocks.TERRACOTTA.defaultBlockState();
       case SOIL_COLLUVIUM -> Blocks.DIRT.defaultBlockState();
       case ALLUVIAL_GRAVEL, GLACIAL_TILL -> Blocks.GRAVEL.defaultBlockState();
+    };
+  }
+
+  /**
+   * Maps a present-surface material to a coarse vanilla regolith presentation.
+   *
+   * <p>Weathered overprints become dirt or oxidized terracotta, while transported and primary
+   * lithologies retain the ordinary coarse palette. Hidden grade, provenance, and clue metadata
+   * remain query state rather than block identity.
+   */
+  public static BlockState regolith(MaterialState material) {
+    Objects.requireNonNull(material, "material state");
+    if (material.lithology() == Lithology.SOIL_COLLUVIUM) {
+      return Blocks.DIRT.defaultBlockState();
+    }
+    if (material.lithology() == Lithology.ALLUVIAL_GRAVEL
+        || material.lithology() == Lithology.GLACIAL_TILL) {
+      return Blocks.GRAVEL.defaultBlockState();
+    }
+    if (material.lithology() == Lithology.LATERITE_BAUXITE) {
+      return Blocks.TERRACOTTA.defaultBlockState();
+    }
+    return switch (material.overprint()) {
+      case WEATHERED_UNCONFORMITY, WEATHERED_REGOLITH -> Blocks.DIRT.defaultBlockState();
+      case OXIDIZED_GOSSAN -> Blocks.TERRACOTTA.defaultBlockState();
+      default -> overworld(material);
     };
   }
 }

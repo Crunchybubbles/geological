@@ -5,6 +5,8 @@ import io.github.crunchybubbles.geological.worldgen.OverworldAirFluidPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldAirFluidWriter;
 import io.github.crunchybubbles.geological.worldgen.OverworldBaseTerrainPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldBaseTerrainWriter;
+import io.github.crunchybubbles.geological.worldgen.OverworldRegolithPlanner;
+import io.github.crunchybubbles.geological.worldgen.OverworldRegolithWriter;
 import io.github.crunchybubbles.geological.worldgen.WorldgenExecutionContext;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,8 +26,8 @@ public final class GeologicalChunkWriter {
    * Writes the bounded base-terrain plan into {@code target} using a caller-owned material palette.
    *
    * <p>The resolver is memoized by immutable material state for this chunk. Air and surface water
-   * are written by {@link #writeAirAndSurfaceWater}; caves, groundwater, regolith, decoration, and
-   * palette registration remain separate increments.
+   * are written by {@link #writeAirAndSurfaceWater}; caves, groundwater, decoration, and palette
+   * registration remain separate increments. Regolith is written by {@link #writeRegolithSurface}.
    */
   public static int writeBaseTerrain(
       ChunkAccess target,
@@ -73,5 +75,34 @@ public final class GeologicalChunkWriter {
                 new BlockPos(Math.toIntExact(blockX), blockY, Math.toIntExact(blockZ)),
                 kind == OverworldAirFluidWriter.BlockKind.SURFACE_WATER ? water : air,
                 false));
+  }
+
+  /** Writes the bounded regolith interval and retains clue provenance in the injected resolver. */
+  public static int writeRegolithSurface(
+      ChunkAccess target,
+      WorldgenExecutionContext context,
+      Function<MaterialState, BlockState> blockResolver) {
+    Objects.requireNonNull(target, "target chunk");
+    Objects.requireNonNull(context, "worldgen execution context");
+    Objects.requireNonNull(blockResolver, "regolith block resolver");
+
+    ChunkPos targetPos = Objects.requireNonNull(target.getPos(), "target chunk position");
+    context.requireWritableTargetChunk(targetPos.x, targetPos.z);
+    OverworldRegolithPlanner planner = OverworldRegolithPlanner.from(context);
+    Map<MaterialState, BlockState> paletteCache = new HashMap<>();
+    return OverworldRegolithWriter.write(
+        planner,
+        (blockX, blockY, blockZ, material, ignoredClue) -> {
+          BlockState blockState =
+              paletteCache.computeIfAbsent(
+                  material,
+                  key ->
+                      Objects.requireNonNull(
+                          blockResolver.apply(key), "regolith palette returned null"));
+          target.setBlockState(
+              new BlockPos(Math.toIntExact(blockX), blockY, Math.toIntExact(blockZ)),
+              blockState,
+              false);
+        });
   }
 }

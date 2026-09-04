@@ -32,11 +32,14 @@ public final class OverworldBaseTerrainPlanner {
     this.terrainControls = OverworldTerrainControlSampler.from(context);
   }
 
-  /** Creates a planner only for the writable base-terrain stage of the canonical Overworld. */
+  /**
+   * Creates a planner for any writable stage at or after base terrain of the canonical Overworld.
+   */
   public static OverworldBaseTerrainPlanner from(WorldgenExecutionContext context) {
     Objects.requireNonNull(context, "worldgen execution context");
-    if (context.stage() != WorldgenStage.BASE_TERRAIN) {
-      throw new IllegalArgumentException("base terrain requires the base_terrain stage");
+    if (!WorldgenStage.BASE_TERRAIN.isAtOrBefore(context.stage())) {
+      throw new IllegalArgumentException(
+          "base terrain requires the base_terrain stage or a later authorized stage");
     }
     if (!OVERWORLD_DIMENSION.equals(context.request().dimensionKey())) {
       throw new IllegalArgumentException("base terrain is only defined for the Overworld");
