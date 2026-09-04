@@ -1,6 +1,6 @@
 # Phase 9 comprehensive geochemistry
 
-Status: `phase9-alpha.6` (sparse partition response catalog and processing-facing host assay).
+Status: `phase9-alpha.7` (partition response review manifest and processing-facing host assay).
 
 ## Alpha.1 — Condition-qualified element behavior
 
@@ -85,8 +85,20 @@ The API therefore supplies Phase 10 with auditable natural inventory and host pr
 claiming a measured assay, process recovery, economic grade, or reserve. Its confidence and
 `AUTHORED_DERIVATION` status remain visible in the material-review artifact.
 
+## Alpha.7 — Partition response review manifest
+
+The partition catalog now publishes a versioned review manifest alongside its 69 response rows.
+Each row points to the project-authored proxy evidence entry, while the manifest records EarthRef's
+GERM Kd database as an external comparison candidate. The candidate URL and
+`REDISTRIBUTION_UNVERIFIED` disposition are explicit: no third-party data are copied into the
+runtime or silently treated as the source of the proxy values. Scientific row selection,
+calibration-envelope comparison, attribution, and license approval remain human review tasks.
+This keeps the runtime response table reviewable and legally conservative while preserving its
+stable version and exact magma-inventory closure.
+
 ## Remaining Phase 9 slices
 
-The implementation slices are complete. External scientific/license review of the response data
-and host-allocation assumptions remains required before a stable release; review must preserve
-sparse state, explicit uncertainty, source-linked hosts, and exact system-scale ledger closure.
+The implementation slices are complete. External scientific/license review of the response data,
+candidate-row selection, and host-allocation assumptions remains required before a stable release;
+review must preserve sparse state, explicit uncertainty, source-linked hosts, and exact system-scale
+ledger closure.

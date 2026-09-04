@@ -585,6 +585,8 @@ final class MaterialReviewPacketGenerator {
             JsonWriter.object(
                 "version",
                 ElementPartitionResponseCatalog.VERSION,
+                "reviewManifestVersion",
+                ElementPartitionResponseCatalog.REVIEW_MANIFEST_VERSION,
                 "responseCount",
                 ElementPartitionResponseCatalog.all().size(),
                 "reviewStatuses",
@@ -596,6 +598,10 @@ final class MaterialReviewPacketGenerator {
                 "responses",
                 ElementPartitionResponseCatalog.all().stream()
                     .map(MaterialReviewPacketGenerator::partitionResponseJson)
+                    .toList(),
+                "reviewEvidence",
+                ElementPartitionResponseCatalog.reviewEvidence().stream()
+                    .map(MaterialReviewPacketGenerator::partitionReviewEvidenceJson)
                     .toList()),
             "processingAssayContract",
             JsonWriter.object(
@@ -2271,8 +2277,25 @@ final class MaterialReviewPacketGenerator {
         response.confidencePpm(),
         "reviewStatus",
         response.reviewStatus().name(),
+        "evidenceId",
+        response.evidenceId(),
         "provenance",
         response.provenance());
+  }
+
+  private static Map<String, Object> partitionReviewEvidenceJson(
+      ElementPartitionResponseCatalog.ReviewEvidence evidence) {
+    return JsonWriter.object(
+        "evidenceId",
+        evidence.evidenceId(),
+        "sourceKind",
+        evidence.sourceKind().name(),
+        "sourceUri",
+        evidence.sourceUri().toString(),
+        "licenseDisposition",
+        evidence.licenseDisposition().name(),
+        "scope",
+        evidence.scope());
   }
 
   private static Map<String, Object> processingAssayJson(ProcessingAssay assay) {

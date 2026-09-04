@@ -148,6 +148,10 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"parentIsotope\": \"K-40\""));
     assertTrue(firstJson.contains("\"partitionResponseCatalog\""));
     assertTrue(firstJson.contains("phase9-alpha.5-proxy-v1"));
+    assertTrue(firstJson.contains("phase9-alpha.7-review-manifest-v1"));
+    assertTrue(firstJson.contains("\"reviewEvidence\""));
+    assertTrue(firstJson.contains("earthref:germ/kdd"));
+    assertTrue(firstJson.contains("REDISTRIBUTION_UNVERIFIED"));
     assertTrue(firstJson.contains("\"crystalCapturePpm\": 700000"));
     assertTrue(firstJson.contains("\"processingAssayContract\""));
     assertTrue(firstJson.contains("phase9-alpha.6-host-assay-v1"));

@@ -1,5 +1,6 @@
 package io.github.crunchybubbles.geological.petrology;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -13,13 +14,21 @@ import java.util.List;
  */
 public final class ElementPartitionResponseCatalog {
   public static final String VERSION = "phase9-alpha.5-proxy-v1";
+  public static final String REVIEW_MANIFEST_VERSION = "phase9-alpha.7-review-manifest-v1";
+  private static final String PROXY_EVIDENCE_ID = "geological:phase9/partition-proxy";
   private static final List<Response> RESPONSES = responses();
+  private static final List<ReviewEvidence> REVIEW_EVIDENCE = compileReviewEvidence();
 
   private ElementPartitionResponseCatalog() {}
 
   /** Returns every sparse response in stable element/saturation order. */
   public static List<Response> all() {
     return RESPONSES;
+  }
+
+  /** Returns the source and redistribution dispositions needed before external review. */
+  public static List<ReviewEvidence> reviewEvidence() {
+    return REVIEW_EVIDENCE;
   }
 
   /** Returns the authored response for one element and sulfur-saturation state. */
@@ -66,6 +75,22 @@ public final class ElementPartitionResponseCatalog {
     return result.stream()
         .sorted(Comparator.comparing(Response::element).thenComparing(Response::sulfurSaturation))
         .toList();
+  }
+
+  private static List<ReviewEvidence> compileReviewEvidence() {
+    return List.of(
+        new ReviewEvidence(
+            PROXY_EVIDENCE_ID,
+            SourceKind.PROJECT_AUTHORED,
+            URI.create("https://github.com/Crunchybubbles/geological"),
+            LicenseDisposition.PROJECT_MIT,
+            "All 69 response values are authored routing proxies in this repository; no third-party table is bundled."),
+        new ReviewEvidence(
+            "earthref:germ/kdd",
+            SourceKind.EXTERNAL_CANDIDATE,
+            URI.create("https://earthref.org/KDD-old/"),
+            LicenseDisposition.REDISTRIBUTION_UNVERIFIED,
+            "Candidate peer-reviewed partition source for scientific comparison; licensing and row-level selection require review before redistribution."));
   }
 
   private static void add(
@@ -121,6 +146,41 @@ public final class ElementPartitionResponseCatalog {
         throw new IllegalArgumentException("partition response is incomplete or out of bounds");
       }
     }
+
+    /** Identifies the review-manifest entry governing this authored response row. */
+    public String evidenceId() {
+      return PROXY_EVIDENCE_ID;
+    }
+  }
+
+  public record ReviewEvidence(
+      String evidenceId,
+      SourceKind sourceKind,
+      URI sourceUri,
+      LicenseDisposition licenseDisposition,
+      String scope) {
+    public ReviewEvidence {
+      if (evidenceId == null
+          || evidenceId.isBlank()
+          || sourceKind == null
+          || sourceUri == null
+          || !"https".equalsIgnoreCase(sourceUri.getScheme())
+          || licenseDisposition == null
+          || scope == null
+          || scope.isBlank()) {
+        throw new IllegalArgumentException("partition review evidence is incomplete or unsafe");
+      }
+    }
+  }
+
+  public enum SourceKind {
+    PROJECT_AUTHORED,
+    EXTERNAL_CANDIDATE
+  }
+
+  public enum LicenseDisposition {
+    PROJECT_MIT,
+    REDISTRIBUTION_UNVERIFIED
   }
 
   public enum ReviewStatus {

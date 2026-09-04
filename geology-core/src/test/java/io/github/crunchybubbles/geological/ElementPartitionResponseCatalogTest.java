@@ -15,6 +15,18 @@ class ElementPartitionResponseCatalogTest {
   void sparseResponseSetCoversEveryTrackedElementAndSaturationState() {
     assertEquals(69, ElementPartitionResponseCatalog.all().size());
     assertEquals(
+        "phase9-alpha.7-review-manifest-v1",
+        ElementPartitionResponseCatalog.REVIEW_MANIFEST_VERSION);
+    assertEquals(2, ElementPartitionResponseCatalog.reviewEvidence().size());
+    assertTrue(
+        ElementPartitionResponseCatalog.reviewEvidence().stream()
+            .anyMatch(
+                evidence ->
+                    evidence.evidenceId().equals("earthref:germ/kdd")
+                        && evidence.licenseDisposition()
+                            == ElementPartitionResponseCatalog.LicenseDisposition
+                                .REDISTRIBUTION_UNVERIFIED));
+    assertEquals(
         23,
         new HashSet<>(
                 ElementPartitionResponseCatalog.all().stream()
@@ -37,6 +49,9 @@ class ElementPartitionResponseCatalogTest {
         ElementPartitionResponseCatalog.require(
                 ChemicalElement.MO, MagmaDifferentiationState.SulfurSaturationHistory.SATURATED)
             .crystalCapturePpm());
+    assertEquals(
+        "geological:phase9/partition-proxy",
+        ElementPartitionResponseCatalog.all().getFirst().evidenceId());
   }
 
   @Test

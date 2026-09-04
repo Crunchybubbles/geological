@@ -73,6 +73,12 @@ largest remainder with constituent-ID tie breaks, and requires exact per-element
 comminution, recovery, or economic model; all such processing assumptions remain outside the
 generation identity and are deferred to Phase 10.
 
+The partition-response review manifest is likewise deterministic metadata rather than runtime
+science: every row is tied to the project-authored proxy evidence ID, while EarthRef/GERM is listed
+only as an external candidate with redistribution unverified. The manifest does not change the
+alpha.5 response values or their magma-ledger arithmetic until a scientific and license review
+authorizes a sourced replacement.
+
 Each metamorphic process also carries a canonical principal-axis frame. Active frames expose normalized shortening/flattening/stretching shares that close exactly, plus bounded foliation azimuth and lineation trend/plunge; inactive state is all zero. Path and fabric classes select the frame deterministically, so orientation evidence does not consume random state or become cache-dependent.
 
 The normalized colluvial production/transport response has its own immutable policy for availability floors, path/roughness/grade response floors, grain attenuation distances, bypass response, and bounded process-specific mobilization factors. The policy is carried in each budget and input balance and is included in transported-body identity. A finite `ColluvialSourceClaimLedger` canonicalizes claims from multiple queried parcels and aggregates each source body with exact partition closure; its `ColluvialSourceCapacityLedger` companion can then consume an explicit, non-negative mobilized-inventory capacity per source body, apportion constrained claims by canonical largest-remainder shares, and return unallocated mobilized material to retained inventory with exact bulk and grain-stage closure. Grain-resolved constrained allocations are derived from each claim's exact three-bin spectrum and retain the scalar stage totals; they do not imply a measured source grain inventory. Both are deliberately read-only finite-query audits and never introduce mutable global depletion into random-access queries. Active sink allocations similarly retain exact representative Phase1 receiving-surface/bedrock evidence while leaving downstream sediment placement unresolved.
