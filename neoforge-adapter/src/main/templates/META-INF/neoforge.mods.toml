@@ -20,7 +20,9 @@ paleosurface`, and `/geology glacial` views expose source-budgeted or structural
 secondary overlays; glacial behavior remains opt-in behind explicit ice-history evidence. The
 `/geology greisen` view exposes the Phase 7 evolved-felsic residual-fluid proxy overlay, which is
 not an Sn/W assay or voxel-grade inventory. The `/geology skarn` view is actual-host-only by
-default and exposes the Phase 7 carbonate-contact proof without inventing a host body.
+default and exposes the Phase 7 carbonate-contact proof without inventing a host body. The
+`/geology epithermal` view exposes the Phase 7 shallow magmatic-hydrothermal fluid-path proxy;
+its silica/argillic horizons are not Au/Ag assays or voxel-grade inventories.
 '''
 
 [[dependencies.${mod_id}]]

@@ -18,6 +18,9 @@ import io.github.crunchybubbles.geological.worldgen.OverworldAirFluidPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldBaseTerrainColumnPlan;
 import io.github.crunchybubbles.geological.worldgen.OverworldColumnDebugTrace;
 import io.github.crunchybubbles.geological.worldgen.OverworldDrillCorePlanner;
+import io.github.crunchybubbles.geological.worldgen.OverworldEpithermalColumnPlan;
+import io.github.crunchybubbles.geological.worldgen.OverworldEpithermalInterval;
+import io.github.crunchybubbles.geological.worldgen.OverworldEpithermalPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldExplorationObservation;
 import io.github.crunchybubbles.geological.worldgen.OverworldExplorationObservationPlanner;
 import io.github.crunchybubbles.geological.worldgen.OverworldGeochemicalAnomalyPlanner;
@@ -108,6 +111,8 @@ public final class GeologicalCommands {
                 .then(Commands.literal("glacial").executes(GeologicalCommands::showGlacialHere))
                 .then(Commands.literal("greisen").executes(GeologicalCommands::showGreisenHere))
                 .then(Commands.literal("skarn").executes(GeologicalCommands::showSkarnHere))
+                .then(
+                    Commands.literal("epithermal").executes(GeologicalCommands::showEpithermalHere))
                 .then(
                     Commands.literal("hand-sample")
                         .executes(GeologicalCommands::showHandSampleHere))
@@ -441,6 +446,35 @@ public final class GeologicalCommands {
       return 1;
     } catch (IllegalArgumentException | IllegalStateException exception) {
       source.sendFailure(Component.literal("geology skarn unavailable: " + exception.getMessage()));
+      return 0;
+    }
+  }
+
+  private static int showEpithermalHere(CommandContext<CommandSourceStack> context) {
+    BlockPos position = BlockPos.containing(context.getSource().getPosition());
+    CommandSourceStack source = context.getSource();
+    try {
+      OverworldEpithermalColumnPlan plan =
+          OverworldEpithermalPlanner.from(
+                  planner(source.getLevel(), position.getX(), position.getZ()))
+              .plan(position.getX(), position.getZ());
+      OverworldEpithermalInterval interval = plan.at(position.getY()).orElse(null);
+      String summary =
+          interval == null
+              ? plan.summary()
+                  + " at=("
+                  + position.getX()
+                  + ","
+                  + position.getY()
+                  + ","
+                  + position.getZ()
+                  + ") horizon=none"
+              : plan.summary() + " " + interval.summary();
+      source.sendSuccess(() -> Component.literal(summary), false);
+      return 1;
+    } catch (IllegalArgumentException | IllegalStateException exception) {
+      source.sendFailure(
+          Component.literal("geology epithermal unavailable: " + exception.getMessage()));
       return 0;
     }
   }

@@ -1,0 +1,30 @@
+package io.github.crunchybubbles.geological.cli;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+class EpithermalPacketGeneratorTest {
+  @TempDir Path temporaryDirectory;
+
+  @Test
+  void writesRepeatableShallowHydrothermalEpithermalArtifact() throws Exception {
+    Path first =
+        new EpithermalPacketGenerator(8_675_309L).generate(temporaryDirectory.resolve("a"));
+    Path second =
+        new EpithermalPacketGenerator(8_675_309L).generate(temporaryDirectory.resolve("b"));
+
+    String firstJson = Files.readString(first);
+    assertEquals(firstJson, Files.readString(second));
+    assertTrue(firstJson.contains("phase7_epithermal_shallow_hydrothermal_projection_not_assay"));
+    assertTrue(
+        firstJson.contains("VUGGY_SILICA") || firstJson.contains("CRUSTIFORM_QUARTZ_ADULARIA"));
+    assertTrue(firstJson.contains("\"budgetClosed\": true"));
+    assertTrue(firstJson.contains("\"seamStable\": true"));
+    assertTrue(firstJson.contains("\"FORMED\""));
+  }
+}

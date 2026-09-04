@@ -24,6 +24,7 @@ class GeologicalCommandsTest {
     assertNotNull(geology.getChild("glacial"));
     assertNotNull(geology.getChild("greisen"));
     assertNotNull(geology.getChild("skarn"));
+    assertNotNull(geology.getChild("epithermal"));
     assertNotNull(geology.getChild("hand-sample"));
     assertNotNull(geology.getChild("soil"));
     assertNotNull(geology.getChild("stream-sediment"));

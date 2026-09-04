@@ -120,3 +120,12 @@ tasks.register<JavaExec>("skarn") {
     args("skarn", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase7/skarn").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("epithermal") {
+    group = "verification"
+    description = "Writes the deterministic Phase 7 shallow-hydrothermal epithermal review."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("epithermal", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase7/epithermal").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}

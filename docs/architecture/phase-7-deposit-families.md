@@ -1,6 +1,7 @@
-# Phase 7 deposit families — source-gated greisen projection
+# Phase 7 deposit families — source-gated deposit projections
 
-Status: `phase7-alpha.2` (greisen residual-fluid proxy and explicit skarn host fixture).
+Status: `phase7-alpha.3` (greisen, explicit skarn host fixture, and epithermal shallow-fluid
+projection).
 
 ## Alpha.1 — evolved-felsic greisen proof
 
@@ -61,6 +62,28 @@ actual-host-only barren behavior, and seam equality. `SkarnPacketGeneratorTest` 
 JSON, explicit fixture labeling, default negative proof, formed horizons, budget closure, and seam
 stability.
 
-Epithermal, orogenic-gold, basin/redox, uranium, layered-intrusion, carbonatite/REE,
+## Alpha.3 — shallow epithermal fluid paths
+
+`EpithermalSystemState` derives a bounded Au-Ag proxy from the existing porphyry fluid-phase
+state. A profile requires a porphyry-capable province, a resolved receptive volcanic or country-rock
+host, a magmatic brine/vapor or mixed meteoric pulse inside the existing province-frame envelope,
+a fault/stockwork path, a shallow boiling/cooling/mixing trap, and preserved low-relief ground.
+The pulse phase classifies high-, intermediate-, or low-sulfidation behavior; three contiguous
+silica/argillic/propylitic horizons carry a fixed-point fluid ledger that closes release into loss
+plus deposit allocation. The values are explanatory proxies, not Au-Ag assays or tonnage.
+
+`OverworldEpithermalPlanner` clips the horizons to solid terrain and preserves the same stable
+X-then-Z target-chunk order and adjacent-chunk seam equality used by earlier overlays. The
+read-only `/geology epithermal` command and `epithermal` task expose the state. The task writes
+`atlas-cli/build/phase7/epithermal/epithermal.json` with gate-class counts, formed profiles,
+horizon counts, budget closure, and seam stability. Existing `PHYLLIC_ALTERATION` and
+`PROPYLITIC_ALTERATION` overprints carry the coarse response until a future Phase 2 alteration
+catalog increment adds explicit silica/argillic vocabulary.
+
+`OverworldEpithermalPlannerTest` covers formed shallow-fluid behavior, barren gate retention,
+closed budgets, and seam equality. `EpithermalPacketGeneratorTest` checks byte-repeatable JSON,
+explicit proxy labeling, formed horizons, budget closure, and seam stability.
+
+Orogenic-gold, basin/redox, uranium, layered-intrusion, carbonatite/REE,
 phosphorite/coal/brine, and geothermal families remain separate future Phase 7 slices; they must
 not inherit the greisen proxy or be inferred from a generic catalog lithology.

@@ -36,12 +36,12 @@ view; `secondaryWeathering`, `laterite`, `secondaryPlacers`, `paleosurface`, and
 source-budget or structural proof and adjacent-chunk seam stability in deterministic review
 artifacts.
 
-Phase 7 alpha.2 now adds a source-gated greisen residual-fluid proxy around an evolved felsic pulse
-and an explicit carbonate-contact skarn fixture through `/geology greisen`, `/geology skarn`, and
-the `greisen`/`skarn` review tasks. These quartz-muscovite, tourmaline-proxy, calc-silicate, and
-retrograde horizons are bounded projections rather than Sn/W/Fe/Cu assays or voxel-grade
-inventories; skarn's default planner remains actual-host-only, and artifacts record the closed
-proxy ledgers and adjacent-chunk seam proofs.
+Phase 7 alpha.3 now adds a source-gated greisen residual-fluid proxy around an evolved felsic pulse,
+an explicit carbonate-contact skarn fixture, and a shallow epithermal fluid-path projection through
+`/geology greisen`, `/geology skarn`, `/geology epithermal`, and the matching review tasks. These
+quartz-muscovite, tourmaline-proxy, calc-silicate, retrograde, silica, and argillic horizons are
+bounded projections rather than assays or voxel-grade inventories; skarn's default planner remains
+actual-host-only, and artifacts record closed proxy ledgers and adjacent-chunk seam proofs.
 
 Geological is a causal geology and terrain-generation project for Minecraft Java 1.21.1 on NeoForge 21.1.x. Its selected world preset will eventually own the canonical Overworld, Nether, and End through dimension-specific geological histories rather than add a separate geology dimension.
 
@@ -77,9 +77,10 @@ The checked-in Gradle wrapper is the only prerequisite beyond a Java 21 JDK.
 ./gradlew glacial
 ./gradlew greisen
 ./gradlew skarn
+./gradlew epithermal
 ```
 
-On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, column plans, JSON traces, and measurements are written below `atlas-cli/build/phase1/`; the deterministic material/catalog/reservoir review is written below `atlas-cli/build/phase2/`; the Phase 4 worldgen observation is written below `atlas-cli/build/phase4/worldgen/`; the Phase 5 exploration telemetry is written below `atlas-cli/build/phase5/exploration/`; the Phase 6 secondary-weathering review is written below `atlas-cli/build/phase6/secondary/`, the laterite review below `atlas-cli/build/phase6/laterite/`, the secondary-placer review below `atlas-cli/build/phase6/secondary-placers/`, the paleosurface structural review below `atlas-cli/build/phase6/paleosurface/`, the opt-in glacial review below `atlas-cli/build/phase6/glacial/`, and the Phase 7 greisen review below `atlas-cli/build/phase7/greisen/`.
+On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, column plans, JSON traces, and measurements are written below `atlas-cli/build/phase1/`; the deterministic material/catalog/reservoir review is written below `atlas-cli/build/phase2/`; the Phase 4 worldgen observation is written below `atlas-cli/build/phase4/worldgen/`; the Phase 5 exploration telemetry is written below `atlas-cli/build/phase5/exploration/`; the Phase 6 secondary-weathering review is written below `atlas-cli/build/phase6/secondary/`, the laterite review below `atlas-cli/build/phase6/laterite/`, the secondary-placer review below `atlas-cli/build/phase6/secondary-placers/`, the paleosurface structural review below `atlas-cli/build/phase6/paleosurface/`, the opt-in glacial review below `atlas-cli/build/phase6/glacial/`, the Phase 7 greisen review below `atlas-cli/build/phase7/greisen/`, the skarn review below `atlas-cli/build/phase7/skarn/`, and the epithermal review below `atlas-cli/build/phase7/epithermal/`.
 
 ## Modules
 
@@ -90,7 +91,7 @@ On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, col
   terrain-control sampler, a bounded base-terrain/lithology planner, a chunk writer with an
   injected material-to-block resolver, a total coarse vanilla block palette, and an Overworld
   generator/preset registration plus explicit surface water/air, bounded regolith/surface-clue
-  projection, bounded Phase 6 secondary-weathering, laterite, secondary-placer, paleosurface, and opt-in glacial overlays, the Phase 7 greisen residual-fluid proxy and actual-host-only skarn overlays, read-only `/geology` column/map/section/vertical-section/observation/hand-sample/sampling/anomaly/drill overlays, and the
+  projection, bounded Phase 6 secondary-weathering, laterite, secondary-placer, paleosurface, and opt-in glacial overlays, the Phase 7 greisen residual-fluid proxy, actual-host-only skarn, and shallow epithermal overlays, read-only `/geology` column/map/section/vertical-section/observation/hand-sample/sampling/anomaly/drill overlays, and the
   serial/shuffled/seam benchmark harness, and a bounded per-player discovery notebook/map saved-data
   bridge; dimension-native Nether/End generation is a future
   Phase 8 increment.
