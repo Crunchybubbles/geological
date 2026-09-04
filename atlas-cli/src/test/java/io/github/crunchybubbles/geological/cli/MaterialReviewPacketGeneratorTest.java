@@ -84,6 +84,12 @@ class MaterialReviewPacketGeneratorTest {
     assertTrue(firstJson.contains("\"VAPOR_RICH_SEPARATED\""));
     assertTrue(firstJson.contains("\"sourceMetalFractionsPpm\""));
     assertTrue(firstJson.contains("\"metalDistributions\""));
+    assertTrue(firstJson.contains("\"supergeneCopperState\""));
+    assertTrue(firstJson.contains("\"OXIDIZING_VADOSE_PROFILE\""));
+    assertTrue(firstJson.contains("\"STABLE_PALEO_WATER_TABLE\""));
+    assertTrue(firstJson.contains("\"SUPERGENE_SULFIDE\""));
+    assertTrue(firstJson.contains("\"leachableCopperFixedUnits\""));
+    assertTrue(firstJson.contains("\"retainedHypogeneFixedUnits\""));
     assertTrue(firstJson.contains("\"diagenesisState\""));
     assertTrue(firstJson.contains("\"phase1Geology\""));
     assertTrue(firstJson.contains("\"phase2Material\""));

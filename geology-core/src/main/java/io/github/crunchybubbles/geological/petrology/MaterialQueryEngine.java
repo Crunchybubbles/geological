@@ -14,6 +14,7 @@ import io.github.crunchybubbles.geological.mineral.MineralSystemDecision;
 import io.github.crunchybubbles.geological.mineral.PlacerSystemState;
 import io.github.crunchybubbles.geological.mineral.PorphyryFluidMetalState;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
+import io.github.crunchybubbles.geological.mineral.SupergeneCopperState;
 import io.github.crunchybubbles.geological.mineral.VmsSystemState;
 import io.github.crunchybubbles.geological.model.AgeKey;
 import io.github.crunchybubbles.geological.model.EventType;
@@ -171,6 +172,11 @@ public final class MaterialQueryEngine {
   /** Returns the richer Phase 3 porphyry fluid-phase and metal-distribution state. */
   public PorphyryFluidMetalState porphyryFluidMetalState(Province province) {
     return geology.porphyryFluidMetalState(province);
+  }
+
+  /** Returns the primary-Cu-dependent oxidation and supergene profile state. */
+  public SupergeneCopperState supergeneCopperState(Province province) {
+    return geology.supergeneCopperState(province);
   }
 
   /** Builds a deterministic finite-query audit of source claims across colluvial parcels. */

@@ -16,6 +16,7 @@ import io.github.crunchybubbles.geological.mineral.MineralSystemProofs;
 import io.github.crunchybubbles.geological.mineral.PlacerSystemState;
 import io.github.crunchybubbles.geological.mineral.PorphyryFluidMetalState;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
+import io.github.crunchybubbles.geological.mineral.SupergeneCopperState;
 import io.github.crunchybubbles.geological.mineral.VmsSystemState;
 import io.github.crunchybubbles.geological.model.Point2;
 import io.github.crunchybubbles.geological.model.Point3;
@@ -426,6 +427,97 @@ class MineralSystemProofTest {
     assertTrue(state.metalDistributions().isEmpty());
     assertTrue(state.fluidAt(state.localCenter()).isEmpty());
     assertTrue(state.metalAt(state.localCenter()).isEmpty());
+  }
+
+  @Test
+  void formedPorphyryPublishesGatedSupergeneProfileAndClosedCopperDebit() {
+    GeologyQueryEngine query = Phase0World.create(8_675_309L);
+    Province province = query.atlas().provinceAt(new Point2(0.0, 0.0));
+    SupergeneCopperState state = query.supergeneCopperState(province);
+
+    assertEquals(FormationStatus.FORMED, state.status());
+    assertEquals(province.proofIds().porphyrySystemId(), state.systemId());
+    assertEquals(province.proofIds().porphyryDepositId(), state.primaryDepositId());
+    assertEquals(province.proofIds().weatheringId(), state.weatheringProcessId());
+    assertEquals(
+        SupergeneCopperState.SourceClass.LEACHABLE_PRIMARY_CU_SULFIDE, state.sourceClass());
+    assertEquals(
+        SupergeneCopperState.OxidationClass.OXIDIZING_VADOSE_PROFILE, state.oxidationClass());
+    assertEquals(
+        SupergeneCopperState.WaterTableClass.STABLE_PALEO_WATER_TABLE, state.waterTableClass());
+    assertEquals(SupergeneCopperState.TrapClass.REDUCING_SULFIDE_TRAP, state.trapClass());
+    assertEquals(
+        SupergeneCopperState.PreservationClass.PARTLY_PRESERVED_PROFILE, state.preservationClass());
+    assertEquals(0.8, state.formationAge().ageMa());
+    assertEquals(
+        List.of(
+            SupergeneCopperState.HorizonKind.LEACHED_CAP,
+            SupergeneCopperState.HorizonKind.OXIDIZED_COPPER,
+            SupergeneCopperState.HorizonKind.SUPERGENE_SULFIDE),
+        state.horizons().stream().map(SupergeneCopperState.Horizon::kind).toList());
+
+    Point3 center = state.localCenter();
+    assertTrue(state.contains(center));
+    assertEquals(
+        SupergeneCopperState.HorizonKind.SUPERGENE_SULFIDE,
+        state.zoneAt(center).orElseThrow().kind());
+    assertEquals(
+        SupergeneCopperState.HorizonKind.LEACHED_CAP,
+        state
+            .zoneAt(
+                new Point3(
+                    center.x(), center.y() + 0.45 * state.profileThicknessBlocks(), center.z()))
+            .orElseThrow()
+            .kind());
+    assertEquals(
+        SupergeneCopperState.HorizonKind.OXIDIZED_COPPER,
+        state
+            .zoneAt(
+                new Point3(
+                    center.x(), center.y() + 0.25 * state.profileThicknessBlocks(), center.z()))
+            .orElseThrow()
+            .kind());
+    assertTrue(
+        state
+            .zoneAt(
+                new Point3(
+                    center.x() + 1.1 * state.blanketHalfWidthBlocks(), center.y(), center.z()))
+            .isEmpty());
+    assertEquals(105_000L, state.sourceBudgetFixedUnits());
+    assertEquals(40_000L, state.leachableCopperFixedUnits());
+    assertEquals(24_000L, state.supergeneAllocationFixedUnits());
+    assertEquals(16_000L, state.oxidizedAndDissolvedLossFixedUnits());
+    assertEquals(65_000L, state.retainedHypogeneFixedUnits());
+    assertTrue(state.failedGate().isEmpty());
+  }
+
+  @Test
+  void buriedPorphyryCannotFormSupergeneWithoutExposureOrPreservation() {
+    GeologyQueryEngine query = Phase1World.create(8_675_309L);
+    Province province =
+        Phase1TestSupport.provinceWithGrammar(query, ProvinceGrammar.BURIED_FERTILE_RIFT_TO_ARC);
+    SupergeneCopperState state = query.supergeneCopperState(province);
+
+    assertEquals(FormationStatus.BARREN_SYSTEM, state.status());
+    assertEquals("exposure", state.failedGate().orElseThrow());
+    assertEquals(
+        SupergeneCopperState.PreservationClass.ERODED_OR_BURIED_PROFILE, state.preservationClass());
+    assertTrue(state.horizons().isEmpty());
+    assertEquals(0L, state.sourceBudgetFixedUnits());
+    assertTrue(state.zoneAt(state.localCenter()).isEmpty());
+  }
+
+  @Test
+  void dryProvinceCannotInventAPrimaryCopperSupergeneSource() {
+    GeologyQueryEngine query = Phase1World.create(8_675_309L);
+    Province province =
+        Phase1TestSupport.provinceWithGrammar(query, ProvinceGrammar.BARREN_DRY_RIFT_TO_ARC);
+    SupergeneCopperState state = query.supergeneCopperState(province);
+
+    assertEquals(FormationStatus.BARREN_SYSTEM, state.status());
+    assertEquals("primary_cu_source", state.failedGate().orElseThrow());
+    assertEquals(SupergeneCopperState.SourceClass.NO_PRIMARY_CU_SULFIDE, state.sourceClass());
+    assertEquals(0L, state.supergeneAllocationFixedUnits());
   }
 
   private static MineralSystemDecision formed(

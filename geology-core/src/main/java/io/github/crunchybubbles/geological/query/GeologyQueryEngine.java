@@ -14,6 +14,7 @@ import io.github.crunchybubbles.geological.mineral.MineralSystemProofs;
 import io.github.crunchybubbles.geological.mineral.PlacerSystemState;
 import io.github.crunchybubbles.geological.mineral.PorphyryFluidMetalState;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
+import io.github.crunchybubbles.geological.mineral.SupergeneCopperState;
 import io.github.crunchybubbles.geological.mineral.VmsSystemState;
 import io.github.crunchybubbles.geological.model.AgeKey;
 import io.github.crunchybubbles.geological.model.Bounds2D;
@@ -262,6 +263,11 @@ public final class GeologyQueryEngine {
   /** Returns the richer Phase 3 porphyry fluid-phase and metal-distribution state. */
   public PorphyryFluidMetalState porphyryFluidMetalState(Province province) {
     return mineralProofs.porphyryFluidMetalState(province);
+  }
+
+  /** Returns the primary-Cu-dependent oxidation and supergene profile state. */
+  public SupergeneCopperState supergeneCopperState(Province province) {
+    return mineralProofs.supergeneCopperState(province, atlas.identity());
   }
 
   private ProvinceSpatialIndex spatialIndex(Province province) {

@@ -4,6 +4,7 @@ import io.github.crunchybubbles.geological.atlas.Province;
 import io.github.crunchybubbles.geological.atlas.ProvinceProofIds;
 import io.github.crunchybubbles.geological.atlas.RiftArcGeometry;
 import io.github.crunchybubbles.geological.determinism.StableId;
+import io.github.crunchybubbles.geological.determinism.WorldIdentity;
 import io.github.crunchybubbles.geological.model.AgeKey;
 import io.github.crunchybubbles.geological.model.Bounds2D;
 import io.github.crunchybubbles.geological.model.Point2;
@@ -109,6 +110,20 @@ public final class MineralSystemProofs {
             .findFirst()
             .orElseThrow(() -> new IllegalStateException("porphyry proof is missing"));
     return PorphyryFluidMetalState.proofFor(province, primary);
+  }
+
+  /** Returns the primary-Cu-dependent oxidation, water-table, and supergene profile state. */
+  public SupergeneCopperState supergeneCopperState(Province province, WorldIdentity identity) {
+    if (province == null || identity == null) {
+      throw new IllegalArgumentException("province and world identity are required");
+    }
+    MineralSystemDecision primary =
+        compile(province).stream()
+            .filter(
+                decision -> decision.candidateId().equals(province.proofIds().porphyrySystemId()))
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("porphyry proof is missing"));
+    return SupergeneCopperState.proofFor(province, primary, identity);
   }
 
   private MineralSystemDecision barrenPrimaryPorphyry(Province province) {

@@ -10,6 +10,7 @@ import io.github.crunchybubbles.geological.mineral.LctPegmatiteState;
 import io.github.crunchybubbles.geological.mineral.PlacerSystemState;
 import io.github.crunchybubbles.geological.mineral.PorphyryFluidMetalState;
 import io.github.crunchybubbles.geological.mineral.PorphyrySystemState;
+import io.github.crunchybubbles.geological.mineral.SupergeneCopperState;
 import io.github.crunchybubbles.geological.mineral.VmsSystemState;
 import io.github.crunchybubbles.geological.model.AgeKey;
 import io.github.crunchybubbles.geological.model.Lithology;
@@ -560,6 +561,8 @@ final class MaterialReviewPacketGenerator {
             placerSystemStateJson(query.placerSystemState(province)),
             "porphyryFluidMetalState",
             porphyryFluidMetalStateJson(query.porphyryFluidMetalState(province)),
+            "supergeneCopperState",
+            supergeneCopperStateJson(query.supergeneCopperState(province)),
             "metamorphicPathVocabulary",
             Arrays.stream(MetamorphicPath.values()).map(Enum::name).toList(),
             "referenceProvince",
@@ -2570,6 +2573,76 @@ final class MaterialReviewPacketGenerator {
         state.sourceBudgetFixedUnits(),
         "depositAllocationFixedUnits",
         state.depositAllocationFixedUnits(),
+        "failedGate",
+        state.failedGate().orElse(null));
+  }
+
+  private static Map<String, Object> supergeneCopperStateJson(SupergeneCopperState state) {
+    return JsonWriter.object(
+        "systemId",
+        state.systemId().toString(),
+        "status",
+        state.status().name(),
+        "primaryDepositId",
+        state.primaryDepositId().toString(),
+        "weatheringProcessId",
+        state.weatheringProcessId().toString(),
+        "waterTableId",
+        state.waterTableId().toString(),
+        "formationAgeMa",
+        state.formationAge().ageMa(),
+        "formationAgeOrdinal",
+        state.formationAge().ordinal(),
+        "sourceClass",
+        state.sourceClass().name(),
+        "oxidationClass",
+        state.oxidationClass().name(),
+        "waterTableClass",
+        state.waterTableClass().name(),
+        "trapClass",
+        state.trapClass().name(),
+        "preservationClass",
+        state.preservationClass().name(),
+        "localCenter",
+        pointJson(state.localCenter()),
+        "blanketHalfLengthBlocks",
+        state.blanketHalfLengthBlocks(),
+        "blanketHalfWidthBlocks",
+        state.blanketHalfWidthBlocks(),
+        "profileThicknessBlocks",
+        state.profileThicknessBlocks(),
+        "horizonVocabulary",
+        Arrays.stream(SupergeneCopperState.HorizonKind.values()).map(Enum::name).toList(),
+        "horizons",
+        state.horizons().stream()
+            .map(
+                horizon ->
+                    JsonWriter.object(
+                        "kind",
+                        horizon.kind().name(),
+                        "overprint",
+                        horizon.overprint().name(),
+                        "topDepthFraction",
+                        horizon.topDepthFraction(),
+                        "bottomDepthFraction",
+                        horizon.bottomDepthFraction(),
+                        "maximumRadiusFraction",
+                        horizon.maximumRadiusFraction(),
+                        "allocationFixedUnits",
+                        horizon.allocationFixedUnits(),
+                        "bodyId",
+                        horizon.bodyId().toString()))
+            .toList(),
+        "sourceBudgetFixedUnits",
+        state.sourceBudgetFixedUnits(),
+        "leachableCopperFixedUnits",
+        state.leachableCopperFixedUnits(),
+        "supergeneAllocationFixedUnits",
+        state.supergeneAllocationFixedUnits(),
+        "oxidizedAndDissolvedLossFixedUnits",
+        state.oxidizedAndDissolvedLossFixedUnits(),
+        "retainedHypogeneFixedUnits",
+        state.retainedHypogeneFixedUnits(),
         "failedGate",
         state.failedGate().orElse(null));
   }

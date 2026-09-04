@@ -1,6 +1,6 @@
 # Phase 3 mineral-system increment
 
-Status: seventh Phase 3 architecture-proving slice; all six architecture-proving families are explicit, with porphyry fluid/metal refinement also present and supergene gating still open
+Status: eighth Phase 3 architecture-proving slice; all six architecture-proving families plus the gated porphyry supergene refinement are explicit
 
 ## Alpha.1 — linked porphyry topology
 
@@ -15,10 +15,9 @@ the state cannot invent metal mass.
 
 The state is deliberately an explanatory envelope rather than a block-placement algorithm. Its
 205-block lateral and 160-block vertical extents, zone boundaries, and intensities are proof
-tunables. Voxel-scale veins, empirical grade-tonnage sampling, supergene profiles, and non-
-concentric alteration geometry remain future slices. The state is exposed through both geology and
-material query facades and in the deterministic Phase 2 review packet until a dedicated Phase 3
-packet exists.
+tunables. Voxel-scale veins, empirical grade-tonnage sampling, and non-concentric alteration
+geometry remain future slices. The state is exposed through both geology and material query
+facades and in the deterministic Phase 2 review packet until a dedicated Phase 3 packet exists.
 
 The focused mineral-system tests verify formed and barren outcomes, source/deposit budget bounds,
 intrusion/fluid/stockwork linkage, zone ordering and point classification, failed-gate semantics,
@@ -99,8 +98,25 @@ lineages publish neither fluid pulses nor metal distributions and retain the fai
 Tests cover phase ordering, salinity/temperature/phase behavior, normalized metal closure, zoned
 point queries, source-budget bounds, barren behavior, and deterministic review JSON exposure.
 
+## Alpha.8 — gated porphyry supergene copper profile
+
+`SupergeneCopperState` derives a near-surface oxidation/leaching profile only from an exposed,
+formed primary porphyry. The formed state publishes a stable weathering process and paleo-water-
+table identity, plus contiguous leached-cap, oxidized-Cu, and supergene-sulfide horizons. Its
+fixed-unit debit is bounded by the primary porphyry deposit allocation: 40,000 units are leachable,
+24,000 reach the reducing supergene trap, and 16,000 are oxidized or dissolved; the remaining
+65,000 units stay in the hypogene source. The profile is a normalized process proxy, not an assay
+or an automatic ore layer.
+
+Buried fertile provinces fail the exposure/preservation gate, while dry provinces fail the primary
+Cu source gate. Both publish no horizons or secondary allocation. Point queries respect the
+subhorizontal blanket envelope and each horizon's radial truncation. Tests cover source,
+oxidation, water-table, trap, preservation, profile ordering, point classification, budget
+closure, barren behavior, and deterministic review JSON exposure.
+
 ## Remaining Phase 3 slices
 
-The next bounded slice should add a primary-Cu-dependent oxidation/leaching and supergene blanket
-state with an explicit water-table/preservation gate. Each family must retain barren outcomes,
-explicit source budgets, and deterministic provenance before Minecraft presentation is attempted.
+The architecture-proving families are now represented. Further Phase 3 refinement can improve
+non-concentric topology and empirical/statistical parameter imports, but each new family must
+retain barren outcomes, explicit source budgets, and deterministic provenance before Minecraft
+presentation is attempted.
