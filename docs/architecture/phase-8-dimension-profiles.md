@@ -1,6 +1,6 @@
 # Phase 8 dimension profiles — Nether and End native histories
 
-Status: `phase8-alpha.5` (native Nether/End compilers, progression protection, and cross-dimensional adapter traces).
+Status: `phase8-alpha.7` (native Nether/End compilers, progression protection, adapter traces, and compatibility review).
 
 ## Alpha.1 — Nether thermal cavern boundary
 
@@ -117,8 +117,38 @@ adjacent seam stability. `DimensionWorldgenTracePlannerTest`,
 `DimensionWorldgenTracePacketGeneratorTest`, and the adapter test cover repeatability, forbidden
 process/medium evidence, identity separation, and read-only boundary behavior.
 
+## Alpha.6 — Native NeoForge generator bindings
+
+`GeologicalNetherChunkGenerator` and `GeologicalEndChunkGenerator` register profile-specific
+`NoiseBasedChunkGenerator` codecs and are assigned by the Geological world preset to
+`minecraft:the_nether` and `minecraft:the_end`. The native chunk writer clears each bounded target
+volume before writing the corresponding thermal host/lava/resource or parent/void/regolith/impact
+intervals. Nether and End surface rules and carvers are disabled because their native compilers own
+the three-dimensional cavern or bounded-island geometry. End columns inside protected progression
+slots are left to the platform structure system. The vanilla biome-source/settings codec inputs and
+normal structure manager remain available at the loader boundary.
+
+`GeologicalWorldPresetResourceTest` verifies all three codec registrations and preset assignments;
+`GeologicalNativeBlockPaletteTest` covers every native family and resource mapping. The palette is
+deliberately coarse and vanilla-only: hidden provenance, grade, and process state remain in the
+platform-neutral descriptors.
+
+## Alpha.7 — Cross-dimensional compatibility and lore review
+
+`DimensionCompatibilityReview` evaluates all three frozen profiles together. It proves that profile
+and chunk identities remain distinct for the same seed, that Nether portal-coordinate scaling is
+topology-only and never aliases Overworld geology, that process and fluid contracts match each
+dimension's premise, and that the End progression contract still protects the central arena while
+leaving the void gap available. It also consumes the native traces to require seam and topology
+stability.
+
+The `dimensionCompatibility` task writes
+`atlas-cli/build/phase8/dimension-compatibility/dimension-compatibility.json`, including explicit
+fictional-premise guardrails: Nether behavior is not Earth geology, End behavior is not an asteroid
+claim, biome names do not cause deep materials, and structures remain platform-owned. The artifact
+passes all deterministic checks but marks expert/lore review as still required.
+
 ## Remaining Phase 8 slices
 
-The next bounded increments are production NeoForge Nether/End generator bindings, a cross-dimensional
-compatibility/lore review, and expert sign-off. None of those later slices may weaken the frozen
-dimension profiles or silently reuse Overworld surface assumptions.
+The remaining work is expert/lore sign-off and contributor-world validation. Neither may weaken the
+frozen dimension profiles or silently reuse Overworld surface assumptions.

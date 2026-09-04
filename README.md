@@ -54,7 +54,7 @@ horizons are bounded projections rather than assays or voxel-grade inventories; 
 retain explicit actual-host/source gates, and artifacts record closed proxy ledgers and
 adjacent-chunk seam proofs.
 
-Phase 8 alpha.6 now adds a profile-locked, platform-neutral Nether thermal/magmatic province,
+Phase 8 alpha.7 now adds a profile-locked, platform-neutral Nether thermal/magmatic province,
 3-D cavern compiler, ordered material history, and source-linked quartz, gold, glowstone, and
 ancient-debris prototypes, plus an End parent-body/fragment compiler. It produces bounded
 floor/roof/lava and island/void intervals, optional hanging bridges and impact-melt/regolith
@@ -63,8 +63,9 @@ families, closed ledgers, and adjacent-chunk seam evidence through the `netherTh
 `netherResources`, and `endFragments` review tasks. It also freezes protected portal, dragon-arena,
 gateway, outer-city, and chorus structure slots through `endProgression`. The compilers preserve
 the frozen dimension envelopes and forbidden-process contracts; `dimensionTraces` proves distinct
-cross-dimensional identity and seam evidence, and the selected preset binds custom Nether/End
-generator codecs to their native writers. Compatibility/lore review remains a separate increment.
+cross-dimensional identity and seam evidence, `dimensionCompatibility` records compatibility and
+premise-relative lore guardrails, and the selected preset binds custom Nether/End generator codecs
+to their native writers. Expert/lore review remains a separate increment.
 
 Geological is a causal geology and terrain-generation project for Minecraft Java 1.21.1 on NeoForge 21.1.x. Its selected world preset will eventually own the canonical Overworld, Nether, and End through dimension-specific geological histories rather than add a separate geology dimension.
 
@@ -113,6 +114,7 @@ The checked-in Gradle wrapper is the only prerequisite beyond a Java 21 JDK.
 ./gradlew endFragments
 ./gradlew endProgression
 ./gradlew dimensionTraces
+./gradlew dimensionCompatibility
 ```
 
 The Phase 8 Nether thermal review is written below
@@ -120,7 +122,8 @@ The Phase 8 Nether thermal review is written below
 `atlas-cli/build/phase8/nether-resources/`, and the End fragment review below
 `atlas-cli/build/phase8/end-fragments/`, and the End progression review below
 `atlas-cli/build/phase8/end-progression/`, and the cross-dimensional adapter trace below
-`atlas-cli/build/phase8/dimension-traces/`.
+`atlas-cli/build/phase8/dimension-traces/`, and the compatibility review below
+`atlas-cli/build/phase8/dimension-compatibility/`.
 
 On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, column plans, JSON traces, and measurements are written below `atlas-cli/build/phase1/`; the deterministic material/catalog/reservoir review is written below `atlas-cli/build/phase2/`; the Phase 4 worldgen observation is written below `atlas-cli/build/phase4/worldgen/`; the Phase 5 exploration telemetry is written below `atlas-cli/build/phase5/exploration/`; the Phase 6 secondary-weathering review is written below `atlas-cli/build/phase6/secondary/`, the laterite review below `atlas-cli/build/phase6/laterite/`, the secondary-placer review below `atlas-cli/build/phase6/secondary-placers/`, the paleosurface structural review below `atlas-cli/build/phase6/paleosurface/`, the opt-in glacial review below `atlas-cli/build/phase6/glacial/`, the Phase 7 greisen review below `atlas-cli/build/phase7/greisen/`, the skarn review below `atlas-cli/build/phase7/skarn/`, the epithermal review below `atlas-cli/build/phase7/epithermal/`, the orogenic-gold review below `atlas-cli/build/phase7/orogenic-gold/`, the basin/redox review below `atlas-cli/build/phase7/basin-hydrothermal/`, the uranium review below `atlas-cli/build/phase7/uranium/`, and the layered-intrusion review below `atlas-cli/build/phase7/layered-intrusion/`.
 

@@ -237,3 +237,12 @@ tasks.register<JavaExec>("dimensionTraces") {
     args("dimension-traces", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase8/dimension-traces").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("dimensionCompatibility") {
+    group = "verification"
+    description = "Writes cross-dimensional compatibility and premise-relative lore review evidence."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("dimension-compatibility", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase8/dimension-compatibility").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}
