@@ -30,6 +30,10 @@ public final class AtlasCli {
         Path report = new MaterialReviewPacketGenerator(seed).generate(output);
         System.out.println("Wrote Phase 2 material review to " + report);
       }
+      case "worldgen-benchmark" -> {
+        Path report = new WorldgenBenchmarkPacketGenerator(seed).generate(output);
+        System.out.println("Wrote Phase 4 worldgen benchmark to " + report);
+      }
       default -> throw new IllegalArgumentException("Unknown command: " + command);
     }
   }
@@ -57,6 +61,6 @@ public final class AtlasCli {
 
   private static void printUsage() {
     System.out.println(
-        "Usage: atlas-cli <generate|measure|materials> [--seed <long>] [--output <directory>]");
+        "Usage: atlas-cli <generate|measure|materials|worldgen-benchmark> [--seed <long>] [--output <directory>]");
   }
 }

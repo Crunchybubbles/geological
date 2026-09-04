@@ -2,8 +2,9 @@
 
 Status: completed platform-neutral identity increment (`phase4-alpha.2`) plus loader adapter lock,
 chunk-writer, vanilla-palette, Overworld generator/preset, explicit air/surface-water, bounded
-regolith/surface-clue, read-only debug-command, and bounded map/section-overlay slices
-(`phase4-loader-alpha.1`–`phase4-loader-alpha.8`).
+regolith/surface-clue, read-only debug-command, bounded map/section-overlay, and
+generation-order/seam/server-observation slices
+(`phase4-loader-alpha.1`–`phase4-loader-alpha.9`).
 
 `DimensionGeologyProfile` freezes the shared contract that a future Minecraft adapter will consume
 for `minecraft:overworld`, `minecraft:the_nether`, and `minecraft:the_end`. Each profile carries a
@@ -69,6 +70,13 @@ weathering, slope, flow, and channel-distance values. `/geology map <radius>` an
 `/geology section <x|z> <length>` add bounded deterministic histogram overlays over the same
 column traces; non-Overworld commands fail without doing geological work.
 
+`OverworldGenerationBenchmark` exercises the same immutable plans for all 256 target columns in
+stable and seeded-shuffled order, compares both 16-column neighboring chunk seams, and repeats a
+bounded warm run. Its invariant booleans are covered by deterministic tests; the CLI task
+`benchmarkWorldgen` writes the current Java/OS/processor and cold/warm timing observations to
+`atlas-cli/build/phase4/worldgen/worldgen-benchmark.json` without treating machine-dependent
+timings as a correctness gate.
+
 `WorldgenSnapshot` freezes the model, scientific, configuration, presentation, and scale identity
 that a generation worker may read. `WorldgenExecutionContext` accepts that snapshot, one authorized
 stage, and the executor supplied by the platform callback; it never creates an executor or exposes a
@@ -76,6 +84,7 @@ live server/world handle. Non-writing stages and mismatched snapshots fail befor
 writable work still has to name the authorized target chunk. The review packet records the snapshot
 digests and the `stage_supplied_only`/`liveServerAccess=forbidden` policy.
 
-The next Phase 4 increment should add compatibility/benchmark coverage for shuffled generation,
-structures, and other terrain authorities while preserving the plan's clipping and deterministic
-seam tests. Dimension-native Nether/End generators remain separate slices.
+Phase 4's required implementation slices are complete: the selected preset has a playable
+Overworld hook, frozen future-dimension identities, read-only provenance overlays, and
+generation-order/seam/server observation evidence. Dimension-native Nether/End generators remain
+separate Phase 8 slices.

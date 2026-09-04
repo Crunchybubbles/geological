@@ -81,6 +81,12 @@ tasks.register("measureAtlas") {
     dependsOn(":atlas-cli:measureAtlas")
 }
 
+tasks.register("benchmarkWorldgen") {
+    group = "verification"
+    description = "Runs the Phase 4 Overworld generation-order, seam, and server observation harness."
+    dependsOn(":atlas-cli:benchmarkWorldgen")
+}
+
 // Serialize the formatter's isolated workers across modules; concurrent Windows clean builds can
 // otherwise race while loading google-java-format's provisioned classes.
 project(":atlas-cli").tasks.matching { it.name.startsWith("spotless") }.configureEach {

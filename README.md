@@ -16,8 +16,8 @@ and section overlays; dimension-native Nether/End generators remain future slice
 
 See [implementation-status.md](docs/architecture/implementation-status.md) for the roadmap-aligned
 remaining estimate by phase. Phase 3 redistribution/statistical review remains an external sign-off
-item; the next engineering slice is compatibility/benchmark coverage around the bounded
-base-terrain/lithology writer and debug overlays against the frozen Phase 4 contract.
+item; the Phase 4 required implementation slices are complete, with the remaining work moving to
+the exploration and dimension-native phases described in the status table.
 The bounded non-concentric porphyry footprint is implemented.
 
 Geological is a causal geology and terrain-generation project for Minecraft Java 1.21.1 on NeoForge 21.1.x. Its selected world preset will eventually own the canonical Overworld, Nether, and End through dimension-specific geological histories rather than add a separate geology dimension.
@@ -45,9 +45,10 @@ The checked-in Gradle wrapper is the only prerequisite beyond a Java 21 JDK.
 ./gradlew :neoforge-adapter:test
 ./gradlew generateExampleAtlas
 ./gradlew measureAtlas
+./gradlew benchmarkWorldgen
 ```
 
-On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, column plans, JSON traces, and measurements are written below `atlas-cli/build/phase1/`; the deterministic material/catalog/reservoir review is written below `atlas-cli/build/phase2/`.
+On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, column plans, JSON traces, and measurements are written below `atlas-cli/build/phase1/`; the deterministic material/catalog/reservoir review is written below `atlas-cli/build/phase2/`; the Phase 4 worldgen observation is written below `atlas-cli/build/phase4/worldgen/`.
 
 ## Modules
 
@@ -58,9 +59,8 @@ On Windows, use `gradlew.bat` in place of `./gradlew`. Maps, cross-sections, col
   terrain-control sampler, a bounded base-terrain/lithology planner, a chunk writer with an
   injected material-to-block resolver, a total coarse vanilla block palette, and an Overworld
   generator/preset registration plus explicit surface water/air, bounded regolith/surface-clue
-  projection, and read-only `/geology` column traces; map/section overlays and dimension-native
-  Nether/End generation
-  are future increments.
+  projection, read-only `/geology` column/map/section overlays, and the serial/shuffled/seam
+  benchmark harness; dimension-native Nether/End generation is a future Phase 8 increment.
 
 See [the Phase 0 architecture](docs/architecture/phase-0-atlas.md), [Phase 1 query-core increment](docs/architecture/phase-1-query-core.md), [Phase 2 material-state increment](docs/architecture/phase-2-material-state.md), [registry authoring contract](docs/architecture/registry-authoring.md), [reproducibility contract](docs/architecture/reproducibility.md), and [toolchain policy](docs/development/toolchain.md) before extending the model.
 

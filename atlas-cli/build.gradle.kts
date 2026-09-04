@@ -39,3 +39,12 @@ tasks.register<JavaExec>("measureAtlas") {
     args("measure", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase1/measurements").get().asFile.absolutePath)
     jvmArgs("-Djava.awt.headless=true")
 }
+
+tasks.register<JavaExec>("benchmarkWorldgen") {
+    group = "verification"
+    description = "Measures deterministic Overworld generation order, seams, and server runtime observations."
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = application.mainClass
+    args("worldgen-benchmark", "--seed", "8675309", "--output", layout.buildDirectory.dir("phase4/worldgen").get().asFile.absolutePath)
+    jvmArgs("-Djava.awt.headless=true")
+}
